@@ -401,3 +401,32 @@ FodyWeavers.xsd
 
 # VSCode settings
 .vscode/
+
+.env
+
+# Backend
+/backend/ServiPuntos.Core/bin/
+/backend/ServiPuntos.Core/obj/
+/backend/ServiPuntos.API/bin/
+/backend/ServiPuntos.API/obj/
+/backend/ServiPuntos.Infrastructure/bin/
+/backend/ServiPuntos.Infrastructure/obj/
+/backend/ServiPuntos.Tests/bin/
+/backend/ServiPuntos.Tests/obj/
+
+# Mobile (MAUI)
+/mobile/ServiPuntos.Mobile/bin/
+/mobile/ServiPuntos.Mobile/obj/
+/mobile/ServiPuntos.Mobile/Platforms/Android/bin/
+/mobile/ServiPuntos.Mobile/Platforms/Android/obj/
+/mobile/ServiPuntos.Mobile/Platforms/iOS/bin/
+/mobile/ServiPuntos.Mobile/Platforms/iOS/obj/
+/mobile/ServiPuntos.Mobile/Platforms/MacCatalyst/bin/
+/mobile/ServiPuntos.Mobile/Platforms/MacCatalyst/obj/
+/mobile/ServiPuntos.Mobile/Platforms/Windows/bin/
+/mobile/ServiPuntos.Mobile/Platforms/Windows/obj/
+
+# Frontend Web
+/frontend-web/node_modules/
+/frontend-web/dist/
+/frontend-web/.env
