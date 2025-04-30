@@ -28,7 +28,7 @@ Este repositorio contiene varios subproyectos. Cada subproyecto tiene su propio 
 
 ## 💡 Consejos para desarrollo en VS Code
 
-Si usás Visual Studio Code como entorno de desarrollo, te recomendamos leer:
+Si usás Visual Studio Code y *no Visual Studio* como entorno de desarrollo, te recomendamos leer:
 
 👉 [`docs/dev/setup/macos/vscode-netcore.md`](docs/dev/setup/macos/vscode-netcore.md)
 
