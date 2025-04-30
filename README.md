@@ -26,6 +26,14 @@ Este repositorio contiene varios subproyectos. Cada subproyecto tiene su propio 
 
 > 📢 Importante: Antes de iniciar cualquier componente, revisá el README correspondiente para asegurarte de seguir los pasos específicos.
 
+## 💡 Consejos para desarrollo en VS Code
+
+Si usás Visual Studio Code como entorno de desarrollo, te recomendamos leer:
+
+👉 [`docs/dev/setup/macos/vscode-netcore.md`](docs/dev/setup/macos/vscode-netcore.md)
+
+Allí encontrarás tips sobre cómo configurar `tasks.json`, usar `dotnet test --watch`, habilitar hot-reload, depurar y más.
+
 ## 🚀 Cómo comenzar
 
 ### 1. Requisitos generales
