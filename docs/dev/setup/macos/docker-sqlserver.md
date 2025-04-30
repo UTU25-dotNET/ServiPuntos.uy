@@ -10,6 +10,7 @@ Este documento explica cómo levantar un contenedor de **SQL Server 2022** en **
 - Tener [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado y corriendo.
 - Tener [Visual Studio Code](https://code.visualstudio.com/) instalado.
 - Instalar en VS Code la extensión "**SQL Server (mssql)**" (publicada por Microsoft).
+> 🧠 *Nota:* SSMS (SQL Server Management Studio) no está disponible en Mac, por lo que esta alternativa es ideal para desarrollo local.
 
 ---
 
