@@ -6,6 +6,9 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+//builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<UsuarioService>();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
