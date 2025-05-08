@@ -1,47 +1,42 @@
-using ServiPuntos.Core.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using ServiPuntos.Infrastructure.Data;
+using ServiPuntos.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+// 1. Registrar los DbContexts para multi-tenant
+builder.Services.AddDbContext<TenantConfigurationContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<ServiPuntosDbContext>((sp, options) =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// 2. Registrar el proveedor de tenant y HttpContextAccessor
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ITenantProvider, TenantProvider>();
+
+// 3. Registrar tus servicios y controladores
 builder.Services.AddOpenApi();
+builder.Services.AddScoped<UsuarioService>();
+builder.Services.AddControllers();        // <- necesario para MapControllers()
 
 var app = builder.Build();
 
-builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
-builder.Services.AddScoped<UsuarioService>();
-builder.Services.AddScoped<ITenantService, TenantService>();
-
+// 4. Pipeline de middlewares
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
+// Middleware de resolución de tenant
+app.UseMiddleware<ServiPuntos.API.Middleware.TenantResolutionMiddleware>();
+
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+// 5. Mapear controladores y endpoints
+app.MapControllers();
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
