@@ -7,7 +7,7 @@
     Task DeleteUsuarioAsync(Guid id);
 
     Task<Usuario?> GetUsuarioByTenantAsync(Guid tenantId, Guid idUsuario);
-    Task<IEnumerable<Usuario>> GetAllUsuariosByTenantAsync(Guid tenantId);
+    Task<IEnumerable<Usuario>> GetAllUsuariosByTenantAsync();
     Task AddUsuarioByTenantAsync(Guid tenantId, Usuario usuario);
     Task UpdateUsuarioByTenantAsync(Guid tenantId, Usuario usuario);
     Task DeleteUsuarioByTenantAsync(Guid tenantId, Guid idUsuario);

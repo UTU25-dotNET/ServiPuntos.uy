@@ -1,3 +1,5 @@
+using ServiPuntos.Core.Interfaces;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -6,8 +8,9 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-//builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<UsuarioService>();
+builder.Services.AddScoped<ITenantService, TenantService>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiPuntos.Core\ServiPuntos.Core.csproj" />
+    <ProjectReference Include="..\ServiPuntos.Application\ServiPuntos.Application.csproj" />
   </ItemGroup>
 
 </Project>
