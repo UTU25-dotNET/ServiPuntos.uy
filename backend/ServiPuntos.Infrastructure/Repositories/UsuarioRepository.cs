@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ServiPuntos.Core.Interfaces;
+using ServiPuntos.Infrastructure.Data;
+
 public class UsuarioRepository : IUsuarioRepository
 {
     private readonly ServiPuntosDbContext _dbContext;
@@ -8,7 +10,6 @@ public class UsuarioRepository : IUsuarioRepository
     {
         _dbContext = context;
     }
-
 
     Task<Usuario?> GetAsync(Guid idUsuario)
         => _dbContext.Usuarios

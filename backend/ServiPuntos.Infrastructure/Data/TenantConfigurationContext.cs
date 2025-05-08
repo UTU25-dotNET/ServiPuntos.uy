@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using ServiPuntos.Infrastructure.Entities;
 
 namespace ServiPuntos.Infrastructure.Data
 {
@@ -15,7 +14,7 @@ namespace ServiPuntos.Infrastructure.Data
             modelBuilder.Entity<Tenant>()
                 .HasKey(t => t.Id);
             modelBuilder.Entity<Tenant>()
-                .HasIndex(t => t.Name)
+                .HasIndex(t => t.Nombre)
                 .IsUnique();
         }
     }
