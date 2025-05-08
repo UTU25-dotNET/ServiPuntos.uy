@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 
 public class ServiPuntosDbContext : DbContext
 {
+    public DbSet<Tenant> Tenants => Set<Tenant>();
+
     public DbSet<Usuario> Usuarios => Set<Usuario>();
 
     public ServiPuntosDbContext(DbContextOptions<ServiPuntosDbContext> options)

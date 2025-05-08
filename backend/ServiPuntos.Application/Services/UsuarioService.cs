@@ -1,68 +1,65 @@
-﻿public class UsuarioService : IUsuarioService
+﻿using ServiPuntos.Application.DTOs;
+
+public class UsuarioService : IUsuarioService
 {
-    private readonly IUsuarioRepository _usuarioRepository;
+    private readonly IUsuarioRepository _iUsuarioRepository;
 
-    public UsuarioService(IUsuarioRepository usuarioRepository)
+    private readonly ITenantResolver _iTenantResolver;
+
+    public UsuarioService(IUsuarioRepository usuarioRepository, ITenantResolver tenantResolver)
     {
-        _usuarioRepository = usuarioRepository;
+        _iUsuarioRepository = usuarioRepository;
+        _iTenantResolver = tenantResolver;
     }
 
-    public async Task<UsuarioDto> GetUsuarioByIdAsync(int id)
+    public async Task<Usuario?> GetUsuarioByIdAsync(Guid idUsuario)
     {
-        var usuario = await _usuarioRepository.GetByIdAsync(id);
-        if (usuario == null)
-        {
-            return null;
-        }
-
-        // Lógica de negocio adicional
-        return new UsuarioDto
-        {
-            Id = usuario.Id,
-            Nombre = usuario.Nombre,
-            Email = usuario.Email
-        };
+        return await _iUsuarioRepository.GetAsync(idUsuario);
+    }
+    /*public async Task<IEnumerable<Usuario>> GetAllUsuariosAsync()
+    {
+        return await _iUsuarioRepository.GetAllAsync();
+    }*/
+    public async Task AddUsuarioAsync(Usuario usuario)
+    {
+        var tenantId = _iTenantResolver.GetCurrentTenantId();
+        await _iUsuarioRepository.AddAsync(tenantId, usuario);
+    }
+    public async Task UpdateUsuarioAsync(Usuario usuario)
+    {
+        var tenantId = _iTenantResolver.GetCurrentTenantId();
+        await _iUsuarioRepository.UpdateAsync(tenantId, usuario);
+    }
+    public async Task DeleteUsuarioAsync(Guid idUsuario)
+    {
+        var tenantId = _iTenantResolver.GetCurrentTenantId();
+        await _iUsuarioRepository.DeleteAsync(tenantId, idUsuario);
+    }
+    // Tenant como parametro
+    public async Task AddUsuarioByTenantAsync(Guid tenantId, Usuario usuario)
+    {
+        await _iUsuarioRepository.AddAsync(tenantId, usuario);
+    }
+    public async Task UpdateUsuarioByTenantAsync(Guid tenantId, Usuario usuario)
+    {
+        await _iUsuarioRepository.UpdateAsync(tenantId, usuario);
+    }
+    public async Task DeleteUsuarioByTenantAsync(Guid tenantId, Guid idUsuario)
+    {
+        await _iUsuarioRepository.DeleteAsync(tenantId, idUsuario);
+    }
+    public async Task<Usuario?> GetUsuarioByTenantAsync(Guid tenantId, Guid idUsuario)
+    {
+        return await _iUsuarioRepository.GetByTenantAsync(tenantId, idUsuario);
     }
 
-    public async Task<IEnumerable<UsuarioDto>> GetAllUsuariosAsync()
+    // Filtrar usuarios por tenant
+    public async Task<IEnumerable<Usuario>> GetAllUsuariosByTenantAsync()
     {
-        var usuarios = await _usuarioRepository.GetAllAsync();
-        return usuarios.Select(usuario => new UsuarioDto
-        {
-            Id = usuario.Id,
-            Nombre = usuario.Nombre,
-            Email = usuario.Email
-        });
+        var tenantId = _iTenantResolver.GetCurrentTenantId();
+
+        return await _iUsuarioRepository.GetAllByTenantAsync(tenantId);
+
     }
-
-    public async Task AddUsuarioAsync(UsuarioDto usuarioDto)
-    {
-        var usuario = new Usuario
-        {
-            Nombre = usuarioDto.Nombre,
-            Email = usuarioDto.Email
-        };
-
-        // Lógica de negocio adicional antes de guardar
-        await _usuarioRepository.AddAsync(usuario);
-    }
-
-    public async Task UpdateUsuarioAsync(UsuarioDto usuarioDto)
-    {
-        var usuario = new Usuario
-        {
-            Id = usuarioDto.Id,
-            Nombre = usuarioDto.Nombre,
-            Email = usuarioDto.Email
-        };
-
-        // Lógica de negocio adicional antes de actualizar
-        await _usuarioRepository.UpdateAsync(usuario);
-    }
-
-    public async Task DeleteUsuarioAsync(int id)
-    {
-        // Lógica de negocio adicional antes de eliminar
-        await _usuarioRepository.DeleteAsync(id);
-    }
+  
 }
