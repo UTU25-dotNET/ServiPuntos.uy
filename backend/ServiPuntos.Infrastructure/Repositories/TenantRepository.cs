@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ServiPuntos.Core.Interfaces;
+using ServiPuntos.Infrastructure.Data;
 
 namespace ServiPuntos.Infrastructure.Repositories
 {

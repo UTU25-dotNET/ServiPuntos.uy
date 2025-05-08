@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using ServiPuntos.Core.Entities;
-using ServiPuntos.Infrastructure.Services;
+using ServiPuntos.Core.Interfaces;
 
 namespace ServiPuntos.Infrastructure.Data
 {
@@ -18,6 +17,7 @@ namespace ServiPuntos.Infrastructure.Data
         }
 
         public DbSet<Usuario> Usuarios => Set<Usuario>();
+        public DbSet<Tenant> Tenants => Set<Tenant>();
         // …añade aquí todos tus DbSet que llevan TenantId
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

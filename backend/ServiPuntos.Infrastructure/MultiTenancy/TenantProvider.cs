@@ -1,9 +1,9 @@
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using ServiPuntos.Infrastructure.Data;
-using ServiPuntos.Core.Entities;
+using ServiPuntos.Core.Interfaces;
 
-namespace ServiPuntos.Infrastructure.Services
+namespace ServiPuntos.Infrastructure.MultiTenancy
 {
     public class TenantProvider : ITenantProvider
     {
@@ -21,7 +21,7 @@ namespace ServiPuntos.Infrastructure.Services
             get
             {
                 var tenantName = _http.HttpContext.Request.Headers["X-Tenant-Name"].FirstOrDefault();
-                return _config.Tenants.SingleOrDefault(t => t.Name == tenantName);
+                return _config.Tenants.SingleOrDefault(t => t.Nombre == tenantName);
             }
         }
     }
