@@ -1,41 +1,36 @@
 using Microsoft.EntityFrameworkCore;
 using ServiPuntos.Infrastructure.Data;
-using ServiPuntos.Core.Interfaces;                // <- para ITenantProvider, ITenantResolver, ITenantContext
-using ServiPuntos.API.Middleware;
-using ServiPuntos.Infrastructure.MultiTenancy;                // <- para TenantResolutionMiddleware y TenantMiddleware
-
+using ServiPuntos.Infrastructure.MultiTenancy;
+using ServiPuntos.Core.Interfaces;
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Registrar los DbContexts para multi-tenant
 builder.Services.AddDbContext<TenantConfigurationContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 builder.Services.AddDbContext<ServiPuntosDbContext>((sp, options) =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 2. Registrar el proveedor de tenant, resolver y tenant context
+// 2. Registrar el proveedor de tenant y HttpContextAccessor
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<ITenantProvider, TenantProvider>();
-builder.Services.AddScoped<ITenantResolver, TenantResolver>();    // <- traduce X-Tenant-Name a Guid
-builder.Services.AddScoped<ITenantContext, TenantContext>();      // <- almacena el TenantId
+//builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 
 // 3. Registrar tus servicios y controladores
 builder.Services.AddOpenApi();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
-builder.Services.AddControllers();
+builder.Services.AddControllers();        // <- necesario para MapControllers()
 
 var app = builder.Build();
 
 // 4. Pipeline de middlewares
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
-// Extrae el nombre del subdominio/host y lo pone en X-Tenant-Name
-app.UseMiddleware<TenantResolutionMiddleware>();
-
-// Valida ese nombre, obtiene el Guid y lo guarda en tenantContext.TenantId
-app.UseMiddleware<TenantMiddleware>();
+// Middleware de resolución de tenant
+app.UseMiddleware<ServiPuntos.API.Middleware.TenantResolutionMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
@@ -45,3 +40,4 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+

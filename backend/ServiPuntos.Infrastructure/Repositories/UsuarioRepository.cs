@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Data;
-
 public class UsuarioRepository : IUsuarioRepository
 {
     private readonly ServiPuntosDbContext _dbContext;
@@ -11,16 +10,16 @@ public class UsuarioRepository : IUsuarioRepository
         _dbContext = context;
     }
 
-    Task<Usuario?> GetAsync(Guid idUsuario)
+    public Task<Usuario?> GetAsync(Guid idUsuario)
         => _dbContext.Usuarios
             .FirstOrDefaultAsync(u => u.Id == idUsuario);
-    Task AddAsync(Usuario usuario)
+    public Task AddAsync(Usuario usuario)
     {
         _dbContext.Usuarios.Add(usuario);
         return _dbContext.SaveChangesAsync();
     }
 
-    Task UpdateAsync(Usuario usuario)
+    public Task UpdateAsync(Usuario usuario)
     {
         _dbContext.Usuarios.Update(usuario);
         return _dbContext.SaveChangesAsync();
@@ -28,6 +27,13 @@ public class UsuarioRepository : IUsuarioRepository
 
     public async Task DeleteAsync(Guid idUsuario)
     {
+        var usuario = await _dbContext.Usuarios
+            .FirstOrDefaultAsync(u => u.Id == idUsuario);
+        if (usuario != null)
+        {
+            _dbContext.Usuarios.Remove(usuario);
+            await _dbContext.SaveChangesAsync();
+        }
 
     }
 
