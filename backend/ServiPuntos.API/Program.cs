@@ -2,23 +2,33 @@ using Microsoft.EntityFrameworkCore;
 using ServiPuntos.Infrastructure.Data;
 using ServiPuntos.Infrastructure.MultiTenancy;
 using ServiPuntos.Core.Interfaces;
+using ServiPuntos.Infrastructure.Repositories;
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Registrar los DbContexts para multi-tenant
+// Add services to the container.
+builder.Services.AddControllersWithViews();
+//builder.Services.AddScoped<IHttpContextAccessor, HttpContextAccessor>();
+
+builder.Services.AddScoped<ITenantService, TenantService>();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+//builder.Services.AddScoped<IUbicacionService, UbicacionService>();
+builder.Services.AddScoped<ITenantRepository, TenantRepository>();
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+//builder.Services.AddScoped<IUbicacionRepository, UbicacionRepository>();
+
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddScoped<ITenantProvider, TenantProvider>();
+builder.Services.AddScoped<ITenantResolver, TenantResolver>();
+builder.Services.AddScoped<ITenantContext, TenantContext>();
+
+// Configuramos la conexion a la base de datos
 builder.Services.AddDbContext<TenantConfigurationContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddDbContext<ServiPuntosDbContext>((sp, options) =>
+builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 2. Registrar el proveedor de tenant y HttpContextAccessor
-builder.Services.AddHttpContextAccessor();
-//builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 
-// 3. Registrar tus servicios y controladores
-builder.Services.AddOpenApi();
-builder.Services.AddScoped<IUsuarioService, UsuarioService>();
-builder.Services.AddControllers();        // <- necesario para MapControllers()
 
 var app = builder.Build();
 
