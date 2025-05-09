@@ -1,9 +1,7 @@
-using System.Linq;
-using Microsoft.AspNetCore.Http;
+﻿/*using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Data;
-using ServiPuntos.Core.Entities;
 
-namespace ServiPuntos.Infrastructure.Services
+namespace ServiPuntos.Infrastructure.MultiTenancy
 {
     public class TenantProvider : ITenantProvider
     {
@@ -25,4 +23,4 @@ namespace ServiPuntos.Infrastructure.Services
             }
         }
     }
-}
+}*/

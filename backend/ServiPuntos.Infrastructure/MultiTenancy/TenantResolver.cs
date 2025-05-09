@@ -1,4 +1,4 @@
-﻿using ServiPuntos.Core.Interfaces;
+﻿/*using ServiPuntos.Core.Interfaces;
 using System.Security.Claims;
 
 namespace ServiPuntos.Infrastructure.MultiTenancy
@@ -22,4 +22,4 @@ namespace ServiPuntos.Infrastructure.MultiTenancy
             return tenantId;
         }
     }
-}
+}*/
