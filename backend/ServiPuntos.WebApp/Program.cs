@@ -1,57 +1,93 @@
 using Microsoft.EntityFrameworkCore;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Data;
+using ServiPuntos.Infrastructure.Middleware;
 using ServiPuntos.Infrastructure.MultiTenancy;
 using ServiPuntos.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// -------------------------
+// Configuración de servicios
+// -------------------------
+
+// MVC (Controllers + Views)
 builder.Services.AddControllersWithViews();
-//builder.Services.AddScoped<IHttpContextAccessor, HttpContextAccessor>();
+
+// Contextos de base de datos
+builder.Services.AddDbContext<TenantConfigurationContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Repositorios y servicios de negocio
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 
 builder.Services.AddScoped<ITenantService, TenantService>();
-builder.Services.AddScoped<IUsuarioService, UsuarioService>();
-//builder.Services.AddScoped<IUbicacionService, UbicacionService>();
 builder.Services.AddScoped<ITenantRepository, TenantRepository>();
-builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
-//builder.Services.AddScoped<IUbicacionRepository, UbicacionRepository>();
 
+// Multi-tenancy
 builder.Services.AddHttpContextAccessor();
-
 builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 builder.Services.AddScoped<ITenantResolver, TenantResolver>();
 builder.Services.AddScoped<ITenantContext, TenantContext>();
 
-// Configuramos la conexion a la base de datos
-builder.Services.AddDbContext<TenantConfigurationContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Autenticación y Autorización con Cookies
+builder.Services.AddAuthentication("Cookies")
+    .AddCookie("Cookies", options =>
+    {
+        options.LoginPath = "/Account/Login";   // Ruta del login
+        options.AccessDeniedPath = "/Account/AccessDenied";   // Ruta de acceso denegado
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // Tiempo de expiración
+    });
+
+builder.Services.AddAuthorization();
+
+
+// -------------------------
+// Construcción de la app
+// -------------------------
 
 var app = builder.Build();
 
+// -------------------------
+// Configuración de middlewares
+// -------------------------
 
-
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+// Configuración de Swagger (opcional, para desarrollo)
+/*if (app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-}
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}*/
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+// Asegurarse de que el enrutamiento esté configurado antes de autenticación
 app.UseRouting();
 
+// Middleware de Autenticación y Autorización
+
+// 1. Autenticación
+app.UseAuthentication();// Asegúrate de que se ejecute antes de TenantMiddleware
+
+// 2. TenantMiddleware (después de autenticación, pero ANTES de MapControllerRoute)
+app.UseMiddleware<TenantMiddleware>();
+
+// 3. Autorización
 app.UseAuthorization();
 
-app.MapStaticAssets();
+// -------------------------
+// Ruteo
+// -------------------------
 
+// Configuración de la ruta por defecto
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
+    pattern: "{controller=Account}/{action=Login}/{id?}");
 
 
 app.Run();
