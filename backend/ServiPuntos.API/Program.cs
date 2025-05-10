@@ -3,6 +3,7 @@ using ServiPuntos.Infrastructure.Data;
 using ServiPuntos.Infrastructure.MultiTenancy;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Repositories;
+using ServiPuntos.Infrastructure.Middleware;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -40,7 +41,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // Middleware de resolución de tenant
-app.UseMiddleware<ServiPuntos.API.Middleware.TenantResolutionMiddleware>();
+app.UseMiddleware<TenantMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
