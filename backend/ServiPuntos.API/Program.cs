@@ -33,7 +33,7 @@ builder.Services.AddAuthentication(options =>
 .AddCookie(options => // Configuración de autenticación por cookies
 {
     options.LoginPath = "/api/auth/signin"; // Ruta para redirección cuando se requiere autenticación
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(20); // Tiempo de expiración de la cookie
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(120); // Tiempo de expiración de la cookie
 })
 .AddGoogle(options => // Configuración de autenticación con Google
 {
