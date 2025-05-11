@@ -1,18 +1,19 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ServiPuntos.Core.Interfaces;
+using ServiPuntos.Infrastructure.MultiTenancy;
 
 namespace ServiPuntos.Infrastructure.Data
 {
     public class ServiPuntosDbContext : DbContext
     {
-        private readonly ITenantProvider _tenantProvider;
+        private readonly ITenantContext _iTenantContext;
 
         public ServiPuntosDbContext(
             DbContextOptions<ServiPuntosDbContext> options,
-            ITenantProvider tenantProvider)
+            ITenantContext tenantContext)
             : base(options)
         {
-            _tenantProvider = tenantProvider;
+            _iTenantContext = tenantContext;
         }
 
         // DbSets
@@ -27,7 +28,7 @@ namespace ServiPuntos.Infrastructure.Data
 
             // Filtro global por TenantId para las entidades que lo tienen
             modelBuilder.Entity<Usuario>()
-                .HasQueryFilter(u => u.TenantId == _tenantProvider.CurrentTenant.Id);
+                .HasQueryFilter(u => u.TenantId == _iTenantContext.TenantId);
 
             //modelBuilder.Entity<Ubicacion>() // si corresponde
                 //.HasQueryFilter(u => u.TenantId == _tenantProvider.CurrentTenant.Id);
@@ -40,7 +41,7 @@ namespace ServiPuntos.Infrastructure.Data
                 .Where(e => e.State == EntityState.Added
                  && e.Property("TenantId").CurrentValue == null)) // Solo asignar si TenantId es null
             {
-                entry.Property("TenantId").CurrentValue = _tenantProvider.CurrentTenant.Id;
+                entry.Property("TenantId").CurrentValue = _iTenantContext.TenantId;
             }
 
             return base.SaveChanges();
@@ -52,7 +53,7 @@ namespace ServiPuntos.Infrastructure.Data
                 .Where(e => e.State == EntityState.Added
                          && e.Property("TenantId") != null))
             {
-                entry.Property("TenantId").CurrentValue = _tenantProvider.CurrentTenant.Id;
+                entry.Property("TenantId").CurrentValue = _iTenantContext.TenantId;
             }
 
             return await base.SaveChangesAsync(cancellationToken);

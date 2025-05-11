@@ -18,6 +18,7 @@
     required public Guid TenantId { get; set; }
 
     //Constructor
+    public Usuario() { }
     public Usuario(string nombre, string email, string password, Guid tenant) {
         Nombre = nombre;
         Email = email;

@@ -12,4 +12,8 @@ public class Tenant
     public DateTime FechaModificacion { get; set; }
 
     public ICollection<Usuario> Usuarios { get; set; } = new List<Usuario>();
+
+    //Constructor
+    public Tenant() { }
+
 }
