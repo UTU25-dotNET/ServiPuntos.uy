@@ -1,79 +1,101 @@
-using Microsoft.AspNetCore.Authentication.Cookies; // Para usar autenticación basada en cookies
-using Microsoft.AspNetCore.Authentication.Google; // Para usar autenticación de Google
-using Microsoft.AspNetCore.Authentication.JwtBearer; // Para usar autenticación con tokens JWT
-using Microsoft.IdentityModel.Tokens; // Para trabajar con elementos de seguridad de tokens
-using System.Text; // Para operaciones de codificación/decodificación
-using Microsoft.Extensions.Configuration; // Para acceder a configuraciones
-using Microsoft.Extensions.DependencyInjection; // Para registro de servicios
-using Microsoft.Extensions.Hosting; // Para configurar el entorno de hosting
-using System.Security.Claims; // Para trabajar con claims de identidad
-using Microsoft.OpenApi.Models; // Para configuración de Swagger
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using ServiPuntos.Infrastructure.Data;
+using ServiPuntos.Infrastructure.MultiTenancy;
+using ServiPuntos.Core.Interfaces;
+using ServiPuntos.Infrastructure.Repositories;
+using ServiPuntos.Infrastructure.Middleware;
+using System.Text;
+using System.Security.Claims;
 
 // Creación de la aplicación web ASP.NET Core
-var builder = WebApplication.CreateBuilder(args); // Inicializa el constructor de aplicación web
+var builder = WebApplication.CreateBuilder(args);
 
 // Agregar controladores a la aplicación
-builder.Services.AddControllers(); // Registra los servicios necesarios para los controladores API
+builder.Services.AddControllersWithViews();
 
 // Agregar servicios de Swagger para documentación de API
-builder.Services.AddEndpointsApiExplorer(); // Agrega explorador de endpoints para API
-builder.Services.AddSwaggerGen(); // Configura generación de documentación Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 // Configuración JWT (JSON Web Token)
-var jwtSettings = builder.Configuration.GetSection("JwtSettings"); // Obtiene sección de configuración para JWT
-var secretKey = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]); // Convierte la clave secreta a bytes
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var secretKey = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]);
 
 // Configurar servicios de autenticación
 builder.Services.AddAuthentication(options =>
 {
-    // Configura los esquemas predeterminados de autenticación
-    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme; // Usa cookies como esquema predeterminado
-    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme; // Usa Google como esquema de desafío
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
 })
-.AddCookie(options => // Configuración de autenticación por cookies
+.AddCookie(options =>
 {
-    options.LoginPath = "/api/auth/signin"; // Ruta para redirección cuando se requiere autenticación
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(120); // Tiempo de expiración de la cookie
+    options.LoginPath = "/api/auth/signin";
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(120);
 })
-.AddGoogle(options => // Configuración de autenticación con Google
+.AddGoogle(options =>
 {
-    // Obtiene credenciales de Google desde la configuración
-    options.ClientId = builder.Configuration["Authentication:Google:ClientId"]; // ID de cliente de Google
-    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]; // Secreto de cliente de Google
-    options.CallbackPath = "/api/auth/google-callback"; // Ruta de retorno después de autenticación en Google
-    options.SaveTokens = true; // Guarda los tokens de acceso y actualización para uso posterior
+    options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+    options.CallbackPath = "/api/auth/google-callback";
+    options.SaveTokens = true;
 })
-.AddJwtBearer(options => // Configuración de autenticación con JWT
+.AddJwtBearer(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        // Parámetros de validación para tokens JWT
-        ValidateIssuer = true, // Valida el emisor del token
-        ValidateAudience = true, // Valida la audiencia del token
-        ValidateLifetime = true, // Verifica que el token no haya expirado
-        ValidateIssuerSigningKey = true, // Verifica la firma del token
-        ValidIssuer = jwtSettings["Issuer"], // Emisor válido del token
-        ValidAudience = jwtSettings["Audience"], // Audiencia válida del token
-        IssuerSigningKey = new SymmetricSecurityKey(secretKey) // Clave para verificar la firma del token
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidAudience = jwtSettings["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(secretKey)
     };
 });
 
 // Agregar el servicio JwtTokenService al contenedor de dependencias
-builder.Services.AddScoped<JwtTokenService>(); // Registra el servicio con ámbito de solicitud (scoped)
+builder.Services.AddScoped<JwtTokenService>();
+
+// Servicios Multi-Tenant
+builder.Services.AddScoped<ITenantService, TenantService>();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<ITenantRepository, TenantRepository>();
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddScoped<ITenantProvider, TenantProvider>();
+builder.Services.AddScoped<ITenantResolver, TenantResolver>();
+builder.Services.AddScoped<ITenantContext, TenantContext>();
+
+// Configuramos la conexión a la base de datos
+builder.Services.AddDbContext<TenantConfigurationContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Construye la aplicación web
-var app = builder.Build(); // Finaliza la configuración y construye la aplicación
+var app = builder.Build();
 
 // Configurar el pipeline de solicitudes HTTP (middleware)
-if (app.Environment.IsDevelopment()) // Verifica si estamos en entorno de desarrollo
+if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger(); // Habilita middleware de Swagger para generar especificación JSON
-    app.UseSwaggerUI(); // Habilita la interfaz de usuario de Swagger
+    app.UseSwagger();
+    app.UseSwaggerUI();
+    app.MapOpenApi();
 }
 
-app.UseHttpsRedirection(); // Redirecciona las solicitudes HTTP a HTTPS
-app.UseAuthentication(); // Habilita middleware de autenticación
-app.UseAuthorization(); // Habilita middleware de autorización
-app.MapControllers(); // Mapea las rutas de los controladores
+// Middleware de resolución de tenant
+app.UseMiddleware<TenantMiddleware>();
 
-app.Run(); // Inicia la aplicación web para escuchar solicitudes
+app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
+
+app.Run();
