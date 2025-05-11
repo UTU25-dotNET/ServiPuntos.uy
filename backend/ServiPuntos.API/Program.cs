@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.OAuth;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -15,6 +17,12 @@ using System.Security.Claims;
 // Creación de la aplicación web ASP.NET Core
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+builder.Logging.SetMinimumLevel(LogLevel.Trace);
+builder.Logging.AddFilter("Microsoft.AspNetCore.Authentication", LogLevel.Trace);
+
 // Agregar controladores a la aplicación
 builder.Services.AddControllersWithViews();
 
@@ -26,23 +34,36 @@ builder.Services.AddSwaggerGen();
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]);
 
+// Añade esto en Program.cs antes de construir la aplicación
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "keys")))
+    .SetApplicationName("ServiPuntos")
+    .ProtectKeysWithDpapi();
+
+//Soporte de sesion
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Para HTTPS
+    options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+});
+
 // Configurar servicios de autenticación
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+    // Ya no necesitas DefaultChallengeScheme para Google
 })
 .AddCookie(options =>
 {
-    options.LoginPath = "/api/auth/signin";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.Path = "/";
     options.ExpireTimeSpan = TimeSpan.FromMinutes(120);
-})
-.AddGoogle(options =>
-{
-    options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
-    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
-    options.CallbackPath = "/api/auth/google-callback";
-    options.SaveTokens = true;
+    options.Cookie.IsEssential = true;
 })
 .AddJwtBearer(options =>
 {
@@ -57,6 +78,19 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(secretKey)
     };
 });
+
+//Con esto permitimos solicitudes desde el frontend-web
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp",
+        builder => builder
+            .WithOrigins("http://localhost:3000") // Frontend HTTP
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials() // Importante para enviar cookies
+            .SetIsOriginAllowed(_ => true));
+});
+
 
 // Agregar el servicio JwtTokenService al contenedor de dependencias
 builder.Services.AddScoped<JwtTokenService>();
@@ -87,15 +121,20 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.MapOpenApi();
 }
 
-// Middleware de resolución de tenant
-app.UseMiddleware<TenantMiddleware>();
-
-app.UseHttpsRedirection();
+app.UseHttpsRedirection(); // Importante para asegurar HTTPS
+app.UseStaticFiles();
+app.UseRouting();
+app.UseCors("AllowReactApp");
+app.UseSession(); /
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
+app.UseMiddleware<TenantMiddleware>();
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+});
+
 
 app.Run();

@@ -27,6 +27,14 @@ namespace ServiPuntos.Infrastructure.Middleware
             // 2. Si es una request API, buscar el header
             if (context.Request.Path.StartsWithSegments("/api"))
             {
+                // No validar tenant si la petición es al endpoint de inicio de sesión o al callback, 
+                //no tiene sentido validar tenant en el middelware cuando el usuario no está autenticado aun
+                if (context.Request.Path.StartsWithSegments("/api/auth"))
+                {
+                    await _next(context);
+                    return;
+                }
+
                 try
                 {
                     tenantContext.TenantId = resolver.GetCurrentTenantId();
