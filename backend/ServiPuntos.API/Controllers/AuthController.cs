@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -15,83 +16,190 @@ public class AuthController : ControllerBase
 {
     // Servicio para la generación y gestión de tokens JWT
     private readonly JwtTokenService _jwtTokenService;
+    private readonly IConfiguration _configuration;
 
     /// <summary>
     /// Constructor que inyecta las dependencias necesarias
     /// </summary>
     /// <param name="jwtTokenService">Servicio para generar tokens JWT</param>
-    public AuthController(JwtTokenService jwtTokenService)
+    public AuthController(JwtTokenService jwtTokenService, IConfiguration configuration)
     {
         _jwtTokenService = jwtTokenService;
+        _configuration = configuration;
     }
 
-    /// <summary>
-    /// Inicia el flujo de autenticación con Google
-    /// </summary>
-    /// <remarks>
-    /// Frontend: Redirecciona al usuario a esta URL para iniciar el proceso de login con Google
-    /// Ejemplo: window.location.href = 'api/auth/signin';
-    /// </remarks>
-    /// <returns>Challenge de autenticación que redirige al usuario a Google</returns>
-    [HttpGet("signin")]
-    public IActionResult SignIn()
+    [HttpGet("google-login")]
+    public IActionResult GoogleLogin()
     {
-        // Configuración de propiedades para la autenticación
-        var properties = new AuthenticationProperties
+        // Generar un estado aleatorio
+        var state = Guid.NewGuid().ToString();
+
+        // Guardar el estado en una variable de sesión en lugar de una cookie
+        try
         {
-            // URL a la que Google redirigirá después de la autenticación exitosa
-            RedirectUri = Url.Action(nameof(GoogleCallback)),
-            // Información adicional para el proceso de autenticación
-            Items =
-            {
-                // URL a la que redirigir después de procesar el callback
-                { "returnUrl", Url.Action("Index", "Home") } //Diego: Configurar para que redirija a la pagina principal del Usuario
-            }
-        };
+            // Intentar usar la sesión
+            HttpContext.Session.SetString("GoogleOAuthState", state);
+            Console.WriteLine($"[GoogleAuth] Estado guardado en sesión: {state}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GoogleAuth] Error al usar sesión: {ex.Message}");
 
-        // Inicia el desafío de autenticación con Google
-        // Esto redireccionará automáticamente al usuario a la página de login de Google
-        return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+            // Alternativa: usar una cookie
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                Path = "/",
+                SameSite = SameSiteMode.Lax,
+                MaxAge = TimeSpan.FromMinutes(15)
+            };
+            Response.Cookies.Append("GoogleAuthState", state, cookieOptions);
+            Console.WriteLine($"[GoogleAuth] Estado guardado en cookie: {state}");
+        }
+
+
+        // Parámetros de OAuth
+        // cargar client ID y client secret desde appsettings.json
+        //var clientId = _configuration["Authentication:Google:ClientId"];
+        var clientId = _configuration["Authentication:Google:ClientId"];
+        var redirectUri = "https://localhost:5019/api/auth/google-callback";
+        var scope = "email profile openid";
+
+        // Construir la URL de autorización de Google
+        var googleAuthUrl =
+            "https://accounts.google.com/o/oauth2/v2/auth" +
+            $"?client_id={Uri.EscapeDataString(clientId)}" +
+            $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
+            $"&response_type=code" +
+            $"&scope={Uri.EscapeDataString(scope)}" +
+            $"&state={Uri.EscapeDataString(state)}" +
+            $"&include_granted_scopes=true";
+
+        Console.WriteLine($"[GoogleAuth] Estado generado: {state}");
+        Console.WriteLine($"[GoogleAuth] URL de redirección: {redirectUri}");
+
+        return Redirect(googleAuthUrl);
     }
 
-    /// <summary>
-    /// Maneja el callback de Google después de la autenticación
-    /// </summary>
-    /// <remarks>
-    /// Diego: Esto noo se llama directamente. Google redirecciona para aca automáticamente.
-    /// Después de procesar, en el frontend vas a recibir un token JWT que tenes que almacenar.
-    /// Ejemplo: localStorage.setItem('token', response.token);
-    /// </remarks>
-    /// <returns>Un token JWT si la autenticación fue exitosa, o 401 Unauthorized si falló</returns>
-    [HttpGet("callback")]
-    public async Task<IActionResult> GoogleCallback()
+
+    [HttpGet("google-callback")]
+    public async Task<IActionResult> GoogleCallback([FromQuery] string code, [FromQuery] string state, [FromQuery] string? error)
     {
-        // Intenta autenticar al usuario usando las cookies temporales
-        var authenticateResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        Console.WriteLine($"[GoogleCallback] Recibido - Estado: {state}");
+        Console.WriteLine($"[GoogleCallback] Código: {(code != null ? code.Substring(0, Math.Min(10, code.Length)) + "..." : "null")}");
+        Console.WriteLine($"[GoogleCallback] Error: {error}");
 
-        // Si la autenticación falló, devuelve error 401
-        if (!authenticateResult.Succeeded)
-            return Unauthorized();
+        Console.WriteLine($"[GoogleCallback] Recibido - Estado: {state}");
+        Console.WriteLine($"[GoogleCallback] Código: {(code != null ? code.Substring(0, Math.Min(10, code.Length)) + "..." : "null")}");
 
-        // Extraer claims relevantes del usuario de Google para incluir en el JWT
-        var claims = new List<Claim>();
-        var userIdClaim = authenticateResult.Principal.FindFirst(ClaimTypes.NameIdentifier);
-        var emailClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Email);
-        var nameClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Name);
+        // Variable para almacenar el estado guardado
+        string savedState = null;
 
-        // Agrega los claims al token JWT usando nombres estandarizados
-        if (userIdClaim != null) claims.Add(new Claim("sub", userIdClaim.Value)); // 'sub' es un identificador estándar para el usuario
-        if (emailClaim != null) claims.Add(new Claim("email", emailClaim.Value)); // Email del usuario
-        if (nameClaim != null) claims.Add(new Claim("name", nameClaim.Value));    // Nombre completo del usuario
+        try
+        {
+            // Intentar recuperar de la sesión
+            savedState = HttpContext.Session.GetString("GoogleOAuthState");
+            Console.WriteLine($"[GoogleCallback] Estado recuperado de sesión: {savedState}");
+        }
+        catch
+        {
+            // Si falla, intentar recuperar de la cookie
+            if (Request.Cookies.TryGetValue("GoogleAuthState", out savedState))
+            {
+                Console.WriteLine($"[GoogleCallback] Estado recuperado de cookie: {savedState}");
+            }
+        }
 
-        // Agregar rol predeterminado (esto podría venir de una base de datos en una aplicación real)
-        claims.Add(new Claim("role", "user"));
+        // Verificar el estado
+        if (string.IsNullOrEmpty(savedState) || state != savedState)
+        {
+            return Content($@"
+            <html>
+                <body>
+                    <h1>Error de autenticación</h1>
+                    <p>El estado no coincide o no está presente.</p>
+                    <p>Estado recibido: {state}</p>
+                    <p>Estado guardado: {savedState ?? "No encontrado"}</p>
+                </body>
+            </html>", "text/html");
+        }
+        // Limpiar el estado de la sesión
+        HttpContext.Session.Remove("GoogleOAuthState");
 
-        // Generar el token JWT a partir de los claims del usuario
-        var token = _jwtTokenService.GenerateJwtToken(claims);
+        try
+        {
+            // Intercambiar el código por tokens
+            var clientId = _configuration["Authentication:Google:ClientId"];
+            var clientSecret = _configuration["Authentication:Google:ClientSecret"];
+            var redirectUri = "https://localhost:5019/api/auth/google-callback";
 
-        // Devuelve el token JWT al cliente para que lo almacene y use en futuras peticiones
-        return Ok(new { token });
+            using var httpClient = new HttpClient();
+            var tokenRequest = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["code"] = code,
+                ["client_id"] = clientId,
+                ["client_secret"] = clientSecret,
+                ["redirect_uri"] = redirectUri,
+                ["grant_type"] = "authorization_code"
+            });
+
+            var tokenResponse = await httpClient.PostAsync("https://oauth2.googleapis.com/token", tokenRequest);
+            var responseContent = await tokenResponse.Content.ReadAsStringAsync();
+
+            if (!tokenResponse.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"[GoogleCallback] Error en token: {responseContent}");
+                return Content($"<h1>Error al obtener token</h1><pre>{responseContent}</pre>", "text/html");
+            }
+
+            // Extraer el access_token y el id_token
+            var responseJson = System.Text.Json.JsonDocument.Parse(responseContent);
+            var accessToken = responseJson.RootElement.GetProperty("access_token").GetString();
+
+            // Obtener información del usuario
+            var userInfoRequest = new HttpRequestMessage(HttpMethod.Get, "https://www.googleapis.com/oauth2/v3/userinfo");
+            userInfoRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+            var userInfoResponse = await httpClient.SendAsync(userInfoRequest);
+            var userInfoContent = await userInfoResponse.Content.ReadAsStringAsync();
+
+            if (!userInfoResponse.IsSuccessStatusCode)
+            {
+                return Content($"<h1>Error al obtener datos del usuario</h1><pre>{userInfoContent}</pre>", "text/html");
+            }
+
+            // Procesar la información del usuario
+            var userInfoJson = System.Text.Json.JsonDocument.Parse(userInfoContent);
+            var claims = new List<Claim>();
+
+            // Extraer claims comunes
+            if (userInfoJson.RootElement.TryGetProperty("sub", out var subElement))
+                claims.Add(new Claim("sub", subElement.GetString()));
+
+            if (userInfoJson.RootElement.TryGetProperty("email", out var emailElement))
+                claims.Add(new Claim("email", emailElement.GetString()));
+
+            if (userInfoJson.RootElement.TryGetProperty("name", out var nameElement))
+                claims.Add(new Claim("name", nameElement.GetString()));
+            
+            claims.Add(new Claim("google_access_token", accessToken)); //Agregamos esto para tener este dato en el JWT cuando se haga logout
+            claims.Add(new Claim("auth_provider", "google"));
+            // Agregar rol predeterminado
+            claims.Add(new Claim("role", "user"));
+
+            // Generar token JWT
+            var token = _jwtTokenService.GenerateJwtToken(claims);
+
+            // Redireccionar al frontend con el token
+            Console.WriteLine($"[GoogleCallback] Token JWT generado exitosamente");
+            return Redirect($"http://localhost:3000/auth-callback?token={Uri.EscapeDataString(token)}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GoogleCallback] Error: {ex.Message}");
+            Console.WriteLine($"[GoogleCallback] Stack: {ex.StackTrace}");
+            return Content($"<h1>Error en el proceso</h1><p>{ex.Message}</p><pre>{ex.StackTrace}</pre>", "text/html");
+        }
     }
 
     /// <summary>
@@ -116,19 +224,6 @@ public class AuthController : ControllerBase
         return Ok(userClaims);
     }
 
-    /// <summary>
-    /// Obtiene información del usuario a partir del token JWT
-    /// </summary>
-    /// <remarks>
-    /// Diego: Llamar incluyendo el token JWT en el header de autorización
-    /// Ejemplo: 
-    /// fetch('api/auth/userinfo', {
-    ///   headers: {
-    ///     'Authorization': 'Bearer ' + localStorage.getItem('token')
-    ///   }
-    /// }).then(res => res.json())
-    /// </remarks>
-    /// <returns>Claims del usuario contenidos en el JWT</returns>
     [HttpGet("userinfo")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]  // Requiere token JWT válido
     public IActionResult GetUserInfo()
@@ -138,26 +233,109 @@ public class AuthController : ControllerBase
         return Ok(userClaims);
     }
 
-    /// <summary>
-    /// Cierra la sesión del usuario eliminando las cookies de autenticación
-    /// </summary>
-    /// <remarks>
-    /// Diego: Llamar a esta API y luego eliminar el token JWT almacenado localmente
-    /// Ejemplo:
-    /// fetch('api/auth/logout').then(() => {
-    ///   localStorage.removeItem('token');
-    ///   window.location.href = '/login';
-    /// });
-    /// </remarks>
-    /// <returns>Redirección a la página principal</returns>
     [HttpGet("logout")]
     public async Task<IActionResult> Logout()
     {
-        // Elimina las cookies de autenticación del servidor
-        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        try
+        {
+            // 1. Primero intentamos obtener el token desde el header de autorización
+            string jwtToken = null;
+            if (HttpContext.Request.Headers.TryGetValue("Authorization", out var authHeader))
+            {
+                var authHeaderValue = authHeader.FirstOrDefault();
+                if (!string.IsNullOrEmpty(authHeaderValue) && authHeaderValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                {
+                    jwtToken = authHeaderValue.Substring("Bearer ".Length).Trim();
+                    Console.WriteLine($"[Logout] Token JWT recibido: {jwtToken.Substring(0, Math.Min(20, jwtToken.Length))}...");
+                }
+            }
 
-        // Redirige al cliente a la página principal
-        // Nota: El frontend debe encargarse de eliminar el token JWT del almacenamiento local
-        return Redirect("/"); // Redirige a la página principal, configurar para que rediriga al login
+            // 2. Si tenemos un token JWT, intentamos obtener información del usuario
+            if (!string.IsNullOrEmpty(jwtToken))
+            {
+                try
+                {
+                    // Decodificar el token para obtener información
+                    var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                    var jsonToken = handler.ReadToken(jwtToken) as System.IdentityModel.Tokens.Jwt.JwtSecurityToken;
+
+                    if (jsonToken != null)
+                    {
+                        // Buscar si hay claims que indiquen que fue un login con Google
+                        var subClaim = jsonToken.Claims.FirstOrDefault(c => c.Type == "sub");
+                        var emailClaim = jsonToken.Claims.FirstOrDefault(c => c.Type == "email");
+                        var googleAccessTokenClaim = jsonToken.Claims.FirstOrDefault(c => c.Type == "google_access_token");
+
+                        if (googleAccessTokenClaim != null)
+                        {
+                            Console.WriteLine("[Logout] Detectado token de acceso de Google, revocando sesión...");
+
+                            // Llamar al endpoint de revocación de Google con el token de acceso
+                            using (var httpClient = new HttpClient())
+                            {
+                                var revocationUrl = $"https://oauth2.googleapis.com/revoke?token={googleAccessTokenClaim.Value}";
+                                Console.WriteLine($"[Logout] Llamando a URL de revocación: {revocationUrl}");
+
+                                var revocationResponse = await httpClient.PostAsync(
+                                    "https://oauth2.googleapis.com/revoke",
+                                    new FormUrlEncodedContent(new Dictionary<string, string>
+                                    {
+                                        ["token"] = googleAccessTokenClaim.Value
+                                    })
+                                );
+
+                                var responseContent = await revocationResponse.Content.ReadAsStringAsync();
+                                Console.WriteLine($"[Logout] Respuesta de revocación: {revocationResponse.StatusCode}, Contenido: {responseContent}");
+
+                                if (revocationResponse.IsSuccessStatusCode)
+                                {
+                                    Console.WriteLine("[Logout] Token de Google revocado exitosamente");
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"[Logout] Error al revocar token de Google: {responseContent}");
+                                }
+                            }
+                        }
+                        else if (subClaim != null || (emailClaim != null && emailClaim.Value.EndsWith("@gmail.com")))
+                        {
+                            Console.WriteLine("[Logout] Detectado login con Google, pero no se encontró token de acceso en el JWT");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Logout] Error al procesar token JWT: {ex.Message}");
+                    Console.WriteLine($"[Logout] Stack trace: {ex.StackTrace}");
+                }
+            }
+
+            // 3. Como backup, también intentamos el método original con cookies
+            var authenticateResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            if (authenticateResult.Succeeded)
+            {
+                var accessToken = authenticateResult.Properties?.GetTokenValue("access_token");
+                if (!string.IsNullOrEmpty(accessToken))
+                {
+                    // Llamamos al endpoint de revocación de Google para invalidar el token
+                    using (var httpClient = new HttpClient())
+                    {
+                        await httpClient.GetAsync($"https://oauth2.googleapis.com/revoke?token={accessToken}");
+                        Console.WriteLine("[Logout] Token de Google revocado exitosamente");
+                    }
+                }
+            }
+
+            // 4. Limpiamos las cookies de autenticación en cualquier caso
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            return Ok(new { message = "Sesión cerrada exitosamente" });
+        }
+        catch (Exception ex)
+        {
+            // Registramos el error pero devolvemos una respuesta de éxito de todos modos
+            Console.WriteLine($"[Logout] Error al revocar el token: {ex.Message}");
+            return Ok(new { message = "Sesión cerrada con advertencias", warning = ex.Message });
+        }
     }
 }
