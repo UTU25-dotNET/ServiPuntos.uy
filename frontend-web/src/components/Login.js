@@ -79,7 +79,7 @@ const Login = () => {
 
     //Manejar el inicio de sesión con Google
     const handleGoogleLogin = () => {
-        window.location.href = "https://localhost:5019/api/auth/google-login";
+        window.location.href = "https://localhost:5240/api/auth/google-login";
     };
 
   // Usar tokens predefinidos para desarrollo
