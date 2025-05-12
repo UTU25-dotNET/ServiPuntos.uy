@@ -63,7 +63,7 @@ public class AuthController : ControllerBase
         // cargar client ID y client secret desde appsettings.json
         //var clientId = _configuration["Authentication:Google:ClientId"];
         var clientId = _configuration["Authentication:Google:ClientId"];
-        var redirectUri = "https://localhost:5240/api/auth/google-callback";
+        var redirectUri = "https://localhost:5019/api/auth/google-callback";
         var scope = "email profile openid";
 
         // Construir la URL de autorización de Google
@@ -132,7 +132,7 @@ public class AuthController : ControllerBase
             // Intercambiar el código por tokens
             var clientId = _configuration["Authentication:Google:ClientId"];
             var clientSecret = _configuration["Authentication:Google:ClientSecret"];
-            var redirectUri = "https://localhost:5240/api/auth/google-callback";
+            var redirectUri = "https://localhost:5019/api/auth/google-callback";
 
             using var httpClient = new HttpClient();
             var tokenRequest = new FormUrlEncodedContent(new Dictionary<string, string>

@@ -35,10 +35,10 @@ var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]);
 
 // A�ade esto en Program.cs antes de construir la aplicaci�n
-builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "keys")))
-    .SetApplicationName("ServiPuntos")
-    .ProtectKeysWithDpapi();
+// builder.Services.AddDataProtection()
+//     .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "keys")))
+//     .SetApplicationName("ServiPuntos")
+//     .ProtectKeysWithDpapi();
 
 //Soporte de sesion
 builder.Services.AddSession(options =>
