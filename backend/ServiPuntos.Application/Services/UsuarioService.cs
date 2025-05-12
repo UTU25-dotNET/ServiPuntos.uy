@@ -65,5 +65,16 @@ public class UsuarioService : IUsuarioService
         return await _iUsuarioRepository.GetAllByTenantAsync(tenantId);
 
     }
-  
+
+    // Validar credenciales
+    public async Task<Usuario?> ValidarCredencialesAsync(string email, string password)
+    {
+        var usuario = await _iUsuarioRepository.GetByEmailAsync(email);
+        if (usuario == null || !usuario.VerificarPassword(password))
+        {
+            return null;
+        }
+        return usuario;
+    }
+
 }

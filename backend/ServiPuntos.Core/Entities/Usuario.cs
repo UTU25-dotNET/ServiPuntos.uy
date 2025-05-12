@@ -1,10 +1,8 @@
-﻿using System;
-
-public class Usuario
+﻿public class Usuario
 {
     public Guid Id { get; set; }
     public string Nombre { get; set; }
-    public string Apellido { get; set; }
+    public string? Apellido { get; set; }
     public string Email { get; set; }
     public string Password { get; set; }
 
@@ -23,11 +21,16 @@ public class Usuario
     public Usuario(string nombre, string email, string password, Guid tenant) {
         Nombre = nombre;
         Email = email;
-        Password = password;
+        Password = BCrypt.Net.BCrypt.HashPassword(password);
         Puntos = 0;
         FechaCreacion = DateTime.Now;
         FechaModificacion = DateTime.Now;
         TenantId = tenant;
+    }
+
+    public bool VerificarPassword(string passwordPlano)
+    {
+        return BCrypt.Net.BCrypt.Verify(passwordPlano, Password);
     }
 
 }
