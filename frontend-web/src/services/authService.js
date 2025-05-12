@@ -1,7 +1,7 @@
 import axios from "axios";
 import tokenUtils from "../utils/tokenUtils";
 
-const API_URL = "https://localhost:5240/api/auth/";
+const API_URL = "https://localhost:5019/api/auth/";
 
 const authService = {
   // Registro de usuario
