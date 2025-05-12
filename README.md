@@ -7,7 +7,7 @@ Plataforma tecnológica para programas de fidelización personalizados para cade
 ```
 ServiPuntos.uy/
 ├── backend/               # API y backend en .NET
-├── frontend-web/          # Aplicación web en React + Bootstrap
+├── frontend-web/          # Aplicación web en React + Vite + Bootstrap
 ├── mobile/                # Aplicación móvil en .NET MAUI
 ├── docs/                  # Documentación técnica
 ├── README.md              # Este archivo
@@ -21,7 +21,7 @@ Este repositorio contiene varios subproyectos. Cada subproyecto tiene su propio 
 | Carpeta | Proyecto | Leer README local |
 |:--|:--|:--|
 | /backend/ | API en .NET 9 | ✅ |
-| /frontend-web/ | Frontend en React | ✅ |
+| /frontend-web/ | Frontend en React + Vite | ✅ |
 | /mobile/ | App Mobile en .NET MAUI | ✅ |
 
 > 📢 Importante: Antes de iniciar cualquier componente, revisá el README correspondiente para asegurarte de seguir los pasos específicos.
@@ -99,16 +99,24 @@ dotnet new classlib -n ServiPuntos.Infrastructure
 dotnet new webapi -n ServiPuntos.API
 dotnet new xunit -n ServiPuntos.Tests
 
+dotnet new classlib -n ServiPuntos.Application
+
 ## Agregar proyectos a la Solution
 dotnet sln backend/ServiPuntosUY.sln add backend/ServiPuntos.Core/ServiPuntos.Core.csproj
 dotnet sln backend/ServiPuntosUY.sln add backend/ServiPuntos.Infrastructure/ServiPuntos.Infrastructure.csproj
 dotnet sln backend/ServiPuntosUY.sln add backend/ServiPuntos.API/ServiPuntos.API.csproj
 dotnet sln backend/ServiPuntosUY.sln add backend/ServiPuntos.Tests/ServiPuntos.Tests.csproj
 
+dotnet sln backend/ServiPuntosUY.sln add backend/ServiPuntos.Application/ServiPuntos.Application.csproj
+
+
 ## Agregar referencias entre proyectos
 dotnet add backend/ServiPuntos.API/ServiPuntos.API.csproj reference backend/ServiPuntos.Core/ServiPuntos.Core.csproj
 dotnet add backend/ServiPuntos.Infrastructure/ServiPuntos.Infrastructure.csproj reference backend/ServiPuntos.Core/ServiPuntos.Core.csproj
 dotnet add backend/ServiPuntos.Tests/ServiPuntos.Tests.csproj reference backend/ServiPuntos.Core/ServiPuntos.Core.csproj
+
+dotnet add backend/ServiPuntos.API/ServiPuntos.API.csproj reference backend/ServiPuntos.Application/ServiPuntos.Application.csproj
+dotnet add backend/ServiPuntos.Application/ServiPuntos.Application.csproj reference backend/ServiPuntos.Core/ServiPuntos.Core.csproj
 
 # Mobile
 dotnet workload install maui

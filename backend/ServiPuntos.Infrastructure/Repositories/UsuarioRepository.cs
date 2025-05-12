@@ -13,6 +13,10 @@ public class UsuarioRepository : IUsuarioRepository
     public Task<Usuario?> GetAsync(Guid idUsuario)
         => _dbContext.Usuarios
             .FirstOrDefaultAsync(u => u.Id == idUsuario);
+    public Task<Usuario?> GetByEmailAsync(string email)
+        => _dbContext.Usuarios
+            .FirstOrDefaultAsync(u => u.Email == email);
+
     public Task AddAsync(Usuario usuario)
     {
         _dbContext.Usuarios.Add(usuario);
