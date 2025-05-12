@@ -14,10 +14,10 @@
                         <h2 class="fw-bold mb-0">¡Bienvenido a ServiPuntos!</h2>
                         <p class="text-muted">Panel de Administrador</p>
                     </div>
-
-                    <form method="post" asp-controller="Account" asp-action="Login"
+                    <!-- No se si esta bien lo de asp-controller y asp-action -->
+                    <form method="post" asp-controller="Account" asp-action="Login" 
                         asp-route-returnurl="@ViewData["ReturnUrl"]" class="needs-validation" novalidate>
-                        <div class="form-floating mb-3">
+                        <div class="form-floating mb-3"> 
                             <input type="email" class="form-control" id="email" name="email"
                                 placeholder="nombre@ejemplo.com" required autofocus>
                             <label for="email">
@@ -25,7 +25,7 @@
                             </label>
                             <div class="invalid-feedback">
                                 Por favor ingresa un correo electrónico válido.
-                            </div>
+                            </div> 
                         </div>
 
                         <div class="form-floating mb-3">
