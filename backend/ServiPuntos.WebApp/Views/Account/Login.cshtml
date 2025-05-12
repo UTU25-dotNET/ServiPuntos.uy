@@ -9,14 +9,17 @@
             <div class="card shadow-lg rounded-4 border-0">
                 <div class="card-body p-5">
                     <div class="text-center mb-4">
-                        <img src="~/images/logo.png" alt="Logo" class="img-fluid mb-3" style="max-height: 80px;" onerror="this.style.display='none'">
+                        <img src="~/images/logo.png" alt="Logo" class="img-fluid mb-3" style="max-height: 80px;"
+                            onerror="this.style.display='none'">
                         <h2 class="fw-bold mb-0">¡Bienvenido a ServiPuntos!</h2>
-                        <p class="text-muted">Panel de Administrador</p> 
+                        <p class="text-muted">Panel de Administrador</p>
                     </div>
 
-                    <form method="post" asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" class="needs-validation" novalidate>
+                    <form method="post" asp-controller="Account" asp-action="Login"
+                        asp-route-returnurl="@ViewData["ReturnUrl"]" class="needs-validation" novalidate>
                         <div class="form-floating mb-3">
-                            <input type="email" class="form-control" id="email" name="email" placeholder="nombre@ejemplo.com" required autofocus>
+                            <input type="email" class="form-control" id="email" name="email"
+                                placeholder="nombre@ejemplo.com" required autofocus>
                             <label for="email">
                                 <i class="bi bi-envelope-fill me-1"></i>Correo Electrónico
                             </label>
@@ -26,7 +29,8 @@
                         </div>
 
                         <div class="form-floating mb-3">
-                            <input type="password" class="form-control" id="password" name="password" placeholder="Contraseña" required>
+                            <input type="password" class="form-control" id="password" name="password"
+                                placeholder="Contraseña" required>
                             <label for="password">
                                 <i class="bi bi-lock-fill me-1"></i>Contraseña
                             </label>
@@ -37,7 +41,8 @@
                                 <i class="bi bi-eye-slash"></i>
                             </div>
                             <div class="text-end mt-1">
-                                <a href="#" class="text-decoration-none small text-primary">¿Olvidaste tu contraseña?</a>
+                                <a href="esto/no/tiene/mucho/sentido/pero/lo/pongojee" class="text-decoration-none small text-primary">¿Olvidaste tu
+                                    contraseña?</a>
                             </div>
                         </div>
 
@@ -49,7 +54,8 @@
                     </form>
 
                     <div class="text-center mt-4">
-                        <p class="mb-0">¿No tienes una cuenta? <a href="/falta/agregar/esta/ruta" class="text-primary fw-bold">Registrate?? vamos ausarlo nosotros nomas jaja</a></p>
+                        <p class="mb-0">¿No tienes una cuenta? <a href="/falta/agregar/esta/ruta"
+                                class="text-primary fw-bold">Registrate?? vamos ausarlo nosotros nomas jaja</a></p>
                     </div>
                 </div>
             </div>
@@ -76,11 +82,11 @@
                     })
             })()
 
-          
+
             const passwordToggle = document.getElementById('passwordToggle');
             const passwordInput = document.getElementById('password');
             if (passwordToggle && passwordInput) {
-                passwordToggle.addEventListener('click', function() {
+                passwordToggle.addEventListener('click', function () {
                     const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
                     passwordInput.setAttribute('type', type);
                     passwordToggle.querySelector('i').classList.toggle('bi-eye');
@@ -88,13 +94,13 @@
                 });
             }
 
-            
+
             const card = document.querySelector('.card');
             card.style.opacity = '0';
             card.style.transform = 'translateY(20px)';
             card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-            
-            setTimeout(function() {
+
+            setTimeout(function () {
                 card.style.opacity = '1';
                 card.style.transform = 'translateY(0)';
             }, 100);
