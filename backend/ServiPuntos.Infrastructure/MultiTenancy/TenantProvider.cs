@@ -23,6 +23,7 @@ namespace ServiPuntos.Infrastructure.MultiTenancy
                 var tenantName = _httpContext.HttpContext.Request.Headers["X-Tenant-Name"].FirstOrDefault();
                 return _configContext.Tenants.SingleOrDefault(t => t.Nombre == tenantName);
             }
+            }
         }
     }
-}
+}*/
