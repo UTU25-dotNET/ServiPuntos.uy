@@ -29,7 +29,14 @@ builder.Services.AddDbContext<TenantConfigurationContext>(options =>
 builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// 2. Registrar el proveedor de tenant y HttpContextAccessor
+builder.Services.AddHttpContextAccessor();
+//builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 
+// 3. Registrar tus servicios y controladores
+builder.Services.AddOpenApi();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddControllers();        // <- necesario para MapControllers()
 
 var app = builder.Build();
 
