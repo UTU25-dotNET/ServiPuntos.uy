@@ -48,8 +48,8 @@ const Dashboard = () => {
   // Ver token actual
   const handleViewToken = () => {
     const token = authService.getToken();
-    navigate(`/token?token=${encodeURIComponent(token)}`);
-  };
+      window.location.href = (`/token?token=${encodeURIComponent(token)}`);
+    };
 
   if (loading) {
     return (
