@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
 
 namespace ServiPuntos.WebApp.Controllers.Admin
