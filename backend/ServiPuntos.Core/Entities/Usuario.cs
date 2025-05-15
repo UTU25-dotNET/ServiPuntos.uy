@@ -5,7 +5,7 @@ public class Usuario
     public Guid Id { get; set; }
     public string Nombre { get; set; }
     public string? Apellido { get; set; }
-    public string Email { get; set; }
+    required public string Email { get; set; }
     public string Password { get; set; }
 
     public int Telefono { get; set; }
@@ -20,6 +20,7 @@ public class Usuario
     required public Guid TenantId { get; set; }
 
     //Constructor
+    public Usuario() { }
     public Usuario(string nombre, string email, string password, Guid tenant) {
         Nombre = nombre;
         Email = email;

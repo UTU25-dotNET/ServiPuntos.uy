@@ -32,7 +32,6 @@ builder.Services.AddScoped<ITenantRepository, TenantRepository>();
 
 // Multi-tenancy
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 builder.Services.AddScoped<ITenantResolver, TenantResolver>();
 builder.Services.AddScoped<ITenantContext, TenantContext>();
 
