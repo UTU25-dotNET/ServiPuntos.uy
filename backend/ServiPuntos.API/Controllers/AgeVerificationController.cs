@@ -65,7 +65,14 @@ namespace ServiPuntos.API.Controllers
                 if (userData == null)
                 {
                     Console.WriteLine($"[AgeVerification] Cédula no encontrada: {cedula}");
-                    return NotFound(new { message = "Cédula no encontrada", isAllowed = false });
+                    var cedulaDigitos = new string(cedula.Where(char.IsDigit).ToArray());
+                    Console.WriteLine($"[AgeVerification] Cédula sin espacios: {cedulaDigitos}");
+                    int ultimoDigito = int.Parse(cedulaDigitos[cedulaDigitos.Length - 1].ToString());
+                    Console.WriteLine($"[AgeVerification] Último dígito: {ultimoDigito}");
+                    if(ultimoDigito % 2 == 0){
+                        return Ok(new { message = "Cédula no encontrada -> ultimo digito par: allowed", isAllowed = true });
+                    }
+                    return Ok(new { message = "Cédula no encontrada -> ultimo digito inpar: notAllowed", isAllowed = false });
                 }
 
                 // Verificar si la persona tiene 18 años o más
