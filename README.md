@@ -7,7 +7,7 @@ Plataforma tecnológica para programas de fidelización personalizados para cade
 ```
 ServiPuntos.uy/
 ├── backend/               # API y backend en .NET
-├── frontend-web/          # Aplicación web en React + Bootstrap
+├── frontend-web/          # Aplicación web en React + Vite + Bootstrap
 ├── mobile/                # Aplicación móvil en .NET MAUI
 ├── docs/                  # Documentación técnica
 ├── README.md              # Este archivo
@@ -21,7 +21,7 @@ Este repositorio contiene varios subproyectos. Cada subproyecto tiene su propio 
 | Carpeta | Proyecto | Leer README local |
 |:--|:--|:--|
 | /backend/ | API en .NET 9 | ✅ |
-| /frontend-web/ | Frontend en React | ✅ |
+| /frontend-web/ | Frontend en React + Vite | ✅ |
 | /mobile/ | App Mobile en .NET MAUI | ✅ |
 
 > 📢 Importante: Antes de iniciar cualquier componente, revisá el README correspondiente para asegurarte de seguir los pasos específicos.
