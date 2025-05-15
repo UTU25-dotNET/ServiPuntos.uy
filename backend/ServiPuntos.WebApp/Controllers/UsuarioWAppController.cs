@@ -30,7 +30,18 @@ namespace ServiPuntos.WebApp.Controllers
             if (ModelState.IsValid) {             
                 Guid tenant = _iTenantContext.TenantId;
 
-                var usuario = new Usuario(nombre, email, password, tenant);
+                //var usuario = new Usuario(nombre, email, password, tenant);
+                var usuario = new Usuario
+                {
+                    Id = Guid.NewGuid(),
+                    Nombre = nombre,
+                    Email = email,
+                    Password = BCrypt.Net.BCrypt.HashPassword(password),
+                    Puntos = 0,
+                    FechaCreacion = DateTime.UtcNow,
+                    FechaModificacion = DateTime.UtcNow,
+                    TenantId = tenant
+                };
                 await _iUsuarioService.AddUsuarioAsync(usuario);
                 return RedirectToAction("Index");
             }

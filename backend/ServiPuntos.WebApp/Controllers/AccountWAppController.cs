@@ -6,11 +6,11 @@ using ServiPuntos.Core.Interfaces;
 
 namespace ServiPuntos.WebApp.Controllers
 {
-    public class AccountController : Controller
+    public class AccountWAppController : Controller
     {
         private readonly IUsuarioService _iUsuarioService;
 
-        public AccountController(IUsuarioService usuarioService)
+        public AccountWAppController(IUsuarioService usuarioService)
         {
             _iUsuarioService = usuarioService;
         }

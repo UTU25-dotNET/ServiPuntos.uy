@@ -14,14 +14,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // MVC (Controllers + Views)
 builder.Services.AddControllersWithViews();
-builder.Services.AddScoped<IHttpContextAccessor, HttpContextAccessor>();
 
 // Contextos de base de datos
 builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 //builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
-    //options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+//options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Repositorios y servicios de negocio
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
@@ -32,6 +31,7 @@ builder.Services.AddScoped<ITenantRepository, TenantRepository>();
 
 // Multi-tenancy
 builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddScoped<ITenantResolver, TenantResolver>();
 builder.Services.AddScoped<ITenantContext, TenantContext>();
 
@@ -88,7 +88,7 @@ app.UseAuthorization();
 // Configuración de la ruta por defecto
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Account}/{action=Login}/{id?}");
+    pattern: "{controller=AccountWApp}/{action=Login}/{id?}");
 
 
 app.Run();
