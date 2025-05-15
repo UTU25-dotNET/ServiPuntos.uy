@@ -8,7 +8,7 @@ const DocumentVerification = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [userData, setUserData] = useState(null);
-    const [debugInfo, setDebugInfo] = useState(""); // Para mostrar informaciÛn de depuraciÛn
+    const [debugInfo, setDebugInfo] = useState("");
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -20,15 +20,15 @@ const DocumentVerification = () => {
     const returnUrl = params.get("returnUrl") || "/auth-callback";
 
     useEffect(() => {
-        // AÒadir informaciÛn de depuraciÛn
+        // LÛgica existente...
         console.log("Token recibido:", token);
         console.log("Code:", code);
         console.log("State:", state);
 
         // Si no hay token, redirigir al login
         if (!token) {
-            console.error("No se recibiÛ token en los par·metros");
-            setError("No se pudo obtener la informaciÛn de autenticaciÛn. IntÈntalo de nuevo.");
+            console.error("No se recibi√≥ token en los par√°metros");
+            setError("No se pudo obtener la informaci√≥n de autenticaci√≥n. Int√©ntalo de nuevo.");
             setTimeout(() => navigate("/login"), 3000);
             return;
         }
@@ -37,7 +37,7 @@ const DocumentVerification = () => {
         try {
             // Verificar si authService.decodeToken existe
             if (typeof authService.decodeToken !== 'function') {
-                throw new Error("La funciÛn decodeToken no est· disponible");
+                throw new Error("La funci√≥n decodeToken no est√° disponible");
             }
 
             const decoded = authService.decodeToken(token);
@@ -47,22 +47,49 @@ const DocumentVerification = () => {
                 throw new Error("No se pudo decodificar el token");
             }
 
-            // Extraer la informaciÛn del usuario del token
+            // Extraer la informaci√≥n del usuario del token
             const userData = decoded.payload || decoded;
             setUserData(userData);
 
-            // Mostrar informaciÛn de debug
+            // Mostrar informaci√≥n de debug
             setDebugInfo(`Token recibido: ${token.substring(0, 20)}...`);
 
         } catch (err) {
             console.error("Error al decodificar token:", err);
             // En lugar de redirigir inmediatamente, mostramos el error y permitimos continuar
-            setError(`Error al procesar la informaciÛn de usuario: ${err.message}`);
+            setError(`Error al procesar la informaci√≥n de usuario: ${err.message}`);
 
-            // Establecer un userData b·sico para permitir que el formulario se muestre
+            // Establecer un userData b√°sico para permitir que el formulario se muestre
             setUserData({ name: "usuario" });
         }
     }, [token, code, state, navigate]);
+
+    // Nueva funci√≥n para formatear la c√©dula autom√°ticamente
+    const formatCedula = (value) => {
+        // Eliminar todos los caracteres no num√©ricos
+        const numbers = value.replace(/\D/g, '');
+        
+        // Si no hay n√∫meros, devolver cadena vac√≠a
+        if (numbers.length === 0) return '';
+        
+        // Formatear seg√∫n la cantidad de d√≠gitos
+        if (numbers.length <= 1) {
+            return numbers;
+        } else if (numbers.length <= 4) {
+            return `${numbers.slice(0, 1)}.${numbers.slice(1)}`;
+        } else if (numbers.length <= 7) {
+            return `${numbers.slice(0, 1)}.${numbers.slice(1, 4)}.${numbers.slice(4)}`;
+        } else {
+            return `${numbers.slice(0, 1)}.${numbers.slice(1, 4)}.${numbers.slice(4, 7)}-${numbers.slice(7, 8)}`;
+        }
+    };
+
+    // Manejador para el cambio en el input
+    const handleCedulaChange = (e) => {
+        const inputValue = e.target.value;
+        const formattedValue = formatCedula(inputValue);
+        setCedula(formattedValue);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -70,22 +97,22 @@ const DocumentVerification = () => {
         setError("");
 
         if (!cedula.trim()) {
-            setError("Por favor ingresa tu cÈdula");
+            setError("Por favor ingresa tu c√©dula");
             setLoading(false);
             return;
         }
 
         try {
-            // Construir la URL con todos los par·metros necesarios
+            // Construir la URL con todos los par√°metros necesarios
             let callbackUrl = `https://localhost:5019/api/auth/google-callback?cedula=${encodeURIComponent(cedula)}`;
 
-            // AÒadir code y state si est·n disponibles
+            // A√±adir code y state si est√°n disponibles
             if (code) callbackUrl += `&code=${encodeURIComponent(code)}`;
             if (state) callbackUrl += `&state=${encodeURIComponent(state)}`;
 
             console.log("Redirigiendo a:", callbackUrl);
 
-            // Redirigir al callback de Google con la cÈdula
+            // Redirigir al callback de Google con la c√©dula
             window.location.href = callbackUrl;
         } catch (err) {
             setError(err.message || "Error al verificar la edad");
@@ -93,7 +120,7 @@ const DocumentVerification = () => {
         }
     };
 
-    // Mostrar el formulario incluso si no tenemos datos de usuario, pero con menos personalizaciÛn
+    // Mostrar el formulario incluso si no tenemos datos de usuario, pero con menos personalizaci√≥n
     return (
         <div style={{ maxWidth: "400px", margin: "0 auto", padding: "1rem" }}>
             <h2 style={{ color: "#7B3F00" }}>Servipuntos.uy</h2>
@@ -140,7 +167,7 @@ const DocumentVerification = () => {
                         type="text"
                         id="cedula"
                         value={cedula}
-                        onChange={(e) => setCedula(e.target.value)}
+                        onChange={handleCedulaChange}
                         placeholder="X.XXX.XXX-X"
                         required
                         style={{
@@ -149,9 +176,10 @@ const DocumentVerification = () => {
                             borderRadius: "4px",
                             border: "1px solid #ced4da",
                         }}
+                        maxLength="11" // Longitud m√°xima: 8 d√≠gitos + 3 separadores
                     />
                     <small style={{ color: "#6c757d" }}>
-                        Formato: X.XXX.XXX-X (con puntos y guion)
+                        Ingresa solo los n˙meros, los separadores se agregar·n autom·ticamente
                     </small>
                 </div>
 
