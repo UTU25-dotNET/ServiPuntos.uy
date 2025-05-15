@@ -18,8 +18,7 @@ builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 //builder.Services.AddScoped<IUbicacionRepository, UbicacionRepository>();
 
 builder.Services.AddHttpContextAccessor();
-
-builder.Services.AddScoped<ITenantProvider, TenantProvider>();
+//builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 builder.Services.AddScoped<ITenantResolver, TenantResolver>();
 builder.Services.AddScoped<ITenantContext, TenantContext>();
 
