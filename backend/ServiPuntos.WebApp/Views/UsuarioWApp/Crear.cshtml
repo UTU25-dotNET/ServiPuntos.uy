@@ -2,6 +2,12 @@
     ViewData["Title"] = "Crear Usuario";
 }
 
+@using ServiPuntos.Core.Entities
+@{
+    var tenants = ViewBag.Tenants as IEnumerable<Tenant>
+    ?? Enumerable.Empty<Tenant>();
+}
+
 <h2>Crear Usuario</h2>
 
 <form asp-action="Crear" method="post">
@@ -18,6 +24,17 @@
     <div class="form-group">
         <label for="password">Contraseña</label>
         <input type="password" name="password" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label for="tenantId">Tenant</label>
+        <select name="tenantId" id="tenantId" class="form-control" required>
+            <option value="">-- Seleccione Tenant --</option>
+            @foreach (var t in tenants)
+            {
+                <option value="@t.Id">@t.Nombre</option>
+            }
+        </select>
     </div>
 
     <button type="submit" class="btn btn-primary">Crear</button>

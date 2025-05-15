@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ServiPuntos.Core.Interfaces;
 
 namespace ServiPuntos.WebApp.Controllers
 {
@@ -7,11 +8,13 @@ namespace ServiPuntos.WebApp.Controllers
 
         private readonly IUsuarioService _iUsuarioService;
         private readonly ITenantContext _iTenantContext;
+        private readonly ITenantService _iTenantService;
 
-        public UsuarioWAppController(IUsuarioService usuarioService, ITenantContext tenantContext)
+        public UsuarioWAppController(IUsuarioService usuarioService, ITenantContext tenantContext, ITenantService iTenantService)
         {
             _iUsuarioService = usuarioService;
             _iTenantContext = tenantContext;
+            _iTenantService = iTenantService;
         }
         public IActionResult Index()
         {
@@ -19,17 +22,19 @@ namespace ServiPuntos.WebApp.Controllers
         }
 
         [HttpGet]
-        public IActionResult Crear()
+        public async Task<IActionResult> Crear()
         {
+            // Obtiene todas las tenants desde tu servicio
+            var tenants = await _iTenantService.GetAllAsync();
+            // Pásalas a la vista, por ejemplo en ViewBag
+            ViewBag.Tenants = tenants;
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Crear(string nombre, string email, string password)
+        public async Task<IActionResult> Crear(string nombre, string email, string password, Guid tenantId)
         {
             if (ModelState.IsValid) {             
-                Guid tenant = _iTenantContext.TenantId;
-
                 //var usuario = new Usuario(nombre, email, password, tenant);
                 var usuario = new Usuario
                 {
@@ -40,11 +45,12 @@ namespace ServiPuntos.WebApp.Controllers
                     Puntos = 0,
                     FechaCreacion = DateTime.UtcNow,
                     FechaModificacion = DateTime.UtcNow,
-                    TenantId = tenant
+                    TenantId = tenantId
                 };
                 await _iUsuarioService.AddUsuarioAsync(usuario);
                 return RedirectToAction("Index");
             }
+            ViewBag.Tenants = await _iTenantService.GetAllAsync();
             return View();
         }
     }
