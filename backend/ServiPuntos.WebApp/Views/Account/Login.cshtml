@@ -4,14 +4,14 @@
 
 <h2>Login</h2>
 
-@if (ViewBag.Error != null)
+@if (!ViewData.ModelState.IsValid)
 {
-    <div style="color:red">@ViewBag.Error</div>
+    <div style="color:red">Credenciales inválidas.</div>
 }
 
 <form method="post">
-    <label>Usuario:</label>
-    <input name="username" required />
+    <label>Email:</label>
+    <input name="email" required />
     <br />
     <label>Contraseña:</label>
     <input name="password" type="password" required />
