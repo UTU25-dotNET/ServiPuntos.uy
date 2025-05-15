@@ -14,7 +14,7 @@ using ServiPuntos.Infrastructure.Middleware;
 using System.Text;
 using System.Security.Claims;
 
-// Creación de la aplicación web ASP.NET Core
+// Creaciï¿½n de la aplicaciï¿½n web ASP.NET Core
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.ClearProviders();
@@ -23,22 +23,22 @@ builder.Logging.AddDebug();
 builder.Logging.SetMinimumLevel(LogLevel.Trace);
 builder.Logging.AddFilter("Microsoft.AspNetCore.Authentication", LogLevel.Trace);
 
-// Agregar controladores a la aplicación
+// Agregar controladores a la aplicaciï¿½n
 builder.Services.AddControllersWithViews();
 
-// Agregar servicios de Swagger para documentación de API
+// Agregar servicios de Swagger para documentaciï¿½n de API
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configuración JWT (JSON Web Token)
+// Configuraciï¿½n JWT (JSON Web Token)
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]);
 
-// Añade esto en Program.cs antes de construir la aplicación
+// Aï¿½ade esto en Program.cs antes de construir la aplicaciï¿½n
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "keys")))
-    .SetApplicationName("ServiPuntos")
-    .ProtectKeysWithDpapi();
+    .SetApplicationName("ServiPuntos");
+    //.ProtectKeysWithDpapi();
 
 //Soporte de sesion
 builder.Services.AddSession(options =>
@@ -50,7 +50,7 @@ builder.Services.AddSession(options =>
     options.Cookie.SameSite = SameSiteMode.Lax;
 });
 
-// Configurar servicios de autenticación
+// Configurar servicios de autenticaciï¿½n
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -107,13 +107,13 @@ builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 builder.Services.AddScoped<ITenantResolver, TenantResolver>();
 builder.Services.AddScoped<ITenantContext, TenantContext>();
 
-// Configuramos la conexión a la base de datos
+// Configuramos la conexiï¿½n a la base de datos
 builder.Services.AddDbContext<TenantConfigurationContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Construye la aplicación web
+// Construye la aplicaciï¿½n web
 var app = builder.Build();
 
 // Configurar el pipeline de solicitudes HTTP (middleware)
