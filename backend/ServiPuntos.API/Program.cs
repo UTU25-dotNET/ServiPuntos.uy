@@ -94,7 +94,7 @@ builder.Services.AddCors(options =>
 
 // Agregar el servicio JwtTokenService al contenedor de dependencias
 builder.Services.AddScoped<JwtTokenService>();
-
+builder.Services.AddHttpClient();
 // Servicios Multi-Tenant
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
@@ -127,7 +127,7 @@ app.UseHttpsRedirection(); // Importante para asegurar HTTPS
 app.UseStaticFiles();
 app.UseRouting();
 app.UseCors("AllowReactApp");
-app.UseSession(); /
+app.UseSession(); 
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<TenantMiddleware>();
