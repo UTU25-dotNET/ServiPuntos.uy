@@ -29,7 +29,7 @@ namespace ServiPuntos.Infrastructure.Middleware
             {
                 // No validar tenant si la petición es al endpoint de inicio de sesión o al callback, 
                 //no tiene sentido validar tenant en el middelware cuando el usuario no está autenticado aun
-                if (context.Request.Path.StartsWithSegments("/api/auth"))
+                if (context.Request.Path.StartsWithSegments("/api/auth") || context.Request.Path.StartsWithSegments("/api/verify"))
                 {
                     await _next(context);
                     return;
