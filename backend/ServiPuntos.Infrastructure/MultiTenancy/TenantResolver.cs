@@ -1,5 +1,5 @@
-﻿using ServiPuntos.Core.Interfaces;
-using System.Security.Claims;
+﻿using Microsoft.AspNetCore.Http;
+using ServiPuntos.Core.Interfaces;
 
 namespace ServiPuntos.Infrastructure.MultiTenancy
 {
