@@ -14,7 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // MVC (Controllers + Views)
 builder.Services.AddControllersWithViews();
-builder.Services.AddScoped<IHttpContextAccessor, HttpContextAccessor>();
+builder.Services.AddHttpContextAccessor();
 
 // Contextos de base de datos
 builder.Services.AddDbContext<ServiPuntosDbContext>(options =>

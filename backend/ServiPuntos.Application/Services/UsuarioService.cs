@@ -1,4 +1,5 @@
 ﻿using ServiPuntos.Application.DTOs;
+using ServiPuntos.Core.Interfaces;
 
 public class UsuarioService : IUsuarioService
 {
