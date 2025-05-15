@@ -43,40 +43,45 @@ const Login = () => {
     }
   };
   // Manejar el inicio de sesión con Google
-  const handleGoogleLogin = async (credentialResponse) => {
-    try {
-      setLoading(true);
-      setError("");
+  //const handleGoogleLogin = async (credentialResponse) => {
+  //  try {
+  //    setLoading(true);
+  //    setError("");
 
-      const response = await fetch("api/auth/signin", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          googleToken: credentialResponse.credential,
-          // provider: 'google',
-          // token: credentialResponse.credential
-        }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message || "Error en el inicio de sesión con Google"
-        );
-      }
+  //    const response = await fetch("api/auth/signin", {
+  //      method: "POST",
+  //      headers: {
+  //        "Content-Type": "application/json",
+  //      },
+  //      body: JSON.stringify({
+  //        googleToken: credentialResponse.credential,
+  //        // provider: 'google',
+  //        // token: credentialResponse.credential
+  //      }),
+  //    });
+  //    if (!response.ok) {
+  //      const errorData = await response.json();
+  //      throw new Error(
+  //        errorData.message || "Error en el inicio de sesión con Google"
+  //      );
+  //    }
 
-      const data = await response.json();
+  //    const data = await response.json();
 
-      // Guardo el JWT que devuelve el backend (no el de Google)
-      localStorage.setItem("token", data.token);
-      window.location.href = "/dashboard";
-    } catch (err) {
-      setError(err.message || "Error en el inicio de sesión con Google");
-    } finally {
-      setLoading(false);
-    }
-  };
+  //    // Guardo el JWT que devuelve el backend (no el de Google)
+  //    localStorage.setItem("token", data.token);
+  //    window.location.href = "/dashboard";
+  //  } catch (err) {
+  //    setError(err.message || "Error en el inicio de sesión con Google");
+  //  } finally {
+  //    setLoading(false);
+  //  }
+    //};
+
+    //Manejar el inicio de sesión con Google
+    const handleGoogleLogin = () => {
+        window.location.href = "https://localhost:5019/api/auth/google-login";
+    };
 
   // Usar tokens predefinidos para desarrollo
   const applyTestAccount = (type) => {
@@ -196,14 +201,19 @@ const Login = () => {
         </div>
         <div style={{ marginTop: "2rem", textAlign: "center" }}>
           <div style={{ marginBottom: "1rem" }}>
-            <GoogleLogin
-              onSuccess={handleGoogleLogin}
-              onError={() => setError("Error al iniciar sesión con Google")}
-              text="signin_with"
-              shape="rectangular"
-              theme="filled_blue"
-              useOneTap={false}
-            />
+            <button
+              onClick={handleGoogleLogin}
+                style={{
+                    backgroundColor: "#4285F4",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    padding: "0.75rem 1rem",
+                    cursor: "pointer"
+                }}
+             >
+            Iniciar sesión con Google
+            </button>
           </div>
         </div>
       </form>
