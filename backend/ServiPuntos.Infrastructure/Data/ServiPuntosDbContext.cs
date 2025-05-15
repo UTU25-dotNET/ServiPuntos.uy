@@ -1,47 +1,61 @@
-﻿using System.Linq;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using ServiPuntos.Core.Interfaces;
 
 namespace ServiPuntos.Infrastructure.Data
 {
     public class ServiPuntosDbContext : DbContext
     {
-        private readonly ITenantProvider _tenantProvider;
+        private readonly ITenantResolver _tenantResolver;
 
         public ServiPuntosDbContext(
             DbContextOptions<ServiPuntosDbContext> options,
-            ITenantProvider tenantProvider)
+            ITenantResolver tenantResolver)
             : base(options)
         {
-            _tenantProvider = tenantProvider;
+            _tenantResolver = tenantResolver;
         }
 
-        public DbSet<Usuario> Usuarios => Set<Usuario>();
+        // DbSets
         public DbSet<Tenant> Tenants => Set<Tenant>();
-        // …añade aquí todos tus DbSet que llevan TenantId
+        public DbSet<Usuario> Usuarios => Set<Usuario>();
+        
+        //public DbSet<Ubicacion> Ubicaciones => Set<Ubicacion>(); // si la tenés
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Aplica filtro global para que cada consulta incluya el TenantId
+            // Filtro global por TenantId para las entidades que lo tienen
             modelBuilder.Entity<Usuario>()
-                .HasQueryFilter(u => u.TenantId == _tenantProvider.CurrentTenant.Id);
+                .HasQueryFilter(u => u.TenantId == _tenantResolver.GetCurrentTenantId());
 
-            // …y así para cada entidad que tenga TenantId
+            //modelBuilder.Entity<Ubicacion>() // si corresponde
+                //.HasQueryFilter(u => u.TenantId == _tenantProvider.CurrentTenant.Id);
         }
 
         public override int SaveChanges()
         {
-            // Al insertar, asigna automáticamente el TenantId
+
+            foreach (var entry in ChangeTracker.Entries()
+                .Where(e => e.State == EntityState.Added
+                 && e.Property("TenantId").CurrentValue == null)) // Solo asignar si TenantId es null
+            {
+                entry.Property("TenantId").CurrentValue = _tenantResolver.GetCurrentTenantId();
+            }
+
+            return base.SaveChanges();
+        }
+
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
             foreach (var entry in ChangeTracker.Entries()
                 .Where(e => e.State == EntityState.Added
                          && e.Property("TenantId") != null))
             {
-                entry.Property("TenantId").CurrentValue =
-                    _tenantProvider.CurrentTenant.Id;
+                entry.Property("TenantId").CurrentValue = _tenantResolver.GetCurrentTenantId();
             }
-            return base.SaveChanges();
+
+            return await base.SaveChangesAsync(cancellationToken);
         }
     }
 }
