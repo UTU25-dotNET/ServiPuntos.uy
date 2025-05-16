@@ -4,17 +4,24 @@
 
 <h2>Login</h2>
 
-@if (ViewBag.Error != null)
-{
-    <div style="color:red">@ViewBag.Error</div>
-}
-
-<form method="post">
-    <label>Usuario:</label>
-    <input name="username" required />
-    <br />
-    <label>Contraseña:</label>
-    <input name="password" type="password" required />
-    <br />
-    <button type="submit">Ingresar</button>
+<form method="post" asp-controller="AccountWApp" asp-action="Login">
+    <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email" class="form-control" required />
+    </div>
+    <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" name="password" class="form-control" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Ingresar</button>
 </form>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <p>@error.ErrorMessage</p>
+        }
+    </div>
+}
