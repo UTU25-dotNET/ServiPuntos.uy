@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
 
 namespace ServiPuntos.WebApp.Controllers
@@ -16,10 +17,44 @@ namespace ServiPuntos.WebApp.Controllers
             _iTenantContext = tenantContext;
             _iTenantService = iTenantService;
         }
-        public IActionResult Index()
+
+        [HttpGet]
+        public async Task<IActionResult> Index(Guid? tenantId)
         {
-            return View();
+            var tenants = await _iTenantService.GetAllAsync();
+            ViewBag.Tenants = tenants;
+
+            if (!tenantId.HasValue)
+            {
+                // No hay tenant seleccionado aún, no mostramos usuarios, solo el dropdown
+                return View(new List<Usuario>());
+            }
+            Console.WriteLine($"Tenant recibido: {tenantId}");
+            Console.WriteLine($"Tenant recibido: {tenantId}");
+            Console.WriteLine($"Tenant recibido: {tenantId}");
+            Console.WriteLine($"Tenant recibido: {tenantId}");
+            Console.WriteLine($"Tenant recibido: {tenantId}");
+            Console.WriteLine($"Tenant recibido: {tenantId}");
+            Console.WriteLine($"Tenant recibido: {tenantId}");
+            // Tenant seleccionado, traemos usuarios
+            var usuarios = await _iUsuarioService.GetAllUsuariosAsync(tenantId.Value);
+            Console.WriteLine();
+            ViewBag.TenantSeleccionado = tenantId;
+
+            // Mostrar en consola cuántos usuarios llegaron
+            Console.WriteLine($"Cantidad de usuarios: {usuarios.Count()}");
+            // Mostrar en consola cuántos usuarios llegaron
+            Console.WriteLine($"Cantidad de usuarios: {usuarios.Count()}");// Mostrar en consola cuántos usuarios llegaron
+            Console.WriteLine($"Cantidad de usuarios: {usuarios.Count()}");// Mostrar en consola cuántos usuarios llegaron
+            Console.WriteLine($"Cantidad de usuarios: {usuarios.Count()}");// Mostrar en consola cuántos usuarios llegaron
+            Console.WriteLine($"Cantidad de usuarios: {usuarios.Count()}");// Mostrar en consola cuántos usuarios llegaron
+            Console.WriteLine($"Cantidad de usuarios: {usuarios.Count()}");// Mostrar en consola cuántos usuarios llegaron
+            Console.WriteLine($"Cantidad de usuarios: {usuarios.Count()}");// Mostrar en consola cuántos usuarios llegaron
+            Console.WriteLine($"Cantidad de usuarios: {usuarios.Count()}");// Mostrar en consola cuántos usuarios llegaron
+            Console.WriteLine($"Cantidad de usuarios: {usuarios.Count()}");
+            return View(usuarios);
         }
+
 
         [HttpGet]
         public async Task<IActionResult> Crear()
@@ -47,11 +82,19 @@ namespace ServiPuntos.WebApp.Controllers
                     FechaModificacion = DateTime.UtcNow,
                     TenantId = tenantId
                 };
+
                 await _iUsuarioService.AddUsuarioAsync(usuario);
-                return RedirectToAction("Index");
+                //return RedirectToAction("Index");
             }
             ViewBag.Tenants = await _iTenantService.GetAllAsync();
             return View();
         }
+    }
+
+    internal class UsuarioIndexViewModel
+    {
+        public List<Tenant> Tenants { get; set; }
+        public List<Usuario> Usuarios { get; set; }
+        public Guid? TenantSeleccionado { get; set; }
     }
 }
