@@ -1,0 +1,51 @@
+﻿@model IEnumerable<ServiPuntos.Core.Entities.Usuario>
+
+
+@{
+    ViewData["Title"] = "Listado de Usuarios WApp";
+    var tenants = (IEnumerable<ServiPuntos.Core.Entities.Tenant>)ViewBag.Tenants;
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form method="get" asp-action="Index">
+    <div class="form-group">
+        <label for="tenantId">Tenant</label>
+        <select name="tenantId" class="form-control" required onchange="this.form.submit()">
+            <option value="">-- Seleccione Tenant --</option>
+            @foreach (var t in tenants)
+            {
+                <option value="@t.Id">@t.Nombre</option>
+            }
+        </select>
+    </div>
+</form>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var usuario in Model)
+        {
+            <tr>
+                <td>@usuario.Id</td>
+                <td>@usuario.Nombre</td>
+                <td>@usuario.Email</td>
+                
+                <td>
+                    <a asp-action="Edit" asp-route-id="@usuario.Id" class="btn btn-sm btn-primary">Editar</a>
+                    <a asp-action="Details" asp-route-id="@usuario.Id" class="btn btn-sm btn-info">Ver</a>
+                    <a asp-action="Delete" asp-route-id="@usuario.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Crear" class="btn btn-success">Agregar Nuevo Usuario</a>

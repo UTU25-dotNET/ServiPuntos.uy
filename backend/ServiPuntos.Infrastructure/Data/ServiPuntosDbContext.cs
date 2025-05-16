@@ -28,8 +28,8 @@ namespace ServiPuntos.Infrastructure.Data
             base.OnModelCreating(modelBuilder);
 
             // Filtro global por TenantId para las entidades que lo tienen
-            modelBuilder.Entity<Usuario>()
-                .HasQueryFilter(u => u.TenantId == _iTenantContext.TenantId);
+            //modelBuilder.Entity<Usuario>()
+                //.HasQueryFilter(u => u.TenantId == _iTenantContext.TenantId);
 
             //modelBuilder.Entity<Ubicacion>() // si corresponde
             //.HasQueryFilter(u => u.TenantId == _tenantProvider.CurrentTenant.Id);
@@ -56,7 +56,9 @@ namespace ServiPuntos.Infrastructure.Data
                   e.Metadata.FindProperty("TenantId") != null &&
                   e.Property("TenantId").CurrentValue == null))
             {
-                entry.Property("TenantId").CurrentValue = _iTenantContext.TenantId;
+                // Inyecta tenantid automáticamente a todas las entidades nuevas que lo necesiten, antes de persistirlas
+                Console.WriteLine(_iTenantContext);
+                //entry.Property("TenantId").CurrentValue = _iTenantContext.TenantId;
             }
 
             return await base.SaveChangesAsync(cancellationToken);
