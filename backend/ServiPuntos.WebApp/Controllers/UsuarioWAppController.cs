@@ -29,29 +29,12 @@ namespace ServiPuntos.WebApp.Controllers
                 // No hay tenant seleccionado aún, no mostramos usuarios, solo el dropdown
                 return View(new List<Usuario>());
             }
-            Console.WriteLine($"Tenant recibido: {tenantId}");
-            Console.WriteLine($"Tenant recibido: {tenantId}");
-            Console.WriteLine($"Tenant recibido: {tenantId}");
-            Console.WriteLine($"Tenant recibido: {tenantId}");
-            Console.WriteLine($"Tenant recibido: {tenantId}");
-            Console.WriteLine($"Tenant recibido: {tenantId}");
-            Console.WriteLine($"Tenant recibido: {tenantId}");
+
             // Tenant seleccionado, traemos usuarios
             var usuarios = await _iUsuarioService.GetAllUsuariosAsync(tenantId.Value);
-            Console.WriteLine();
+        
             ViewBag.TenantSeleccionado = tenantId;
 
-            // Mostrar en consola cuántos usuarios llegaron
-            Console.WriteLine($"Cantidad de usuarios: {usuarios.Count()}");
-            // Mostrar en consola cuántos usuarios llegaron
-            Console.WriteLine($"Cantidad de usuarios: {usuarios.Count()}");// Mostrar en consola cuántos usuarios llegaron
-            Console.WriteLine($"Cantidad de usuarios: {usuarios.Count()}");// Mostrar en consola cuántos usuarios llegaron
-            Console.WriteLine($"Cantidad de usuarios: {usuarios.Count()}");// Mostrar en consola cuántos usuarios llegaron
-            Console.WriteLine($"Cantidad de usuarios: {usuarios.Count()}");// Mostrar en consola cuántos usuarios llegaron
-            Console.WriteLine($"Cantidad de usuarios: {usuarios.Count()}");// Mostrar en consola cuántos usuarios llegaron
-            Console.WriteLine($"Cantidad de usuarios: {usuarios.Count()}");// Mostrar en consola cuántos usuarios llegaron
-            Console.WriteLine($"Cantidad de usuarios: {usuarios.Count()}");// Mostrar en consola cuántos usuarios llegaron
-            Console.WriteLine($"Cantidad de usuarios: {usuarios.Count()}");
             return View(usuarios);
         }
 
