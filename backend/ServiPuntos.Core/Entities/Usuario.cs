@@ -36,8 +36,8 @@ namespace ServiPuntos.Core.Entities
             Password = BCrypt.Net.BCrypt.HashPassword(password);
             Ci = ci;
             Puntos = 0;
-            FechaCreacion = DateTime.Now;
-            FechaModificacion = DateTime.Now;
+            FechaCreacion = DateTime.UtcNow;
+            FechaModificacion = DateTime.UtcNow;
             TenantId = tenantId;
             Rol = rol;
         }

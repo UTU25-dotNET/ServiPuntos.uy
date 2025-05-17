@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
 
 namespace ServiPuntos.WebApp.Controllers
 {
+    [Authorize (Roles = "adminTenant")] // ver que es lo que va en la cookie
     public class TenantWAppController : Controller
     {
         private readonly ITenantService _iTenantService;

@@ -2,8 +2,8 @@
 {
     public enum RolUsuario
     {
-        AdminTenant,
         AdminPlataforma,
+        AdminTenant,
         AdminUbicacion,
         UsuarioFinal
     }
