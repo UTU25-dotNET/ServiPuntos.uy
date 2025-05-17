@@ -12,6 +12,7 @@ namespace ServiPuntos.Core.Entities
         public string? Apellido { get; set; }
         public required string Email { get; set; }
         public required string Password { get; set; }
+        public required int  Ci { get; set; }
 
         public required RolUsuario Rol { get; set; } = RolUsuario.UsuarioFinal; //por defecto es usuario final
 
@@ -26,16 +27,18 @@ namespace ServiPuntos.Core.Entities
 
         //Constructor
         public Usuario() { }
+
         [SetsRequiredMembers]
-        public Usuario(string nombre, string email, string password, Guid tenant, RolUsuario rol)
+        public Usuario(string nombre, string email, string password, int ci, Guid tenantId, RolUsuario rol)
         {
             Nombre = nombre;
             Email = email;
             Password = BCrypt.Net.BCrypt.HashPassword(password);
+            Ci = ci;
             Puntos = 0;
             FechaCreacion = DateTime.Now;
             FechaModificacion = DateTime.Now;
-            TenantId = tenant;
+            TenantId = tenantId;
             Rol = rol;
         }
 

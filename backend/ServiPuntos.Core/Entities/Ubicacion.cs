@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,7 +18,7 @@ namespace ServiPuntos.Core.Entities
         public string? Direccion { get; set; }
         public string? Ciudad { get; set; }
         public string? Departamento { get; set; }
-        public string? TelefonoContacto { get; set; }
+        public string? Telefono { get; set; }
 
         public DateTime FechaCreacion { get; set; }
         public DateTime FechaModificacion { get; set; }
@@ -36,14 +37,15 @@ namespace ServiPuntos.Core.Entities
 
         //Constructor
         public Ubicacion() { }
-        public Ubicacion(Guid tenantId, string nombre, string direccion, string ciudad, string departamento, string telefonoContacto, TimeSpan horaApertura, TimeSpan horaCierre)
+        [SetsRequiredMembers]
+        public Ubicacion(Guid tenantId, string nombre, string direccion, string ciudad, string departamento, string telefono, TimeSpan horaApertura, TimeSpan horaCierre)
         {
             TenantId = tenantId;
             Nombre = nombre;
             Direccion = direccion;
             Ciudad = ciudad;
             Departamento = departamento;
-            TelefonoContacto = telefonoContacto;
+            Telefono = telefono;
             HoraApertura = horaApertura;
             HoraCierre = horaCierre;
         }

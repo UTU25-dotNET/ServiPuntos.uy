@@ -44,18 +44,17 @@ namespace ServiPuntos.WebApp.Controllers
         public async Task<IActionResult> Crear()
         {
             // Obtiene todas las tenants desde tu servicio
-            var tenants = await _iTenantService.GetAllAsync();
             // Pásalas a la vista, por ejemplo en ViewBag
-            ViewBag.Tenants = tenants;
+            ViewBag.Tenants = await _iTenantService.GetAllAsync();
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Crear(string nombre, string email, string password, Guid tenantId, RolUsuario rol)
+        public async Task<IActionResult> Crear(string nombre, string email, string password, int ci, Guid tenantId, RolUsuario rol)
         {
             if (ModelState.IsValid) {          
                 
-                var usuario = new Usuario(nombre, email, password, tenantId, rol);
+                var usuario = new Usuario(nombre, email, password, ci, tenantId, rol);
 
                 await _iUsuarioService.AddUsuarioAsync(usuario);
                 //return RedirectToAction("Index");
