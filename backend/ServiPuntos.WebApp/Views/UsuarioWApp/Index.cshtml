@@ -27,6 +27,8 @@
             <th>Id</th>
             <th>Nombre</th>
             <th>Email</th>
+			<th>Ci</th>
+			<th>Rol</th>
             <th>Acciones</th>
         </tr>
     </thead>
@@ -37,6 +39,8 @@
                 <td>@usuario.Id</td>
                 <td>@usuario.Nombre</td>
                 <td>@usuario.Email</td>
+				<td>@usuario.Ci</td>
+				<td>@usuario.Rol</td> 
                 
                 <td>
                     <a asp-action="Edit" asp-route-id="@usuario.Id" class="btn btn-sm btn-primary">Editar</a>

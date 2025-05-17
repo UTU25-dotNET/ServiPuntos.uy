@@ -4,6 +4,7 @@
     {
         AdminTenant,
         AdminPlataforma,
+        AdminUbicacion,
         UsuarioFinal
     }
 }

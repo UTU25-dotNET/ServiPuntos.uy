@@ -8,13 +8,13 @@ public class UsuarioService : IUsuarioService
 
     private readonly ITenantResolver _iTenantResolver;
 
-    private readonly ITenantContext _tenantContext;
+    private readonly ITenantContext _iTenantContext;
 
     public UsuarioService(IUsuarioRepository usuarioRepository, ITenantResolver tenantResolver, ITenantContext tenantContext)
     {
         _iUsuarioRepository = usuarioRepository;
         _iTenantResolver = tenantResolver;
-        _tenantContext = tenantContext;
+        _iTenantContext = tenantContext;
     }
 
     //GET
