@@ -1,13 +1,19 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using ServiPuntos.Core.Enums;
 namespace ServiPuntos.Core.Entities
 {
     public class Usuario
     {
         public Guid Id { get; set; }
+        public required Guid TenantId { get; set; }
+        public Tenant? Tenant { get; set; }
+
         public string? Nombre { get; set; }
         public string? Apellido { get; set; }
-        required public string Email { get; set; }
-        required public string Password { get; set; }
+        public required string Email { get; set; }
+        public required string Password { get; set; }
+
+        public required RolUsuario Rol { get; set; } = RolUsuario.UsuarioFinal; //por defecto es usuario final
 
         public int Telefono { get; set; }
 
@@ -18,12 +24,10 @@ namespace ServiPuntos.Core.Entities
         public DateTime FechaCreacion { get; set; }
         public DateTime FechaModificacion { get; set; }
 
-        required public Guid TenantId { get; set; }
-
         //Constructor
         public Usuario() { }
         [SetsRequiredMembers]
-        public Usuario(string nombre, string email, string password, Guid tenant)
+        public Usuario(string nombre, string email, string password, Guid tenant, RolUsuario rol)
         {
             Nombre = nombre;
             Email = email;
@@ -32,6 +36,7 @@ namespace ServiPuntos.Core.Entities
             FechaCreacion = DateTime.Now;
             FechaModificacion = DateTime.Now;
             TenantId = tenant;
+            Rol = rol;
         }
 
         public bool VerificarPassword(string passwordPlano)

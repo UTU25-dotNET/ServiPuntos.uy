@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ServiPuntos.Core.Entities;
+using ServiPuntos.Core.Enums;
 using ServiPuntos.Core.Interfaces;
 
 namespace ServiPuntos.WebApp.Controllers
@@ -50,21 +51,11 @@ namespace ServiPuntos.WebApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Crear(string nombre, string email, string password, Guid tenantId)
+        public async Task<IActionResult> Crear(string nombre, string email, string password, Guid tenantId, RolUsuario rol)
         {
-            if (ModelState.IsValid) {             
-                //var usuario = new Usuario(nombre, email, password, tenant);
-                var usuario = new Usuario
-                {
-                    Id = Guid.NewGuid(),
-                    Nombre = nombre,
-                    Email = email,
-                    Password = BCrypt.Net.BCrypt.HashPassword(password),
-                    Puntos = 0,
-                    FechaCreacion = DateTime.UtcNow,
-                    FechaModificacion = DateTime.UtcNow,
-                    TenantId = tenantId
-                };
+            if (ModelState.IsValid) {          
+                
+                var usuario = new Usuario(nombre, email, password, tenantId, rol);
 
                 await _iUsuarioService.AddUsuarioAsync(usuario);
                 //return RedirectToAction("Index");
