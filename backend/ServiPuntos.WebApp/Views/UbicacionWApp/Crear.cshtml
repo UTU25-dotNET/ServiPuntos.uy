@@ -1,0 +1,84 @@
+﻿@{
+    ViewData["Title"] = "Crear Ubicación";
+    var tenants = ViewBag.Tenants as IEnumerable<ServiPuntos.Core.Entities.Tenant>
+        ?? Enumerable.Empty<ServiPuntos.Core.Entities.Tenant>();
+}
+
+<h2>Crear Ubicación</h2>
+
+<form asp-action="Crear" method="post">
+    <div class="form-group">
+        <label for="Nombre">Nombre</label>
+        <input type="text" name="Nombre" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label for="Direccion">Dirección</label>
+        <input type="text" name="Direccion" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label for="Ciudad">Ciudad</label>
+        <input type="text" name="Ciudad" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label for="Departamento">Departamento</label>
+        <input type="text" name="Departamento" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label for="TelefonoContacto">Teléfono</label>
+        <input type="text" name="TelefonoContacto" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label for="HoraApertura">Hora Apertura</label>
+        <input type="time" name="HoraApertura" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label for="HoraCierre">Hora Cierre</label>
+        <input type="time" name="HoraCierre" class="form-control" required />
+    </div>
+
+    <div class="form-check">
+        <input type="checkbox" name="Lavado" class="form-check-input" />
+        <label class="form-check-label" for="Lavado">Servicio de Lavado</label>
+    </div>
+
+    <div class="form-check">
+        <input type="checkbox" name="CambioAceite" class="form-check-input" />
+        <label class="form-check-label" for="CambioAceite">Cambio de Aceite</label>
+    </div>
+
+    <div class="form-group">
+        <label for="PrecioNaftaSuper">Precio Nafta Súper</label>
+        <input type="number" step="0.01" name="PrecioNaftaSuper" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label for="PrecioNaftaPremium">Precio Nafta Premium</label>
+        <input type="number" step="0.01" name="PrecioNaftaPremium" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label for="PrecioDiesel">Precio Diesel</label>
+        <input type="number" step="0.01" name="PrecioDiesel" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label for="TenantId">Tenant</label>
+        <select name="TenantId" class="form-control" required>
+            <option value="">-- Seleccione Tenant --</option>
+            @foreach (var t in tenants)
+            {
+                <option value="@t.Id">@t.Nombre</option>
+            }
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Crear</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>
+

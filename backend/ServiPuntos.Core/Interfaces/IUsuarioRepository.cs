@@ -1,3 +1,5 @@
+using ServiPuntos.Core.Entities;
+
 public interface IUsuarioRepository
 {
     Task<Usuario?> GetAsync(Guid idUsuario);
@@ -5,7 +7,8 @@ public interface IUsuarioRepository
     Task AddAsync(Usuario usuario);
     Task UpdateAsync(Usuario usuario);
     Task DeleteAsync(Guid idUsuario);
-   
+    Task<IEnumerable<Usuario>> GetAllAsync();
+
     //Tenant como parametro
 
     Task<Usuario?> GetByTenantAsync(Guid tenantId, Guid idUsuario);

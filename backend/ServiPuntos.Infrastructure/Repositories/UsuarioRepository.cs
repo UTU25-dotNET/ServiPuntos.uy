@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Data;
 public class UsuarioRepository : IUsuarioRepository
@@ -16,6 +17,9 @@ public class UsuarioRepository : IUsuarioRepository
     public Task<Usuario?> GetByEmailAsync(string email)
         => _dbContext.Usuarios
             .FirstOrDefaultAsync(u => u.Email == email);
+    public async Task<IEnumerable<Usuario>> GetAllAsync()
+        => await _dbContext.Usuarios
+            .ToListAsync();
 
     public Task AddAsync(Usuario usuario)
     {
