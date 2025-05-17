@@ -14,6 +14,7 @@ namespace ServiPuntos.Core.Entities
         public DateTime FechaModificacion { get; set; }
 
         public ICollection<Usuario> Usuarios { get; set; } = new List<Usuario>();
+        public ICollection<Ubicacion> Ubicaciones { get; set; } = new List<Ubicacion>();
 
         //Constructor
         public Tenant() { }
