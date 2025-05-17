@@ -1,4 +1,6 @@
-﻿namespace ServiPuntos.API.Middleware
+﻿using ServiPuntos.Core.Interfaces;
+
+namespace ServiPuntos.API.Middleware
 {
     public class TenantMiddleware
     {

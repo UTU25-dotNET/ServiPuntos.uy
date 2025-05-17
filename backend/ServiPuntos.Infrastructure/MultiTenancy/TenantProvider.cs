@@ -1,6 +1,7 @@
 ﻿using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Data;
 using Microsoft.AspNetCore.Http;
+using ServiPuntos.Core.Entities;
 
 
 namespace ServiPuntos.Infrastructure.MultiTenancy
