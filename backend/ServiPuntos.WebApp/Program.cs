@@ -45,7 +45,10 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // Tiempo de expiración
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminTenant", policy => policy.RequireRole("AdminTenant"));
+});
 
 
 // -------------------------
