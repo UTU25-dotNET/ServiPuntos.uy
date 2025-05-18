@@ -62,10 +62,22 @@ adb install -r bin/Release/net9.0-android/com.companyname.servipuntos.mobile-Sig
 # 7. Abrir la app manualmente en el emulador
 ```
 
-### 3. Notas de desarrollo
+### 3. Flujo típico de desarrollo y despliegue
+
+Siempre que realices cambios de código relevantes (views, viewmodels, modelos), **repite**:
+
+```bash
+dotnet clean
+rm -rf bin obj
+dotnet build -f net9.0-android -c Release
+adb uninstall com.companyname.servipuntos.mobile
+adb install -r bin/Release/net9.0-android/com.companyname.servipuntos.mobile-Signed.apk
+```
+
+### 4. Notas de desarrollo
 
 - Los binarios y carpetas `/bin`, `/obj` están ignorados por git.
-- Cualquier cambio de vistas o ViewModels requiere volver a compilar y reinstalar la app.
+- No se debe commitear la APK ni la carpeta `bin`.
 - El backend aún no está conectado, pero la estructura permite agregar fácilmente llamadas HTTP por tenant.
 
 ---

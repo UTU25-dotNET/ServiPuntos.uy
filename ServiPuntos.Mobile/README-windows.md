@@ -53,9 +53,23 @@ adb devices
 adb uninstall com.companyname.servipuntos.mobile
 
 :: 6. Instalar la APK generada
-adb install -r bin\Release\net9.0-android\com.companyname.servipuntos.mobile-Signed.apk
+adb install -r bin\Release
+et9.0-android\com.companyname.servipuntos.mobile-Signed.apk
 
 :: 7. Abrir la app desde el emulador Android
+```
+
+## Flujo típico de desarrollo y despliegue
+
+Si cambias el código fuente, repite:
+
+```cmd
+dotnet clean
+rd /s /q bin obj
+dotnet build -f net9.0-android -c Release
+adb uninstall com.companyname.servipuntos.mobile
+adb install -r bin\Release
+et9.0-android\com.companyname.servipuntos.mobile-Signed.apk
 ```
 
 ## Notas adicionales
