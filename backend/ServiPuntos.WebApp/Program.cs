@@ -1,4 +1,5 @@
 using System;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Data;
@@ -36,15 +37,18 @@ builder.Services.AddScoped<ITenantResolver, TenantResolver>();
 builder.Services.AddScoped<ITenantContext, TenantContext>();
 
 // Autenticación y Autorización con Cookies
-builder.Services.AddAuthentication("Cookies")
-    .AddCookie("Cookies", options =>
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
     {
-        options.LoginPath = "/Account/Login";   // Ruta del login
-        options.AccessDeniedPath = "/Account/AccessDenied";   // Ruta de acceso denegado
+        options.LoginPath = "/AccountWApp/Login";   // Ruta del login
+        options.AccessDeniedPath = "/AccountWApp/AccessDenied";   // Ruta de acceso denegado
         options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // Tiempo de expiración
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminTenant", policy => policy.RequireRole("AdminTenant"));
+});
 
 
 // -------------------------
@@ -88,7 +92,7 @@ app.UseAuthorization();
 // Configuración de la ruta por defecto
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=AccountWApp}/{action=Login}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 
 app.Run();
