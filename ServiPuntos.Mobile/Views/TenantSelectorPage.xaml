@@ -10,42 +10,50 @@
     </ContentPage.BindingContext>
 
     <StackLayout Padding="30"
-            Spacing="20">
-        <!-- DEBUG: Esto debería verse SIEMPRE si el XAML se carga -->
-        <Label Text="DEBUG: XAML cargado"
-                FontSize="32"
-                TextColor="Green"/>
-        <Label Text="{Binding Tenants.Count}"
-                FontSize="24"
-                TextColor="Red"/>
+            Spacing="20"
+            VerticalOptions="Center">
 
-        <Label Text="Selecciona tu cadena de estación"
-               FontSize="Large"
-               HorizontalOptions="Center"/>
-        <CollectionView ItemsSource="{Binding Tenants}"
-                        SelectionMode="Single"
-                        SelectedItem="{Binding SelectedTenant}">
+        <Label
+            Text="Selecciona tu cadena de estación"
+            FontSize="26"
+            HorizontalOptions="Center"
+            Margin="0,40,0,20"/>
+
+        <CollectionView
+            ItemsSource="{Binding Tenants}"
+            SelectionMode="Single"
+            SelectedItem="{Binding SelectedTenant}">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Frame Padding="10"
-                           Margin="5"
-                           BorderColor="{Binding PrimaryColor}">
+                    <Frame
+                        Padding="10"
+                        Margin="5"
+                        BorderColor="{Binding PrimaryColor}">
                         <StackLayout Orientation="Horizontal"
                                 Spacing="10">
                             <Image Source="{Binding LogoUrl}"
                                     HeightRequest="40"
                                     WidthRequest="40"/>
-                            <Label Text="{Binding Name}"
-                                    FontAttributes="Bold"
-                                    FontSize="Medium"
-                                    VerticalOptions="Center"/>
+                            <Label
+                                Text="{Binding Name}"
+                                FontAttributes="Bold"
+                                FontSize="22"
+                                VerticalOptions="Center"/>
                         </StackLayout>
                     </Frame>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-        <Button Text="Continuar"
-                Command="{Binding ContinueCommand}"
-                IsEnabled="{Binding SelectedTenant}"/>
+
+        <Button
+            Text="Continuar"
+            Command="{Binding ContinueCommand}"
+            IsEnabled="{Binding SelectedTenant}"
+            Margin="0,30,0,0"
+            FontSize="18"
+            HeightRequest="56"
+            BackgroundColor="#512BD4"
+            TextColor="White"
+            CornerRadius="12"/>
     </StackLayout>
 </ContentPage>
