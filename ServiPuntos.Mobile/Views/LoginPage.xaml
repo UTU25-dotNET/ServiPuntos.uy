@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:ServiPuntos.Mobile.ViewModels"
+    x:Class="ServiPuntos.Mobile.Views.LoginPage">
+
+    <!-- El BindingContext se asigna en el code-behind -->
+
+    <StackLayout Padding="30"
+            Spacing="18"
+            VerticalOptions="Center">
+
+        <!-- Imagen del logo del tenant -->
+        <Image x:Name="LogoImage"
+                HeightRequest="64"
+                HorizontalOptions="Center"
+                Margin="0,0,0,12"/>
+
+        <!-- Nombre del tenant -->
+        <Label x:Name="TenantNameLabel"
+                FontSize="26"
+                FontAttributes="Bold"
+                HorizontalOptions="Center"
+                Margin="0,0,0,32"/>
+
+        <!-- Usuario -->
+        <Entry Placeholder="Usuario"
+               Text="{Binding Username}"
+               Keyboard="Default"
+               Margin="0,0,0,6"/>
+
+        <!-- Contraseña -->
+        <Entry Placeholder="Contraseña"
+               Text="{Binding Password}"
+               IsPassword="True"
+               Margin="0,0,0,6"/>
+
+        <!-- Mensaje de error -->
+        <Label
+            Text="{Binding ErrorMessage}"
+            TextColor="Red"
+            FontSize="14"
+            IsVisible="{Binding HasError}"
+            HorizontalOptions="Center"
+            Margin="0,6,0,0"/>
+
+        <!-- Botón de login -->
+        <Button
+            Text="Iniciar sesión"
+            Command="{Binding LoginCommand}"
+            Margin="0,16,0,0"
+            FontSize="18"
+            HeightRequest="56"
+            BackgroundColor="#512BD4"
+            TextColor="White"
+            CornerRadius="12"/>
+    </StackLayout>
+</ContentPage>
