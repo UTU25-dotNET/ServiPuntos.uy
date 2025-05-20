@@ -72,6 +72,13 @@ public class AuthController : ControllerBase
         var redirectUri = "https://localhost:5019/api/auth/google-callback";
         var scope = "email profile openid";
 
+        var pkceValues = PKCE.Create(64, "S256");
+        string[] parts = pkceValues.Split(',');
+        string code_verifier = parts[0];
+        string code_challenge = parts[1];
+
+        HttpContext.Session.SetString("CodeVerifier", code_verifier);
+        Console.WriteLine($"[GoogleAuth] Code Verifier guardado en sesión: {code_verifier}");
         // Construir la URL de autorización de Google
         var googleAuthUrl =
             "https://accounts.google.com/o/oauth2/v2/auth" +
@@ -79,9 +86,12 @@ public class AuthController : ControllerBase
             $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
             $"&response_type=code" +
             $"&scope={Uri.EscapeDataString(scope)}" +
+            $"&code_challenge_method=S256" +
+            $"&code_challenge={Uri.EscapeDataString(code_challenge)}" +
             $"&state={Uri.EscapeDataString(state)}" +
             $"&include_granted_scopes=true";
 
+         
         Console.WriteLine($"[GoogleAuth] Estado generado: {state}");
         Console.WriteLine($"[GoogleAuth] URL de redirección: {redirectUri}");
 
@@ -153,15 +163,24 @@ public class AuthController : ControllerBase
                 // Intercambiar el código por tokens
                 var clientId = _configuration["Authentication:Google:ClientId"];
                 var clientSecret = _configuration["Authentication:Google:ClientSecret"];
-                var redirectUri = "https://localhost:5019/api/auth/google-callback";
+                var redirectUri = "https://localhost:5019/api/auth/google-callback" +
+                    "";
+                var code_verifier = HttpContext.Session.GetString("CodeVerifier");
+                Console.WriteLine($"[GoogleCallback] Code Verifier recuperado de sesión: {code_verifier}");
+                if (string.IsNullOrEmpty(code_verifier))
+                {
+                    Console.WriteLine("[GoogleCallback] Error: No se encontró el code_verifier en la sesión");
+                    return Content("<h1>Error de autenticación</h1><p>No se pudo recuperar el verificador de código PKCE.</p>", "text/html");
+                }
 
                 using var httpClient = new HttpClient();
                 var tokenRequest = new FormUrlEncodedContent(new Dictionary<string, string>
                 {
                     ["code"] = code,
                     ["client_id"] = clientId,
-                    ["client_secret"] = clientSecret,
+                    ["client_secret"] = clientSecret, // Ya no mandamos el client_secret porque usamos PKCE
                     ["redirect_uri"] = redirectUri,
+                    ["code_verifier"] = code_verifier,
                     ["grant_type"] = "authorization_code"
                 });
 
@@ -170,9 +189,13 @@ public class AuthController : ControllerBase
 
                 if (!tokenResponse.IsSuccessStatusCode)
                 {
+                    HttpContext.Session.Remove("CodeVerifier");
                     Console.WriteLine($"[GoogleCallback] Error en token: {responseContent}");
                     return Content($"<h1>Error al obtener token</h1><pre>{responseContent}</pre>", "text/html");
                 }
+
+                // Limpiar el code_verifier de la sesión
+                HttpContext.Session.Remove("CodeVerifier");
 
                 // Extraer el access_token y el id_token
                 var responseJson = System.Text.Json.JsonDocument.Parse(responseContent);
