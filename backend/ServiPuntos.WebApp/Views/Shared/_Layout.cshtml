@@ -22,7 +22,7 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    
+
                     <ul class="navbar-nav">
                         @if (User.Identity.IsAuthenticated)
                         {
@@ -32,7 +32,7 @@
                                 </a>
                             </li>
                         }
-                    </ul>  
+                    </ul>
                     <ul class="navbar-nav ms-auto">
                         @if (!User.Identity.IsAuthenticated)
                         {
@@ -48,7 +48,8 @@
                                 <span class="text-dark">Hola, @User.Identity.Name!</span>
                             </li>
                             <li class="nav-item">
-                                <a class="btn btn-outline-danger btn-sm my-2 my-sm-0" href="@Url.Action("Logout", "AccountWApp")">
+                                <a class="btn btn-outline-danger btn-sm my-2 my-sm-0" style="color: #dc3545;"
+                                    href="@Url.Action("Logout", "AccountWApp")">
                                     <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
                                 </a>
                             </li>
