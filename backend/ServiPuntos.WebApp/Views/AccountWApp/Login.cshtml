@@ -1,0 +1,103 @@
+﻿@{
+    ViewData["Title"] = "Iniciar Sesión";
+    Layout = "_Layout";
+}
+
+<div class="container py-5">
+    <div class="row d-flex justify-content-center align-items-center">
+        <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+            <div class="card shadow-lg rounded-4 border-0">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <img src="~/images/logo.png" alt="Logo" class="img-fluid mb-3" style="max-height: 80px;" onerror="this.style.display='none'">
+                        <h2 class="fw-bold mb-0">¡Bienvenido a ServiPuntos!</h2>
+                        <p class="text-muted">Panel de Administrador</p> 
+                    </div>
+
+                    <form method="post" asp-controller="AccountWApp" asp-action="login"class="needs-validation" novalidate>
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" id="email" name="email" placeholder="nombre@ejemplo.com" required autofocus>
+                            <label for="email">
+                                <i class="bi bi-envelope-fill me-1"></i>Correo Electrónico
+                            </label>
+                            <div class="invalid-feedback">
+                                Por favor ingresa un correo electrónico válido.
+                            </div>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Contraseña" required>
+                            <label for="password">
+                                <i class="bi bi-lock-fill me-1"></i>Contraseña
+                            </label>
+                            <div class="invalid-feedback">
+                                Por favor ingresa tu contraseña.
+                            </div>
+                            <div id="passwordToggle" class="password-toggle-icon">
+                                <i class="bi bi-eye-slash"></i>
+                            </div>
+                            <div class="text-end mt-1">
+                                <a href="#" class="text-decoration-none small text-primary">¿Olvidaste tu contraseña?</a>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary btn-lg text-white py-3 rounded-3" type="submit">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <p class="mb-0">¿No tienes una cuenta? <a href="/falta/agregar/esta/ruta" class="text-primary fw-bold">Registrate?? vamos ausarlo nosotros nomas jaja</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Validación del lado del cliente
+            (function () {
+                'use strict'
+                var forms = document.querySelectorAll('.needs-validation')
+                Array.prototype.slice.call(forms)
+                    .forEach(function (form) {
+                        form.addEventListener('submit', function (event) {
+                            if (!form.checkValidity()) {
+                                event.preventDefault()
+                                event.stopPropagation()
+                            }
+                            form.classList.add('was-validated')
+                        }, false)
+                    })
+            })()
+
+          
+            const passwordToggle = document.getElementById('passwordToggle');
+            const passwordInput = document.getElementById('password');
+            if (passwordToggle && passwordInput) {
+                passwordToggle.addEventListener('click', function() {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    passwordToggle.querySelector('i').classList.toggle('bi-eye');
+                    passwordToggle.querySelector('i').classList.toggle('bi-eye-slash');
+                });
+            }
+
+            
+            const card = document.querySelector('.card');
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            
+            setTimeout(function() {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100);
+        });
+    </script>
+}
