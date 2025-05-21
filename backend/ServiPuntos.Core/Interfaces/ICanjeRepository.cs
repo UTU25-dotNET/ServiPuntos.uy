@@ -7,13 +7,13 @@ namespace ServiPuntos.Core.Interfaces
 {
     public interface ICanjeRepository
     {
-        Task<Canje> GetByIdAsync(int id);
+        Task<Canje> GetByIdAsync(Guid id);
         Task<Canje> GetByCodigoQRAsync(string codigoQR);
-        Task<IEnumerable<Canje>> GetByUsuarioIdAsync(int usuarioId);
-        Task<IEnumerable<Canje>> GetByUbicacionIdAsync(int ubicacionId);
-        Task<IEnumerable<Canje>> GetByTenantIdAsync(int tenantId);
-        Task<IEnumerable<Canje>> GetPendientesByUsuarioIdAsync(int usuarioId);
-        Task<int> AddAsync(Canje canje);
+        Task<IEnumerable<Canje>> GetByUsuarioIdAsync(Guid usuarioId);
+        Task<IEnumerable<Canje>> GetByUbicacionIdAsync(Guid ubicacionId);
+        Task<IEnumerable<Canje>> GetByTenantIdAsync(Guid tenantId);
+        Task<IEnumerable<Canje>> GetPendientesByUsuarioIdAsync(Guid usuarioId);
+        Task<Guid> AddAsync(Canje canje);
         Task<bool> UpdateAsync(Canje canje);
         Task<bool> DeleteAsync(int id);
     }

@@ -7,13 +7,13 @@ namespace ServiPuntos.Core.Interfaces
 {
     public interface ITransaccionRepository
     {
-        Task<Transaccion> GetByIdAsync(int id);
-        Task<IEnumerable<Transaccion>> GetByUsuarioIdAsync(int usuarioId);
-        Task<IEnumerable<Transaccion>> GetByUbicacionIdAsync(int ubicacionId);
-        Task<IEnumerable<Transaccion>> GetByTenantIdAsync(int tenantId);
+        Task<Transaccion> GetByIdAsync(Guid id);
+        Task<IEnumerable<Transaccion>> GetByUsuarioIdAsync(Guid usuarioId);
+        Task<IEnumerable<Transaccion>> GetByUbicacionIdAsync(Guid ubicacionId);
+        Task<IEnumerable<Transaccion>> GetByTenantIdAsync(Guid tenantId);
         Task<IEnumerable<Transaccion>> GetByDateRangeAsync(DateTime fechaInicio, DateTime fechaFin);
-        Task<int> AddAsync(Transaccion transaccion);
+        Task<Guid> AddAsync(Transaccion transaccion);
         Task<bool> UpdateAsync(Transaccion transaccion);
-        Task<bool> DeleteAsync(int id);
+        Task<bool> DeleteAsync(Guid id);
     }
 }

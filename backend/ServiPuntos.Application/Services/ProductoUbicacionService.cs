@@ -25,6 +25,11 @@ namespace ServiPuntos.Application.Services
         {
             return await _iProductoUbicacionRepository.GetAllAsync();
         }
+        public async Task<IEnumerable<ProductoUbicacion>> GetAllAsync(Guid idUbicacion)
+        {
+            return await _iProductoUbicacionRepository.GetAllAsync(idUbicacion);
+        }
+
         public async Task<ProductoUbicacion?> GetAsync(Guid id)
         {
             return await _iProductoUbicacionRepository.GetAsync(id);

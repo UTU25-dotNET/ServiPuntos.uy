@@ -5,6 +5,6 @@ namespace ServiPuntos.Core.Interfaces
 {
     public interface IPointsRuleEngine
     {
-        Task<decimal> CalcularPuntosAsync(TransaccionNAFTA transaccion, int tenantId);
+        Task<int> CalcularPuntosAsync(TransaccionNAFTA transaccion, Guid tenantId);
     }
 }

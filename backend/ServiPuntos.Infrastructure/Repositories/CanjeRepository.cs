@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ServiPuntos.Core.Entities;
+using ServiPuntos.Core.Enums;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Data;
 using System;
@@ -18,7 +19,7 @@ namespace ServiPuntos.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Canje> GetByIdAsync(int id)
+        public async Task<Canje> GetByIdAsync(Guid id)
         {
             return await _context.Canjes
                 .Include(c => c.Usuario)
@@ -38,7 +39,7 @@ namespace ServiPuntos.Infrastructure.Repositories
                 .FirstOrDefaultAsync(c => c.CodigoQR == codigoQR);
         }
 
-        public async Task<IEnumerable<Canje>> GetByUsuarioIdAsync(int usuarioId)
+        public async Task<IEnumerable<Canje>> GetByUsuarioIdAsync(Guid usuarioId)
         {
             return await _context.Canjes
                 .Where(c => c.UsuarioId == usuarioId)
@@ -48,7 +49,7 @@ namespace ServiPuntos.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Canje>> GetByUbicacionIdAsync(int ubicacionId)
+        public async Task<IEnumerable<Canje>> GetByUbicacionIdAsync(Guid ubicacionId)
         {
             return await _context.Canjes
                 .Where(c => c.UbicacionId == ubicacionId)
@@ -58,7 +59,7 @@ namespace ServiPuntos.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Canje>> GetByTenantIdAsync(int tenantId)
+        public async Task<IEnumerable<Canje>> GetByTenantIdAsync(Guid tenantId)
         {
             return await _context.Canjes
                 .Where(c => c.TenantId == tenantId)
@@ -69,7 +70,7 @@ namespace ServiPuntos.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Canje>> GetPendientesByUsuarioIdAsync(int usuarioId)
+        public async Task<IEnumerable<Canje>> GetPendientesByUsuarioIdAsync(Guid usuarioId)
         {
             return await _context.Canjes
                 .Where(c => c.UsuarioId == usuarioId && c.Estado == EstadoCanje.Generado && c.FechaExpiracion > DateTime.Now)
@@ -79,7 +80,7 @@ namespace ServiPuntos.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<int> AddAsync(Canje canje)
+        public async Task<Guid> AddAsync(Canje canje)
         {
             _context.Canjes.Add(canje);
             await _context.SaveChangesAsync();
