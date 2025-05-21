@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ServiPuntos.Core.Enums;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -7,16 +8,16 @@ namespace ServiPuntos.Core.Entities
     public class Transaccion
     {
         [Key]
-        public int Id { get; set; }
+        public Guid Id { get; set; }
 
         [Required]
-        public int UsuarioId { get; set; }
+        public Guid UsuarioId { get; set; }
 
         [Required]
-        public int UbicacionId { get; set; }
+        public Guid UbicacionId { get; set; }
 
         [Required]
-        public int TenantId { get; set; }
+        public Guid TenantId { get; set; }
 
         [Required]
         public DateTime FechaTransaccion { get; set; }
@@ -25,19 +26,17 @@ namespace ServiPuntos.Core.Entities
         public TipoTransaccion TipoTransaccion { get; set; }
 
         [Required]
-        [Column(TypeName = "decimal(18,2)")]
         public decimal Monto { get; set; }
 
         [Required]
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal PuntosOtorgados { get; set; }
+        public int PuntosOtorgados { get; set; }
 
         // Referencias opcionales para detalles adicionales
         public int? ProductoId { get; set; }
 
         public string Detalles { get; set; } // Para almacenar detalles adicionales en formato JSON
 
-        public string ReferenciaExterna { get; set; } // Referencia del sistema POS
+        public Guid ReferenciaExterna { get; set; } // Referencia del sistema POS
 
         // Navegación
         public virtual Usuario Usuario { get; set; }

@@ -8,11 +8,11 @@ namespace ServiPuntos.Core.Interfaces
 {
     public interface ICanjeService
     {
-        Task<Canje> GetCanjeByIdAsync(int id);
+        Task<Canje> GetCanjeByIdAsync(Guid id);
         Task<Canje> GetCanjeByCodigoQRAsync(string codigoQR);
-        Task<IEnumerable<Canje>> GetCanjesByUsuarioIdAsync(int usuarioId);
-        Task<IEnumerable<Canje>> GetCanjesPendientesByUsuarioIdAsync(int usuarioId);
-        Task<string> GenerarCodigoCanjeAsync(int usuarioId, int productoCanjeableId, int ubicacionId, int tenantId);
+        Task<IEnumerable<Canje>> GetCanjesByUsuarioIdAsync(Guid usuarioId);
+        Task<IEnumerable<Canje>> GetCanjesPendientesByUsuarioIdAsync(Guid usuarioId);
+        Task<string> GenerarCodigoCanjeAsync(Guid usuarioId, Guid productoCanjeableId, Guid ubicacionId, Guid tenantId);
         Task<bool> ProcesarCanjeAsync(CanjeNAFTA canje);
         Task<bool> ValidarCanjeAsync(string codigoQR);
     }

@@ -1,4 +1,4 @@
-﻿namespace ServiPuntos.Core.Entities
+﻿namespace ServiPuntos.Core.Enums
 {
     public enum TipoTransaccion
     {

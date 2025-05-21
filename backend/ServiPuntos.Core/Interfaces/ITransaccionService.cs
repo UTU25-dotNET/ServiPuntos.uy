@@ -8,12 +8,12 @@ namespace ServiPuntos.Core.Interfaces
 {
     public interface ITransaccionService
     {
-        Task<Transaccion> GetTransaccionByIdAsync(int id);
-        Task<IEnumerable<Transaccion>> GetTransaccionesByUsuarioIdAsync(int usuarioId);
-        Task<IEnumerable<Transaccion>> GetTransaccionesByUbicacionIdAsync(int ubicacionId);
-        Task<IEnumerable<Transaccion>> GetTransaccionesByTenantIdAsync(int tenantId);
+        Task<Transaccion> GetTransaccionByIdAsync(Guid id);
+        Task<IEnumerable<Transaccion>> GetTransaccionesByUsuarioIdAsync(Guid usuarioId);
+        Task<IEnumerable<Transaccion>> GetTransaccionesByUbicacionIdAsync(Guid ubicacionId);
+        Task<IEnumerable<Transaccion>> GetTransaccionesByTenantIdAsync(Guid tenantId);
         Task<IEnumerable<Transaccion>> GetTransaccionesByDateRangeAsync(DateTime fechaInicio, DateTime fechaFin);
-        Task<RespuestaPuntosNAFTA> ProcesarTransaccionNAFTAAsync(TransaccionNAFTA transaccion, int tenantId, int ubicacionId);
-        Task<int> RegistrarTransaccionAsync(Transaccion transaccion);
+        Task<RespuestaPuntosNAFTA> ProcesarTransaccionNAFTAAsync(TransaccionNAFTA transaccion, Guid tenantId, Guid ubicacionId);
+        Task<Guid> RegistrarTransaccionAsync(Transaccion transaccion);
     }
 }

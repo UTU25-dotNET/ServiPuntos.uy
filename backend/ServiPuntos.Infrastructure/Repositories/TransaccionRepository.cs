@@ -18,7 +18,7 @@ namespace ServiPuntos.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Transaccion> GetByIdAsync(int id)
+        public async Task<Transaccion> GetByIdAsync(Guid id)
         {
             return await _context.Transacciones
                 .Include(t => t.Usuario)
@@ -27,7 +27,7 @@ namespace ServiPuntos.Infrastructure.Repositories
                 .FirstOrDefaultAsync(t => t.Id == id);
         }
 
-        public async Task<IEnumerable<Transaccion>> GetByUsuarioIdAsync(int usuarioId)
+        public async Task<IEnumerable<Transaccion>> GetByUsuarioIdAsync(Guid usuarioId)
         {
             return await _context.Transacciones
                 .Where(t => t.UsuarioId == usuarioId)
@@ -36,7 +36,7 @@ namespace ServiPuntos.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Transaccion>> GetByUbicacionIdAsync(int ubicacionId)
+        public async Task<IEnumerable<Transaccion>> GetByUbicacionIdAsync(Guid ubicacionId)
         {
             return await _context.Transacciones
                 .Where(t => t.UbicacionId == ubicacionId)
@@ -45,7 +45,7 @@ namespace ServiPuntos.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Transaccion>> GetByTenantIdAsync(int tenantId)
+        public async Task<IEnumerable<Transaccion>> GetByTenantIdAsync(Guid tenantId)
         {
             return await _context.Transacciones
                 .Where(t => t.TenantId == tenantId)
@@ -66,7 +66,7 @@ namespace ServiPuntos.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<int> AddAsync(Transaccion transaccion)
+        public async Task<Guid> AddAsync(Transaccion transaccion)
         {
             _context.Transacciones.Add(transaccion);
             await _context.SaveChangesAsync();
@@ -80,7 +80,7 @@ namespace ServiPuntos.Infrastructure.Repositories
             return result > 0;
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(Guid id)
         {
             var transaccion = await _context.Transacciones.FindAsync(id);
             if (transaccion == null)
