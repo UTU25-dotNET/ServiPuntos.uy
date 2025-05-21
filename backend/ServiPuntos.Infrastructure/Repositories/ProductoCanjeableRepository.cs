@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ServiPuntos.Core.Entities;
 using ServiPuntos.Infrastructure.Data;
-using ServiPuntos.Core.Interfaces;
+using ServiPuntos.Core.Interfaces;  
 
 namespace ServiPuntos.Infrastructure.Repositories
 {

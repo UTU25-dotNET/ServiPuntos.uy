@@ -1,8 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using ServiPuntos.Core.Enums;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace ServiPuntos.Core.Entities
 {
     public class Usuario
