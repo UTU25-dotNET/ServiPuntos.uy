@@ -12,6 +12,7 @@ using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Repositories;
 using ServiPuntos.Infrastructure.Middleware;
 using System.Text;
+using ServiPuntos.API.Data;
 using System.Security.Claims;
 
 // Creaci�n de la aplicaci�n web ASP.NET Core
@@ -90,6 +91,21 @@ builder.Services.AddCors(options =>
             .SetIsOriginAllowed(_ => true));
 });
 
+// Dentro de la configuración de servicios
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    // Si usas SQL Server:
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlServerOptionsAction: sqlOptions =>
+        {
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorNumbersToAdd: null);
+        }
+    );
+});
 
 // Agregar el servicio JwtTokenService al contenedor de dependencias
 builder.Services.AddScoped<JwtTokenService>();

@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using ServiPuntos.API.Data;
 
 /// <summary>
 /// Controlador que maneja la autenticación con Google y la gestión de tokens JWT
@@ -19,6 +21,7 @@ public class AuthController : ControllerBase
     private readonly IConfiguration _configuration;
     private readonly IHttpClientFactory _httpClientFactory;
 
+    private readonly ApplicationDbContext _context;
     /// <summary>
     /// Constructor que inyecta las dependencias necesarias
     /// </summary>
@@ -27,8 +30,11 @@ public class AuthController : ControllerBase
     /// Constructor que inyecta las dependencias necesarias
     /// </summary>
     /// <param name="jwtTokenService">Servicio para generar tokens JWT</param>
-    public AuthController(JwtTokenService jwtTokenService, IConfiguration configuration, IHttpClientFactory httpClientFactory)
+    public AuthController(JwtTokenService jwtTokenService, IConfiguration configuration, IHttpClientFactory httpClientFactory, ApplicationDbContext context)
     {
+        _context = context;
+        // Inyectar el servicio de generación de tokens JWT
+
         _jwtTokenService = jwtTokenService;
         _configuration = configuration;
         _httpClientFactory = httpClientFactory;
@@ -397,6 +403,126 @@ public class AuthController : ControllerBase
         return Ok(userClaims);
     }
 
+    [HttpPost("signin")]
+    public async Task<IActionResult> SignIn([FromBody] SignInRequest request)
+    {
+        var claims = new List<Claim>();
+        try
+        {
+            if (request == null || string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password))
+            {
+                return BadRequest(new { message = "Usuario y contraseña son requeridos" });
+            }
+
+            // Buscar el usuario en la base de datos
+            var usuario = await _context.Usuarios
+                .FirstOrDefaultAsync(u => u.Email == request.Username);
+
+            // Verificar si el usuario existe
+            if (usuario == null)
+            {
+                return Unauthorized(new { message = "Usuario o contraseña incorrectos" });
+            }
+
+            // Verificar la contraseña
+            bool passwordValid = VerifyPassword(request.Password, usuario.Password);
+            if (!passwordValid)
+            {
+                return Unauthorized(new { message = "Usuario o contraseña incorrectos" });
+            }
+
+            // Si tenemos cédula, verificamos la edad
+            bool isAdult = false;
+            try
+            {
+                // Verificación de edad
+                var client = _httpClientFactory.CreateClient();
+                var verifyResponse = await client.GetAsync($"https://localhost:5019/api/verify/age_verify?cedula={Uri.EscapeDataString(Usuario.cedula ?? string.Empty)}");
+
+                if (verifyResponse.IsSuccessStatusCode)
+                {
+                    var verifyContent = await verifyResponse.Content.ReadAsStringAsync();
+                    var verifyResult = System.Text.Json.JsonSerializer.Deserialize<AgeVerificationResult>(
+                        verifyContent, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (verifyResult != null)
+                    {
+                        isAdult = verifyResult.IsAllowed;
+                        claims.Add(new Claim("edad", verifyResult.Edad.ToString()));
+                        Console.WriteLine($"[SignIn] Verificación de edad: {(isAdult ? "Mayor de edad" : "Menor de edad")}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("[SignIn] Error: El resultado de la verificación de edad es nulo.");
+                        isAdult = false;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"[SignIn] Error al verificar edad: {verifyResponse.StatusCode}");
+                    isAdult = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SignIn] Error al verificar edad: {ex.Message}");
+                isAdult = false;
+            }
+            // Autenticación exitosa, creamos claims para el JWT
+            // var claims = new List<Claim>
+            // {
+            //     new Claim(ClaimTypes.Name, usuario.Nombre),
+            //     new Claim(ClaimTypes.Email, usuario.Email ?? string.Empty),
+            //     new Claim("UserId", usuario.Id.ToString()),
+            //     new Claim("role", usuario.Rol ?? "user")  // Usar el rol del usuario o "user" por defecto
+            // };
+
+            claims.Add(new Claim(ClaimTypes.Name, usuario.Nombre ?? string.Empty));
+            claims.Add(new Claim("is_adult", isAdult.ToString().ToLower()));
+            claims.Add(new Claim("cedula", cedula ?? string.Empty));
+            claims.Add(new Claim("role", "user"));
+
+
+            // Si hay atributos adicionales que quieras incluir en el token
+            if (usuario.Cedula != null)
+            {
+                claims.Add(new Claim("cedula", usuario.Cedula));
+            }
+
+            // Generar el token JWT
+            var token = _jwtTokenService.GenerateJwtToken(claims);
+
+            // Devolver token y datos básicos del usuario
+            return Ok(new
+            {
+                token,
+                userId = usuario.Id,
+                username = usuario.Nombre,
+                email = usuario.Email,
+                role = usuario.Rol ?? "user"
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[SignIn] Error: {ex.Message}");
+            return StatusCode(500, new { message = "Error interno del servidor" });
+        }
+    }
+    
+    // Método auxiliar para verificar la contraseña
+private bool VerifyPassword(string providedPassword, string storedPassword)
+{
+    // Suponiendo que las contraseñas están hasheadas con BCrypt
+    return BCrypt.Net.BCrypt.Verify(providedPassword, storedPassword);
+}
+
+    // Clase para recibir los datos de inicio de sesión
+    public class SignInRequest
+    {
+        public string? Username { get; set; }
+        public string? Password { get; set; }
+    }
+    
     [HttpGet("logout")]
     public async Task<IActionResult> Logout()
     {
