@@ -15,7 +15,7 @@ namespace ServiPuntos.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<SaldoPuntos> GetByUsuarioIdAndTenantIdAsync(int usuarioId, int tenantId)
+        public async Task<SaldoPuntos> GetByUsuarioIdAndTenantIdAsync(Guid usuarioId, Guid tenantId)
         {
             return await _context.SaldosPuntos
                 .Include(s => s.Usuario)
@@ -23,7 +23,7 @@ namespace ServiPuntos.Infrastructure.Repositories
                 .FirstOrDefaultAsync(s => s.UsuarioId == usuarioId && s.TenantId == tenantId);
         }
 
-        public async Task<int> AddAsync(SaldoPuntos saldoPuntos)
+        public async Task<Guid> AddAsync(SaldoPuntos saldoPuntos)
         {
             _context.SaldosPuntos.Add(saldoPuntos);
             await _context.SaveChangesAsync();
@@ -37,7 +37,7 @@ namespace ServiPuntos.Infrastructure.Repositories
             return result > 0;
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(Guid id)
         {
             var saldoPuntos = await _context.SaldosPuntos.FindAsync(id);
             if (saldoPuntos == null)

@@ -7,17 +7,16 @@ namespace ServiPuntos.Core.Entities
     public class SaldoPuntos
     {
         [Key]
-        public int Id { get; set; }
+        public Guid Id { get; set; }
 
         [Required]
-        public int UsuarioId { get; set; }
+        public Guid UsuarioId { get; set; }
 
         [Required]
-        public int TenantId { get; set; }
+        public Guid TenantId { get; set; }
 
         [Required]
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal Saldo { get; set; }
+        public int Saldo { get; set; }
 
         [Required]
         public DateTime UltimaActualizacion { get; set; }
