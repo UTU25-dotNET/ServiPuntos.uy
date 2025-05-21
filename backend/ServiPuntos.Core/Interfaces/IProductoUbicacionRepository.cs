@@ -10,7 +10,8 @@ namespace ServiPuntos.Core.Interfaces
     public interface IProductoUbicacionRepository
     {
         Task<ProductoUbicacion?> GetAsync(Guid id);
-        //Task<IEnumerable<ProductoUbicacion>> GetAllAsync();
+        Task<IEnumerable<ProductoUbicacion>> GetAllAsync();
+        Task<IEnumerable<ProductoUbicacion>> GetAllAsync(Guid idUbicacion);
         Task AddAsync(ProductoUbicacion productoUbicacion);
         Task UpdateAsync(ProductoUbicacion productoUbicacion);
     }
