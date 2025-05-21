@@ -5,7 +5,7 @@ using ServiPuntos.Core.Interfaces;
 
 namespace ServiPuntos.WebApp.Controllers
 {
-    [Authorize (Roles = "AdminTenant")] // ver que es lo que va en la cookie
+    [Authorize (Roles = "AdminTenant, AdminPlataforma")] // ver que es lo que va en la cookie
     public class TenantWAppController : Controller
     {
         private readonly ITenantService _iTenantService;
