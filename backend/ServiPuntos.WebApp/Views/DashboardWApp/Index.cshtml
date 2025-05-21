@@ -1,0 +1,67 @@
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h1 class="display-4">Hello World Dashboard</h1>
+                    <p class="lead">¡Bienvenido a tu dashboard, @User.Identity.Name!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        
+        @if (User.IsInRole("AdminPlataforma"))
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card bg-primary text-white h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Usuarios</h5>
+                    </div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <button class="btn small text-black bg-white" onclick="window.location.href='UsuarioWApp/Index'">Administracion de usuarios  <i class="fas fa-angle-right"></i></button>
+                        
+                    </div>
+                </div>
+            </div>
+        }
+
+
+        @if (User.IsInRole("AdminPlataforma") || User.IsInRole("AdminTenant"))
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card bg-success text-white h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Tenants</h5>
+                    </div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <button class="btn small text-black bg-white" onclick="window.location.href='TenantWApp/Index'">Administracion de tenants  <i class="fas fa-angle-right"></i></button>
+                        
+                    </div>
+                </div>
+            </div>
+        }
+
+        
+        @if (User.IsInRole("AdminPlataforma") || User.IsInRole("AdminUbicacion"))
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card bg-warning text-white h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Ubicaciones</h5>
+                    </div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <button class="btn small text-black bg-white" onclick="window.location.href='UbicacionWApp/Index'">Administracion de ubicaciones  <i class="fas fa-angle-right"></i></button>
+                        <p>falta pagina de ubaciones</p>
+                        
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
