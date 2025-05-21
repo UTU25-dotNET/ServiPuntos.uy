@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ServiPuntos.Core.Entities;
 using ServiPuntos.Infrastructure.Data;
+using ServiPuntos.Core.Interfaces;  
 
 namespace ServiPuntos.Infrastructure.Repositories
 {
-    public class ProductoCanjeableRepository : IProductoRepository
+    public class ProductoCanjeableRepository : IProductoCanjeableRepository
     {
         private readonly ServiPuntosDbContext _dbContext;
 
@@ -74,7 +75,24 @@ namespace ServiPuntos.Infrastructure.Repositories
                 await _dbContext.SaveChangesAsync();
             }
         }
-        
+        public async Task DeleteAsync(Ubicacion ubicacion, Guid idProducto)
+        {
+            var producto = await _dbContext.ProductosCanjeables
+                .Include(p => p.DisponibilidadesPorUbicacion)
+                .FirstOrDefaultAsync(p => p.Id == idProducto);
+            if (producto != null)
+            {
+                var productoUbicacion = await _dbContext.ProductoUbicaciones
+                    .FirstOrDefaultAsync(pu => pu.UbicacionId == ubicacion.Id && pu.ProductoCanjeableId == idProducto);
+                if (productoUbicacion != null)
+                {
+                    _dbContext.ProductoUbicaciones.Remove(productoUbicacion);
+                }
+                _dbContext.ProductosCanjeables.Remove(producto);
+                await _dbContext.SaveChangesAsync();
+            }
+        }
+
 
 
 
