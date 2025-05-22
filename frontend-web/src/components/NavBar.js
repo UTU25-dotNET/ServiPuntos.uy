@@ -1,8 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import authService from "../services/authService";
+import TenantSelector from "./TenantSelector";
 
-const NavBar = () => {
+const NavBar = ({
+  tenants,
+  selectedTenant,
+  onSelectTenant
+}) => {
   const isAuthenticated = authService.isAuthenticated();
   const user = authService.getCurrentUser();
 
@@ -14,7 +19,7 @@ const NavBar = () => {
         padding: "1rem",
         backgroundColor: "#343a40",
         color: "white",
-        marginBottom: "1rem",
+        marginBottom: "1rem"
       }}
     >
       <div>
@@ -24,12 +29,23 @@ const NavBar = () => {
             color: "white",
             textDecoration: "none",
             fontWeight: "bold",
-            fontSize: "1.2rem",
+            fontSize: "1.2rem"
           }}
         >
           Servipuntos.uy <span style={{ color: "grey" }}>*Demo*</span>
         </Link>
       </div>
+
+      {/* ——— Dropdown de Tenants ——— */}
+      <div>
+        <TenantSelector
+          tenants={tenants}
+          selectedTenant={selectedTenant}
+          onSelect={onSelectTenant}
+        />
+      </div>
+      {/* ———————————————————————— */}
+
       <div style={{ display: "flex", alignItems: "center" }}>
         {isAuthenticated ? (
           <>
@@ -42,32 +58,18 @@ const NavBar = () => {
                   color: "white",
                   padding: "0.25rem 0.5rem",
                   borderRadius: "4px",
-                  fontSize: "0.8rem",
+                  fontSize: "0.8rem"
                 }}
               >
                 {user.username || user.email}
               </span>
             )}
-            {/* <Link to="/dashboard" style={{ 
-              color: 'white', 
-              textDecoration: 'none',
-              marginRight: '1rem'
-            }}>
-              Dashboard
-            </Link> */}
-            {/* <Link to="/token" style={{ 
-              color: 'white', 
-              textDecoration: 'none',
-              marginRight: '1rem'
-            }}>
-              Ver Token
-            </Link> */}
             <Link
               to="/"
               onClick={() => authService.logout()}
               style={{
                 color: "white",
-                textDecoration: "none",
+                textDecoration: "none"
               }}
             >
               Cerrar Sesión
@@ -75,19 +77,7 @@ const NavBar = () => {
           </>
         ) : (
           <>
-            {/* <Link to="/" style={{ 
-              color: 'white', 
-              textDecoration: 'none',
-              marginRight: '1rem'
-            }}>
-              Inicio
-            </Link> */}
-            {/* <Link to="/login" style={{ 
-              color: 'white', 
-              textDecoration: 'none'
-            }}>
-              Iniciar Sesión
-            </Link> */}
+            {/* aquí podrías poner links públicos si quisieras */}
           </>
         )}
       </div>

@@ -1,13 +1,14 @@
 import axios from "axios";
 import authService from "./authService";
 
-const API_URL = "https://localhost:5019/api/";
+const API_URL = "https://localhost:5019/api";
 
 const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true, // si usas cookies de sesión
 });
 
 // Interceptor para añadir el token a todas las peticiones
@@ -15,22 +16,18 @@ apiClient.interceptors.request.use(
   (config) => {
     const token = authService.getToken();
     if (token) {
-      config.headers["Authorization"] = `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Interceptor para manejar errores de autenticación
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Si recibimos un 401 (Unauthorized)
-    if (error.response && error.response.status === 401) {
-      // Redirijo al login
+    if (error.response?.status === 401) {
       authService.logout();
       window.location.href = "/login";
     }
@@ -38,79 +35,46 @@ apiClient.interceptors.response.use(
   }
 );
 
-// Cliente HTTP
 const apiService = {
-  // Métodos simulados para desarrollo
+  // Perfil de usuario (simulado)
   getUserProfile: async () => {
-    try {
-      // Simulación para desarrollo
-      const user = authService.getCurrentUser();
-      if (!user) {
-        throw new Error("Usuario no autenticado");
-      }
-
-      // Crear un perfil simulado basado en el token
-      return {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        nombre: user.nombre + " " + user.apellido,
-        role: user.role,
-        lastLogin: new Date().toISOString(),
-        status: "active",
-      };
-
-      // Descomentar cuando tengas el backend listo
-      /*
-      const response = await apiClient.get('usuario/perfil');
-      return response.data;
-      */
-    } catch (error) {
-      console.error("Error obteniendo perfil:", error);
-      throw error.response?.data || error;
-    }
+    const user = authService.getCurrentUser();
+    if (!user) throw new Error("Usuario no autenticado");
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      nombre: `${user.nombre} ${user.apellido}`,
+      role: user.role,
+      lastLogin: new Date().toISOString(),
+      status: "active",
+    };
   },
 
-  // Métodos HTTP genéricos
+  // HTTP genéricos
   get: async (endpoint) => {
-    try {
-      const response = await apiClient.get(endpoint);
-      return response.data;
-    } catch (error) {
-      console.error(`Error en GET ${endpoint}:`, error);
-      throw error;
-    }
+    const res = await apiClient.get(endpoint);
+    return res.data;
   },
-
-  post: async (endpoint, data) => {
-    try {
-      const response = await apiClient.post(endpoint, data);
-      return response.data;
-    } catch (error) {
-      console.error(`Error en POST ${endpoint}:`, error);
-      throw error;
-    }
+  post: async (endpoint, payload) => {
+    const res = await apiClient.post(endpoint, payload);
+    return res.data;
   },
-
-  put: async (endpoint, data) => {
-    try {
-      const response = await apiClient.put(endpoint, data);
-      return response.data;
-    } catch (error) {
-      console.error(`Error en PUT ${endpoint}:`, error);
-      throw error;
-    }
+  put: async (endpoint, payload) => {
+    const res = await apiClient.put(endpoint, payload);
+    return res.data;
   },
-
   delete: async (endpoint) => {
-    try {
-      const response = await apiClient.delete(endpoint);
-      return response.data;
-    } catch (error) {
-      console.error(`Error en DELETE ${endpoint}:`, error);
-      throw error;
-    }
+    const res = await apiClient.delete(endpoint);
+    return res.data;
   },
+
+  // Tenants
+  getTenants: () => apiClient.get("/tenant"),
+
+  // Simulación NAFTA
+  simulateTransaccion: (mensaje) =>
+    apiClient.post("/nafta/transaccion", mensaje),
 };
 
 export default apiService;

@@ -132,7 +132,15 @@ const authService = {
       const token = localStorage.getItem("token");
       if (!token) return null;
 
-      return tokenUtils.getUserFromToken(token);
+      const user = tokenUtils.getUserFromToken(token);
+
+      // Validar que el id sea un GUID
+      const guidRegex = /^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$/;
+      if (!guidRegex.test(user.id)) {
+        console.warn("ID de usuario no es un GUID válido:", user.id);
+      }
+
+      return user;
     } catch (error) {
       return null;
     }
