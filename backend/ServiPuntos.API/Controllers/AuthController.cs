@@ -434,9 +434,20 @@ public class AuthController : ControllerBase
             bool isAdult = false;
             try
             {
+                //me traigo el usuario de la base de datos para poder cargar los claims
+                var usuarioFromDb = await _context.Usuarios
+                    .FirstOrDefaultAsync(u => u.Email == request.Email);
+
+                if (usuarioFromDb == null)
+                {
+                    Console.WriteLine("[SignIn] Error: usuarioFromDb es null.");
+                    return Unauthorized(new { message = "Email o contraseña incorrectos" });
+                }
+
                 // Verificación de edad
                 var client = _httpClientFactory.CreateClient();
-                var verifyResponse = await client.GetAsync($"https://localhost:5019/api/verify/age_verify?cedula={Uri.EscapeDataString(Usuario.CI ?? string.Empty)}");
+                var ciString = usuarioFromDb.Ci.ToString();
+                var verifyResponse = await client.GetAsync($"https://localhost:5019/api/verify/age_verify?cedula={Uri.EscapeDataString(ciString)}");
 
                 if (verifyResponse.IsSuccessStatusCode)
                 {
@@ -478,14 +489,13 @@ public class AuthController : ControllerBase
 
             claims.Add(new Claim(ClaimTypes.Name, usuario.Nombre ?? string.Empty));
             claims.Add(new Claim("is_adult", isAdult.ToString().ToLower()));
-            claims.Add(new Claim("cedula", cedula ?? string.Empty));
             claims.Add(new Claim("role", "user"));
 
 
             // Si hay atributos adicionales que quieras incluir en el token
-            if (usuario.Cedula != null)
+            if (usuario != null)
             {
-                claims.Add(new Claim("cedula", usuario.Cedula));
+                claims.Add(new Claim("cedula", usuario.Ci.ToString() ?? string.Empty));
             }
 
             // Generar el token JWT
@@ -495,10 +505,10 @@ public class AuthController : ControllerBase
             return Ok(new
             {
                 token,
-                userId = usuario.Id,
+                userId = usuario!.Id,
                 username = usuario.Nombre,
                 email = usuario.Email,
-                role = usuario.Rol ?? "user"
+                role = usuario.Rol,
             });
         }
         catch (Exception ex)

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using ServiPuntos.Core.Entities;
 
 
 namespace ServiPuntos.API.Data
@@ -28,7 +29,7 @@ namespace ServiPuntos.API.Data
                 entity.Property(e => e.Email).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Nombre).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Password).IsRequired();
-                entity.Property(e=> e.CI).IsRequired().HasMaxLength(20);
+                entity.Property(e=> e.Ci).IsRequired().HasMaxLength(20);
 
                 
                 // Índices
