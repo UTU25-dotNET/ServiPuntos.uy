@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Data;
 
