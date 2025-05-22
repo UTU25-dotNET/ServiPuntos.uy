@@ -1,0 +1,157 @@
+﻿using ServiPuntos.Core.Entities;
+using ServiPuntos.Core.Enums;
+using ServiPuntos.Core.Interfaces;
+using ServiPuntos.Core.NAFTA;
+using System;
+using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ServiPuntos.Application.Services
+{
+    public class CanjeService : ICanjeService
+    {
+        private readonly ICanjeRepository _canjeRepository;
+        private readonly IPuntosService _puntosService;
+        private readonly IUsuarioService _usuarioService;
+        private readonly IProductoCanjeableService _productoCanjeableService;
+
+        public CanjeService(
+            ICanjeRepository canjeRepository,
+            IPuntosService puntosService,
+            IUsuarioService usuarioService,
+            IProductoCanjeableService productoCanjeableService)
+        {
+            _canjeRepository = canjeRepository;
+            _puntosService = puntosService;
+            _usuarioService = usuarioService;
+            _productoCanjeableService = productoCanjeableService;
+        }
+
+        public async Task<Canje> GetCanjeByIdAsync(Guid id)
+        {
+            return await _canjeRepository.GetByIdAsync(id);
+        }
+
+        public async Task<Canje> GetCanjeByCodigoQRAsync(string codigoQR)
+        {
+            return await _canjeRepository.GetByCodigoQRAsync(codigoQR);
+        }
+
+        public async Task<IEnumerable<Canje>> GetCanjesByUsuarioIdAsync(Guid usuarioId)
+        {
+            return await _canjeRepository.GetByUsuarioIdAsync(usuarioId);
+        }
+
+        public async Task<IEnumerable<Canje>> GetCanjesPendientesByUsuarioIdAsync(Guid usuarioId)
+        {
+            return await _canjeRepository.GetPendientesByUsuarioIdAsync(usuarioId);
+        }
+
+        public async Task<string> GenerarCodigoCanjeAsync(Guid usuarioId, Guid productoCanjeableId, Guid ubicacionId, Guid tenantId)
+        {
+            // Verificar que el producto existe
+            var producto = await _productoCanjeableService.GetProductoAsync(productoCanjeableId);
+            if (producto == null)
+            {
+                throw new Exception($"Producto canjeable con ID {productoCanjeableId} no encontrado");
+            }
+
+            // Verificar que el usuario tiene suficientes puntos
+            int saldoUsuario = await _puntosService.GetSaldoByUsuarioIdAsync(usuarioId);
+            if (saldoUsuario < producto.CostoEnPuntos)
+            {
+                throw new Exception("Saldo insuficiente para realizar el canje");
+            }
+
+            // Generar código QR único
+            string codigoQR = GenerarCodigoQRUnico();
+
+            // Crear registro de canje
+            var canje = new Canje
+            {
+                UsuarioId = usuarioId,
+                UbicacionId = ubicacionId,
+                TenantId = tenantId,
+                ProductoCanjeableId = productoCanjeableId,
+                CodigoQR = codigoQR,
+                FechaGeneracion = DateTime.Now,
+                FechaExpiracion = DateTime.Now.AddHours(24), // Expiración en 24 horas
+                Estado = EstadoCanje.Generado,
+                PuntosCanjeados = producto.CostoEnPuntos
+            };
+
+            // Reservar los puntos (se debitarán al completar el canje)
+            await _puntosService.DebitarPuntosAsync(usuarioId, producto.CostoEnPuntos);
+
+            // Guardar el canje
+            await _canjeRepository.AddAsync(canje);
+
+            return codigoQR;
+        }
+
+        public async Task<bool> ProcesarCanjeAsync(CanjeNAFTA canjeNAFTA)
+        {
+            // Buscar el canje por código QR
+            var canje = await _canjeRepository.GetByCodigoQRAsync(canjeNAFTA.CodigoQR);
+            if (canje == null)
+            {
+                throw new Exception($"Canje con código QR {canjeNAFTA.CodigoQR} no encontrado");
+            }
+
+            // Verificar que el canje no ha expirado
+            if (canje.FechaExpiracion < DateTime.Now)
+            {
+                throw new Exception("El código de canje ha expirado");
+            }
+
+            // Verificar que el canje no ha sido utilizado
+            if (canje.Estado != EstadoCanje.Generado)
+            {
+                throw new Exception("El código de canje ya ha sido utilizado o cancelado");
+            }
+
+            // Verificar que la ubicación coincide (si se especifica)
+            if (canjeNAFTA.UbicacionId != null && (canjeNAFTA.UbicacionId) != canje.UbicacionId)
+            {
+                throw new Exception("El canje debe realizarse en la ubicación especificada");
+            }
+
+            // Actualizar el estado del canje
+            canje.Estado = EstadoCanje.Canjeado;
+            canje.FechaCanje = DateTime.Now;
+
+            // Guardar cambios
+            await _canjeRepository.UpdateAsync(canje);
+
+            return true;
+        }
+
+        public async Task<bool> ValidarCanjeAsync(string codigoQR)
+        {
+            var canje = await _canjeRepository.GetByCodigoQRAsync(codigoQR);
+            if (canje == null)
+            {
+                return false;
+            }
+
+            return canje.Estado == EstadoCanje.Generado && canje.FechaExpiracion > DateTime.Now;
+        }
+
+        private string GenerarCodigoQRUnico()
+        {
+            // Generar un código QR único basado en GUID y timestamp
+            string input = Guid.NewGuid().ToString() + DateTime.Now.Ticks.ToString();
+
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+                return Convert.ToBase64String(hashBytes)
+                    .Replace("/", "_")
+                    .Replace("+", "-")
+                    .Substring(0, 20); // Limitar a 20 caracteres para que sea más manejable
+            }
+        }
+    }
+}

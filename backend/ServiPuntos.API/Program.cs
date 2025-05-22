@@ -6,7 +6,10 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using ServiPuntos.Application.Services;
+using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Data;
+using ServiPuntos.Infrastructure.Middleware;
 using ServiPuntos.Infrastructure.MultiTenancy;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Repositories;
@@ -15,6 +18,7 @@ using ServiPuntos.Infrastructure.Middleware;
 using System.Text;
 using ServiPuntos.API.Data;
 using System.Security.Claims;
+using System.Text;
 
 // Creaci�n de la aplicaci�n web ASP.NET Core
 var builder = WebApplication.CreateBuilder(args);
@@ -121,6 +125,17 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<ITenantResolver, TenantResolver>();
 builder.Services.AddScoped<ITenantContext, TenantContext>();
+
+// Registra los repositorios de NAFTA
+builder.Services.AddScoped<ITransaccionRepository, TransaccionRepository>();
+builder.Services.AddScoped<ICanjeRepository, CanjeRepository>();
+
+// Registra los servicios de NAFTA
+builder.Services.AddScoped<ITransaccionService, TransaccionService>();
+builder.Services.AddScoped<IPuntosService, PuntosService>();
+builder.Services.AddScoped<ICanjeService, CanjeService>();
+builder.Services.AddScoped<IPointsRuleEngine, PointsRuleEngine>();
+builder.Services.AddScoped<INAFTAService, NAFTAService>();
 
 // Configuramos la conexi�n a la base de datos
 builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
