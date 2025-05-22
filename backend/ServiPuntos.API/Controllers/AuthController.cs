@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -406,29 +404,30 @@ public class AuthController : ControllerBase
     [HttpPost("signin")]
     public async Task<IActionResult> SignIn([FromBody] SignInRequest request)
     {
-        var claims = new List<Claim>();
+        var claims = new List<Claim>(); 
         try
         {
-            if (request == null || string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password))
+            //Requerimos como obligatorios el username y password
+            if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
             {
-                return BadRequest(new { message = "Usuario y contraseña son requeridos" });
+                return BadRequest(new { message = "Email y contraseña son requeridos" });
             }
 
             // Buscar el usuario en la base de datos
             var usuario = await _context.Usuarios
-                .FirstOrDefaultAsync(u => u.Email == request.Username);
+                .FirstOrDefaultAsync(u => u.Email == request.Email);
 
             // Verificar si el usuario existe
             if (usuario == null)
             {
-                return Unauthorized(new { message = "Usuario o contraseña incorrectos" });
+                return Unauthorized(new { message = "Email o contraseña incorrectos" });
             }
 
             // Verificar la contraseña
             bool passwordValid = VerifyPassword(request.Password, usuario.Password);
             if (!passwordValid)
             {
-                return Unauthorized(new { message = "Usuario o contraseña incorrectos" });
+                return Unauthorized(new { message = "Email o contraseña incorrectos" });
             }
 
             // Si tenemos cédula, verificamos la edad
@@ -437,7 +436,7 @@ public class AuthController : ControllerBase
             {
                 // Verificación de edad
                 var client = _httpClientFactory.CreateClient();
-                var verifyResponse = await client.GetAsync($"https://localhost:5019/api/verify/age_verify?cedula={Uri.EscapeDataString(Usuario.cedula ?? string.Empty)}");
+                var verifyResponse = await client.GetAsync($"https://localhost:5019/api/verify/age_verify?cedula={Uri.EscapeDataString(Usuario.CI ?? string.Empty)}");
 
                 if (verifyResponse.IsSuccessStatusCode)
                 {
@@ -519,7 +518,7 @@ private bool VerifyPassword(string providedPassword, string storedPassword)
     // Clase para recibir los datos de inicio de sesión
     public class SignInRequest
     {
-        public string? Username { get; set; }
+        public string? Email { get; set; }
         public string? Password { get; set; }
     }
     
