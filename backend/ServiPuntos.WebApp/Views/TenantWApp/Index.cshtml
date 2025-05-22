@@ -1,0 +1,27 @@
+﻿@model IEnumerable<ServiPuntos.Core.Entities.Tenant>
+
+@{
+    ViewData["Title"] = "Tenants";
+}
+
+<h2>Lista de Tenants</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var tenant in Model)
+        {
+            <tr>
+                <td>@tenant.Nombre</td>
+                
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a class="btn btn-primary" asp-action="Crear">Crear Nuevo Tenant</a>
