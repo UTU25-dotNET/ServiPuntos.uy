@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ServiPuntos.Core.Interfaces;
+using ServiPuntos.Core.Entities; // Add this line if Usuario is in this namespace
 
 namespace ServiPuntos.Infrastructure.Data
 {
