@@ -11,7 +11,12 @@ using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Data;
 using ServiPuntos.Infrastructure.Middleware;
 using ServiPuntos.Infrastructure.MultiTenancy;
+using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Repositories;
+using ServiPuntos.Infrastructure.Middleware;
+
+using System.Text;
+using ServiPuntos.API.Data;
 using System.Security.Claims;
 using System.Text;
 
@@ -33,13 +38,12 @@ builder.Services.AddSwaggerGen();
 
 // Configuraci�n JWT (JSON Web Token)
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var secretKey = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]);
-
-// A�ade esto en Program.cs antes de construir la aplicaci�n
-builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "keys")))
-    .SetApplicationName("ServiPuntos");
-    //.ProtectKeysWithDpapi();
+var secretKeyString = jwtSettings["SecretKey"];
+if (string.IsNullOrEmpty(secretKeyString))
+{
+    throw new InvalidOperationException("JWT SecretKey is not configured.");
+}
+var secretKey = Encoding.UTF8.GetBytes(secretKeyString);
 
 //Soporte de sesion
 builder.Services.AddSession(options =>
@@ -92,6 +96,21 @@ builder.Services.AddCors(options =>
             .SetIsOriginAllowed(_ => true));
 });
 
+// Dentro de la configuración de servicios
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    // Si usas SQL Server:
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlServerOptionsAction: sqlOptions =>
+        {
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorNumbersToAdd: null);
+        }
+    );
+});
 
 // Agregar el servicio JwtTokenService al contenedor de dependencias
 builder.Services.AddScoped<JwtTokenService>();
@@ -140,10 +159,7 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<TenantMiddleware>();
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllers();
-});
+app.MapControllers();
 
 
 app.Run();

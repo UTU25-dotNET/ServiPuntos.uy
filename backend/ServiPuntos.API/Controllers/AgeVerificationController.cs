@@ -48,7 +48,7 @@ namespace ServiPuntos.API.Controllers
         public IActionResult VerifyAge([FromQuery] string cedula)
         {
             Console.WriteLine($"[AgeVerification] Verificando edad para cédula: {cedula}");
-
+            bool isAllowed = false;
             if (string.IsNullOrWhiteSpace(cedula))
             {
                 return BadRequest(new { message = "La cédula es requerida", isAllowed = false });
@@ -64,19 +64,32 @@ namespace ServiPuntos.API.Controllers
 
                 if (userData == null)
                 {
-                    Console.WriteLine($"[AgeVerification] Cédula no encontrada: {cedula}");
-                    var cedulaDigitos = new string(cedula.Where(char.IsDigit).ToArray());
-                    Console.WriteLine($"[AgeVerification] Cédula sin espacios: {cedulaDigitos}");
-                    int ultimoDigito = int.Parse(cedulaDigitos[cedulaDigitos.Length - 1].ToString());
-                    Console.WriteLine($"[AgeVerification] Último dígito: {ultimoDigito}");
-                    if(ultimoDigito % 2 == 0){
-                        return Ok(new { message = "Cédula no encontrada -> ultimo digito par: allowed", isAllowed = true });
+                    // Extraer el último carácter de la cédula (después de eliminar posibles guiones y puntos)
+                    string normalizedCedula = new string(cedula.Where(c => char.IsDigit(c)).ToArray());
+
+                    if (normalizedCedula.Length == 0)
+                    {
+                        Console.WriteLine($"[AgeVerification] Cédula no válida: {cedula}");
+                        return BadRequest(new { message = "Formato de cédula no válido", isAllowed = false });
                     }
-                    return Ok(new { message = "Cédula no encontrada -> ultimo digito inpar: notAllowed", isAllowed = false });
+
+                    // Obtener el último dígito
+                    char lastDigit = normalizedCedula[normalizedCedula.Length - 1];
+
+                    // Verificar si es par (0,2,4,6,8) o impar (1,3,5,7,9)
+                    bool isEven = (lastDigit - '0') % 2 == 0;
+                    isAllowed = isEven; // Permitido si es par
+
+                    int edad = isAllowed ? 25 : 16; // Edad ficticia basada en si es permitido o no
+
+                    Console.WriteLine($"[AgeVerification] Cédula no encontrada: {cedula}, retornando resultado ficticio. Último dígito: {lastDigit}, Es par: {isEven}, Permitido: {isAllowed}");
+
+                    // Cambiamos NotFound por Ok para evitar errores HTTP 404
+                    return Ok(new { message = "Cédula procesada con regla de paridad", isAllowed, edad });
                 }
 
                 // Verificar si la persona tiene 18 años o más
-                bool isAllowed = userData.Edad >= 18;
+                isAllowed = userData.Edad >= 18;
                 Console.WriteLine($"[AgeVerification] Resultado para {cedula}: {(isAllowed ? "Permitido" : "No permitido")}. Edad: {userData.Edad}");
 
                 return Ok(new { isAllowed, edad = userData.Edad });
