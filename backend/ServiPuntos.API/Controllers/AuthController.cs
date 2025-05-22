@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using ServiPuntos.API.Data;
 
 /// <summary>
 /// Controlador que maneja la autenticación con Google y la gestión de tokens JWT
@@ -19,6 +19,7 @@ public class AuthController : ControllerBase
     private readonly IConfiguration _configuration;
     private readonly IHttpClientFactory _httpClientFactory;
 
+    private readonly ApplicationDbContext _context;
     /// <summary>
     /// Constructor que inyecta las dependencias necesarias
     /// </summary>
@@ -27,8 +28,11 @@ public class AuthController : ControllerBase
     /// Constructor que inyecta las dependencias necesarias
     /// </summary>
     /// <param name="jwtTokenService">Servicio para generar tokens JWT</param>
-    public AuthController(JwtTokenService jwtTokenService, IConfiguration configuration, IHttpClientFactory httpClientFactory)
+    public AuthController(JwtTokenService jwtTokenService, IConfiguration configuration, IHttpClientFactory httpClientFactory, ApplicationDbContext context)
     {
+        _context = context;
+        // Inyectar el servicio de generación de tokens JWT
+
         _jwtTokenService = jwtTokenService;
         _configuration = configuration;
         _httpClientFactory = httpClientFactory;
@@ -69,9 +73,20 @@ public class AuthController : ControllerBase
         // cargar client ID y client secret desde appsettings.json
         //var clientId = _configuration["Authentication:Google:ClientId"];
         var clientId = _configuration["Authentication:Google:ClientId"];
+        if (string.IsNullOrEmpty(clientId))
+        {
+            throw new InvalidOperationException("Google ClientId is not configured.");
+        }
         var redirectUri = "https://localhost:5019/api/auth/google-callback";
         var scope = "email profile openid";
 
+        var pkceValues = PKCE.Create(64, "S256");
+        string[] parts = pkceValues.Split(',');
+        string code_verifier = parts[0];
+        string code_challenge = parts[1];
+
+        HttpContext.Session.SetString("CodeVerifier", code_verifier);
+        Console.WriteLine($"[GoogleAuth] Code Verifier guardado en sesión: {code_verifier}");
         // Construir la URL de autorización de Google
         var googleAuthUrl =
             "https://accounts.google.com/o/oauth2/v2/auth" +
@@ -79,9 +94,12 @@ public class AuthController : ControllerBase
             $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
             $"&response_type=code" +
             $"&scope={Uri.EscapeDataString(scope)}" +
+            $"&code_challenge_method=S256" +
+            $"&code_challenge={Uri.EscapeDataString(code_challenge)}" +
             $"&state={Uri.EscapeDataString(state)}" +
             $"&include_granted_scopes=true";
 
+         
         Console.WriteLine($"[GoogleAuth] Estado generado: {state}");
         Console.WriteLine($"[GoogleAuth] URL de redirección: {redirectUri}");
 
@@ -98,7 +116,7 @@ public class AuthController : ControllerBase
         Console.WriteLine($"[GoogleCallback] Cédula: {cedula}");
 
         // Variable para almacenar el estado guardado
-        string savedState = null;
+        string? savedState = null;
 
         // Verificar si estamos en el flujo de verificación de cédula
         bool isReturningFromVerification = !string.IsNullOrEmpty(cedula);
@@ -153,15 +171,28 @@ public class AuthController : ControllerBase
                 // Intercambiar el código por tokens
                 var clientId = _configuration["Authentication:Google:ClientId"];
                 var clientSecret = _configuration["Authentication:Google:ClientSecret"];
-                var redirectUri = "https://localhost:5019/api/auth/google-callback";
+                if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
+                {
+                    throw new InvalidOperationException("Google ClientId or ClientSecret is not configured.");
+                }
+                var redirectUri = "https://localhost:5019/api/auth/google-callback" +
+                    "";
+                var code_verifier = HttpContext.Session.GetString("CodeVerifier");
+                Console.WriteLine($"[GoogleCallback] Code Verifier recuperado de sesión: {code_verifier}");
+                if (string.IsNullOrEmpty(code_verifier))
+                {
+                    Console.WriteLine("[GoogleCallback] Error: No se encontró el code_verifier en la sesión");
+                    return Content("<h1>Error de autenticación</h1><p>No se pudo recuperar el verificador de código PKCE.</p>", "text/html");
+                }
 
                 using var httpClient = new HttpClient();
                 var tokenRequest = new FormUrlEncodedContent(new Dictionary<string, string>
                 {
                     ["code"] = code,
                     ["client_id"] = clientId,
-                    ["client_secret"] = clientSecret,
+                    ["client_secret"] = clientSecret, // Ya no mandamos el client_secret porque usamos PKCE
                     ["redirect_uri"] = redirectUri,
+                    ["code_verifier"] = code_verifier,
                     ["grant_type"] = "authorization_code"
                 });
 
@@ -170,9 +201,13 @@ public class AuthController : ControllerBase
 
                 if (!tokenResponse.IsSuccessStatusCode)
                 {
+                    HttpContext.Session.Remove("CodeVerifier");
                     Console.WriteLine($"[GoogleCallback] Error en token: {responseContent}");
                     return Content($"<h1>Error al obtener token</h1><pre>{responseContent}</pre>", "text/html");
                 }
+
+                // Limpiar el code_verifier de la sesión
+                HttpContext.Session.Remove("CodeVerifier");
 
                 // Extraer el access_token y el id_token
                 var responseJson = System.Text.Json.JsonDocument.Parse(responseContent);
@@ -195,17 +230,17 @@ public class AuthController : ControllerBase
 
                 // Extraer claims comunes
                 if (userInfoJson.RootElement.TryGetProperty("sub", out var subElement))
-                    claims.Add(new Claim("sub", subElement.GetString()));
+                    claims.Add(new Claim("sub", subElement.GetString() ?? string.Empty));
 
                 if (userInfoJson.RootElement.TryGetProperty("email", out var emailElement))
-                    claims.Add(new Claim("email", emailElement.GetString()));
+                    claims.Add(new Claim("email", emailElement.GetString() ?? string.Empty));
 
                 if (userInfoJson.RootElement.TryGetProperty("name", out var nameElement))
-                    claims.Add(new Claim("name", nameElement.GetString()));
+                    claims.Add(new Claim("name", nameElement.GetString() ?? string.Empty));
 
                 // Guardar la información importante en la sesión para usarla cuando el usuario regrese
                 HttpContext.Session.SetString("GoogleUserInfo", userInfoContent);
-                HttpContext.Session.SetString("GoogleAccessToken", accessToken);
+                HttpContext.Session.SetString("GoogleAccessToken", accessToken ?? string.Empty);
 
                 Console.WriteLine("[GoogleCallback] No tiene cédula, redirigiendo al formulario de verificación");
 
@@ -249,13 +284,13 @@ public class AuthController : ControllerBase
 
                 // Extraer claims comunes
                 if (userInfoJson.RootElement.TryGetProperty("sub", out var subElement))
-                    claims.Add(new Claim("sub", subElement.GetString()));
+                    claims.Add(new Claim("sub", subElement.GetString() ?? string.Empty));
 
                 if (userInfoJson.RootElement.TryGetProperty("email", out var emailElement))
-                    claims.Add(new Claim("email", emailElement.GetString()));
+                    claims.Add(new Claim("email", emailElement.GetString() ?? string.Empty));
 
                 if (userInfoJson.RootElement.TryGetProperty("name", out var nameElement))
-                    claims.Add(new Claim("name", nameElement.GetString()));
+                    claims.Add(new Claim("name", nameElement.GetString() ?? string.Empty));
 
                 // Si tenemos cédula, verificamos la edad
                 bool isAdult = false;
@@ -263,7 +298,7 @@ public class AuthController : ControllerBase
                 {
                     // Verificación de edad
                     var client = _httpClientFactory.CreateClient();
-                    var verifyResponse = await client.GetAsync($"https://localhost:5019/api/verify/age_verify?cedula={Uri.EscapeDataString(cedula)}");
+                    var verifyResponse = await client.GetAsync($"https://localhost:5019/api/verify/age_verify?cedula={Uri.EscapeDataString(cedula ?? string.Empty)}");
 
                     if (verifyResponse.IsSuccessStatusCode)
                     {
@@ -271,9 +306,17 @@ public class AuthController : ControllerBase
                         var verifyResult = System.Text.Json.JsonSerializer.Deserialize<AgeVerificationResult>(
                             verifyContent, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                        isAdult = verifyResult.IsAllowed;
-                        claims.Add(new Claim("edad", verifyResult.Edad.ToString()));
-                        Console.WriteLine($"[GoogleCallback] Verificación de edad: {(isAdult ? "Mayor de edad" : "Menor de edad")}");
+                        if (verifyResult != null)
+                        {
+                            isAdult = verifyResult.IsAllowed;
+                            claims.Add(new Claim("edad", verifyResult.Edad.ToString()));
+                            Console.WriteLine($"[GoogleCallback] Verificación de edad: {(isAdult ? "Mayor de edad" : "Menor de edad")}");
+                        }
+                        else
+                        {
+                            Console.WriteLine("[GoogleCallback] Error: El resultado de la verificación de edad es nulo.");
+                            isAdult = false;
+                        }
                     }
                     else
                     {
@@ -289,7 +332,7 @@ public class AuthController : ControllerBase
 
                 // Agregar claims adicionales
                 claims.Add(new Claim("is_adult", isAdult.ToString().ToLower()));
-                claims.Add(new Claim("cedula", cedula));
+                claims.Add(new Claim("cedula", cedula ?? string.Empty));
                 claims.Add(new Claim("google_access_token", accessToken));
                 claims.Add(new Claim("auth_provider", "google"));
                 claims.Add(new Claim("role", "user"));
@@ -358,13 +401,144 @@ public class AuthController : ControllerBase
         return Ok(userClaims);
     }
 
+    [HttpPost("signin")]
+    public async Task<IActionResult> SignIn([FromBody] SignInRequest request)
+    {
+        var claims = new List<Claim>(); 
+        try
+        {
+            //Requerimos como obligatorios el username y password
+            if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+            {
+                return BadRequest(new { message = "Email y contraseña son requeridos" });
+            }
+
+            // Buscar el usuario en la base de datos
+            var usuario = await _context.Usuarios
+                .FirstOrDefaultAsync(u => u.Email == request.Email);
+
+            // Verificar si el usuario existe
+            if (usuario == null)
+            {
+                return Unauthorized(new { message = "Email o contraseña incorrectos" });
+            }
+
+            // Verificar la contraseña
+            bool passwordValid = VerifyPassword(request.Password, usuario.Password);
+            if (!passwordValid)
+            {
+                return Unauthorized(new { message = "Email o contraseña incorrectos" });
+            }
+
+            // Si tenemos cédula, verificamos la edad
+            bool isAdult = false;
+            try
+            {
+                //me traigo el usuario de la base de datos para poder cargar los claims
+                var usuarioFromDb = await _context.Usuarios
+                    .FirstOrDefaultAsync(u => u.Email == request.Email);
+
+                if (usuarioFromDb == null)
+                {
+                    Console.WriteLine("[SignIn] Error: usuarioFromDb es null.");
+                    return Unauthorized(new { message = "Email o contraseña incorrectos" });
+                }
+
+                // Verificación de edad
+                var client = _httpClientFactory.CreateClient();
+                var ciString = usuarioFromDb.Ci.ToString();
+                var verifyResponse = await client.GetAsync($"https://localhost:5019/api/verify/age_verify?cedula={Uri.EscapeDataString(ciString)}");
+
+                if (verifyResponse.IsSuccessStatusCode)
+                {
+                    var verifyContent = await verifyResponse.Content.ReadAsStringAsync();
+                    var verifyResult = System.Text.Json.JsonSerializer.Deserialize<AgeVerificationResult>(
+                        verifyContent, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (verifyResult != null)
+                    {
+                        isAdult = verifyResult.IsAllowed;
+                        claims.Add(new Claim("edad", verifyResult.Edad.ToString()));
+                        Console.WriteLine($"[SignIn] Verificación de edad: {(isAdult ? "Mayor de edad" : "Menor de edad")}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("[SignIn] Error: El resultado de la verificación de edad es nulo.");
+                        isAdult = false;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"[SignIn] Error al verificar edad: {verifyResponse.StatusCode}");
+                    isAdult = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SignIn] Error al verificar edad: {ex.Message}");
+                isAdult = false;
+            }
+            // Autenticación exitosa, creamos claims para el JWT
+            // var claims = new List<Claim>
+            // {
+            //     new Claim(ClaimTypes.Name, usuario.Nombre),
+            //     new Claim(ClaimTypes.Email, usuario.Email ?? string.Empty),
+            //     new Claim("UserId", usuario.Id.ToString()),
+            //     new Claim("role", usuario.Rol ?? "user")  // Usar el rol del usuario o "user" por defecto
+            // };
+
+            claims.Add(new Claim(ClaimTypes.Name, usuario.Nombre ?? string.Empty));
+            claims.Add(new Claim("is_adult", isAdult.ToString().ToLower()));
+            claims.Add(new Claim("role", usuario.Rol)); // Usar el rol del usuario o "user" por defecto
+
+
+            // Si hay atributos adicionales que quieras incluir en el token
+            if (usuario != null)
+            {
+                claims.Add(new Claim("cedula", usuario.Ci.ToString() ?? string.Empty));
+            }
+
+            // Generar el token JWT
+            var token = _jwtTokenService.GenerateJwtToken(claims);
+
+            // Devolver token y datos básicos del usuario
+            return Ok(new
+            {
+                token,
+                userId = usuario!.Id,
+                username = usuario.Nombre,
+                email = usuario.Email,
+                role = usuario.Rol,
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[SignIn] Error: {ex.Message}");
+            return StatusCode(500, new { message = "Error interno del servidor" });
+        }
+    }
+    
+    // Método auxiliar para verificar la contraseña
+private bool VerifyPassword(string providedPassword, string storedPassword)
+{
+    // Suponiendo que las contraseñas están hasheadas con BCrypt
+    return BCrypt.Net.BCrypt.Verify(providedPassword, storedPassword);
+}
+
+    // Clase para recibir los datos de inicio de sesión
+    public class SignInRequest
+    {
+        public string? Email { get; set; }
+        public string? Password { get; set; }
+    }
+    
     [HttpGet("logout")]
     public async Task<IActionResult> Logout()
     {
         try
         {
             // 1. Primero intentamos obtener el token desde el header de autorización
-            string jwtToken = null;
+            string? jwtToken = null;
             if (HttpContext.Request.Headers.TryGetValue("Authorization", out var authHeader))
             {
                 var authHeaderValue = authHeader.FirstOrDefault();

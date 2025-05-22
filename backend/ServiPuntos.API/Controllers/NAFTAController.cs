@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Core.NAFTA;
@@ -115,99 +115,6 @@ namespace ServiPuntos.API.Controllers
             return Ok("Servicio NAFTA operativo");
         }
 
-        /// <summary>
-        /// Retorna la especificación del protocolo NAFTA
-        /// </summary>
-        [HttpGet("especificacion")]
-        [AllowAnonymous]
-        public ActionResult<object> GetEspecificacion()
-        {
-            // Esta información podría venir de un archivo de configuración o una base de datos
-            var especificacion = new
-            {
-                nombre = "NAFTA - Negocio Avanzado de Fidelización en Terminales de Autoservicio",
-                version = "1.0",
-                formatoMensajes = "JSON",
-                endpoints = new[]
-                {
-                    new { ruta = "/api/nafta/transaccion", metodo = "POST", descripcion = "Registra una transacción y asigna puntos" },
-                    new { ruta = "/api/nafta/verificar-usuario", metodo = "POST", descripcion = "Verifica la existencia de un usuario" },
-                    new { ruta = "/api/nafta/canje", metodo = "POST", descripcion = "Procesa el canje de un código QR" },
-                    new { ruta = "/api/nafta/consultar-saldo", metodo = "POST", descripcion = "Consulta el saldo de puntos de un usuario" }
-                },
-                tiposMensajes = new[]
-                {
-                    new { tipo = "MensajeNAFTA", descripcion = "Estructura base para todas las comunicaciones" },
-                    new { tipo = "TransaccionNAFTA", descripcion = "Datos de transacción (compra combustible, minimercado, etc.)" },
-                    new { tipo = "CanjeNAFTA", descripcion = "Datos para procesar un canje de puntos" },
-                    new { tipo = "RespuestaNAFTA", descripcion = "Estructura de respuesta estándar" },
-                    new { tipo = "RespuestaPuntosNAFTA", descripcion = "Detalles específicos de puntos en respuesta" }
-                },
-                tiposTransacciones = new[]
-                {
-                    new { codigo = "combustible", descripcion = "Compra de combustible" },
-                    new { codigo = "minimercado", descripcion = "Compra en minimercado" },
-                    new { codigo = "servicio", descripcion = "Uso de servicios (lavadero, etc.)" }
-                },
-                ejemplos = new
-                {
-                    transaccion = new
-                    {
-                        peticion = new MensajeNAFTA
-                        {
-                            Version = "1.0",
-                            IdMensaje = "12345",
-                            TipoMensaje = "transaccion",
-                            UbicacionId = "1",
-                            TenantId = "1",
-                            TerminalId = "POS001",
-                            Datos = new System.Collections.Generic.Dictionary<string, object>
-                            {
-                                { "transaccion", new
-                                    {
-                                        IdTransaccion = "tx123456",
-                                        IdentificadorUsuario = "user@example.com",
-                                        TipoTransaccion = "combustible",
-                                        Monto = 1500.00,
-                                        MetodoPago = "efectivo",
-                                        Productos = new[]
-                                        {
-                                            new
-                                            {
-                                                IdProducto = "nafta-super",
-                                                NombreProducto = "Nafta Super",
-                                                Categoria = "combustible",
-                                                Cantidad = 15.00,
-                                                PrecioUnitario = 100.00,
-                                                SubTotal = 1500.00
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        respuesta = new RespuestaNAFTA
-                        {
-                            IdMensajeReferencia = "12345",
-                            Codigo = "OK",
-                            Mensaje = "Transacción procesada correctamente",
-                            Datos = new System.Collections.Generic.Dictionary<string, object>
-                            {
-                                { "respuestaPuntos", new
-                                    {
-                                        IdentificadorUsuario = "user@example.com",
-                                        PuntosOtorgados = 15.00,
-                                        SaldoActual = 115.00,
-                                        SaldoAnterior = 100.00
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            };
 
-            return Ok(especificacion);
-        }
     }
 }
