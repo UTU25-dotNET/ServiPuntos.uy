@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Core.NAFTA;
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ServiPuntos.API.Controllers
@@ -123,6 +125,69 @@ namespace ServiPuntos.API.Controllers
         public ActionResult<object> GetEspecificacion()
         {
             // Esta información podría venir de un archivo de configuración o una base de datos
+
+            // IDs de ejemplo para que coincidan con el tipo Guid
+            Guid ejemploIdMensaje = Guid.NewGuid();
+            Guid ejemploUbicacionId = Guid.NewGuid();
+            Guid ejemploTenantId = Guid.NewGuid();
+            Guid ejemploTerminalId = Guid.NewGuid();
+            Guid ejemploUsuarioId = Guid.NewGuid();
+            Guid ejemploProductoId = Guid.NewGuid();
+
+            var ejemploTransaccion = new TransaccionNAFTA
+            {
+                IdTransaccion = Guid.NewGuid(),
+                IdentificadorUsuario = ejemploUsuarioId,
+                TipoTransaccion = "combustible",
+                Monto = 1500,
+                MetodoPago = "efectivo",
+                Productos = new List<LineaTransaccionNAFTA>
+                {
+                    new LineaTransaccionNAFTA
+                    {
+                        IdProducto     = ejemploProductoId,
+                        NombreProducto = "Nafta Super",
+                        Categoria      = "combustible",
+                        Cantidad       = 15,
+                        PrecioUnitario = 100,
+                        SubTotal       = 1500
+                    }
+                }
+            };
+
+            var peticionEjemplo = new MensajeNAFTA
+            {
+                Version = "1.0",
+                IdMensaje = ejemploIdMensaje,
+                TipoMensaje = "transaccion",
+                UbicacionId = ejemploUbicacionId,
+                TenantId = ejemploTenantId,
+                TerminalId = ejemploTerminalId,
+                Datos = new Dictionary<string, object>
+                {
+                    { "transaccion", ejemploTransaccion }
+                }
+            };
+
+            var respuestaPuntosEjemplo = new RespuestaPuntosNAFTA
+            {
+                IdentificadorUsuario = ejemploUsuarioId,
+                PuntosOtorgados = ejemploTransaccion.Monto,
+                SaldoAnterior = 100,
+                SaldoActual = 100 + ejemploTransaccion.Monto
+            };
+
+            var respuestaEjemplo = new RespuestaNAFTA
+            {
+                IdMensajeReferencia = ejemploIdMensaje,
+                Codigo = "OK",
+                Mensaje = "Transacción procesada correctamente",
+                Datos = new Dictionary<string, object>
+                {
+                    { "respuestaPuntos", respuestaPuntosEjemplo }
+                }
+            };
+
             var especificacion = new
             {
                 nombre = "NAFTA - Negocio Avanzado de Fidelización en Terminales de Autoservicio",
@@ -137,72 +202,24 @@ namespace ServiPuntos.API.Controllers
                 },
                 tiposMensajes = new[]
                 {
-                    new { tipo = "MensajeNAFTA", descripcion = "Estructura base para todas las comunicaciones" },
-                    new { tipo = "TransaccionNAFTA", descripcion = "Datos de transacción (compra combustible, minimercado, etc.)" },
-                    new { tipo = "CanjeNAFTA", descripcion = "Datos para procesar un canje de puntos" },
-                    new { tipo = "RespuestaNAFTA", descripcion = "Estructura de respuesta estándar" },
+                    new { tipo = "MensajeNAFTA",       descripcion = "Estructura base para todas las comunicaciones" },
+                    new { tipo = "TransaccionNAFTA",   descripcion = "Datos de transacción (compra combustible, minimercado, etc.)" },
+                    new { tipo = "CanjeNAFTA",         descripcion = "Datos para procesar un canje de puntos" },
+                    new { tipo = "RespuestaNAFTA",     descripcion = "Estructura de respuesta estándar" },
                     new { tipo = "RespuestaPuntosNAFTA", descripcion = "Detalles específicos de puntos en respuesta" }
                 },
                 tiposTransacciones = new[]
                 {
                     new { codigo = "combustible", descripcion = "Compra de combustible" },
-                    new { codigo = "minimercado", descripcion = "Compra en minimercado" },
-                    new { codigo = "servicio", descripcion = "Uso de servicios (lavadero, etc.)" }
+                    new { codigo = "minimercado",  descripcion = "Compra en minimercado" },
+                    new { codigo = "servicio",     descripcion = "Uso de servicios (lavadero, etc.)" }
                 },
                 ejemplos = new
                 {
                     transaccion = new
                     {
-                        peticion = new MensajeNAFTA
-                        {
-                            Version = "1.0",
-                            IdMensaje = "12345",
-                            TipoMensaje = "transaccion",
-                            UbicacionId = "1",
-                            TenantId = "1",
-                            TerminalId = "POS001",
-                            Datos = new System.Collections.Generic.Dictionary<string, object>
-                            {
-                                { "transaccion", new
-                                    {
-                                        IdTransaccion = "tx123456",
-                                        IdentificadorUsuario = "user@example.com",
-                                        TipoTransaccion = "combustible",
-                                        Monto = 1500.00,
-                                        MetodoPago = "efectivo",
-                                        Productos = new[]
-                                        {
-                                            new
-                                            {
-                                                IdProducto = "nafta-super",
-                                                NombreProducto = "Nafta Super",
-                                                Categoria = "combustible",
-                                                Cantidad = 15.00,
-                                                PrecioUnitario = 100.00,
-                                                SubTotal = 1500.00
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        respuesta = new RespuestaNAFTA
-                        {
-                            IdMensajeReferencia = "12345",
-                            Codigo = "OK",
-                            Mensaje = "Transacción procesada correctamente",
-                            Datos = new System.Collections.Generic.Dictionary<string, object>
-                            {
-                                { "respuestaPuntos", new
-                                    {
-                                        IdentificadorUsuario = "user@example.com",
-                                        PuntosOtorgados = 15.00,
-                                        SaldoActual = 115.00,
-                                        SaldoAnterior = 100.00
-                                    }
-                                }
-                            }
-                        }
+                        peticion = peticionEjemplo,
+                        respuesta = respuestaEjemplo
                     }
                 }
             };
