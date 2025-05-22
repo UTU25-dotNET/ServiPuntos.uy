@@ -1,4 +1,6 @@
 ﻿using ServiPuntos.Application.DTOs;
+using ServiPuntos.Core.Entities;
+using ServiPuntos.Core.Interfaces;
 
 public class UsuarioService : IUsuarioService
 {
@@ -6,64 +8,75 @@ public class UsuarioService : IUsuarioService
 
     private readonly ITenantResolver _iTenantResolver;
 
-    private readonly ITenantContext _tenantContext;
+    private readonly ITenantContext _iTenantContext;
 
     public UsuarioService(IUsuarioRepository usuarioRepository, ITenantResolver tenantResolver, ITenantContext tenantContext)
     {
         _iUsuarioRepository = usuarioRepository;
         _iTenantResolver = tenantResolver;
-        _tenantContext = tenantContext;
+        _iTenantContext = tenantContext;
     }
 
-    public async Task<Usuario?> GetUsuarioByIdAsync(Guid idUsuario)
+    //GET
+
+    public async Task<Usuario?> GetUsuarioAsync(Guid idUsuario)
     {
         return await _iUsuarioRepository.GetAsync(idUsuario);
     }
+    public async Task<Usuario?> GetUsuarioAsync(string email)
+    {
+        return await _iUsuarioRepository.GetByEmailAsync(email);
+    }
+    public async Task<Usuario?> GetUsuarioAsync(Guid tenantId, Guid idUsuario)
+    {
+        return await _iUsuarioRepository.GetByTenantAsync(tenantId, idUsuario);
+    }
+
+    //GET ALL 
     public async Task<IEnumerable<Usuario>> GetAllUsuariosAsync()
     {
-        var tenantId = _tenantContext.TenantId;
+        return await _iUsuarioRepository.GetAllAsync();
+    }    
+    
+    public async Task<IEnumerable<Usuario>> GetAllUsuariosAsync(Guid tenantId)
+    {
+        //var tenantId = _tenantContext.TenantId;
         return await _iUsuarioRepository.GetAllByTenantAsync(tenantId);
     }
+
+    //ADD
+
     public async Task AddUsuarioAsync(Usuario usuario)
     {
-        var tenantId = _tenantContext.TenantId;
+        //var tenantId = _tenantContext.TenantId;
+        await _iUsuarioRepository.AddAsync(usuario);
+    }
+    public async Task AddUsuarioAsync(Guid tenantId, Usuario usuario)
+    {
         await _iUsuarioRepository.AddAsync(tenantId, usuario);
     }
+
+    //UPDATE
     public async Task UpdateUsuarioAsync(Usuario usuario)
     {
-        var tenantId = _tenantContext.TenantId;
-        await _iUsuarioRepository.UpdateAsync(tenantId, usuario);
-    }
-    public async Task DeleteUsuarioAsync(Guid idUsuario)
-    {
-        var tenantId = _tenantContext.TenantId;
-        await _iUsuarioRepository.DeleteAsync(tenantId, idUsuario);
-    }
-    // Tenant como parametro (creo que ya no hace falta)
-    public async Task AddUsuarioByTenantAsync(Guid tenantId, Usuario usuario)
-    {
-        await _iUsuarioRepository.AddAsync(tenantId, usuario);
+        //var tenantId = _tenantContext.TenantId;
+        await _iUsuarioRepository.UpdateAsync(usuario);
     }
     public async Task UpdateUsuarioByTenantAsync(Guid tenantId, Usuario usuario)
     {
         await _iUsuarioRepository.UpdateAsync(tenantId, usuario);
     }
-    public async Task DeleteUsuarioByTenantAsync(Guid tenantId, Guid idUsuario)
+
+    //DELETE
+    public async Task DeleteUsuarioAsync(Guid idUsuario)
+    {
+        //var tenantId = _tenantContext.TenantId;
+        await _iUsuarioRepository.DeleteAsync(idUsuario);
+    }
+
+    public async Task DeleteUsuarioAsync(Guid tenantId, Guid idUsuario)
     {
         await _iUsuarioRepository.DeleteAsync(tenantId, idUsuario);
-    }
-    public async Task<Usuario?> GetUsuarioByTenantAsync(Guid tenantId, Guid idUsuario)
-    {
-        return await _iUsuarioRepository.GetByTenantAsync(tenantId, idUsuario);
-    }
-
-    // Filtrar usuarios por tenant
-    public async Task<IEnumerable<Usuario>> GetAllUsuariosByTenantAsync()
-    {
-        var tenantId = _iTenantResolver.GetCurrentTenantId();
-
-        return await _iUsuarioRepository.GetAllByTenantAsync(tenantId);
-
     }
 
     // Validar credenciales

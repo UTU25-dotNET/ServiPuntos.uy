@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ServiPuntos.Core.Interfaces;
+using ServiPuntos.Core.Entities;
 
-    [ApiController]
+[ApiController]
     [Route("api/[controller]")]
     public class TenantController : ControllerBase
     {
@@ -27,14 +28,20 @@ using ServiPuntos.Core.Interfaces;
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Tenant tenant)
+        public async Task<IActionResult> Crear([FromBody] Tenant tenant)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             tenant.Id = Guid.NewGuid();
+            tenant.FechaCreacion = DateTime.UtcNow;
+            tenant.FechaModificacion = DateTime.UtcNow;
+
             await _iTenantService.AddAsync(tenant);
             return CreatedAtAction(nameof(GetById), new { id = tenant.Id }, tenant);
         }
 
-        [HttpPut("{id:guid}")]
+    [HttpPut("{id:guid}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] Tenant updated)
         {
             var existing = await _iTenantService.GetByIdAsync(id);
@@ -56,4 +63,3 @@ using ServiPuntos.Core.Interfaces;
             return NoContent();
         }
     }
-
