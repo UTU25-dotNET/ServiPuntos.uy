@@ -129,13 +129,17 @@ builder.Services.AddScoped<ITenantContext, TenantContext>();
 // Registra los repositorios de NAFTA
 builder.Services.AddScoped<ITransaccionRepository, TransaccionRepository>();
 builder.Services.AddScoped<ICanjeRepository, CanjeRepository>();
+builder.Services.AddScoped<IProductoCanjeableRepository, ProductoCanjeableRepository>();
+builder.Services.AddScoped<IUbicacionRepository, UbicacionRepository>();
 
 // Registra los servicios de NAFTA
 builder.Services.AddScoped<ITransaccionService, TransaccionService>();
 builder.Services.AddScoped<IPuntosService, PuntosService>();
+builder.Services.AddScoped<IProductoCanjeableService, ProductoCanjeableService>();
 builder.Services.AddScoped<ICanjeService, CanjeService>();
 builder.Services.AddScoped<IPointsRuleEngine, PointsRuleEngine>();
 builder.Services.AddScoped<INAFTAService, NAFTAService>();
+builder.Services.AddScoped<IUbicacionService, UbicacionService>();
 
 // Configuramos la conexi�n a la base de datos
 builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
