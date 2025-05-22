@@ -39,7 +39,7 @@ var secretKey = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]);
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "keys")))
     .SetApplicationName("ServiPuntos");
-    //.ProtectKeysWithDpapi();
+//.ProtectKeysWithDpapi();
 
 //Soporte de sesion
 builder.Services.AddSession(options =>
@@ -118,6 +118,13 @@ builder.Services.AddScoped<ICanjeService, CanjeService>();
 builder.Services.AddScoped<IPointsRuleEngine, PointsRuleEngine>();
 builder.Services.AddScoped<INAFTAService, NAFTAService>();
 
+builder.Services.AddScoped<IUbicacionRepository, UbicacionRepository>();
+builder.Services.AddScoped<IUbicacionService, UbicacionService>();
+
+// Registra repositorio y servicio de productos canjeables
+builder.Services.AddScoped<IProductoCanjeableRepository, ProductoCanjeableRepository>();
+builder.Services.AddScoped<IProductoCanjeableService, ProductoCanjeableService>();
+
 // Configuramos la conexi�n a la base de datos
 builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -136,7 +143,7 @@ app.UseHttpsRedirection(); // Importante para asegurar HTTPS
 app.UseStaticFiles();
 app.UseRouting();
 app.UseCors("AllowReactApp");
-app.UseSession(); 
+app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<TenantMiddleware>();
