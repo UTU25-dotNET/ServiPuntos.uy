@@ -1,4 +1,5 @@
 ﻿using ServiPuntos.Core.Interfaces;
+using ServiPuntos.Core.Entities;
 
 public class TenantService : ITenantService
 {

@@ -11,6 +11,7 @@ using ServiPuntos.Infrastructure.MultiTenancy;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Repositories;
 using ServiPuntos.Infrastructure.Middleware;
+
 using System.Text;
 using ServiPuntos.API.Data;
 using System.Security.Claims;
@@ -118,13 +119,10 @@ builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 builder.Services.AddScoped<ITenantResolver, TenantResolver>();
 builder.Services.AddScoped<ITenantContext, TenantContext>();
 
 // Configuramos la conexi�n a la base de datos
-builder.Services.AddDbContext<TenantConfigurationContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
