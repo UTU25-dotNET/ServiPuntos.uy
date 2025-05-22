@@ -489,7 +489,7 @@ public class AuthController : ControllerBase
 
             claims.Add(new Claim(ClaimTypes.Name, usuario.Nombre ?? string.Empty));
             claims.Add(new Claim("is_adult", isAdult.ToString().ToLower()));
-            claims.Add(new Claim("role", usuario.Rol)); // Usar el rol del usuario o "user" por defecto
+            claims.Add(new Claim("role", usuario.Rol.ToString())); // Usar el rol del usuario o "user" por defecto
 
 
             // Si hay atributos adicionales que quieras incluir en el token
