@@ -1,14 +1,14 @@
-﻿namespace ServiPuntos.Mobile;
+﻿using Microsoft.Maui.Controls;
 
-public partial class App : Application
+namespace ServiPuntos.Mobile
 {
-	public App()
+	public partial class App : Application
 	{
-		InitializeComponent();
-	}
-
-	protected override Window CreateWindow(IActivationState? activationState)
-	{
-		return new Window(new AppShell());
+		public App()
+		{
+			InitializeComponent();
+			// Esto te asegura que lo primero que se ve es tu TenantSelectorPage
+			MainPage = new NavigationPage(new Views.TenantSelectorPage());
+		}
 	}
 }
