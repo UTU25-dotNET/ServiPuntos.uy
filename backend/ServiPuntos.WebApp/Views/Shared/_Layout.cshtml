@@ -34,6 +34,18 @@
                         }
                     </ul>
                     <ul class="navbar-nav ms-auto">
+                        <!-- Dark Mode Toggle -->
+                        <li class="nav-item d-flex align-items-center me-3">
+                            <div class="dark-mode-toggle">
+                                <input type="checkbox" id="darkModeToggle" class="dark-mode-checkbox">
+                                <label for="darkModeToggle" class="dark-mode-label">
+                                    <i class="fas fa-sun sun-icon"></i>
+                                    <i class="fas fa-moon moon-icon"></i>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </li>
+
                         @if (!User.Identity.IsAuthenticated)
                         {
                             <li class="nav-item">
@@ -73,6 +85,35 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    <!-- Dark Mode Script -->
+    <script>
+        // Dark Mode Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const body = document.body;
+            
+            // Check for saved dark mode preference or default to light mode
+            const savedTheme = localStorage.getItem('darkMode');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            if (savedTheme === 'enabled' || (!savedTheme && prefersDark)) {
+                body.classList.add('dark-mode');
+                darkModeToggle.checked = true;
+            }
+            
+            darkModeToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    body.classList.add('dark-mode');
+                    localStorage.setItem('darkMode', 'enabled');
+                } else {
+                    body.classList.remove('dark-mode');
+                    localStorage.setItem('darkMode', 'disabled');
+                }
+            });
+        });
+    </script>
+    
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 

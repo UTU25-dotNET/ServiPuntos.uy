@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import authService from "../services/authService";
 
+// Renombra el componente a DocumentVerification para mantener consistencia con el nombre del archivo
 const DocumentVerification = () => {
     const [cedula, setCedula] = useState("");
     const [loading, setLoading] = useState(false);
@@ -19,11 +20,12 @@ const DocumentVerification = () => {
     const returnUrl = params.get("returnUrl") || "/auth-callback";
 
     useEffect(() => {
-        // L贸gica existente...
+        // L骻ica existente...
         console.log("Token recibido:", token);
         console.log("Code:", code);
         console.log("State:", state);
 
+        // Si no hay token, redirigir al login
         if (!token) {
             console.error("No se recibi贸 token en los par谩metros");
             setError("No se pudo obtener la informaci贸n de autenticaci贸n. Int茅ntalo de nuevo.");
@@ -31,7 +33,9 @@ const DocumentVerification = () => {
             return;
         }
 
+        // Decodificar el token para mostrar datos del usuario
         try {
+            // Verificar si authService.decodeToken existe
             if (typeof authService.decodeToken !== 'function') {
                 throw new Error("La funci贸n decodeToken no est谩 disponible");
             }
@@ -43,13 +47,19 @@ const DocumentVerification = () => {
                 throw new Error("No se pudo decodificar el token");
             }
 
+            // Extraer la informaci贸n del usuario del token
             const userData = decoded.payload || decoded;
             setUserData(userData);
+
+            // Mostrar informaci贸n de debug
             setDebugInfo(`Token recibido: ${token.substring(0, 20)}...`);
 
         } catch (err) {
             console.error("Error al decodificar token:", err);
+            // En lugar de redirigir inmediatamente, mostramos el error y permitimos continuar
             setError(`Error al procesar la informaci贸n de usuario: ${err.message}`);
+
+            // Establecer un userData b谩sico para permitir que el formulario se muestre
             setUserData({ name: "usuario" });
         }
     }, [token, code, state, navigate]);
@@ -93,12 +103,16 @@ const DocumentVerification = () => {
         }
 
         try {
+            // Construir la URL con todos los par谩metros necesarios
             let callbackUrl = `https://localhost:5019/api/auth/google-callback?cedula=${encodeURIComponent(cedula)}`;
 
+            // A帽adir code y state si est谩n disponibles
             if (code) callbackUrl += `&code=${encodeURIComponent(code)}`;
             if (state) callbackUrl += `&state=${encodeURIComponent(state)}`;
 
             console.log("Redirigiendo a:", callbackUrl);
+
+            // Redirigir al callback de Google con la c茅dula
             window.location.href = callbackUrl;
         } catch (err) {
             setError(err.message || "Error al verificar la edad");
@@ -106,6 +120,7 @@ const DocumentVerification = () => {
         }
     };
 
+    // Mostrar el formulario incluso si no tenemos datos de usuario, pero con menos personalizaci贸n
     return (
         <div style={{ maxWidth: "400px", margin: "0 auto", padding: "1rem" }}>
             <h2 style={{ color: "#7B3F00" }}>Servipuntos.uy</h2>
@@ -123,6 +138,8 @@ const DocumentVerification = () => {
                     <p>Para continuar con el proceso de registro, necesitamos verificar tu identidad.</p>
                 </div>
             )}
+
+
 
             {error && (
                 <div
@@ -162,7 +179,7 @@ const DocumentVerification = () => {
                         maxLength="11" // Longitud m谩xima: 8 d铆gitos + 3 separadores
                     />
                     <small style={{ color: "#6c757d" }}>
-                        Ingresa solo los n煤meros, los separadores se agregar谩n autom谩ticamente
+                        Ingresa solo los n鷐eros, los separadores se agregar醤 autom醫icamente
                     </small>
                 </div>
 
