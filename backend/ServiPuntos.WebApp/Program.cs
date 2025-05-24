@@ -6,6 +6,11 @@ using ServiPuntos.Infrastructure.Data;
 using ServiPuntos.Infrastructure.Middleware;
 using ServiPuntos.Infrastructure.MultiTenancy;
 using ServiPuntos.Infrastructure.Repositories;
+using ServiPuntos.Core.Interfaces;
+using ServiPuntos.Infrastructure.Repositories;
+using ServiPuntos.Application;
+using ServiPuntos.Application.Services;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +34,10 @@ builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<ITenantRepository, TenantRepository>();
+
+builder.Services.AddScoped<IUbicacionRepository, UbicacionRepository>();
+builder.Services.AddScoped<IUbicacionService, UbicacionService>();
+
 
 // Multi-tenancy
 builder.Services.AddHttpContextAccessor();

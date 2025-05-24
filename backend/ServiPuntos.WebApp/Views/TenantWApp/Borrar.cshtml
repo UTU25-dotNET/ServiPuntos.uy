@@ -1,0 +1,17 @@
+@model ServiPuntos.Core.Entities.Tenant
+
+@{
+    ViewData["Title"] = "Eliminar Tenant";
+}
+
+<h2>¿Estás seguro que deseas eliminar este tenant?</h2>
+
+<div>
+    <strong>Nombre:</strong> @Model.Nombre
+</div>
+
+<form asp-action="Borrar" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Eliminar</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>

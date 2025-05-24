@@ -5,7 +5,7 @@ using ServiPuntos.Core.Interfaces;
 
 namespace ServiPuntos.WebApp.Controllers
 {
-    [Authorize (Roles = "AdminTenant, AdminPlataforma")] // ver que es lo que va en la cookie
+    [Authorize(Roles = "AdminTenant, AdminPlataforma")]
     public class TenantWAppController : Controller
     {
         private readonly ITenantService _iTenantService;
@@ -26,12 +26,13 @@ namespace ServiPuntos.WebApp.Controllers
         {
             return View();
         }
+
         [HttpPost]
         public async Task<IActionResult> Crear(string nombre)
         {
             if (ModelState.IsValid)
             {
-                var tenant = new Tenant 
+                var tenant = new Tenant
                 {
                     Id = Guid.NewGuid(),
                     Nombre = nombre,
@@ -45,6 +46,50 @@ namespace ServiPuntos.WebApp.Controllers
                 return RedirectToAction("Index");
             }
             return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Editar(Guid id)
+        {
+            var tenant = await _iTenantService.GetByIdAsync(id);
+            if (tenant == null)
+            {
+                return NotFound();
+            }
+
+            return View(tenant);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Editar(Tenant tenant)
+        {
+            if (ModelState.IsValid)
+            {
+                tenant.FechaModificacion = DateTime.UtcNow;
+                await _iTenantService.UpdateAsync(tenant);
+                return RedirectToAction("Index");
+            }
+            return View(tenant);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Borrar(Guid id)
+        {
+            var tenant = await _iTenantService.GetByIdAsync(id);
+            if (tenant == null)
+            {
+                return NotFound();
+            }
+
+            return View(tenant);
+        }
+
+        [HttpPost, ActionName("Borrar")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BorrarConfirmado(Guid id)
+        {
+            await _iTenantService.DeleteAsync(id);
+            return RedirectToAction("Index");
         }
     }
 }

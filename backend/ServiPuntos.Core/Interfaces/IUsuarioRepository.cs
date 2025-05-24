@@ -18,3 +18,4 @@ public interface IUsuarioRepository
     Task DeleteAsync(Guid tenantId, Guid idUsuario);
     
 }
+
