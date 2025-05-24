@@ -48,8 +48,8 @@ const Dashboard = () => {
   // Ver token actual
   const handleViewToken = () => {
     const token = authService.getToken();
-      window.location.href = (`/token?token=${encodeURIComponent(token)}`);
-    };
+    navigate(`/token?token=${encodeURIComponent(token)}`);
+  };
 
   if (loading) {
     return (
@@ -101,7 +101,7 @@ const Dashboard = () => {
             <div>
               <strong>Usuario:</strong>
             </div>
-            <div>{user.username}</div>
+            <div>{user.name}</div>
 
             <div>
               <strong>Email:</strong>
@@ -158,7 +158,24 @@ const Dashboard = () => {
             ))}
           </div>
         </div>
-      )}
+          )}
+
+        {user && (
+            <div
+                style={{
+                    padding: "0.75rem",
+                    borderRadius: "4px",
+                    marginBottom: "1rem",
+                    backgroundColor: user.is_adult === "true" ? "#d4edda" : "#f8d7da",
+                    color: user.is_adult === "true" ? "#155724" : "#721c24",
+                    fontWeight: "bold"
+                }}
+            >
+                {user.is_adult === "true"
+                    ? "Identidad Verificada, el usuario es mayor de edad"
+                    : "Identidad Verificada, el usuario es menor de edad"}
+            </div>
+        )}
 
       {user?.role === "admin" && (
         <div

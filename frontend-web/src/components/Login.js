@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import authService from "../services/authService";
 import { GoogleLogin } from "@react-oauth/google";
-import "./App.css"; // Asegúrate de tener este archivo
+import '../App.css';
 
 const Login = () => {
     const [credentials, setCredentials] = useState({ email: "", password: "" });
@@ -40,31 +40,7 @@ const Login = () => {
     };
 
     const handleGoogleLogin = async (credentialResponse) => {
-        try {
-            setLoading(true);
-            setError("");
-
-            const response = await fetch("api/auth/signin", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    googleToken: credentialResponse.credential,
-                }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Error en el inicio de sesión con Google");
-            }
-
-            const data = await response.json();
-            localStorage.setItem("token", data.token);
-            window.location.href = "/dashboard";
-        } catch (err) {
-            setError(err.message || "Error en el inicio de sesión con Google");
-        } finally {
-            setLoading(false);
-        }
+        window.location.href = "https://localhost:5019/api/auth/google-login";
     };
 
     const applyTestAccount = (type) => {
@@ -118,18 +94,22 @@ const Login = () => {
                         {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
                     </button>
 
-                    <div className="google-button-wrapper">
-                        <GoogleLogin
-                            onSuccess={handleGoogleLogin}
-                            onError={() =>
-                                setError("Error al iniciar sesión con Google")
-                            }
-                            shape="circle"
-                            text=""
-                            theme="outline"
-                            size="medium"
-                            width="100"
-                        />
+                    <div style={{ marginTop: "2rem", textAlign: "center" }}>
+                        <div style={{ marginBottom: "1rem" }}>
+                            <button
+                            onClick={handleGoogleLogin}
+                                style={{
+                                    backgroundColor: "#4285F4",
+                                    color: "white",
+                                    border: "none",
+                                    borderRadius: "4px",
+                                    padding: "0.75rem 1rem",
+                                    cursor: "pointer"
+                                }}
+                            >
+                            Iniciar sesión con Google
+                             </button>
+                        </div>
                     </div>
                 </form>
 

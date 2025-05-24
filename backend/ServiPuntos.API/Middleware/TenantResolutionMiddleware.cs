@@ -10,8 +10,7 @@ namespace ServiPuntos.API.Middleware
 
         public async Task Invoke(HttpContext context)
         {
-            // Es un ejemplo de como extrae el tenant de la URL
-            // Desp vemos como implementamos en los JWT
+            // Ejemplo: extraer tenant del subdominio o ruta
             var hostParts = context.Request.Host.Host.Split('.');
             var tenantName = hostParts[0];
             context.Request.Headers["X-Tenant-Name"] = tenantName;

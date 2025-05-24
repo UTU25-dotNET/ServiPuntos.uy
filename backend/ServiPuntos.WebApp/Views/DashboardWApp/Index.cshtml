@@ -1,0 +1,190 @@
+@{
+    ViewData["Title"] = "Dashboard";
+    var roles = ViewBag.Roles as string[];
+    var cantidades = ViewBag.Cantidades as int[];
+    var tenants = ViewBag.Tenants as string[];
+    var cantidadesTenants = ViewBag.CantidadesTenants as int[];
+}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="container mt-4">
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h1 class="display-4">Hello World Dashboard</h1>
+                    <p class="lead">¡Bienvenido a tu dashboard, @User.Identity.Name!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        
+        @if (User.IsInRole("AdminPlataforma"))
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card bg-primary text-white h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Usuarios</h5>
+                    </div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <button class="btn small text-black bg-white" onclick="window.location.href='UsuarioWApp/Index'">Administracion de usuarios  <i class="fas fa-angle-right"></i></button>
+                        
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (User.IsInRole("AdminPlataforma") || User.IsInRole("AdminTenant"))
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card bg-success text-white h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Tenants</h5>
+                    </div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <button class="btn small text-black bg-white" onclick="window.location.href='TenantWApp/Index'">Administracion de tenants  <i class="fas fa-angle-right"></i></button>
+                        
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (User.IsInRole("AdminPlataforma") || User.IsInRole("AdminUbicacion"))
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card bg-warning text-white h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Ubicaciones</h5>
+                    </div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <button class="btn small text-black bg-white" onclick="window.location.href='UbicacionWApp/Index'">Administracion de ubicaciones  <i class="fas fa-angle-right"></i></button>
+                        <p>falta pagina de ubaciones</p>
+                        
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    
+    
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Usuarios por Rol</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="usuariosPorRol" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Usuarios por Tenant</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="usuariosPorTenant" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    //Usuarios x rol
+    const ctxRol = document.getElementById('usuariosPorRol').getContext('2d');
+    const chartRol = new Chart(ctxRol, {
+        type: 'bar',
+        data: {
+            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(roles)),
+            datasets: [{
+                label: 'Cantidad de usuarios',
+                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(cantidades)),
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.6)',   // AdminTenant
+                    'rgba(255, 99, 132, 0.6)',   // AdminPlataforma
+                    'rgba(255, 206, 86, 0.6)',   // AdminUbicacion
+                    'rgba(75, 192, 192, 0.6)'    // UsuarioFinal
+                ],
+                borderColor: 'rgba(255, 255, 255, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                title: {
+                    display: true,
+                    text: 'Distribución de usuarios por rol'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+
+    //Usuarios x tenant
+    const ctxTenant = document.getElementById('usuariosPorTenant').getContext('2d');
+    const chartTenant = new Chart(ctxTenant, {
+        type: 'bar',
+        data: {
+            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(tenants)),
+            datasets: [{
+                label: 'Usuarios por tenant',
+                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(cantidadesTenants)),
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 205, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)',
+                    'rgba(255, 159, 64, 0.8)',
+                    'rgba(199, 199, 199, 0.8)',
+                    'rgba(83, 102, 255, 0.8)'
+                ],
+                borderColor: 'rgba(255, 255, 255, 1)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                title: {
+                    display: true,
+                    text: 'Distribución de usuarios por tenant'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${value} usuarios (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+</div>

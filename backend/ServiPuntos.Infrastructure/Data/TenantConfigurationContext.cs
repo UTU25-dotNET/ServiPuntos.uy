@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using ServiPuntos.Core.Entities;
 
 namespace ServiPuntos.Infrastructure.Data
 {
