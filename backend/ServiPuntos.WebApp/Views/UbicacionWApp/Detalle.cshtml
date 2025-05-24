@@ -1,0 +1,129 @@
+@model ServiPuntos.Core.Entities.Ubicacion
+
+@{
+    ViewData["Title"] = "Detalles de la Ubicación";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="card">
+    <div class="card-header">
+        <h4>
+            <i class="fas fa-store me-2"></i>
+            @Model.Nombre
+        </h4>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID:</dt>
+            <dd class="col-sm-9">
+                <code>@Model.Id</code>
+            </dd>
+
+            <dt class="col-sm-3">Nombre:</dt>
+            <dd class="col-sm-9">@Model.Nombre</dd>
+
+            <dt class="col-sm-3">Dirección:</dt>
+            <dd class="col-sm-9">@Model.Direccion</dd>
+
+            <dt class="col-sm-3">Ciudad:</dt>
+            <dd class="col-sm-9">
+                <span class="badge bg-secondary">@Model.Ciudad</span>
+            </dd>
+
+            <dt class="col-sm-3">Departamento:</dt>
+            <dd class="col-sm-9">@Model.Departamento</dd>
+
+            <dt class="col-sm-3">Teléfono:</dt>
+            <dd class="col-sm-9">
+                 @if (!string.IsNullOrEmpty(Model.Telefono))
+                {
+                    <a href="tel:@Model.Telefono" class="text-decoration-none">
+                        <i class="fas fa-phone me-1"></i>@Model.Telefono
+                    </a>
+                }
+                else
+                {
+                    <span class="text-muted">No especificado</span>
+                } 
+            </dd>
+
+            <dt class="col-sm-3">Horario:</dt>
+            <dd class="col-sm-9">
+                <i class="fas fa-clock me-2"></i>
+                <strong>@Model.HoraApertura.ToString(@"hh\:mm")</strong> - <strong>@Model.HoraCierre.ToString(@"hh\:mm")</strong>
+            </dd>
+
+            <dt class="col-sm-3">Servicios:</dt>
+            <dd class="col-sm-9">
+                <div class="d-flex gap-2">
+                    @if (Model.LavadoDeAuto)
+                    {
+                        <span class="badge bg-success">
+                            <i class="fas fa-car me-1"></i>Lavado
+                        </span>
+                    }
+                     @if (Model.CambioDeAceite)
+                    {
+                        <span class="badge bg-primary">
+                            <i class="fas fa-wrench me-1"></i>Cambio de Aceite
+                        </span>
+                    } 
+                    @if (!Model.LavadoDeAuto)
+                    {
+                        <span class="text-muted">No hay servicios adicionales configurados</span>
+                    }
+                </div>
+            </dd>
+
+            <dt class="col-sm-3">Precios de Combustible:</dt>
+            <dd class="col-sm-9">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center py-2">
+                                <h6 class="card-title mb-1">Nafta Súper</h6>
+                                <p class="card-text h5 mb-0 text-primary">$@Model.PrecioNaftaSuper</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center py-2">
+                                <h6 class="card-title mb-1">Nafta Premium</h6>
+                                <p class="card-text h5 mb-0 text-success">$@Model.PrecioNaftaPremium</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center py-2">
+                                <h6 class="card-title mb-1">Diesel</h6>
+                                <p class="card-text h5 mb-0 text-warning">$@Model.PrecioDiesel</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </dd>
+
+            <dt class="col-sm-3">Fecha de Creación:</dt>
+            <dd class="col-sm-9">
+                 <small class="text-muted">@Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</small> 
+            </dd>
+
+            <dt class="col-sm-3">Última Modificación:</dt>
+            <dd class="col-sm-9">
+                 <small class="text-muted">@Model.FechaModificacion.ToString("dd/MM/yyyy HH:mm")</small> 
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-primary">
+        <i class="fas fa-edit me-2"></i>Editar
+    </a>
+    <a asp-action="Administrar" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Volver al Listado
+    </a>
+</div>

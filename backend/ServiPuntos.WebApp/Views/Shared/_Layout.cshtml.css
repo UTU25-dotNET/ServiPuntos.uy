@@ -1,81 +1,7 @@
-﻿/* Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-for details on configuring this project to bundle and minify static web assets. */
+﻿/* ================== CSS MÍNIMO PARA MODO OSCURO ================== */
+/* Bootstrap data-bs-theme maneja la mayoría, esto es solo para casos específicos */
 
-a.navbar-brand {
-  white-space: normal;
-  text-align: center;
-  word-break: break-all;
-}
-
-a {
-  color: #0077cc;
-}
-
-.btn-primary {
-  color: #fff;
-  background-color: #1b6ec2;
-  border-color: #1861ac;
-}
-
-.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
-  color: #fff;
-  background-color: #1b6ec2;
-  border-color: #1861ac;
-}
-
-.border-top {
-  border-top: 1px solid #e5e5e5;
-}
-.border-bottom {
-  border-bottom: 1px solid #e5e5e5;
-}
-
-.box-shadow {
-  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
-}
-
-button.accept-policy {
-  font-size: 1rem;
-  line-height: inherit;
-}
-
-.footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  white-space: nowrap;
-  line-height: 60px;
-}
-
-/* Variables de Color */
-:root {
-  --bg-color: #ffffff;
-  --text-color: #212529;
-  --navbar-bg: #ffffff;
-  --navbar-text: #212529;
-  --border-color: #dee2e6;
-  --card-bg: #ffffff;
-  --input-bg: #ffffff;
-  --input-border: #ced4da;
-  --shadow: rgba(0, 0, 0, 0.125);
-  --footer-bg: #f8f9fa;
-}
-
-/* Dark Mode Variables */
-body.dark-mode {
-  --bg-color: #1a1a1a !important;
-  --text-color: #e9ecef !important;
-  --navbar-bg: #2d2d2d !important;
-  --navbar-text: #e9ecef !important;
-  --border-color: #495057 !important;
-  --card-bg: #2d2d2d !important;
-  --input-bg: #2d2d2d !important;
-  --input-border: #495057 !important;
-  --shadow: rgba(0, 0, 0, 0.3) !important;
-  --footer-bg: #2d2d2d !important;
-}
-
-/* Dark Mode Toggle Styles */
+/* ================== DARK MODE TOGGLE ================== */
 .dark-mode-toggle {
   position: relative;
   display: inline-block;
@@ -150,205 +76,31 @@ body.dark-mode {
   transform: translateX(30px);
 }
 
-/* ================== MODO OSCURO - ESTILOS PRINCIPALES ================== */
+/* ================== ELEMENTOS ESPECÍFICOS QUE BOOTSTRAP NO CUBRE ================== */
 
-/* General Dark Mode Styles con !important para sobrescribir Bootstrap */
-body.dark-mode {
-  background-color: var(--bg-color) !important;
-  color: var(--text-color) !important;
-  transition: background-color 0.3s ease, color 0.3s ease;
+/* Transiciones suaves para todos los elementos */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
-/* Navbar Dark Mode */
-body.dark-mode .navbar {
-  background-color: var(--navbar-bg) !important;
-  border-color: var(--border-color) !important;
-  transition: all 0.3s ease;
-}
-
-body.dark-mode .navbar-brand,
-body.dark-mode .nav-link {
-  color: var(--navbar-text) !important;
-}
-
-body.dark-mode .navbar-light .navbar-toggler {
-  border-color: var(--border-color) !important;
-}
-
-body.dark-mode .navbar-light .navbar-toggler-icon {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
-}
-
-/* Footer Dark Mode */
-body.dark-mode .footer {
-  background-color: var(--footer-bg) !important;
-  border-color: var(--border-color) !important;
-  color: var(--text-color) !important;
-  transition: all 0.3s ease;
-}
-
-/* Cards Dark Mode */
-body.dark-mode .card {
-  background-color: var(--card-bg) !important;
-  border-color: var(--border-color) !important;
-  color: var(--text-color) !important;
-  transition: all 0.3s ease;
-}
-
-body.dark-mode .card-header {
-  background-color: rgba(255, 255, 255, 0.05) !important;
-  border-color: var(--border-color) !important;
-  color: var(--text-color) !important;
-}
-
-body.dark-mode .card-body {
-  color: var(--text-color) !important;
-}
-
-/* Tables Dark Mode */
-body.dark-mode .table {
-  color: var(--text-color) !important;
-  background-color: transparent !important;
-}
-
-body.dark-mode .table th {
-  color: var(--text-color) !important;
-  background-color: rgba(255, 255, 255, 0.05) !important;
-  border-color: var(--border-color) !important;
-}
-
-body.dark-mode .table td {
-  color: var(--text-color) !important;
-  border-color: var(--border-color) !important;
-}
-
-body.dark-mode .table-striped > tbody > tr:nth-of-type(odd) > td {
-  background-color: rgba(255, 255, 255, 0.02) !important;
-}
-
-body.dark-mode .table-striped > tbody > tr:nth-of-type(odd) > th {
-  background-color: rgba(255, 255, 255, 0.02) !important;
-}
-
-/* Forms Dark Mode */
-body.dark-mode .form-control {
-  background-color: var(--input-bg) !important;
-  border-color: var(--input-border) !important;
-  color: var(--text-color) !important;
-  transition: all 0.3s ease;
-}
-
-body.dark-mode .form-control:focus {
-  background-color: var(--input-bg) !important;
-  border-color: #80bdff !important;
-  color: var(--text-color) !important;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
-}
-
-body.dark-mode .form-control::placeholder {
-  color: rgba(233, 236, 239, 0.6) !important;
-}
-
-body.dark-mode .form-floating > .form-control::placeholder,
-body.dark-mode .form-floating > .form-control-plaintext::placeholder {
-  color: rgba(233, 236, 239, 0.6) !important;
-}
-
-/* Labels Dark Mode */
-body.dark-mode label {
-  color: var(--text-color) !important;
-}
-
-/* Select Dark Mode */
-body.dark-mode select.form-control option {
-  background-color: var(--input-bg) !important;
-  color: var(--text-color) !important;
-}
-
-/* Alert Dark Mode */
-body.dark-mode .alert-danger {
-  background-color: #722f37 !important;
-  border-color: #842029 !important;
-  color: #ea868f !important;
-}
-
-/* Buttons adjustments for dark mode */
-body.dark-mode .btn-outline-danger {
+/* Fix para elementos inline con estilos específicos */
+body.dark-mode .btn-outline-danger[style*="color"] {
   color: #dc3545 !important;
-  border-color: #dc3545 !important;
 }
 
-body.dark-mode .btn-outline-danger:hover {
-  background-color: #dc3545 !important;
-  color: white !important;
+/* Asegurar que los iconos de Font Awesome mantengan su color */
+body.dark-mode .fas,
+body.dark-mode .fa,
+body.dark-mode i[class*="fa-"] {
+  color: inherit;
 }
 
-/* Loading spinner for dark mode */
-body.dark-mode .spinner-border {
-  color: #007bff !important;
+/* Fix para elementos con estilos inline que pueden interferir */
+body.dark-mode [style*="color: #dc3545"] {
+  color: #dc3545 !important;
 }
 
-/* Links in dark mode */
-body.dark-mode a:not(.btn) {
-  color: #66b3ff !important;
-}
-
-body.dark-mode a:not(.btn):hover {
-  color: #4da6ff !important;
-}
-
-/* Text colors */
-body.dark-mode .text-dark {
-  color: var(--text-color) !important;
-}
-
-body.dark-mode .text-muted {
-  color: rgba(233, 236, 239, 0.6) !important;
-}
-
-/* Container and main content */
-body.dark-mode .container {
-  color: var(--text-color) !important;
-}
-
-body.dark-mode main {
-  color: var(--text-color) !important;
-}
-
-/* Headings */
-body.dark-mode h1, 
-body.dark-mode h2, 
-body.dark-mode h3, 
-body.dark-mode h4, 
-body.dark-mode h5, 
-body.dark-mode h6 {
-  color: var(--text-color) !important;
-}
-
-/* Dashboard specific */
-body.dark-mode .lead {
-  color: var(--text-color) !important;
-}
-
-body.dark-mode .display-4 {
-  color: var(--text-color) !important;
-}
-
-/* Form groups */
-body.dark-mode .form-group {
-  color: var(--text-color) !important;
-}
-
-/* Definition lists */
-body.dark-mode dl dt {
-  color: var(--text-color) !important;
-}
-
-body.dark-mode dl dd {
-  color: var(--text-color) !important;
-}
-
-/* Responsive adjustments */
+/* Responsive adjustments para el toggle */
 @media (max-width: 576px) {
   .dark-mode-toggle {
     margin-bottom: 8px;
@@ -376,132 +128,40 @@ body.dark-mode dl dd {
   }
 }
 
-/* ================== FIX ESPECÍFICO PARA TABLAS EN MODO OSCURO ================== */
+/* ================== OPCIONAL: MEJORAS VISUALES ================== */
 
-/* Tabla base - sobreescribir todos los estilos de Bootstrap */
-body.dark-mode .table {
-  --bs-table-color: #e9ecef !important;
-  --bs-table-bg: transparent !important;
-  --bs-table-border-color: #495057 !important;
-  --bs-table-accent-bg: rgba(255, 255, 255, 0.02) !important;
-  --bs-table-striped-color: #e9ecef !important;
-  --bs-table-striped-bg: rgba(255, 255, 255, 0.02) !important;
-  --bs-table-active-color: #e9ecef !important;
-  --bs-table-active-bg: rgba(255, 255, 255, 0.04) !important;
-  --bs-table-hover-color: #e9ecef !important;
-  --bs-table-hover-bg: rgba(255, 255, 255, 0.06) !important;
-  
-  color: #e9ecef !important;
-  background-color: transparent !important;
-  border-color: #495057 !important;
+/* Mejorar el hover en tablas dark */
+[data-bs-theme="dark"] .table-hover > tbody > tr:hover > td,
+[data-bs-theme="dark"] .table-hover > tbody > tr:hover > th {
+  background-color: rgba(255, 255, 255, 0.075);
 }
 
-/* Headers de tabla */
-body.dark-mode .table > :not(caption) > * > th {
-  color: #e9ecef !important;
-  background-color: rgba(255, 255, 255, 0.05) !important;
-  border-color: #495057 !important;
+/* Asegurar que los botones dentro de tablas se vean bien */
+[data-bs-theme="dark"] .table .btn {
+  --bs-btn-border-width: 1px;
 }
 
-/* Celdas de tabla */
-body.dark-mode .table > :not(caption) > * > td {
-  color: #e9ecef !important;
-  border-color: #495057 !important;
-  background-color: transparent !important;
+/* Fix para selects con options (algunos navegadores) */
+[data-bs-theme="dark"] select option {
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
 }
 
-/* Tabla striped - filas alternas */
-body.dark-mode .table-striped > tbody > tr:nth-of-type(odd) > td,
-body.dark-mode .table-striped > tbody > tr:nth-of-type(odd) > th {
-  color: #e9ecef !important;
-  background-color: rgba(255, 255, 255, 0.02) !important;
+/* Asegurar contraste en alerts */
+[data-bs-theme="dark"] .alert {
+  border-width: 1px;
 }
 
-body.dark-mode .table-striped > tbody > tr:nth-of-type(even) > td,
-body.dark-mode .table-striped > tbody > tr:nth-of-type(even) > th {
-  color: #e9ecef !important;
-  background-color: transparent !important;
+/* Footer específico si no usa Bootstrap classes */
+body.dark-mode .footer:not([data-bs-theme]) {
+  background-color: var(--bs-dark);
+  color: var(--bs-light);
+  border-color: var(--bs-border-color);
 }
 
-/* Tabla hover */
-body.dark-mode .table-hover > tbody > tr:hover > td,
-body.dark-mode .table-hover > tbody > tr:hover > th {
-  color: #e9ecef !important;
-  background-color: rgba(255, 255, 255, 0.06) !important;
-}
-
-/* Headers específicos */
-body.dark-mode .table > thead > tr > th {
-  color: #e9ecef !important;
-  background-color: rgba(255, 255, 255, 0.05) !important;
-  border-color: #495057 !important;
-}
-
-/* Tbody específico */
-body.dark-mode .table > tbody > tr > td {
-  color: #e9ecef !important;
-  border-color: #495057 !important;
-}
-
-/* Bordes de tabla */
-body.dark-mode .table-bordered > :not(caption) > * {
-  border-width: 1px 0 !important;
-}
-
-body.dark-mode .table-bordered > :not(caption) > * > * {
-  border-width: 0 1px !important;
-  border-color: #495057 !important;
-}
-
-/* Asegurar que los enlaces dentro de tablas se vean bien */
-body.dark-mode .table a:not(.btn) {
-  color: #66b3ff !important;
-}
-
-body.dark-mode .table a:not(.btn):hover {
-  color: #4da6ff !important;
-}
-
-/* Botones dentro de tablas */
-body.dark-mode .table .btn-primary {
-  background-color: #0d6efd !important;
-  border-color: #0d6efd !important;
-  color: white !important;
-}
-
-body.dark-mode .table .btn-info {
-  background-color: #0dcaf0 !important;
-  border-color: #0dcaf0 !important;
-  color: #000 !important;
-}
-
-body.dark-mode .table .btn-danger {
-  background-color: #dc3545 !important;
-  border-color: #dc3545 !important;
-  color: white !important;
-}
-
-body.dark-mode .table .btn-success {
-  background-color: #198754 !important;
-  border-color: #198754 !important;
-  color: white !important;
-}
-
-/* Texto de "no hay datos" */
-body.dark-mode .table .text-center {
-  color: #e9ecef !important;
-}
-
-/* Fix para selectores muy específicos de Bootstrap */
-body.dark-mode .table > :not(:first-child) {
-  border-top: 1px solid #495057 !important;
-}
-
-/* Responsive tables */
-body.dark-mode .table-responsive .table {
-  color: #e9ecef !important;
-}
-
-body.dark-mode .table-responsive .table > :not(caption) > * > * {
-  border-color: #495057 !important;
+/* Custom elements que no son de Bootstrap */
+body.dark-mode .custom-element {
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  border-color: var(--bs-border-color);
 }

@@ -21,12 +21,15 @@ namespace ServiPuntos.Core.Entities
         public TimeSpan HoraApertura { get; set; }
         public TimeSpan HoraCierre { get; set; }
 
-        public bool Lavado { get; set; }
-        public bool CambioAceite { get; set; }
+        public bool LavadoDeAuto { get; set; } = false;
+        public bool CambioDeAceite { get; set; } = false;
+        public bool CambioDeNeumaticos { get; set; } = false;
+        public bool Lavado { get; set; } = false;
 
         public decimal PrecioNaftaSuper { get; set; }
         public decimal PrecioNaftaPremium { get; set; }
         public decimal PrecioDiesel { get; set; }
+
         public List<ProductoUbicacion> ProductosLocales { get; set; } = new List<ProductoUbicacion>();
         public List<Promocion> Promociones { get; set; } = new List<Promocion>();
 
@@ -45,4 +48,4 @@ namespace ServiPuntos.Core.Entities
             HoraCierre = horaCierre;
         }
     }
-}
+} 

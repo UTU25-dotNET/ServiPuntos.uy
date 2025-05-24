@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
+using Npgsql.EntityFrameworkCore.PostgreSQL; 
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using ServiPuntos.Application.Services;
@@ -11,7 +12,11 @@ using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Data;
 using ServiPuntos.Infrastructure.Middleware;
 using ServiPuntos.Infrastructure.MultiTenancy;
+using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Repositories;
+using ServiPuntos.Infrastructure.Middleware;
+
+using System.Text;
 using System.Security.Claims;
 using System.Text;
 
@@ -33,13 +38,12 @@ builder.Services.AddSwaggerGen();
 
 // Configuraci�n JWT (JSON Web Token)
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var secretKey = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]);
-
-// A�ade esto en Program.cs antes de construir la aplicaci�n
-builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "keys")))
-    .SetApplicationName("ServiPuntos");
-    //.ProtectKeysWithDpapi();
+var secretKeyString = jwtSettings["SecretKey"];
+if (string.IsNullOrEmpty(secretKeyString))
+{
+    throw new InvalidOperationException("JWT SecretKey is not configured.");
+}
+var secretKey = Encoding.UTF8.GetBytes(secretKeyString);
 
 //Soporte de sesion
 builder.Services.AddSession(options =>
@@ -52,10 +56,79 @@ builder.Services.AddSession(options =>
 });
 
 // Configurar servicios de autenticaci�n
+/*builder.Services.AddAuthentication(options =>
+{
+    // Para APIs REST, JWT Bearer debería ser el esquema por defecto
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    // Mantener Cookies para la parte web
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+})
+.AddCookie(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.Path = "/";
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(120);
+    options.Cookie.IsEssential = true;
+})
+.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidAudience = jwtSettings["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(secretKey),
+        ClockSkew = TimeSpan.Zero
+    };
+    
+    // Configuración de eventos para debugging detallado
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            Console.WriteLine($"Token recibido: {(!string.IsNullOrEmpty(token) ? "SÍ" : "NO")}");
+            if (!string.IsNullOrEmpty(token))
+            {
+                Console.WriteLine($"Primeros 20 caracteres: {token.Substring(0, Math.Min(20, token.Length))}...");
+            }
+            return Task.CompletedTask;
+        },
+        OnAuthenticationFailed = context =>
+        {
+            Console.WriteLine($"JWT Authentication failed: {context.Exception.Message}");
+            Console.WriteLine($"Exception type: {context.Exception.GetType().Name}");
+            if (context.Exception.InnerException != null)
+            {
+                Console.WriteLine($"Inner exception: {context.Exception.InnerException.Message}");
+            }
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = context =>
+        {
+            Console.WriteLine($"JWT Token validated for user: {context.Principal?.Identity?.Name}");
+            return Task.CompletedTask;
+        },
+        OnChallenge = context =>
+        {
+            Console.WriteLine($"JWT Challenge initiated. Error: {context.Error}, Description: {context.ErrorDescription}");
+            return Task.CompletedTask;
+        }
+    };
+});*/
+
 builder.Services.AddAuthentication(options =>
 {
+    // Cookies como esquema por defecto (para la parte WEB)
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    // Ya no necesitas DefaultChallengeScheme para Google
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    // No establecer DefaultChallengeScheme - se manejará por controlador específico
 })
 .AddCookie(options =>
 {
@@ -93,7 +166,11 @@ builder.Services.AddCors(options =>
 });
 
 
-// Agregar el servicio JwtTokenService al contenedor de dependencias
+
+builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+
 builder.Services.AddScoped<JwtTokenService>();
 builder.Services.AddHttpClient();
 // Servicios Multi-Tenant
@@ -110,17 +187,20 @@ builder.Services.AddScoped<ITenantContext, TenantContext>();
 // Registra los repositorios de NAFTA
 builder.Services.AddScoped<ITransaccionRepository, TransaccionRepository>();
 builder.Services.AddScoped<ICanjeRepository, CanjeRepository>();
+builder.Services.AddScoped<IProductoCanjeableRepository, ProductoCanjeableRepository>();
+builder.Services.AddScoped<IUbicacionRepository, UbicacionRepository>();
+builder.Services.AddScoped<IProductoUbicacionRepository, ProductoUbicacionRepository>();
 
 // Registra los servicios de NAFTA
 builder.Services.AddScoped<ITransaccionService, TransaccionService>();
 builder.Services.AddScoped<IPuntosService, PuntosService>();
+builder.Services.AddScoped<IProductoCanjeableService, ProductoCanjeableService>();
 builder.Services.AddScoped<ICanjeService, CanjeService>();
 builder.Services.AddScoped<IPointsRuleEngine, PointsRuleEngine>();
 builder.Services.AddScoped<INAFTAService, NAFTAService>();
-
-// Configuramos la conexi�n a la base de datos
-builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<IUbicacionService, UbicacionService>();
+builder.Services.AddScoped<IProductoUbicacionService, ProductoUbicacionService>();
+builder.Services.AddScoped<IPayPalService, PayPalService>();
 
 // Construye la aplicaci�n web
 var app = builder.Build();
@@ -134,16 +214,13 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection(); // Importante para asegurar HTTPS
 app.UseStaticFiles();
-app.UseRouting();
 app.UseCors("AllowReactApp");
+app.UseRouting();
 app.UseSession(); 
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseMiddleware<TenantMiddleware>();
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllers();
-});
+//app.UseMiddleware<TenantMiddleware>();
+app.MapControllers();
 
 
 app.Run();
