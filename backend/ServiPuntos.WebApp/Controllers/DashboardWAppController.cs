@@ -23,44 +23,45 @@ namespace ServiPuntos.Controllers
         {
             try
             {
-                var datosUsuarios = await GetCantidadUsuariosPorTipoTodosInternal();
-                
-                //Grafica por rol
-                var resumenGeneral = datosUsuarios
-                    .SelectMany(t => t.PorTipo)
-                    .GroupBy(u => u.Tipo)
-                    .Select(g => new
-                    {
-                        Rol = g.Key,
-                        Cantidad = g.Sum(x => x.Cantidad)
-                    })
-                    .OrderBy(x => x.Rol)
-                    .ToArray();
+                if(User.IsInRole("AdminPlataforma")){ //esto solo los carga si sos admin mi pc esta sufriendo y el chat dice q mejora el rendimiento
+                    var datosUsuarios = await GetCantidadUsuariosPorTipoTodosInternal();
+                    
+                    //Grafica por rol
+                    var resumenGeneral = datosUsuarios
+                        .SelectMany(t => t.PorTipo)
+                        .GroupBy(u => u.Tipo)
+                        .Select(g => new
+                        {
+                            Rol = g.Key,
+                            Cantidad = g.Sum(x => x.Cantidad)
+                        })
+                        .OrderBy(x => x.Rol)
+                        .ToArray();
 
-                var roles = resumenGeneral.Select(r => r.Rol).ToArray();
-                var cantidades = resumenGeneral.Select(r => r.Cantidad).ToArray();
+                    var roles = resumenGeneral.Select(r => r.Rol).ToArray();
+                    var cantidades = resumenGeneral.Select(r => r.Cantidad).ToArray();
 
-                //Grafica por tenant
-                var resumenTenants = datosUsuarios
-                    .Select(t => new
-                    {
-                        Tenant = t.TenantNombre,
-                        Cantidad = t.TotalUsuarios
-                    })
-                    .OrderBy(x => x.Tenant)
-                    .ToArray();
+                    //Grafica por tenant
+                    var resumenTenants = datosUsuarios
+                        .Select(t => new
+                        {
+                            Tenant = t.TenantNombre,
+                            Cantidad = t.TotalUsuarios
+                        })
+                        .OrderBy(x => x.Tenant)
+                        .ToArray();
 
-                var tenants = resumenTenants.Select(t => t.Tenant).ToArray();
-                var cantidadesTenants = resumenTenants.Select(t => t.Cantidad).ToArray();
+                    var tenants = resumenTenants.Select(t => t.Tenant).ToArray();
+                    var cantidadesTenants = resumenTenants.Select(t => t.Cantidad).ToArray();
 
-                // ViewBag para gráfica por rol
-                ViewBag.Roles = roles;
-                ViewBag.Cantidades = cantidades;
-                
-                // ViewBag para gráfica por tenant
-                ViewBag.Tenants = tenants;
-                ViewBag.CantidadesTenants = cantidadesTenants;
-
+                    // ViewBag para gráfica por rol
+                    ViewBag.Roles = roles;
+                    ViewBag.Cantidades = cantidades;
+                    
+                    // ViewBag para gráfica por tenant
+                    ViewBag.Tenants = tenants;
+                    ViewBag.CantidadesTenants = cantidadesTenants;
+                }
                 return View();
             }
             catch (Exception ex)

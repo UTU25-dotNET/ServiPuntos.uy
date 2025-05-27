@@ -73,33 +73,84 @@
     </div>
     
     
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title">Usuarios por Rol</h5>
+    @if (User.IsInRole("AdminPlataforma"))
+    {
+         <div class="row">
+        @*    <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Usuarios por Rol</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="usuariosPorRol" width="400" height="300"></canvas>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <canvas id="usuariosPorRol" width="400" height="300"></canvas>
-                </div>
+            </div> *@
+            
+            <div class="row">
+    <!-- Gráfica a la izquierda -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title">Usuarios por Tenant</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="usuariosPorTenant" width="100%" height="300"></canvas>
             </div>
         </div>
-        
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title">Usuarios por Tenant</h5>
+    </div>
+
+    
+    <div class="col-md-6 mb-4">
+        <div class="row">
+            
+            <div class="col-6 mb-3">
+                <div class="card bg-success text-white h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Usuarios Finales</h5>
+                        <p class="card-text display-6" id="usuariosFinales"></p>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <canvas id="usuariosPorTenant" width="400" height="300"></canvas>
+            </div>
+            
+            <div class="col-6 mb-3">
+                <div class="card bg-warning text-dark h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Dinero Generado</h5>
+                        <p class="card-text display-6" id="dineroGenerado"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-6 mb-3">
+                <div class="card bg-warning text-dark h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Otr ametrica</h5>
+                        <p class="card-text display-6">El dinero generado es usuarios finales x 10.</p>
+                        <p class="card-text display-6" id=""></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-6 mb-3">
+                <div class="card bg-warning text-dark h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Dinero Generado</h5>
+                        <p class="card-text display-6">No se que mas metricas agregar</p>
+                        <p class="card-text display-6" id=""></p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
+
+        </div>
+    }
     
     <script>
     //Usuarios x rol
-    const ctxRol = document.getElementById('usuariosPorRol').getContext('2d');
+    @* const ctxRol = document.getElementById('usuariosPorRol').getContext('2d');
     const chartRol = new Chart(ctxRol, {
         type: 'bar',
         data: {
@@ -138,8 +189,22 @@
                 }
             }
         }
-    });
+    }); *@
+    const cantidades=@Html.Raw(System.Text.Json.JsonSerializer.Serialize(cantidades));
+    let usuariosFinales = 0;
+    const roles = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(roles));
+    for (let i = 0; i < roles.length; i++) {
+        if (roles[i] === "UsuarioFinal") {
+            usuariosFinales = cantidades[i];
+        }
+    }
 
+    const dineroGenerado = usuariosFinales * 10;
+
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("usuariosFinales").textContent = usuariosFinales;
+        document.getElementById("dineroGenerado").textContent = "$" + dineroGenerado.toFixed(2);
+    }); 
     //Usuarios x tenant
     const ctxTenant = document.getElementById('usuariosPorTenant').getContext('2d');
     const chartTenant = new Chart(ctxTenant, {
