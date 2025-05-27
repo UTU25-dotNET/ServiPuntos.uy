@@ -1,0 +1,110 @@
+@model ServiPuntos.Core.Entities.Tenant
+
+@{
+    ViewData["Title"] = "Eliminar Tenant";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="alert alert-danger">
+    <strong>¡Advertencia!</strong>
+    <p class="mb-0">¿Estás seguro que quieres eliminar este tenant? Esta acción:</p>
+    <ul class="mb-0 mt-2">
+        <li>No se puede deshacer</li>
+        <li>Puede afectar a usuarios y ubicaciones asociadas</li>
+        <li>Eliminará todos los datos relacionados</li>
+    </ul>
+</div>
+
+<div class="card">
+    <div class="card-header bg-danger text-white">
+        <h4 class="mb-0">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            @Model.Nombre
+        </h4>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID:</dt>
+            <dd class="col-sm-9">
+                <code>@Model.Id</code>
+            </dd>
+
+            <dt class="col-sm-3">Nombre:</dt>
+            <dd class="col-sm-9">
+                <strong>@Model.Nombre</strong>
+            </dd>
+
+            <dt class="col-sm-3">Logo URL:</dt>
+            <dd class="col-sm-9">
+                @if (!string.IsNullOrEmpty(Model.LogoUrl))
+                {
+                    <span>@Model.LogoUrl</span>
+                }
+                else
+                {
+                    <span class="text-muted">Sin logo configurado</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Color:</dt>
+            <dd class="col-sm-9">
+                @if (!string.IsNullOrEmpty(Model.Color))
+                {
+                    <div class="d-flex align-items-center">
+                        <div class="rounded me-2" style="width: 20px; height: 20px; background-color: @Model.Color; border: 1px solid #dee2e6;"></div>
+                        <span>@Model.Color</span>
+                    </div>
+                }
+                else
+                {
+                    <span class="text-muted">Sin color configurado</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Fecha de Creación:</dt>
+            <dd class="col-sm-9">@Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</dd>
+
+            <dt class="col-sm-3">Última Modificación:</dt>
+            <dd class="col-sm-9">@Model.FechaModificacion.ToString("dd/MM/yyyy HH:mm")</dd>
+        </dl>
+    </div>
+</div>
+
+<form asp-action="Borrar" method="post" class="mt-3">
+    <input type="hidden" asp-for="Id" />
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-danger" onclick="return confirm('¿Estás absolutamente seguro? Esta acción no se puede deshacer.')">
+            <i class="fas fa-trash me-2"></i>
+            Sí, Eliminar Tenant Definitivamente
+        </button>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>
+            Cancelar y Volver
+        </a>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        // Confirmar eliminación con doble verificación
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const confirmed = confirm('¿Estás absolutamente seguro que quieres eliminar el tenant "@Model.Nombre"?\n\nEsta acción eliminará:\n- El tenant\n- Todos sus usuarios asociados\n- Todas sus ubicaciones\n- Todos los datos relacionados\n\n¡Esta acción NO se puede deshacer!');
+            
+            if (!confirmed) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Segunda confirmación
+            const doubleConfirmed = confirm('ÚLTIMA CONFIRMACIÓN:\n\n¿Realmente quieres proceder con la eliminación?\n\nEscribe "ELIMINAR" para confirmar.');
+            
+            if (!doubleConfirmed) {
+                e.preventDefault();
+                return false;
+            }
+            
+            return true;
+        });
+    </script>
+}
