@@ -27,10 +27,10 @@
             <div class="col-md-4 mb-4">
                 <div class="card bg-primary h-100">
                     <div class="card-body">
-                        <h5 class="card-title">Usuarios</h5>
+                        <h5 class="card-title text-white">Usuarios</h5>
                     </div>
                     <div class="card-footer d-flex align-items-center justify-content-between">
-                        <button class="btn btn-sm w-100" onclick="window.location.href='UsuarioWApp/Index'">
+                        <button class="btn btn-sm w-100 text-white" onclick="window.location.href='UsuarioWApp/Index'">
                             Administracion de usuarios <i class="fas fa-angle-right ms-2"></i>
                         </button>
                     </div>
@@ -59,10 +59,10 @@
             <div class="col-md-4 mb-4">
                 <div class="card bg-danger h-100">
                     <div class="card-body">
-                        <h5 class="card-title">Ubicaciones</h5>
+                        <h5 class="card-title text-white">Ubicaciones</h5>
                     </div>
                     <div class="card-footer d-flex align-items-center justify-content-between">
-                        <button class="btn btn-sm w-100" onclick="window.location.href='UbicacionWApp/Index'">
+                        <button class="btn btn-sm w-100 text-white" onclick="window.location.href='UbicacionWApp/Index'">
                             Administracion de ubicaciones <i class="fas fa-angle-right ms-2"></i>
                         </button>
                         <small class="text-muted mt-1">falta pagina de ubicaciones</small>
@@ -114,7 +114,7 @@
             </div>
             
             <div class="col-6 mb-3">
-                <div class="card bg-warning text-dark h-100">
+                <div class="card bg-success text-dark h-100">
                     <div class="card-body">
                         <h5 class="card-title">Dinero Generado</h5>
                         <p class="card-text display-6" id="dineroGenerado"></p>
@@ -123,7 +123,7 @@
             </div>
             
             <div class="col-6 mb-3">
-                <div class="card bg-warning text-dark h-100">
+                <div class="card bg-success text-dark h-100">
                     <div class="card-body">
                         <h5 class="card-title">Otr ametrica</h5>
                         <p class="card-text display-6">El dinero generado es usuarios finales x 10.</p>
@@ -133,7 +133,7 @@
             </div>
             
             <div class="col-6 mb-3">
-                <div class="card bg-warning text-dark h-100">
+                <div class="card bg-success text-dark h-100">
                     <div class="card-body">
                         <h5 class="card-title">Dinero Generado</h5>
                         <p class="card-text display-6">No se que mas metricas agregar</p>
@@ -145,7 +145,51 @@
     </div>
 </div>
 
+<button type="button" class="btn btn-outline-primary mb-3" data-bs-toggle="modal" data-bs-target="#configModal">
+    Configurar Plataforma
+</button>
+<div class="modal fade" id="configModal" tabindex="-1" aria-labelledby="configModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="configModalLabel">Configuración de Plataforma</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="configuracionForm">
+                    <div class="mb-3">
+                        <label for="expiracionSesion" class="form-label">Tiempo de expiración de sesión (minutos)</label>
+                        <input type="number" class="form-control" id="expiracionSesion" name="expiracionSesion" min="1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="maxIntentos" class="form-label">Cantidad máxima de intentos fallidos de login</label>
+                        <input type="number" class="form-control" id="maxIntentos" name="maxIntentos" min="1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="largoMinimo" class="form-label">Largo mínimo de la contraseña</label>
+                        <input type="number" class="form-control" id="largoMinimo" name="largoMinimo" min="1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="campo4" class="form-label">Campo 4</label>
+                        <input type="text" class="form-control" id="campo4" name="campo4" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label for="campo5" class="form-label">Campo 5</label>
+                        <input type="text" class="form-control" id="campo5" name="campo5" disabled>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="configuracionForm" class="btn btn-primary">Guardar Configuración</button>
+            </div>
         </div>
+    </div>
+</div>
+
+
+
+</div>
     }
     
     <script>
