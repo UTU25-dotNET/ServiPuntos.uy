@@ -1,34 +1,22 @@
-import React, { useEffect } from "react";
+import React from 'react'
+import { useTenant } from '../context/TenantContext'
 
-/**
- * props.tenants: array de { id, nombre, … }
- * props.selectedTenant: el tenant actualmente activo
- * props.onSelect: fn para actualizar tenant
- */
-const TenantSelector = ({ tenants, selectedTenant, onSelect }) => {
-    // Cuando arriban los tenants, si no hay ninguno seleccionado tomo el primero
-    useEffect(() => {
-        if (tenants.length > 0 && !selectedTenant) {
-            onSelect(tenants[0]);
-        }
-    }, [tenants, selectedTenant, onSelect]);
+export default function TenantSelector() {
+    const { tenants, tenantId, setTenantId } = useTenant()
 
     return (
         <select
-            value={selectedTenant?.id || ""}
-            onChange={e => {
-                const t = tenants.find(t => t.id === e.target.value);
-                onSelect(t);
-            }}
+            value={tenantId || ''}
+            onChange={e => setTenantId(e.target.value)}
         >
-            <option value="" disabled>— Selecciona un tenant —</option>
+            <option value='' disabled>
+                — Seleccione un Tenant —
+            </option>
             {tenants.map(t => (
                 <option key={t.id} value={t.id}>
                     {t.nombre}
                 </option>
             ))}
         </select>
-    );
-};
-
-export default TenantSelector;
+    )
+}
