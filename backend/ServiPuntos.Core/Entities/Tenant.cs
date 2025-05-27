@@ -1,23 +1,26 @@
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+
 namespace ServiPuntos.Core.Entities
 {
     public class Tenant
     {
-        public Guid Id { get; set; } //Globally Unique Identifier
-        required public string Nombre { get; set; }
-        //public string Correo { get; set; }
-        //public string Telefono { get; set; }
+        [Key]
+        public Guid Id { get; set; }
+
+        [Required]
+        public string Nombre { get; set; } = null!;
+
         public string? LogoUrl { get; set; }
-        public string? Color { get; set; } //no tengo idea como poner un color aca supongo que el formato es un string y sera algo como #FFFFFF
+        public string? Color { get; set; }
         public decimal ValorPunto { get; set; }
 
         public DateTime FechaCreacion { get; set; }
         public DateTime FechaModificacion { get; set; }
 
-        public ICollection<Usuario> Usuarios { get; set; } = new List<Usuario>();
-        public ICollection<Ubicacion> Ubicaciones { get; set; } = new List<Ubicacion>();
-
-        //Constructor
-        public Tenant() { }
+        public virtual ICollection<Usuario> Usuarios { get; set; } = new List<Usuario>();
+        public virtual ICollection<Ubicacion> Ubicaciones { get; set; } = new List<Ubicacion>();
     }
-
 }

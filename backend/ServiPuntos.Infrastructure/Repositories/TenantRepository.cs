@@ -16,12 +16,25 @@ namespace ServiPuntos.Infrastructure.Repositories
 
         public async Task<Tenant?> GetByIdAsync(Guid id)
         {
-            return await _dbContext.Tenants.FindAsync(id);
+            return await _dbContext.Tenants
+                // incluir ubicaciones
+                .Include(t => t.Ubicaciones)
+                    // dentro de cada ubicación, incluir los productos locales
+                    .ThenInclude(u => u.ProductosLocales)
+                        // si quieres traer también datos del producto canjeable
+                        .ThenInclude(pl => pl.ProductoCanjeable)
+                .Include(t => t.Ubicaciones)
+                    // e incluir las promociones si las necesitas
+                    .ThenInclude(u => u.Promociones)
+                .FirstOrDefaultAsync(t => t.Id == id);
         }
 
         public async Task<IEnumerable<Tenant>> GetAllAsync()
         {
-            return await _dbContext.Tenants.ToListAsync();
+            return await _dbContext.Tenants
+                // opcionalmente traer las ubicaciones aquí también
+                .Include(t => t.Ubicaciones)
+                .ToListAsync();
         }
 
         public async Task AddAsync(Tenant tenant)
@@ -47,4 +60,3 @@ namespace ServiPuntos.Infrastructure.Repositories
         }
     }
 }
-
