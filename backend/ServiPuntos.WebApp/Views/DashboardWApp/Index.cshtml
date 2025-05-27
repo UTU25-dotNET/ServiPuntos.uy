@@ -15,7 +15,7 @@
     </div>
 
     <div class="row">
-        
+        <!-- Tarjeta de Puntos - Visible para todos los usuarios -->
         @if (User.IsInRole("AdminPlataforma"))
         {
             <div class="col-md-4 mb-4">
@@ -31,7 +31,7 @@
             </div>
         }
 
-
+        <!-- Tarjeta de Servicios - Visible para Operadores, Administradores y AdminTenant -->
         @if (User.IsInRole("AdminPlataforma") || User.IsInRole("AdminTenant"))
         {
             <div class="col-md-4 mb-4">
@@ -47,7 +47,7 @@
             </div>
         }
 
-        
+        <!-- Tarjeta de Notificaciones - Visible solo para Administradores y AdminTenant -->
         @if (User.IsInRole("AdminPlataforma") || User.IsInRole("AdminUbicacion"))
         {
             <div class="col-md-4 mb-4">

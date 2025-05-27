@@ -14,7 +14,15 @@ using ServiPuntos.Application.Services;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Data;
 using ServiPuntos.Infrastructure.MultiTenancy;
+using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Repositories;
+using ServiPuntos.Infrastructure.Middleware;
+
+using System.Text;
+using ServiPuntos.API.Data;
+using System.Security.Claims;
+using System.Text;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,13 +54,15 @@ builder.Services.AddDbContext<ServiPuntosDbContext>(opts =>
 
 // 4. JWT Settings
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var secretKey = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]!);
 
-// 5. DataProtection
-builder.Services
-  .AddDataProtection()
-  .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "keys")))
-  .SetApplicationName("ServiPuntos");
+
+var secretKeyString = jwtSettings["SecretKey"];
+if (string.IsNullOrEmpty(secretKeyString))
+{
+    throw new InvalidOperationException("JWT SecretKey is not configured.");
+}
+var secretKey = Encoding.UTF8.GetBytes(secretKeyString);
+
 
 // 6. Session
 builder.Services.AddSession(opts =>
@@ -110,7 +120,23 @@ builder.Services.AddCors(cfg =>
     );
 });
 
-// 9. Servicios & Repositorios
+
+// Dentro de la configuración de servicios
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    // Si usas SQL Server:
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlServerOptionsAction: sqlOptions =>
+        {
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorNumbersToAdd: null);
+        }
+    );
+});
+
 
 // Soporte JWT y HttpClient
 builder.Services.AddScoped<JwtTokenService>();
@@ -128,6 +154,7 @@ builder.Services.AddScoped<ITenantContext, TenantContext>();
 // NAFTA
 builder.Services.AddScoped<ITransaccionRepository, TransaccionRepository>();
 builder.Services.AddScoped<ICanjeRepository, CanjeRepository>();
+
 builder.Services.AddScoped<INAFTAService, NAFTAService>();
 
 // Productos canjeables & Ubicaciones
@@ -136,6 +163,10 @@ builder.Services.AddScoped<IProductoCanjeableService, ProductoCanjeableService>(
 builder.Services.AddScoped<IProductoUbicacionRepository, ProductoUbicacionRepository>();
 builder.Services.AddScoped<IProductoUbicacionService, ProductoUbicacionService>();
 
+builder.Services.AddScoped<IProductoCanjeableRepository, ProductoCanjeableRepository>();
+builder.Services.AddScoped<IUbicacionRepository, UbicacionRepository>();
+
+
 // **Registro faltante para Ubicaciones genéricas**
 builder.Services.AddScoped<IUbicacionRepository, UbicacionRepository>();
 builder.Services.AddScoped<IUbicacionService, UbicacionService>();
@@ -143,8 +174,19 @@ builder.Services.AddScoped<IUbicacionService, UbicacionService>();
 // Resto de servicios
 builder.Services.AddScoped<ITransaccionService, TransaccionService>();
 builder.Services.AddScoped<IPuntosService, PuntosService>();
+
 builder.Services.AddScoped<IPointsRuleEngine, PointsRuleEngine>();
 builder.Services.AddScoped<ICanjeService, CanjeService>();
+
+builder.Services.AddScoped<IProductoCanjeableService, ProductoCanjeableService>();
+builder.Services.AddScoped<ICanjeService, CanjeService>();
+builder.Services.AddScoped<IPointsRuleEngine, PointsRuleEngine>();
+builder.Services.AddScoped<INAFTAService, NAFTAService>();
+builder.Services.AddScoped<IUbicacionService, UbicacionService>();
+
+// Configuramos la conexi�n a la base de datos
+builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // 10. Construir & pipeline
 var app = builder.Build();
@@ -163,5 +205,9 @@ app.UseCors("AllowReactApp");
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<TenantMiddleware>();
 app.MapControllers();
+
+
 app.Run();

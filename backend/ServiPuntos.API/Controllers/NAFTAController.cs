@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Core.NAFTA;
@@ -185,5 +185,4 @@ namespace ServiPuntos.API.Controllers
 
             return Ok(espec);
         }
-    }
 }
