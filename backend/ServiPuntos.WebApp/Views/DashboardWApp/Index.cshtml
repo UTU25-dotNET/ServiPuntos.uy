@@ -156,17 +156,17 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
-                <form id="configuracionForm">
+                <form id="configuracionForm" method="post" action="CambiarConfiguracion">
                     <div class="mb-3">
-                        <label for="expiracionSesion" class="form-label">Tiempo de expiración de sesión (minutos)</label>
+                        <label for="expiracionSesion" class="form-label">Tiempo de expiración de sesión de los clientes (minutos)</label>
                         <input type="number" class="form-control" id="expiracionSesion" name="expiracionSesion" min="1">
                     </div>
                     <div class="mb-3">
-                        <label for="maxIntentos" class="form-label">Cantidad máxima de intentos fallidos de login</label>
+                        <label for="maxIntentos" class="form-label">Cantidad máxima de intentos fallidos de login de un cliente</label>
                         <input type="number" class="form-control" id="maxIntentos" name="maxIntentos" min="1">
                     </div>
                     <div class="mb-3">
-                        <label for="largoMinimo" class="form-label">Largo mínimo de la contraseña</label>
+                        <label for="largoMinimo" class="form-label">Largo mínimo de la contraseña de los clientes</label>
                         <input type="number" class="form-control" id="largoMinimo" name="largoMinimo" min="1">
                     </div>
                     <div class="mb-3">
@@ -186,13 +186,9 @@
         </div>
     </div>
 </div>
-
-
-
+}
 </div>
     }
-    
-    <script>
     //Usuarios x rol
     @* const ctxRol = document.getElementById('usuariosPorRol').getContext('2d');
     const chartRol = new Chart(ctxRol, {
@@ -234,6 +230,67 @@
             }
         }
     }); *@
+
+    @if (User.IsInRole("AdminTenant"))
+        {  
+            var miTenant = "no se encontro el tenant en la cookie";
+            @if (ViewBag.MiTenant != null)
+            {
+                miTenant = ViewBag.MiTenant.Nombre;
+            }
+
+    @* var ubicaciones = ViewBag.Ubicaciones; *@
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Tenant actual</h5>
+                </div>
+                <div class="card-body">
+                    <p class="fs-5 mb-0">@miTenant</p>
+                </div>
+            </div>
+        </div>
+
+        @* <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Ubicaciones del Tenant</h5>
+                </div>
+                <div class="card-body">
+                    @if (ubicaciones != null && ubicaciones.Count > 0)
+                    {
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Dirección</th> 
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var u in ubicaciones)
+                                {
+                                    <tr>
+                                        <td>@u.Nombre</td>
+                                        <td>@u.Direccion</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No se encontraron ubicaciones asociadas.</p>
+                    }
+                </div>
+            </div>
+        </div> *@
+    </div>
+}
+    <script>
+    const esAdminPlataforma = @User.IsInRole("AdminPlataforma").ToString().ToLower();
+    if(esAdminPlataforma){
     const cantidades=@Html.Raw(System.Text.Json.JsonSerializer.Serialize(cantidades));
     let usuariosFinales = 0;
     const roles = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(roles));
@@ -250,53 +307,55 @@
         document.getElementById("dineroGenerado").textContent = "$" + dineroGenerado.toFixed(2);
     }); 
     //Usuarios x tenant
-    const ctxTenant = document.getElementById('usuariosPorTenant').getContext('2d');
-    const chartTenant = new Chart(ctxTenant, {
-        type: 'bar',
-        data: {
-            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(tenants)),
-            datasets: [{
-                label: 'Usuarios por tenant',
-                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(cantidadesTenants)),
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.8)',
-                    'rgba(54, 162, 235, 0.8)',
-                    'rgba(255, 205, 86, 0.8)',
-                    'rgba(75, 192, 192, 0.8)',
-                    'rgba(153, 102, 255, 0.8)',
-                    'rgba(255, 159, 64, 0.8)',
-                    'rgba(199, 199, 199, 0.8)',
-                    'rgba(83, 102, 255, 0.8)'
-                ],
-                borderColor: 'rgba(255, 255, 255, 1)',
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                },
-                title: {
-                    display: true,
-                    text: 'Distribución de usuarios por tenant'
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const label = context.label || '';
-                            const value = context.parsed;
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = ((value / total) * 100).toFixed(1);
-                            return `${label}: ${value} usuarios (${percentage}%)`;
+    
+        const ctxTenant = document.getElementById('usuariosPorTenant').getContext('2d');
+        const chartTenant = new Chart(ctxTenant, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(tenants)),
+                datasets: [{
+                    label: 'Usuarios por tenant',
+                    data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(cantidadesTenants)),
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 205, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(153, 102, 255, 0.8)',
+                        'rgba(255, 159, 64, 0.8)',
+                        'rgba(199, 199, 199, 0.8)',
+                        'rgba(83, 102, 255, 0.8)'
+                    ],
+                    borderColor: 'rgba(255, 255, 255, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Distribución de usuarios por tenant'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return `${label}: ${value} usuarios (${percentage}%)`;
+                            }
                         }
                     }
                 }
             }
-        }
-    });
+        });
+    }
+    
 </script>
-
 </div>
