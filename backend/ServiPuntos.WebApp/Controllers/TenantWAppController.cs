@@ -47,13 +47,6 @@ namespace ServiPuntos.WebApp.Controllers
         [HttpPost]
         public async Task<IActionResult> Editar(Guid id, string nombre, string logoUrl, string color)
         {
-            // *** DEBUG: Log de valores recibidos ***
-            Console.WriteLine("=== DEBUG EDITAR TENANT ===");
-            Console.WriteLine($"ID: {id}");
-            Console.WriteLine($"Nombre: '{nombre}'");
-            Console.WriteLine($"LogoUrl: '{logoUrl}'");
-            Console.WriteLine($"Color: '{color}'");
-            Console.WriteLine("============================");
 
             if (ModelState.IsValid)
             {

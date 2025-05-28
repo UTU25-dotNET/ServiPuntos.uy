@@ -7,7 +7,7 @@ using ServiPuntos.Core.Interfaces;
 
 namespace ServiPuntos.Controllers
 {
-    
+
     public class DashboardWAppController : Controller
     {
         private readonly IUsuarioService _iUsuarioService;
@@ -23,9 +23,22 @@ namespace ServiPuntos.Controllers
         {
             try
             {
-                if(User.IsInRole("AdminPlataforma")){ //esto solo los carga si sos admin mi pc esta sufriendo y el chat dice q mejora el rendimiento
+                if (User.IsInRole("AdminTenant"))
+                {
+                    var tenantIdDeCookie = User.Claims.FirstOrDefault(c => c.Type == "tenantId")?.Value;
+                    Guid tenantId = Guid.Parse(tenantIdDeCookie);
+                    var tenantActual = await _iTenantService.GetByIdAsync(tenantId); // Método ejemplo, ajustalo a tu lógica
+                    //var ubicaciones = await _iTenantService.GetUbicacionesPorTenantIdAsync(tenantActual.Id);
+
+                    ViewBag.MiTenant = tenantActual;
+                    //ViewBag.Ubicaciones = ubicaciones;
+                }
+
+
+                if (User.IsInRole("AdminPlataforma")|| User.IsInRole("AdminTenant"))
+                { //esto solo los carga si sos admin mi pc esta sufriendo y el chat dice q mejora el rendimiento
                     var datosUsuarios = await GetCantidadUsuariosPorTipoTodosInternal();
-                    
+
                     //Grafica por rol
                     var resumenGeneral = datosUsuarios
                         .SelectMany(t => t.PorTipo)
@@ -57,7 +70,7 @@ namespace ServiPuntos.Controllers
                     // ViewBag para gráfica por rol
                     ViewBag.Roles = roles;
                     ViewBag.Cantidades = cantidades;
-                    
+
                     // ViewBag para gráfica por tenant
                     ViewBag.Tenants = tenants;
                     ViewBag.CantidadesTenants = cantidadesTenants;
@@ -83,6 +96,13 @@ namespace ServiPuntos.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> CambiarConfiguracion()
+        {
+            //implementar
+            return View();
+        }
+
+        [HttpGet]
         public async Task<IActionResult> GetCantidadUsuariosPorTipoTodos()
         {
             try
@@ -104,7 +124,7 @@ namespace ServiPuntos.Controllers
             foreach (var tenant in tenants)
             {
                 var usuarios = await _iUsuarioService.GetAllUsuariosAsync(tenant.Id);
-                
+
                 var cantidadPorTipo = usuarios
                     .GroupBy(u => u.Rol)
                     .Select(g => new UsuarioTipoInfo
@@ -127,7 +147,7 @@ namespace ServiPuntos.Controllers
         }
     }
 
-    
+
     public class TenantUsuarioInfo
     {
         public Guid TenantId { get; set; }
