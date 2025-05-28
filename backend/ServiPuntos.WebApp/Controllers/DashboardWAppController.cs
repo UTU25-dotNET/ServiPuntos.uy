@@ -130,6 +130,59 @@ namespace ServiPuntos.Controllers
             return View();
         }
 
+        // Agregar este método al final de la clase DashboardWAppController, antes de la clase TenantUsuarioInfo
+
+[HttpPost]
+[Authorize(Roles = "AdminTenant")]
+public async Task<IActionResult> ActualizarValorPuntos(decimal valorPuntos)
+{
+    try
+    {
+        var tenantIdClaim = User.Claims.FirstOrDefault(c => c.Type == "tenantId")?.Value;
+        
+        if (string.IsNullOrEmpty(tenantIdClaim) || !Guid.TryParse(tenantIdClaim, out Guid tenantId))
+        {
+            return Json(new { success = false, message = "No se pudo identificar su tenant." });
+        }
+
+        var tenant = await _iTenantService.GetByIdAsync(tenantId);
+        if (tenant == null)
+        {
+            return Json(new { success = false, message = "Tenant no encontrado." });
+        }
+
+        // Validaciones
+        if (valorPuntos <= 0)
+        {
+            return Json(new { success = false, message = "El valor de puntos debe ser mayor a 0." });
+        }
+
+        if (valorPuntos > 1000)
+        {
+            return Json(new { success = false, message = "El valor de puntos no puede ser mayor a 1000." });
+        }
+
+        // Actualizar el tenant
+        tenant.ValorPunto = valorPuntos;
+        tenant.FechaModificacion = DateTime.UtcNow;
+
+        await _iTenantService.UpdateAsync(tenant);
+
+        Console.WriteLine($"✅ Valor de puntos actualizado para tenant {tenant.Nombre}: ${valorPuntos}");
+
+        return Json(new { 
+            success = true, 
+            message = "Valor de puntos actualizado correctamente",
+            nuevoValor = valorPuntos.ToString("F2")
+        });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error al actualizar valor de puntos: {ex.Message}");
+        return Json(new { success = false, message = $"Error interno: {ex.Message}" });
+    }
+}
+
         [HttpGet]
         public async Task<IActionResult> GetCantidadUsuariosPorTipoTodos()
         {
