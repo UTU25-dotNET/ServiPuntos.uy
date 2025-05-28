@@ -14,9 +14,11 @@
 
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm border-bottom box-shadow mb-3" id="mainNavbar">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">ServiPuntos.WebApp</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index" id="navbarBrand">
+                    <i class="fas fa-gas-pump me-2"></i>@(ViewBag.AppName ?? "ServiPuntos.WebApp")
+                </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
                     aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -86,9 +88,8 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     
-    <!-- Bootstrap Theme Toggle Script Completo con Botones -->
+    <!-- Bootstrap Theme Toggle Script -->
     <script>
-        // Bootstrap Theme Toggle Completo con Botones
         (function() {
             'use strict';
             
@@ -97,7 +98,6 @@
                 
                 if (!darkModeToggle) return;
                 
-                // Selectores completos incluyendo todos los tipos de botones
                 const themeSelectors = [
                     'body',
                     '.navbar',
@@ -107,11 +107,11 @@
                     'select',
                     'input',
                     'textarea',
-                    '.btn',              // Botones con clase .btn
-                    'button',            // Elementos button
-                    'input[type="button"]',   // Input type button
-                    'input[type="submit"]',   // Input type submit
-                    'input[type="reset"]',    // Input type reset
+                    '.btn',
+                    'button',
+                    'input[type="button"]',
+                    'input[type="submit"]',
+                    'input[type="reset"]',
                     '.alert',
                     '.modal',
                     '.dropdown-menu',
@@ -122,72 +122,36 @@
                     '.pagination'
                 ];
                 
-                // Función para aplicar tema
                 function applyBootstrapTheme(isDark) {
                     const theme = isDark ? 'dark' : 'light';
-                    console.log(`🎨 Aplicando tema: ${theme}`);
                     
-                    // Aplicar a document y body
                     document.documentElement.setAttribute('data-bs-theme', theme);
                     document.body.setAttribute('data-bs-theme', theme);
                     
-                    // Aplicar a elementos específicos
                     themeSelectors.forEach(selector => {
                         document.querySelectorAll(selector).forEach(element => {
                             element.setAttribute('data-bs-theme', theme);
                         });
                     });
-                    
-                    // Aplicación específica y agresiva para botones
-                    applyThemeToButtons(theme);
-                    
-                    console.log(`✅ Tema ${theme} aplicado a todos los elementos`);
                 }
                 
-                // Función específica para botones
-                function applyThemeToButtons(theme) {
-                    // Selectores específicos para botones
-                    const buttonSelectors = [
-                        '.btn',
-                        'button',
-                        'input[type="button"]',
-                        'input[type="submit"]',
-                        'input[type="reset"]',
-                        '[role="button"]'
-                    ];
-                    
-                    buttonSelectors.forEach(selector => {
-                        document.querySelectorAll(selector).forEach(button => {
-                            button.setAttribute('data-bs-theme', theme);
-                        });
-                    });
-                    
-                    console.log(`🔘 Tema aplicado específicamente a botones`);
-                }
-                
-                // Función para aplicar a elementos dinámicos
                 function applyThemeToNewElements() {
                     const currentTheme = document.documentElement.getAttribute('data-bs-theme') || 'light';
                     
-                    // Aplicar a elementos sin tema
                     themeSelectors.forEach(selector => {
                         document.querySelectorAll(`${selector}:not([data-bs-theme])`).forEach(element => {
                             element.setAttribute('data-bs-theme', currentTheme);
                         });
                     });
-                    
-                    // Aplicar específicamente a botones nuevos
-                    applyThemeToButtons(currentTheme);
                 }
                 
-                // Observer mejorado para elementos dinámicos
                 const observer = new MutationObserver(function(mutations) {
                     let hasNewElements = false;
                     
                     mutations.forEach(function(mutation) {
                         if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
                             mutation.addedNodes.forEach(function(node) {
-                                if (node.nodeType === 1) { // Element node
+                                if (node.nodeType === 1) {
                                     hasNewElements = true;
                                 }
                             });
@@ -204,7 +168,6 @@
                     subtree: true
                 });
                 
-                // Guardar/cargar preferencia
                 function saveTheme(isDark) {
                     try {
                         localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
@@ -222,19 +185,16 @@
                     }
                 }
                 
-                // Inicialización
                 const shouldUseDarkMode = loadTheme();
                 darkModeToggle.checked = shouldUseDarkMode;
                 applyBootstrapTheme(shouldUseDarkMode);
                 
-                // Event listener
                 darkModeToggle.addEventListener('change', function() {
                     const isDark = this.checked;
                     applyBootstrapTheme(isDark);
                     saveTheme(isDark);
                 });
                 
-                // Monitorear cambios del sistema
                 if (window.matchMedia) {
                     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
                         const savedTheme = localStorage.getItem('darkMode');
@@ -245,41 +205,11 @@
                     });
                 }
                 
-                // Debug para botones
-                window.themeDebug = {
-                    forceOn: () => { 
-                        darkModeToggle.checked = true; 
-                        applyBootstrapTheme(true); 
-                    },
-                    forceOff: () => { 
-                        darkModeToggle.checked = false; 
-                        applyBootstrapTheme(false); 
-                    },
-                    getCurrentTheme: () => document.documentElement.getAttribute('data-bs-theme'),
-                    countButtons: () => {
-                        const buttons = document.querySelectorAll('.btn, button, input[type="button"], input[type="submit"]');
-                        const withTheme = document.querySelectorAll('.btn[data-bs-theme], button[data-bs-theme], input[type="button"][data-bs-theme], input[type="submit"][data-bs-theme]');
-                        return {
-                            total: buttons.length,
-                            withTheme: withTheme.length,
-                            missing: buttons.length - withTheme.length
-                        };
-                    },
-                    testButtons: () => {
-                        const stats = window.themeDebug.countButtons();
-                        console.log('🔘 Estadísticas de botones:', stats);
-                        return stats;
-                    }
-                };
-                
-                // Aplicar tema inicial específicamente a botones
                 setTimeout(() => {
                     applyThemeToNewElements();
-                    console.log('✅ Tema aplicado a elementos iniciales incluyendo botones');
                 }, 100);
             }
             
-            // Inicializar
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', initBootstrapThemeToggle);
             } else {
@@ -287,6 +217,88 @@
             }
         })();
     </script>
+    
+    <!-- CSS dinámico para color del tenant -->
+    @if (ViewBag.TenantColor != null)
+    {
+        <style>
+            #mainNavbar {
+                background-color: @ViewBag.TenantColor !important;
+                background-image: linear-gradient(135deg, @ViewBag.TenantColor 0%, @ViewBag.TenantColor 85%) !important;
+                border-bottom: 1px solid rgba(0,0,0,0.1) !important;
+            }
+            
+            /* Asegurar contraste del texto */
+            #mainNavbar .navbar-brand,
+            #mainNavbar .nav-link,
+            #mainNavbar .navbar-toggler-icon,
+            #mainNavbar span {
+                color: var(--tenant-text-color) !important;
+                text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            }
+            
+            #mainNavbar .navbar-brand:hover,
+            #mainNavbar .nav-link:hover {
+                color: var(--tenant-text-color) !important;
+                opacity: 0.8;
+            }
+            
+            #mainNavbar .btn-primary {
+                background-color: rgba(255, 255, 255, 0.2);
+                border-color: rgba(255, 255, 255, 0.3);
+                color: var(--tenant-text-color) !important;
+                backdrop-filter: blur(10px);
+            }
+            
+            #mainNavbar .btn-primary:hover {
+                background-color: rgba(255, 255, 255, 0.3);
+                border-color: rgba(255, 255, 255, 0.4);
+                color: var(--tenant-text-color) !important;
+            }
+            
+            #mainNavbar .btn-outline-danger {
+                border-color: rgba(255, 255, 255, 0.3);
+                color: var(--tenant-text-color) !important;
+                backdrop-filter: blur(10px);
+            }
+            
+            #mainNavbar .btn-outline-danger:hover {
+                background-color: rgba(220, 53, 69, 0.2);
+                border-color: rgba(220, 53, 69, 0.4);
+                color: var(--tenant-text-color) !important;
+            }
+            
+            /* Dark mode toggle styling */
+            #mainNavbar .dark-mode-toggle {
+                filter: brightness(1.1);
+            }
+        </style>
+        
+        <script>
+            // Calcular color de texto basado en el color de fondo del tenant
+            document.addEventListener('DOMContentLoaded', function() {
+                const tenantColor = '@ViewBag.TenantColor';
+                const textColor = getContrastColor(tenantColor);
+                document.documentElement.style.setProperty('--tenant-text-color', textColor);
+            });
+            
+            function getContrastColor(hexColor) {
+                
+                hexColor = hexColor.replace('#', '');
+                
+                
+                const r = parseInt(hexColor.substr(0, 2), 16);
+                const g = parseInt(hexColor.substr(2, 2), 16);
+                const b = parseInt(hexColor.substr(4, 2), 16);
+                
+                
+                const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+                
+                
+                return luminance > 0.5 ? '#2c3e50' : '#ffffff';
+            }
+        </script>
+    }
     
     @await RenderSectionAsync("Scripts", required: false)
 </body>

@@ -1,0 +1,179 @@
+@model ServiPuntos.Core.Entities.Ubicacion
+
+@{
+    ViewData["Title"] = "Editar Ubicación";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form asp-action="Editar" method="post">
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="TenantId" />
+    @* <input type="hidden" asp-for="FechaCreacion" /> *@
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label for="Nombre">Nombre *</label>
+                <input type="text" class="form-control" asp-for="Nombre" required />
+                <div class="form-text">Nombre identificativo de la ubicación</div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label for="Telefono">Teléfono</label>
+                @* <input type="text" class="form-control" asp-for="Telefono" placeholder="099 123 456" /> *@
+                <div class="form-text">Número de contacto de la ubicación</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group mb-3">
+        <label for="Direccion">Dirección *</label>
+        <input type="text" class="form-control" asp-for="Direccion" required />
+        <div class="form-text">Dirección completa de la ubicación</div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label for="Ciudad">Ciudad *</label>
+                <input type="text" class="form-control" asp-for="Ciudad" required />
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label for="Departamento">Departamento *</label>
+                <input type="text" class="form-control" asp-for="Departamento" required />
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label for="HoraApertura">Hora de Apertura *</label>
+                @* <input type="time" class="form-control" asp-for="HoraApertura" required /> *@
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label for="HoraCierre">Hora de Cierre *</label>
+                @* <input type="time" class="form-control" asp-for="HoraCierre" required /> *@
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-gas-pump me-2"></i>
+                Precios de Combustible
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group mb-3">
+                        <label for="PrecioNaftaSuper">Nafta Súper *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" step="0.01" class="form-control" asp-for="PrecioNaftaSuper" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group mb-3">
+                        <label for="PrecioNaftaPremium">Nafta Premium *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" step="0.01" class="form-control" asp-for="PrecioNaftaPremium" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group mb-3">
+                        <label for="PrecioDiesel">Diesel *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" step="0.01" class="form-control" asp-for="PrecioDiesel" required />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-cogs me-2"></i>
+                Servicios Adicionales
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" asp-for="Lavado" />
+                <label class="form-check-label" for="Lavado">
+                    <i class="fas fa-car me-1"></i>
+                    Servicio de Lavado
+                </label>
+            </div>
+            @* <div class="form-check">
+                <input type="checkbox" class="form-check-input" asp-for="CambioAceite" />
+                <label class="form-check-label" for="CambioAceite">
+                    <i class="fas fa-wrench me-1"></i>
+                    Cambio de Aceite
+                </label>
+            </div> *@
+        </div>
+    </div>
+
+    <div class="form-group mt-4">
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="fas fa-save me-2"></i>
+            Guardar Cambios
+        </button>
+        <a asp-action="Administrar" class="btn btn-secondary btn-lg">
+            <i class="fas fa-times me-2"></i>
+            Cancelar
+        </a>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Validación de horarios
+            const horaApertura = document.getElementById('HoraApertura');
+            const horaCierre = document.getElementById('HoraCierre');
+            
+            function validarHorarios() {
+                if (horaApertura.value && horaCierre.value) {
+                    if (horaApertura.value >= horaCierre.value) {
+                        horaCierre.setCustomValidity('La hora de cierre debe ser posterior a la hora de apertura');
+                    } else {
+                        horaCierre.setCustomValidity('');
+                    }
+                }
+            }
+            
+            horaApertura.addEventListener('change', validarHorarios);
+            horaCierre.addEventListener('change', validarHorarios);
+            
+            // Validación de precios
+            const precios = document.querySelectorAll('input[type="number"][step="0.01"]');
+            precios.forEach(function(precio) {
+                precio.addEventListener('input', function() {
+                    if (this.value < 0) {
+                        this.setCustomValidity('El precio no puede ser negativo');
+                    } else if (this.value > 1000) {
+                        this.setCustomValidity('El precio parece demasiado alto. Verificar.');
+                    } else {
+                        this.setCustomValidity('');
+                    }
+                });
+            });
+        });
+    </script>
+}

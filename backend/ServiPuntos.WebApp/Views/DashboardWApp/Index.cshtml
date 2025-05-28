@@ -38,7 +38,7 @@
             </div>
         }
 
-        @if (User.IsInRole("AdminPlataforma") || User.IsInRole("AdminTenant"))
+        @if (User.IsInRole("AdminPlataforma"))
         {
             <div class="col-md-4 mb-4">
                 <div class="card bg-white text-dark h-100">
@@ -54,7 +54,7 @@
             </div>
         }
 
-        @if (User.IsInRole("AdminPlataforma") || User.IsInRole("AdminUbicacion"))
+        @if (User.IsInRole("AdminPlataforma"))
         {
             <div class="col-md-4 mb-4">
                 <div class="card bg-danger h-100">
@@ -76,16 +76,6 @@
     @if (User.IsInRole("AdminPlataforma"))
     {
          <div class="row">
-        @*    <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title">Usuarios por Rol</h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="usuariosPorRol" width="400" height="300"></canvas>
-                    </div>
-                </div>
-            </div> *@
             
             <div class="row">
     <!-- Gráfica a la izquierda -->
@@ -189,105 +179,81 @@
 }
 </div>
     }
-    //Usuarios x rol
-    @* const ctxRol = document.getElementById('usuariosPorRol').getContext('2d');
-    const chartRol = new Chart(ctxRol, {
-        type: 'bar',
-        data: {
-            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(roles)),
-            datasets: [{
-                label: 'Cantidad de usuarios',
-                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(cantidades)),
-                backgroundColor: [
-                    'rgba(54, 162, 235, 0.6)',   // AdminTenant
-                    'rgba(255, 99, 132, 0.6)',   // AdminPlataforma
-                    'rgba(255, 206, 86, 0.6)',   // AdminUbicacion
-                    'rgba(75, 192, 192, 0.6)'    // UsuarioFinal
-                ],
-                borderColor: 'rgba(255, 255, 255, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                },
-                title: {
-                    display: true,
-                    text: 'Distribución de usuarios por rol'
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
-                }
-            }
-        }
-    }); *@
 
     @if (User.IsInRole("AdminTenant"))
-        {  
-            var miTenant = "no se encontro el tenant en la cookie";
-            @if (ViewBag.MiTenant != null)
-            {
-                miTenant = ViewBag.MiTenant.Nombre;
-            }
+    {  
+        var ubicaciones = ViewBag.Ubicaciones as IEnumerable<ServiPuntos.Core.Entities.Ubicacion>;
 
-    @* var ubicaciones = ViewBag.Ubicaciones; *@
-
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Tenant actual</h5>
-                </div>
-                <div class="card-body">
-                    <p class="fs-5 mb-0">@miTenant</p>
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            Ubicaciones de tu Tenant
+                        </h5>
+                        <a href="@Url.Action("Administrar", "UbicacionWApp")" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-cog me-1"></i>
+                            Administrar
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        @if (ubicaciones != null && ubicaciones.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>
+                                                <i class="fas fa-store me-1"></i>
+                                                Nombre
+                                            </th>
+                                            <th>
+                                                <i class="fas fa-map-pin me-1"></i>
+                                                Dirección
+                                            </th>
+                                            <th>
+                                                <i class="fas fa-city me-1"></i>
+                                                Ciudad
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var u in ubicaciones)
+                                        {
+                                            <tr>
+                                                <td class="fw-bold">@u.Nombre</td>
+                                                <td>@u.Direccion</td>
+                                                <td>@u.Ciudad</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Total: @ubicaciones.Count() ubicaciones
+                                </small>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4">
+                                <i class="fas fa-map-marker-alt text-muted mb-3" style="font-size: 3rem;"></i>
+                                <p class="text-muted mb-3">No se encontraron ubicaciones asociadas a este tenant.</p>
+                                <a href="@Url.Action("Crear", "UbicacionWApp")" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>
+                                    Agregar Primera Ubicación
+                                </a>
+                            </div>
+                        }
+                    </div>
                 </div>
             </div>
         </div>
+    }
 
-        @* <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Ubicaciones del Tenant</h5>
-                </div>
-                <div class="card-body">
-                    @if (ubicaciones != null && ubicaciones.Count > 0)
-                    {
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Nombre</th>
-                                    <th>Dirección</th> 
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var u in ubicaciones)
-                                {
-                                    <tr>
-                                        <td>@u.Nombre</td>
-                                        <td>@u.Direccion</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    }
-                    else
-                    {
-                        <p class="text-muted">No se encontraron ubicaciones asociadas.</p>
-                    }
-                </div>
-            </div>
-        </div> *@
-    </div>
-}
     <script>
     const esAdminPlataforma = @User.IsInRole("AdminPlataforma").ToString().ToLower();
     if(esAdminPlataforma){
