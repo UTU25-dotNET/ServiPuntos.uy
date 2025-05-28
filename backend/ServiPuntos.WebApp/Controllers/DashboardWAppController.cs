@@ -12,11 +12,13 @@ namespace ServiPuntos.Controllers
     {
         private readonly IUsuarioService _iUsuarioService;
         private readonly ITenantService _iTenantService;
+        private readonly IUbicacionService _iUbicacionService;
 
-        public DashboardWAppController(IUsuarioService usuarioService, ITenantService iTenantService)
+        public DashboardWAppController(IUsuarioService usuarioService, ITenantService iTenantService, IUbicacionService ubicacionService)
         {
             _iUsuarioService = usuarioService;
             _iTenantService = iTenantService;
+            _iUbicacionService = ubicacionService;
         }
 
         public async Task<IActionResult> Index()
@@ -26,14 +28,40 @@ namespace ServiPuntos.Controllers
                 if (User.IsInRole("AdminTenant"))
                 {
                     var tenantIdDeCookie = User.Claims.FirstOrDefault(c => c.Type == "tenantId")?.Value;
-                    Guid tenantId = Guid.Parse(tenantIdDeCookie);
-                    var tenantActual = await _iTenantService.GetByIdAsync(tenantId); // Método ejemplo, ajustalo a tu lógica
-                    //var ubicaciones = await _iTenantService.GetUbicacionesPorTenantIdAsync(tenantActual.Id);
+                    
+                    if (!string.IsNullOrEmpty(tenantIdDeCookie) && Guid.TryParse(tenantIdDeCookie, out Guid tenantId))
+                    {
+                        var tenantActual = await _iTenantService.GetByIdAsync(tenantId);
+                        
+                        if (tenantActual != null)
+                        {
+                            // Obtener ubicaciones del tenant actual de forma segura
+                            try
+                            {
+                                var ubicaciones = await _iUbicacionService.GetAllUbicacionesAsync(tenantActual.Id);
+                                ViewBag.Ubicaciones = ubicaciones;
+                            }
+                            catch (Exception ex)
+                            {
+                                // Si hay error con ubicaciones, continuar sin ellas
+                                Console.WriteLine($"Error al obtener ubicaciones: {ex.Message}");
+                                ViewBag.Ubicaciones = new List<ServiPuntos.Core.Entities.Ubicacion>();
+                            }
 
-                    ViewBag.MiTenant = tenantActual;
-                    //ViewBag.Ubicaciones = ubicaciones;
+                            ViewBag.MiTenant = tenantActual;
+                        }
+                        else
+                        {
+                            ViewBag.MiTenant = null;
+                            ViewBag.Ubicaciones = new List<ServiPuntos.Core.Entities.Ubicacion>();
+                        }
+                    }
+                    else
+                    {
+                        ViewBag.MiTenant = null;
+                        ViewBag.Ubicaciones = new List<ServiPuntos.Core.Entities.Ubicacion>();
+                    }
                 }
-
 
                 if (User.IsInRole("AdminPlataforma")|| User.IsInRole("AdminTenant"))
                 { //esto solo los carga si sos admin mi pc esta sufriendo y el chat dice q mejora el rendimiento

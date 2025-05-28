@@ -6,15 +6,22 @@ using ServiPuntos.Infrastructure.Data;
 using ServiPuntos.Infrastructure.Middleware;
 using ServiPuntos.Infrastructure.MultiTenancy;
 using ServiPuntos.Infrastructure.Repositories;
+using ServiPuntos.Application.Services; // Ensure this is the correct namespace for UbicacionService
 
 var builder = WebApplication.CreateBuilder(args);
 
 // -------------------------
-// Configuración de servicios
+// Configuraciï¿½n de servicios
 // -------------------------
 
 // MVC (Controllers + Views)
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add<ServiPuntos.WebApp.Filters.TenantNavbarFilter>();
+});
+
+// TambiÃ©n registrar el filtro como servicio
+builder.Services.AddScoped<ServiPuntos.WebApp.Filters.TenantNavbarFilter>();
 
 // Contextos de base de datos
 builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
@@ -27,8 +34,14 @@ builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 
+builder.Services.AddScoped<ServiPuntos.WebApp.Filters.TenantNavbarFilter>();
+
+
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<ITenantRepository, TenantRepository>();
+
+builder.Services.AddScoped<IUbicacionService, UbicacionService>();  
+builder.Services.AddScoped<IUbicacionRepository, UbicacionRepository>();
 
 // Multi-tenancy
 builder.Services.AddHttpContextAccessor();
@@ -36,13 +49,13 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITenantResolver, TenantResolver>();
 builder.Services.AddScoped<ITenantContext, TenantContext>();
 
-// Autenticación y Autorización con Cookies
+// Autenticaciï¿½n y Autorizaciï¿½n con Cookies
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
         options.LoginPath = "/AccountWApp/Login";   // Ruta del login
         options.AccessDeniedPath = "/AccountWApp/AccessDenied";   // Ruta de acceso denegado
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // Tiempo de expiración
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // Tiempo de expiraciï¿½n
     });
 
 builder.Services.AddAuthorization(options =>
@@ -52,16 +65,16 @@ builder.Services.AddAuthorization(options =>
 
 
 // -------------------------
-// Construcción de la app
+// Construcciï¿½n de la app
 // -------------------------
 
 var app = builder.Build();
 
 // -------------------------
-// Configuración de middlewares
+// Configuraciï¿½n de middlewares
 // -------------------------
 
-// Configuración de Swagger (opcional, para desarrollo)
+// Configuraciï¿½n de Swagger (opcional, para desarrollo)
 /*if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -71,25 +84,25 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-// Asegurarse de que el enrutamiento esté configurado antes de autenticación
+// Asegurarse de que el enrutamiento estï¿½ configurado antes de autenticaciï¿½n
 app.UseRouting();
 
-// Middleware de Autenticación y Autorización
+// Middleware de Autenticaciï¿½n y Autorizaciï¿½n
 
-// 1. Autenticación
-app.UseAuthentication();// Asegúrate de que se ejecute antes de TenantMiddleware
+// 1. Autenticaciï¿½n
+app.UseAuthentication();// Asegï¿½rate de que se ejecute antes de TenantMiddleware
 
-// 2. TenantMiddleware (después de autenticación, pero ANTES de MapControllerRoute)
+// 2. TenantMiddleware (despuï¿½s de autenticaciï¿½n, pero ANTES de MapControllerRoute)
 app.UseMiddleware<TenantMiddleware>();
 
-// 3. Autorización
+// 3. Autorizaciï¿½n
 app.UseAuthorization();
 
 // -------------------------
 // Ruteo
 // -------------------------
 
-// Configuración de la ruta por defecto
+// Configuraciï¿½n de la ruta por defecto
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

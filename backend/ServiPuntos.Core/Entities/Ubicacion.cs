@@ -13,16 +13,16 @@ namespace ServiPuntos.Core.Entities
         public string? Direccion { get; set; }
         public string? Ciudad { get; set; }
         public string? Departamento { get; set; }
-        public string? Telefono { get; set; }
+        //public string? Telefono { get; set; }
 
-        public DateTime FechaCreacion { get; set; }
-        public DateTime FechaModificacion { get; set; }
+        //public DateTime FechaCreacion { get; set; }
+        //public DateTime FechaModificacion { get; set; }
 
         public TimeSpan HoraApertura { get; set; }
         public TimeSpan HoraCierre { get; set; }
 
         public bool Lavado { get; set; }
-        public bool CambioAceite { get; set; }
+        //public bool CambioAceite { get; set; }
 
         public decimal PrecioNaftaSuper { get; set; }
         public decimal PrecioNaftaPremium { get; set; }
@@ -40,7 +40,7 @@ namespace ServiPuntos.Core.Entities
             Direccion = direccion;
             Ciudad = ciudad;
             Departamento = departamento;
-            Telefono = telefono;
+            //Telefono = telefono;
             HoraApertura = horaApertura;
             HoraCierre = horaCierre;
         }
