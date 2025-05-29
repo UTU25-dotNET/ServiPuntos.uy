@@ -232,7 +232,7 @@ public class AuthController : ControllerBase
             HttpContext.Session.SetString("GoogleUserInfo", userInfoContent);
             HttpContext.Session.SetString("GoogleAccessToken", accessToken ?? string.Empty);
 
-
+            claims.Add(new Claim("google_access_token", accessToken ?? string.Empty));
             // No eliminamos el estado porque volveremos a este endpoint
             var tempToken = _jwtTokenService.GenerateJwtToken(claims);
             return Redirect($"http://localhost:3000/auth-callback?token={Uri.EscapeDataString(tempToken)}&state={Uri.EscapeDataString(state)}&returnUrl=/auth-callback");
@@ -368,18 +368,22 @@ private bool VerifyPassword(string providedPassword, string storedPassword)
     [HttpGet("logout")]
     public async Task<IActionResult> Logout()
     {
+        Console.WriteLine("[Logout] Iniciando proceso de cierre de sesión...");
         try
         {
             // 1. Primero intentamos obtener el token desde el header de autorización
             string? jwtToken = null;
             if (HttpContext.Request.Headers.TryGetValue("Authorization", out var authHeader))
             {
+                Console.WriteLine("[Logout] Intentando obtener token desde el header de autorización...");
                 var authHeaderValue = authHeader.FirstOrDefault();
+                Console.WriteLine($"[Logout] Header de autorización: {authHeaderValue}");
                 if (!string.IsNullOrEmpty(authHeaderValue) && authHeaderValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                 {
                     jwtToken = authHeaderValue.Substring("Bearer ".Length).Trim();
                     Console.WriteLine($"[Logout] Token JWT recibido: {jwtToken.Substring(0, Math.Min(20, jwtToken.Length))}...");
                 }
+                Console.WriteLine("[Logout] Token obtenido del header de autorización");
             }
 
             // 2. Si tenemos un token JWT, intentamos obtener información del usuario
