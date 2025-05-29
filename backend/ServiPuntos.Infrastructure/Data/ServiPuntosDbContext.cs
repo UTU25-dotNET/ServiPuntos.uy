@@ -28,6 +28,10 @@ namespace ServiPuntos.Infrastructure.Data
         public DbSet<Canje> Canjes { get; set; }
         public DbSet<SaldoPuntos> SaldosPuntos { get; set; }
 
+        public DbSet<ConfigPlataforma> ConfigPlataformas { get; set; }
+
+
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

@@ -20,6 +20,8 @@ namespace ServiPuntos.Core.Entities
 
         public int Puntos { get; set; }
         //public bool Verificado { get; set; }
+        public bool Bloqueado { get; set; } = false; //si esta bloqueado no puede hacer login, se desbloquea automaticamente al pasar un tiempo determinado
+        public int IntentosFallidos { get; set; } = 0; //para el login, si llega a 3 se bloquea la cuenta por un tiempo
 
         public DateTime FechaNacimiento { get; set; }
         public DateTime FechaCreacion { get; set; }
