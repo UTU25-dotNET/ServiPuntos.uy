@@ -1,3 +1,54 @@
+<div class="row">
+
+        @if (User.IsInRole("AdminPlataforma"))
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card bg-primary h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-white">Usuarios</h5>
+                    </div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <button class="btn btn-sm w-100 text-white" onclick="window.location.href='UsuarioWApp/Index'">
+                            Administracion de usuarios <i class="fas fa-angle-right ms-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (User.IsInRole("AdminPlataforma") || User.IsInRole("AdminTenant"))
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card bg-white text-dark h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Tenants</h5>
+                    </div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <button class="btn text-dark btn-sm w-100" onclick="window.location.href='TenantWApp/Index'">
+                            Administracion de tenants <i class="fas fa-angle-right ms-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (User.IsInRole("AdminPlataforma") || User.IsInRole("AdminUbicacion"))
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card bg-danger h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-white">Ubicaciones</h5>
+                    </div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <button class="btn btn-sm w-100 text-white" onclick="window.location.href='UbicacionWApp/Index'">
+                            Administracion de ubicaciones <i class="fas fa-angle-right ms-2"></i>
+                        </button>
+                        <small class="text-muted mt-1">falta pagina de ubicaciones</small>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
 <!-- Esta es la sección completa para AdminTenant que reemplaza la actual en Index.cshtml -->
 
 @if (User.IsInRole("AdminTenant"))
