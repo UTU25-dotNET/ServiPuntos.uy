@@ -1,6 +1,7 @@
 using System;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using ServiPuntos.Application.Services;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Data;
 using ServiPuntos.Infrastructure.Middleware;
@@ -29,6 +30,18 @@ builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<ITenantRepository, TenantRepository>();
+
+builder.Services.AddScoped<IProductoCanjeableService, ProductoCanjeableService>();
+builder.Services.AddScoped<IProductoCanjeableRepository, ProductoCanjeableRepository>();
+
+builder.Services.AddScoped<IProductoUbicacionService, ProductoUbicacionService>();
+builder.Services.AddScoped<IProductoUbicacionRepository, ProductoUbicacionRepository>();
+
+builder.Services.AddScoped<IUbicacionService, UbicacionService>();
+builder.Services.AddScoped<IUbicacionRepository, UbicacionRepository>();
+
+builder.Services.AddScoped<IConfigPlataformaRepository, ConfigPlataformaRepository>();
+builder.Services.AddScoped<IConfigPlataformaService, ConfigPlataformaService>();
 
 // Multi-tenancy
 builder.Services.AddHttpContextAccessor();
