@@ -26,7 +26,7 @@ namespace ServiPuntos.API.Controllers
             {
                 var jsonData = System.IO.File.ReadAllText(filePath);
                 _userAgeData = JsonSerializer.Deserialize<List<UserAgeData>>(jsonData,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<UserAgeData>();
             }
             else
             {
@@ -104,7 +104,7 @@ namespace ServiPuntos.API.Controllers
         // Clase para deserializar los datos del JSON
         public class UserAgeData
         {
-            public string Cedula { get; set; }
+            public required string Cedula { get; set; }
             public int Edad { get; set; }
         }
     }

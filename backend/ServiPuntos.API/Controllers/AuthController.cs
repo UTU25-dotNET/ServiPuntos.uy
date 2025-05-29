@@ -113,21 +113,14 @@ public class AuthController : ControllerBase
         Console.WriteLine($"[GoogleCallback] Recibido - Estado: {state}");
         Console.WriteLine($"[GoogleCallback] Código: {(code != null ? code.Substring(0, Math.Min(10, code.Length)) + "..." : "null")}");
         Console.WriteLine($"[GoogleCallback] Error: {error}");
-        Console.WriteLine($"[GoogleCallback] Cédula: {cedula}");
 
         // Variable para almacenar el estado guardado
-        string? savedState = null;
+        string? savedState;
 
         // Verificar si estamos en el flujo de verificación de cédula
-        bool isReturningFromVerification = !string.IsNullOrEmpty(cedula);
-        Console.WriteLine($"[GoogleCallback] ¿Retornando desde verificación de cédula? {isReturningFromVerification}");
         // Si viene de verificación pero no tiene código, no lo necesitamos
-        if (isReturningFromVerification && string.IsNullOrEmpty(code))
-        {
-            Console.WriteLine("[GoogleCallback] Retornando de verificación sin código, esto es esperado");
-            code = "not_required_for_verification"; // Valor dummy para evitar validaciones
-        }
-        else if (string.IsNullOrEmpty(code))
+
+        if (string.IsNullOrEmpty(code))
         {
             // Si no viene de verificación y no tiene código, es un error
             return BadRequest(new { message = "El parámetro 'code' es requerido para la autenticación inicial" });
@@ -148,226 +141,111 @@ public class AuthController : ControllerBase
             }
         }
 
-        // Si no estamos retornando desde verificación, verificamos el estado normalmente
-        if (!isReturningFromVerification)
+        // Verificar el estado
+        if (string.IsNullOrEmpty(savedState) || state != savedState)
         {
-            // Verificar el estado solo si es la llamada inicial de OAuth
-            if (string.IsNullOrEmpty(savedState) || state != savedState)
+            return Content($@"
+        <html>
+            <body>
+                <h1>Error de autenticación</h1>
+                <p>El estado no coincide o no está presente.</p>
+                <p>Estado recibido: {state}</p>
+                <p>Estado guardado: {savedState ?? "No encontrado"}</p>
+            </body>
+        </html>", "text/html");
+        }
+
+        // Flujo de autenticación con Google
+        try
+        {
+            // Intercambiar el código por tokens
+            var clientId = _configuration["Authentication:Google:ClientId"];
+            var clientSecret = _configuration["Authentication:Google:ClientSecret"];
+            if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
             {
-                return Content($@"
-            <html>
-                <body>
-                    <h1>Error de autenticación</h1>
-                    <p>El estado no coincide o no está presente.</p>
-                    <p>Estado recibido: {state}</p>
-                    <p>Estado guardado: {savedState ?? "No encontrado"}</p>
-                </body>
-            </html>", "text/html");
+                throw new InvalidOperationException("Google ClientId or ClientSecret is not configured.");
+            }
+            var redirectUri = "https://localhost:5019/api/auth/google-callback" +
+                "";
+            var code_verifier = HttpContext.Session.GetString("CodeVerifier");
+            Console.WriteLine($"[GoogleCallback] Code Verifier recuperado de sesión: {code_verifier}");
+            if (string.IsNullOrEmpty(code_verifier))
+            {
+                Console.WriteLine("[GoogleCallback] Error: No se encontró el code_verifier en la sesión");
+                return Content("<h1>Error de autenticación</h1><p>No se pudo recuperar el verificador de código PKCE.</p>", "text/html");
             }
 
-            // Flujo normal de autenticación con Google
-            try
+            using var httpClient = new HttpClient();
+            var tokenRequest = new FormUrlEncodedContent(new Dictionary<string, string>
             {
-                // Intercambiar el código por tokens
-                var clientId = _configuration["Authentication:Google:ClientId"];
-                var clientSecret = _configuration["Authentication:Google:ClientSecret"];
-                if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
-                {
-                    throw new InvalidOperationException("Google ClientId or ClientSecret is not configured.");
-                }
-                var redirectUri = "https://localhost:5019/api/auth/google-callback" +
-                    "";
-                var code_verifier = HttpContext.Session.GetString("CodeVerifier");
-                Console.WriteLine($"[GoogleCallback] Code Verifier recuperado de sesión: {code_verifier}");
-                if (string.IsNullOrEmpty(code_verifier))
-                {
-                    Console.WriteLine("[GoogleCallback] Error: No se encontró el code_verifier en la sesión");
-                    return Content("<h1>Error de autenticación</h1><p>No se pudo recuperar el verificador de código PKCE.</p>", "text/html");
-                }
+                ["code"] = code,
+                ["client_id"] = clientId,
+                ["client_secret"] = clientSecret, // Ya no mandamos el client_secret porque usamos PKCE
+                ["redirect_uri"] = redirectUri,
+                ["code_verifier"] = code_verifier,
+                ["grant_type"] = "authorization_code"
+            });
 
-                using var httpClient = new HttpClient();
-                var tokenRequest = new FormUrlEncodedContent(new Dictionary<string, string>
-                {
-                    ["code"] = code,
-                    ["client_id"] = clientId,
-                    ["client_secret"] = clientSecret, // Ya no mandamos el client_secret porque usamos PKCE
-                    ["redirect_uri"] = redirectUri,
-                    ["code_verifier"] = code_verifier,
-                    ["grant_type"] = "authorization_code"
-                });
+            var tokenResponse = await httpClient.PostAsync("https://oauth2.googleapis.com/token", tokenRequest);
+            var responseContent = await tokenResponse.Content.ReadAsStringAsync();
 
-                var tokenResponse = await httpClient.PostAsync("https://oauth2.googleapis.com/token", tokenRequest);
-                var responseContent = await tokenResponse.Content.ReadAsStringAsync();
-
-                if (!tokenResponse.IsSuccessStatusCode)
-                {
-                    HttpContext.Session.Remove("CodeVerifier");
-                    Console.WriteLine($"[GoogleCallback] Error en token: {responseContent}");
-                    return Content($"<h1>Error al obtener token</h1><pre>{responseContent}</pre>", "text/html");
-                }
-
-                // Limpiar el code_verifier de la sesión
+            if (!tokenResponse.IsSuccessStatusCode)
+            {
                 HttpContext.Session.Remove("CodeVerifier");
-
-                // Extraer el access_token y el id_token
-                var responseJson = System.Text.Json.JsonDocument.Parse(responseContent);
-                var accessToken = responseJson.RootElement.GetProperty("access_token").GetString();
-
-                // Obtener información del usuario
-                var userInfoRequest = new HttpRequestMessage(HttpMethod.Get, "https://www.googleapis.com/oauth2/v3/userinfo");
-                userInfoRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
-                var userInfoResponse = await httpClient.SendAsync(userInfoRequest);
-                var userInfoContent = await userInfoResponse.Content.ReadAsStringAsync();
-
-                if (!userInfoResponse.IsSuccessStatusCode)
-                {
-                    return Content($"<h1>Error al obtener datos del usuario</h1><pre>{userInfoContent}</pre>", "text/html");
-                }
-
-                // Procesar la información del usuario
-                var userInfoJson = System.Text.Json.JsonDocument.Parse(userInfoContent);
-                var claims = new List<Claim>();
-
-                // Extraer claims comunes
-                if (userInfoJson.RootElement.TryGetProperty("sub", out var subElement))
-                    claims.Add(new Claim("sub", subElement.GetString() ?? string.Empty));
-
-                if (userInfoJson.RootElement.TryGetProperty("email", out var emailElement))
-                    claims.Add(new Claim("email", emailElement.GetString() ?? string.Empty));
-
-                if (userInfoJson.RootElement.TryGetProperty("name", out var nameElement))
-                    claims.Add(new Claim("name", nameElement.GetString() ?? string.Empty));
-
-                // Guardar la información importante en la sesión para usarla cuando el usuario regrese
-                HttpContext.Session.SetString("GoogleUserInfo", userInfoContent);
-                HttpContext.Session.SetString("GoogleAccessToken", accessToken ?? string.Empty);
-
-                Console.WriteLine("[GoogleCallback] No tiene cédula, redirigiendo al formulario de verificación");
-
-                // No eliminamos el estado porque volveremos a este endpoint
-                var tempToken = _jwtTokenService.GenerateJwtToken(claims);
-                return Redirect($"http://localhost:3000/verify-age?token={Uri.EscapeDataString(tempToken)}&state={Uri.EscapeDataString(state)}&returnUrl=/auth-callback");
+                Console.WriteLine($"[GoogleCallback] Error en token: {responseContent}");
+                return Content($"<h1>Error al obtener token</h1><pre>{responseContent}</pre>", "text/html");
             }
-            catch (Exception ex)
+
+            // Limpiar el code_verifier de la sesión
+            HttpContext.Session.Remove("CodeVerifier");
+
+            // Extraer el access_token y el id_token
+            var responseJson = System.Text.Json.JsonDocument.Parse(responseContent);
+            var accessToken = responseJson.RootElement.GetProperty("access_token").GetString();
+
+            // Obtener información del usuario
+            var userInfoRequest = new HttpRequestMessage(HttpMethod.Get, "https://www.googleapis.com/oauth2/v3/userinfo");
+            userInfoRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+            var userInfoResponse = await httpClient.SendAsync(userInfoRequest);
+            var userInfoContent = await userInfoResponse.Content.ReadAsStringAsync();
+
+            if (!userInfoResponse.IsSuccessStatusCode)
             {
-                Console.WriteLine($"[GoogleCallback] Error: {ex.Message}");
-                Console.WriteLine($"[GoogleCallback] Stack: {ex.StackTrace}");
-                return Content($"<h1>Error en el proceso</h1><p>{ex.Message}</p><pre>{ex.StackTrace}</pre>", "text/html");
+                return Content($"<h1>Error al obtener datos del usuario</h1><pre>{userInfoContent}</pre>", "text/html");
             }
+
+            // Procesar la información del usuario
+            var userInfoJson = System.Text.Json.JsonDocument.Parse(userInfoContent);
+            var claims = new List<Claim>();
+
+            // Extraer claims comunes
+            if (userInfoJson.RootElement.TryGetProperty("sub", out var subElement))
+                claims.Add(new Claim("sub", subElement.GetString() ?? string.Empty));
+
+            if (userInfoJson.RootElement.TryGetProperty("email", out var emailElement))
+                claims.Add(new Claim("email", emailElement.GetString() ?? string.Empty));
+
+            if (userInfoJson.RootElement.TryGetProperty("name", out var nameElement))
+                claims.Add(new Claim("name", nameElement.GetString() ?? string.Empty));
+
+            // Guardar la información importante en la sesión para usarla cuando el usuario regrese
+            HttpContext.Session.SetString("GoogleUserInfo", userInfoContent);
+            HttpContext.Session.SetString("GoogleAccessToken", accessToken ?? string.Empty);
+
+
+            // No eliminamos el estado porque volveremos a este endpoint
+            var tempToken = _jwtTokenService.GenerateJwtToken(claims);
+            return Redirect($"http://localhost:3000/auth-callback?token={Uri.EscapeDataString(tempToken)}&state={Uri.EscapeDataString(state)}&returnUrl=/auth-callback");
+            //return Redirect($"http://localhost:3000/verify-age?token={Uri.EscapeDataString(tempToken)}&state={Uri.EscapeDataString(state)}&returnUrl=/auth-callback");
         }
-        else
+        catch (Exception ex)
         {
-            // Flujo cuando el usuario regresa con la cédula
-            Console.WriteLine($"[GoogleCallback] Retornando con cédula desde verificación");
-
-            // Recuperar información guardada en la sesión
-            var accessToken = HttpContext.Session.GetString("GoogleAccessToken");
-            var userInfoContent = HttpContext.Session.GetString("GoogleUserInfo");
-
-            if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(userInfoContent))
-            {
-                return Content($@"
-            <html>
-                <body>
-                    <h1>Error de sesión</h1>
-                    <p>No se pudo recuperar la información de autenticación.</p>
-                    <p>Por favor, inicie el proceso de autenticación nuevamente.</p>
-                </body>
-            </html>", "text/html");
-            }
-
-            try
-            {
-                // Procesar la información del usuario
-                var userInfoJson = System.Text.Json.JsonDocument.Parse(userInfoContent);
-                var claims = new List<Claim>();
-
-                // Extraer claims comunes
-                if (userInfoJson.RootElement.TryGetProperty("sub", out var subElement))
-                    claims.Add(new Claim("sub", subElement.GetString() ?? string.Empty));
-
-                if (userInfoJson.RootElement.TryGetProperty("email", out var emailElement))
-                    claims.Add(new Claim("email", emailElement.GetString() ?? string.Empty));
-
-                if (userInfoJson.RootElement.TryGetProperty("name", out var nameElement))
-                    claims.Add(new Claim("name", nameElement.GetString() ?? string.Empty));
-
-                // Si tenemos cédula, verificamos la edad
-                bool isAdult = false;
-                try
-                {
-                    // Verificación de edad
-                    var client = _httpClientFactory.CreateClient();
-                    var verifyResponse = await client.GetAsync($"https://localhost:5019/api/verify/age_verify?cedula={Uri.EscapeDataString(cedula ?? string.Empty)}");
-
-                    if (verifyResponse.IsSuccessStatusCode)
-                    {
-                        var verifyContent = await verifyResponse.Content.ReadAsStringAsync();
-                        var verifyResult = System.Text.Json.JsonSerializer.Deserialize<AgeVerificationResult>(
-                            verifyContent, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                        if (verifyResult != null)
-                        {
-                            isAdult = verifyResult.IsAllowed;
-                            claims.Add(new Claim("edad", verifyResult.Edad.ToString()));
-                            Console.WriteLine($"[GoogleCallback] Verificación de edad: {(isAdult ? "Mayor de edad" : "Menor de edad")}");
-                        }
-                        else
-                        {
-                            Console.WriteLine("[GoogleCallback] Error: El resultado de la verificación de edad es nulo.");
-                            isAdult = false;
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine($"[GoogleCallback] Error al verificar edad: {verifyResponse.StatusCode}");
-                        isAdult = false;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[GoogleCallback] Error al verificar edad: {ex.Message}");
-                    isAdult = false;
-                }
-
-                // Agregar claims adicionales
-                claims.Add(new Claim("is_adult", isAdult.ToString().ToLower()));
-                claims.Add(new Claim("cedula", cedula ?? string.Empty));
-                claims.Add(new Claim("google_access_token", accessToken));
-                claims.Add(new Claim("auth_provider", "google"));
-                claims.Add(new Claim("role", "user"));
-
-                // Limpiamos datos de sesión que ya no necesitamos
-                HttpContext.Session.Remove("GoogleOAuthState");
-                HttpContext.Session.Remove("GoogleUserInfo");
-                HttpContext.Session.Remove("GoogleAccessToken");
-
-                Console.WriteLine("[GoogleCallback] Proceso completado, se elimina el estado de la sesión");
-
-                // Generar token JWT
-                var token = _jwtTokenService.GenerateJwtToken(claims);
-
-                // Redireccionar al frontend con el token
-                Console.WriteLine($"[GoogleCallback] Token JWT generado exitosamente");
-                return Redirect($"http://localhost:3000/auth-callback?token={Uri.EscapeDataString(token)}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[GoogleCallback] Error: {ex.Message}");
-                Console.WriteLine($"[GoogleCallback] Stack: {ex.StackTrace}");
-                return Content($"<h1>Error en el proceso</h1><p>{ex.Message}</p><pre>{ex.StackTrace}</pre>", "text/html");
-            }
+            Console.WriteLine($"[GoogleCallback] Error: {ex.Message}");
+            Console.WriteLine($"[GoogleCallback] Stack: {ex.StackTrace}");
+            return Content($"<h1>Error en el proceso</h1><p>{ex.Message}</p><pre>{ex.StackTrace}</pre>", "text/html");
         }
     }
 
-
-
-    // Clase para deserializar el resultado de la verificación de edad
-    private class AgeVerificationResult
-    {
-        public bool IsAllowed { get; set; }
-        public int Edad { get; set; }
-    }
 
 
     /// <summary>
@@ -432,52 +310,7 @@ public class AuthController : ControllerBase
 
             // Si tenemos cédula, verificamos la edad
             bool isAdult = false;
-            try
-            {
-                //me traigo el usuario de la base de datos para poder cargar los claims
-                var usuarioFromDb = await _context.Usuarios
-                    .FirstOrDefaultAsync(u => u.Email == request.Email);
 
-                if (usuarioFromDb == null)
-                {
-                    Console.WriteLine("[SignIn] Error: usuarioFromDb es null.");
-                    return Unauthorized(new { message = "Email o contraseña incorrectos" });
-                }
-
-                // Verificación de edad
-                var client = _httpClientFactory.CreateClient();
-                var ciString = usuarioFromDb.Ci.ToString();
-                var verifyResponse = await client.GetAsync($"https://localhost:5019/api/verify/age_verify?cedula={Uri.EscapeDataString(ciString)}");
-
-                if (verifyResponse.IsSuccessStatusCode)
-                {
-                    var verifyContent = await verifyResponse.Content.ReadAsStringAsync();
-                    var verifyResult = System.Text.Json.JsonSerializer.Deserialize<AgeVerificationResult>(
-                        verifyContent, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                    if (verifyResult != null)
-                    {
-                        isAdult = verifyResult.IsAllowed;
-                        claims.Add(new Claim("edad", verifyResult.Edad.ToString()));
-                        Console.WriteLine($"[SignIn] Verificación de edad: {(isAdult ? "Mayor de edad" : "Menor de edad")}");
-                    }
-                    else
-                    {
-                        Console.WriteLine("[SignIn] Error: El resultado de la verificación de edad es nulo.");
-                        isAdult = false;
-                    }
-                }
-                else
-                {
-                    Console.WriteLine($"[SignIn] Error al verificar edad: {verifyResponse.StatusCode}");
-                    isAdult = false;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[SignIn] Error al verificar edad: {ex.Message}");
-                isAdult = false;
-            }
             // Autenticación exitosa, creamos claims para el JWT
             // var claims = new List<Claim>
             // {
