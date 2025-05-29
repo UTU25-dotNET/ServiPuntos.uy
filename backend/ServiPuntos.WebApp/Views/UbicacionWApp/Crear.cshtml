@@ -63,7 +63,7 @@
                 <div class="col-md-6">
                     <div class="form-group mb-3">
                         <label for="Nombre">Nombre *</label>
-                        <input type="text" class="form-control" name="Nombre" id="Nombre" required placeholder="Ej: Shell Montevideo Centro" />
+                        <input type="text" class="form-control" asp-for="Nombre" id="Nombre" required placeholder="Ej: Shell Montevideo Centro" />
                         <div class="form-text">Nombre identificativo de la ubicación</div>
                     </div>
                 </div>
@@ -78,7 +78,7 @@
 
             <div class="form-group mb-3">
                 <label for="Direccion">Dirección *</label>
-                <input type="text" class="form-control" name="Direccion" id="Direccion" required placeholder="Ej: Av. 18 de Julio 1234" />
+                <input type="text" class="form-control" asp-for="Direccion" id="Direccion" required placeholder="Ej: Av. 18 de Julio 1234" />
                 <div class="form-text">Dirección completa de la ubicación</div>
             </div>
 
@@ -86,13 +86,13 @@
                 <div class="col-md-6">
                     <div class="form-group mb-3">
                         <label for="Ciudad">Ciudad *</label>
-                        <input type="text" class="form-control" name="Ciudad" id="Ciudad" required placeholder="Ej: Montevideo" />
+                        <input type="text" class="form-control" asp-for="Ciudad" id="Ciudad" required placeholder="Ej: Montevideo" />
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group mb-3">
                         <label for="Departamento">Departamento *</label>
-                        <input type="text" class="form-control" name="Departamento" id="Departamento" required placeholder="Ej: Montevideo" />
+                        <input type="text" class="form-control" asp-for="Departamento" id="Departamento" required placeholder="Ej: Montevideo" />
                     </div>
                 </div>
             </div>
@@ -101,13 +101,13 @@
                 <div class="col-md-6">
                     <div class="form-group mb-3">
                         <label for="HoraApertura">Hora de Apertura *</label>
-                        @* <input type="time" class="form-control" name="HoraApertura" id="HoraApertura" required value="08:00" /> *@
+                        @* <input type="time" class="form-control" asp-for="HoraApertura" id="HoraApertura" required value="08:00" /> *@
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group mb-3">
                         <label for="HoraCierre">Hora de Cierre *</label>
-                        @* <input type="time" class="form-control" name="HoraCierre" id="HoraCierre" required value="20:00" /> *@
+                        @* <input type="time" class="form-control" asp-for="HoraCierre" id="HoraCierre" required value="20:00" /> *@
                     </div>
                 </div>
             </div>
@@ -134,7 +134,7 @@
                         <label for="PrecioNaftaSuper">Nafta Súper *</label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
-                            <input type="number" step="0.01" class="form-control" name="PrecioNaftaSuper" id="PrecioNaftaSuper" required placeholder="65.50" />
+                            <input type="number" step="0.01" class="form-control" asp-for="PrecioNaftaSuper" id="PrecioNaftaSuper" required placeholder="65.50" />
                         </div>
                     </div>
                 </div>
@@ -143,7 +143,7 @@
                         <label for="PrecioNaftaPremium">Nafta Premium *</label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
-                            <input type="number" step="0.01" class="form-control" name="PrecioNaftaPremium" id="PrecioNaftaPremium" required placeholder="70.80" />
+                            <input type="number" step="0.01" class="form-control" asp-for="PrecioNaftaPremium" id="PrecioNaftaPremium" required placeholder="70.80" />
                         </div>
                     </div>
                 </div>
@@ -152,7 +152,7 @@
                         <label for="PrecioDiesel">Diesel *</label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
-                            <input type="number" step="0.01" class="form-control" name="PrecioDiesel" id="PrecioDiesel" required placeholder="58.90" />
+                            <input type="number" step="0.01" class="form-control" asp-for="PrecioDiesel" id="PrecioDiesel" required placeholder="58.90" />
                         </div>
                     </div>
                 </div>
@@ -184,7 +184,7 @@
                 </div>
                 @* <div class="col-md-6">
                     <div class="form-check">
-                        <input type="checkbox" class="form-check-input" name="CambioAceite" id="CambioAceite" />
+                        <input type="checkbox" class="form-check-input" asp-for="CambioAceite" id="CambioAceite" />
                         <label class="form-check-label" for="CambioAceite">
                             <i class="fas fa-wrench me-1 text-success"></i>
                             <strong>Cambio de Aceite</strong>
