@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServiPuntos.Core.Interfaces;
@@ -108,12 +109,20 @@ namespace ServiPuntos.API.Controllers
         /// <summary>
         /// Endpoint de prueba para verificar que el servicio NAFTA está operativo
         /// </summary>
-        [HttpGet("ping")]
-        [AllowAnonymous]
-        public ActionResult<string> Ping()
-        {
-            return Ok("Servicio NAFTA operativo");
-        }
+        /// 
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+[HttpGet("ping")]
+public ActionResult<string> Ping()
+{
+    // Debugging temporal
+    var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+    Console.WriteLine($"Authorization header: {authHeader ?? "NO ENCONTRADO"}");
+    
+    var user = User?.Identity?.Name;
+    Console.WriteLine($"Usuario autenticado: {user ?? "NO AUTENTICADO"}");
+    
+    return Ok("Servicio NAFTA operativo");
+}
 
 
     }
