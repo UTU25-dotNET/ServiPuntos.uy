@@ -34,35 +34,52 @@ const authService = {
 
       // Simulamos la lógica de login
       let token;
-      if (email === "admin@gmail.com" && password === "admin") {
-        token = tokenUtils.adminToken;
-      } else if (email === "user@gmail.com" && password === "user") {
-        token = tokenUtils.userToken;
-      } else {
+
+      const response = await axios.post(`${API_URL}signin`, {
+        email,
+        password
+      });
+      
+      token = response.data.token;
+
+      if (!token) {
         throw { message: "Credenciales inválidas" };
+      } else {
+        // Guardar el token en localStorage
+        console.log("Token recibido:", token);
+        localStorage.setItem('token', response.data.token);
       }
+      // localStorage.setItem("token", token);
+      return response.data;
+      // if (email === "admin@gmail.com" && password === "admin") {
+      //   token = tokenUtils.adminToken;
+      // } else if (email === "user@gmail.com" && password === "user") {
+      //   token = tokenUtils.userToken;
+      // } else {
+      //   throw { message: "Credenciales inválidas" };
+      // }
 
       // Guardar el token
-      localStorage.setItem("token", token);
+      
       // window.location.href = '/dashboard'; -> no es necesario xq esta en el componente del Login, handleSubmit.
-      return {
-        token,
-        user: tokenUtils.getUserFromToken(token),
-      };
+      // return {
+      //   token,
+      //   user: tokenUtils.getUserFromToken(token),
+      // };
 
-      // Descomentar cuando tengas el backend listo
-      /*
-            const response = await axios.post(`${API_URL}signin`, {
-              email,
-              password
-            });
+      // // Descomentar cuando tengas el backend listo
+      
+      //       const response = await axios.post(`${API_URL}signin`, {
+      //         email,
+      //         password
+      //       });
             
-            if (response.data.token) {
-              localStorage.setItem('token', response.data.token);
-            }
+      //       if (response.data.token) {
+      //         localStorage.setItem('token', response.data.token);
+      //       }
             
-            return response.data;
-            */
+      //       return response.data;
+            
     } catch (error) {
       throw (
         error.response?.data ||
@@ -90,6 +107,8 @@ const authService = {
 
           // Llamar al endpoint de logout del backend para revocar sesión de Google
           try {
+            console.log("Revocando sesión de Google...");
+            console.log("Token:", token);
             await axios.get(`${API_URL}logout`, {
               headers: {
                 Authorization: `Bearer ${token}`, // Enviamos el token para que el backend identifique la sesión
