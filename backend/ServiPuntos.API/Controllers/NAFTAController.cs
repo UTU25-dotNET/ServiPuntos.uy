@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServiPuntos.Core.Interfaces;
@@ -110,6 +112,7 @@ namespace ServiPuntos.API.Controllers
         /// </summary>
         [HttpGet("ping")]
         [AllowAnonymous]
+        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]  // Requiere token JWT válido
         public ActionResult<string> Ping()
         {
             return Ok("Servicio NAFTA operativo");

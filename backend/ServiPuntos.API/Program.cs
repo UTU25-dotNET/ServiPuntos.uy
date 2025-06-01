@@ -56,10 +56,40 @@ builder.Services.AddSession(options =>
 });
 
 // Configurar servicios de autenticaci�n
-builder.Services.AddAuthentication(options =>
+/*builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     // Ya no necesitas DefaultChallengeScheme para Google
+})
+.AddCookie(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.Path = "/";
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(120);
+    options.Cookie.IsEssential = true;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidAudience = jwtSettings["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(secretKey)
+    };
+});*/
+
+builder.Services.AddAuthentication(options =>
+{
+    // Cookies como esquema por defecto (para la parte WEB)
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    // No establecer DefaultChallengeScheme - se manejará por controlador específico
 })
 .AddCookie(options =>
 {
@@ -162,7 +192,7 @@ app.UseCors("AllowReactApp");
 app.UseSession(); 
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseMiddleware<TenantMiddleware>();
+//app.UseMiddleware<TenantMiddleware>();
 app.MapControllers();
 
 
