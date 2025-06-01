@@ -18,9 +18,7 @@ namespace ServiPuntos.API.Controllers
             _naftaService = naftaService;
         }
 
-        /// <summary>
-        /// Procesa una transacción enviada por el sistema POS
-        /// </summary>
+        // Procesa una transacción enviada por el sistema 
         [HttpPost("transaccion")]
         [AllowAnonymous] // Las terminales POS pueden necesitar acceso sin autenticación
         public async Task<ActionResult<RespuestaNAFTA>> ProcesarTransaccion([FromBody] MensajeNAFTA mensaje)
@@ -40,9 +38,7 @@ namespace ServiPuntos.API.Controllers
             return Ok(respuesta);
         }
 
-        /// <summary>
-        /// Verifica la existencia y validez de un usuario
-        /// </summary>
+        // Verifica la existencia y validez de un usuario
         [HttpPost("verificar-usuario")]
         [AllowAnonymous]
         public async Task<ActionResult<RespuestaNAFTA>> VerificarUsuario([FromBody] MensajeNAFTA mensaje)
@@ -62,9 +58,7 @@ namespace ServiPuntos.API.Controllers
             return Ok(respuesta);
         }
 
-        /// <summary>
-        /// Procesa un canje de puntos mediante código QR
-        /// </summary>
+        // Procesa un canje de puntos mediante código QR
         [HttpPost("canje")]
         [AllowAnonymous]
         public async Task<ActionResult<RespuestaNAFTA>> ProcesarCanje([FromBody] MensajeNAFTA mensaje)
@@ -84,9 +78,7 @@ namespace ServiPuntos.API.Controllers
             return Ok(respuesta);
         }
 
-        /// <summary>
-        /// Consulta el saldo de puntos de un usuario
-        /// </summary>
+        // Consulta el saldo de puntos de un usuario
         [HttpPost("consultar-saldo")]
         [AllowAnonymous]
         public async Task<ActionResult<RespuestaNAFTA>> ConsultarSaldo([FromBody] MensajeNAFTA mensaje)
@@ -106,24 +98,19 @@ namespace ServiPuntos.API.Controllers
             return Ok(respuesta);
         }
 
-        /// <summary>
-        /// Endpoint de prueba para verificar que el servicio NAFTA está operativo
-        /// </summary>
-        /// 
-[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-[HttpGet("ping")]
-public ActionResult<string> Ping()
-{
-    // Debugging temporal
-    var authHeader = Request.Headers["Authorization"].FirstOrDefault();
-    Console.WriteLine($"Authorization header: {authHeader ?? "NO ENCONTRADO"}");
+        // Endpoint de prueba para verificar que el servicio NAFTA está operativo
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet("ping")]
+        public ActionResult<string> Ping()
+        {
+            // Debugging temporal
+            var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+            Console.WriteLine($"Authorization header: {authHeader ?? "NO ENCONTRADO"}");
     
-    var user = User?.Identity?.Name;
-    Console.WriteLine($"Usuario autenticado: {user ?? "NO AUTENTICADO"}");
+            var user = User?.Identity?.Name;
+            Console.WriteLine($"Usuario autenticado: {user ?? "NO AUTENTICADO"}");
     
-    return Ok("Servicio NAFTA operativo");
-}
-
-
+            return Ok("Servicio NAFTA operativo");
+        }
     }
 }

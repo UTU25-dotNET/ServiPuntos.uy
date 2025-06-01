@@ -15,7 +15,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiPuntos.Application", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiPuntos.WebApp", "ServiPuntos.WebApp\ServiPuntos.WebApp.csproj", "{ADFAAB3E-3079-4336-8267-BA5A688D3369}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiPuntos.Mobile", "ServiPuntos.Mobile\ServiPuntos.Mobile.csproj", "{D1785E57-2A58-426C-A608-9D63A30ED4D9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiPuntos.Mobile", "../mobile/ServiPuntos.Mobile\ServiPuntos.Mobile.csproj", "{D1785E57-2A58-426C-A608-9D63A30ED4D9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
