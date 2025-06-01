@@ -33,8 +33,8 @@ namespace ServiPuntos.Infrastructure.Data
         public DbSet<ConfigPlataforma> ConfigPlataformas { get; set; }
 
         // SEEDER 
-        public DbSet<OperadorDisponible> OperadoresDisponibles { get; set; }
-        public DbSet<CampoDisponible> CamposDisponibles { get; set; }
+        //public DbSet<OperadorDisponible> OperadoresDisponibles { get; set; }
+        //public DbSet<CampoDisponible> CamposDisponibles { get; set; }
 
 
 

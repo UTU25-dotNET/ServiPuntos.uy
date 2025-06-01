@@ -43,7 +43,7 @@ namespace ServiPuntos.Application.Services
             _transaccionRepository = transaccionRepository;
         }
 
-        private Guid GetCurrentTenantId(Guid? tenantIdParam = null)
+        private Guid GetCurrentTenantId(Guid? tenantIdParam)
         {
             var id = tenantIdParam ?? _tenantContext?.TenantId ?? Guid.Empty;
             if (id == Guid.Empty)
@@ -52,6 +52,31 @@ namespace ServiPuntos.Application.Services
                 throw new InvalidOperationException("TenantId no pudo ser determinado.");
             }
             return id;
+        }
+        //GET AUDIENCIA
+        public async Task<Audiencia?> GetAudienciaAsync(Guid tenantId, Guid audienciaId)
+        {
+            tenantId = GetCurrentTenantId(tenantId); // Asegurar TenantId
+            _logger.LogInformation("Obteniendo definición de audiencia para TenantId: {TenantId}, AudienciaId: {AudienciaId}", tenantId, audienciaId);
+            if (audienciaId == Guid.Empty)
+            {
+                _logger.LogWarning("GetDefinicionAudienciaAsync: AudienciaId no puede ser Guid.Empty.");
+                return null;
+            }
+            var audiencia = await _audienciaRepository.GetByIdWithReglasAsync(audienciaId);
+            if (audiencia == null || audiencia.TenantId != tenantId)
+            {
+                _logger.LogWarning("GetDefinicionAudienciaAsync: Audiencia con Id {AudienciaId} no encontrada o no pertenece al TenantId {TenantId}.", audienciaId, tenantId);
+                return null;
+            }
+            return audiencia;
+        }
+        //GET ALL AUDIENCIAS
+        public async Task<IEnumerable<Audiencia>> GetAllAudienciasAsync(Guid tenantId, bool soloActivas = false)
+        {
+            tenantId = GetCurrentTenantId(tenantId); // Asegurar TenantId
+            _logger.LogInformation("Obteniendo todas las audiencias para TenantId: {TenantId}, SoloActivas: {SoloActivas}", tenantId, soloActivas);
+            return await _audienciaRepository.ListByTenantIdWithReglasAsync(tenantId, soloActivas, ordenarPorPrioridad: true);
         }
 
 
