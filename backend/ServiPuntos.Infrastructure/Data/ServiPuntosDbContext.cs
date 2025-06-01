@@ -18,6 +18,8 @@ namespace ServiPuntos.Infrastructure.Data
         }
 
         // DbSets
+        public DbSet<Audiencia> Audiencias { get; set; }
+        public DbSet<ReglaAudiencia> ReglasAudiencia { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<ProductoCanjeable> ProductosCanjeables { get; set; }
         public DbSet<ProductoUbicacion> ProductoUbicaciones { get; set; }
@@ -28,6 +30,10 @@ namespace ServiPuntos.Infrastructure.Data
         public DbSet<Canje> Canjes { get; set; }
 
         public DbSet<ConfigPlataforma> ConfigPlataformas { get; set; }
+
+        // SEEDER 
+        public DbSet<OperadorDisponible> OperadoresDisponibles { get; set; }
+        public DbSet<CampoDisponible> CamposDisponibles { get; set; }
 
 
 

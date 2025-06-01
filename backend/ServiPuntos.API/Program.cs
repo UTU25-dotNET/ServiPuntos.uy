@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
+using Npgsql.EntityFrameworkCore.PostgreSQL; 
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using ServiPuntos.Application.Services;
@@ -16,7 +17,6 @@ using ServiPuntos.Infrastructure.Repositories;
 using ServiPuntos.Infrastructure.Middleware;
 
 using System.Text;
-using ServiPuntos.API.Data;
 using System.Security.Claims;
 using System.Text;
 
@@ -165,23 +165,12 @@ builder.Services.AddCors(options =>
             .SetIsOriginAllowed(_ => true));
 });
 
-// Dentro de la configuración de servicios
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-{
-    // Si usas SQL Server:
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        sqlServerOptionsAction: sqlOptions =>
-        {
-            sqlOptions.EnableRetryOnFailure(
-                maxRetryCount: 5,
-                maxRetryDelay: TimeSpan.FromSeconds(30),
-                errorNumbersToAdd: null);
-        }
-    );
-});
 
-// Agregar el servicio JwtTokenService al contenedor de dependencias
+
+builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+
 builder.Services.AddScoped<JwtTokenService>();
 builder.Services.AddHttpClient();
 // Servicios Multi-Tenant
@@ -209,10 +198,6 @@ builder.Services.AddScoped<ICanjeService, CanjeService>();
 builder.Services.AddScoped<IPointsRuleEngine, PointsRuleEngine>();
 builder.Services.AddScoped<INAFTAService, NAFTAService>();
 builder.Services.AddScoped<IUbicacionService, UbicacionService>();
-
-// Configuramos la conexi�n a la base de datos
-builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Construye la aplicaci�n web
 var app = builder.Build();
