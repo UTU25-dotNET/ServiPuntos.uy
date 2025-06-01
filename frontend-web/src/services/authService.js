@@ -5,26 +5,67 @@ const API_URL = "https://localhost:5019/api/auth/";
 
 const authService = {
   // Registro de usuario
-  // Versión corregida para la función register en authService.js
-  register: async (name, email, password) => {
-    try {
-      // Para desarrollo, simulamos el registro
-      console.log("Registro simulado para:", { name, email, password });
-      return { success: true };
 
-      // Descomentar cuando tengas el backend listo
-      /*
-            const response = await axios.post(`${API_URL}registrar`, {
-              username: name,
-              email,
-              password
-            });
-            return response.data;
-            */
+  getTenants: async () => {
+    try {
+      console.log("Obteniendo lista de tenants...");
+      
+      const response = await axios.get(`${API_URL}tenants`);
+      console.log("Tenants obtenidos:", response.data);
+      
+      return response.data;
     } catch (err) {
-      throw err.response?.data || err || { message: "Error en el registro" };
+      console.error("Error al obtener tenants:", err);
+      
+      if (err.response) {
+        const errorMessage = err.response.data?.message || 
+                            err.response.data?.error || 
+                            `Error del servidor: ${err.response.status}`;
+        throw { message: errorMessage };
+      } else if (err.request) {
+        throw { message: "Error de conexión. Verifica tu conexión a internet." };
+      } else {
+        throw { message: err.message || "Error desconocido al obtener tenants" };
+      }
     }
   },
+
+
+register: async (name, email, password, ci, tenantId) => {
+  try {
+    console.log("Iniciando registro para:", { name, email, ci, tenantId });
+
+    const response = await axios.post(`${API_URL}register`, {
+      nombre: name,
+      email: email,
+      password: password,
+      ci: ci,
+      tenantId: tenantId // **Enviar como string (Guid)**
+    });
+
+    console.log("Respuesta del registro:", response.data);
+    
+    return {
+      success: true,
+      message: response.data.message || "Usuario registrado exitosamente",
+      data: response.data
+    };
+
+  } catch (err) {
+    console.error("Error en el registro:", err);
+    
+    if (err.response) {
+      const errorMessage = err.response.data?.message || 
+                           err.response.data?.error || 
+                          `Error del servidor: ${err.response.status}`;
+      throw { message: errorMessage };
+    } else if (err.request) {
+      throw { message : "Error de conexión. Verifica tu conexión a internet." };
+    } else {
+      throw { message: err.message || "Error desconocido en el registro" };
+    }
+  }
+},
 
   // Inicio de sesión
   login: async (email, password) => {
