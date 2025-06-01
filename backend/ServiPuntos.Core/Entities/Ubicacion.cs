@@ -23,10 +23,12 @@ namespace ServiPuntos.Core.Entities
 
         public bool Lavado { get; set; }
         public bool CambioAceite { get; set; }
+        public bool CambioNeumaticos { get; set; }
 
         public decimal PrecioNaftaSuper { get; set; }
         public decimal PrecioNaftaPremium { get; set; }
         public decimal PrecioDiesel { get; set; }
+
         public List<ProductoUbicacion> ProductosLocales { get; set; } = new List<ProductoUbicacion>();
         public List<Promocion> Promociones { get; set; } = new List<Promocion>();
 
