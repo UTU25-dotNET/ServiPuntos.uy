@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
+using ServiPuntos.Core.DTOs;
 
+/*
 namespace ServiPuntos.WebApp.Controllers
 {
     [ApiController]
@@ -114,4 +116,4 @@ namespace ServiPuntos.WebApp.Controllers
 
         private int TenantId => int.Parse(User.FindFirst("TenantId")?.Value ?? "0");
     }
-}
+}*/
