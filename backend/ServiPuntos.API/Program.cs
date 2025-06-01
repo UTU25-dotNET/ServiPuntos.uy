@@ -58,8 +58,11 @@ builder.Services.AddSession(options =>
 // Configurar servicios de autenticaci�n
 /*builder.Services.AddAuthentication(options =>
 {
-    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    // Ya no necesitas DefaultChallengeScheme para Google
+    // Para APIs REST, JWT Bearer debería ser el esquema por defecto
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    // Mantener Cookies para la parte web
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 })
 .AddCookie(options =>
 {
@@ -70,7 +73,7 @@ builder.Services.AddSession(options =>
     options.ExpireTimeSpan = TimeSpan.FromMinutes(120);
     options.Cookie.IsEssential = true;
 })
-.AddJwtBearer(options =>
+.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -80,7 +83,43 @@ builder.Services.AddSession(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtSettings["Issuer"],
         ValidAudience = jwtSettings["Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(secretKey)
+        IssuerSigningKey = new SymmetricSecurityKey(secretKey),
+        ClockSkew = TimeSpan.Zero
+    };
+    
+    // Configuración de eventos para debugging detallado
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            Console.WriteLine($"Token recibido: {(!string.IsNullOrEmpty(token) ? "SÍ" : "NO")}");
+            if (!string.IsNullOrEmpty(token))
+            {
+                Console.WriteLine($"Primeros 20 caracteres: {token.Substring(0, Math.Min(20, token.Length))}...");
+            }
+            return Task.CompletedTask;
+        },
+        OnAuthenticationFailed = context =>
+        {
+            Console.WriteLine($"JWT Authentication failed: {context.Exception.Message}");
+            Console.WriteLine($"Exception type: {context.Exception.GetType().Name}");
+            if (context.Exception.InnerException != null)
+            {
+                Console.WriteLine($"Inner exception: {context.Exception.InnerException.Message}");
+            }
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = context =>
+        {
+            Console.WriteLine($"JWT Token validated for user: {context.Principal?.Identity?.Name}");
+            return Task.CompletedTask;
+        },
+        OnChallenge = context =>
+        {
+            Console.WriteLine($"JWT Challenge initiated. Error: {context.Error}, Description: {context.ErrorDescription}");
+            return Task.CompletedTask;
+        }
     };
 });*/
 
@@ -187,8 +226,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection(); // Importante para asegurar HTTPS
 app.UseStaticFiles();
-app.UseRouting();
 app.UseCors("AllowReactApp");
+app.UseRouting();
 app.UseSession(); 
 app.UseAuthentication();
 app.UseAuthorization();

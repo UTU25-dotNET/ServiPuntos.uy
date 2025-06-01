@@ -27,6 +27,10 @@ namespace ServiPuntos.Infrastructure.Data
         public DbSet<Transaccion> Transacciones { get; set; }
         public DbSet<Canje> Canjes { get; set; }
 
+        public DbSet<ConfigPlataforma> ConfigPlataformas { get; set; }
+
+
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
