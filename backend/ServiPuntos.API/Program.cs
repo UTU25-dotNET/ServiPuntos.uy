@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
+using Npgsql.EntityFrameworkCore.PostgreSQL; 
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using ServiPuntos.Application.Services;
@@ -16,7 +17,6 @@ using ServiPuntos.Infrastructure.Repositories;
 using ServiPuntos.Infrastructure.Middleware;
 
 using System.Text;
-using ServiPuntos.API.Data;
 using System.Security.Claims;
 using System.Text;
 
@@ -56,7 +56,7 @@ builder.Services.AddSession(options =>
 });
 
 // Configurar servicios de autenticaci�n
-builder.Services.AddAuthentication(options =>
+/*builder.Services.AddAuthentication(options =>
 {
     // Para APIs REST, JWT Bearer debería ser el esquema por defecto
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -121,6 +121,36 @@ builder.Services.AddAuthentication(options =>
             return Task.CompletedTask;
         }
     };
+});*/
+
+builder.Services.AddAuthentication(options =>
+{
+    // Cookies como esquema por defecto (para la parte WEB)
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    // No establecer DefaultChallengeScheme - se manejará por controlador específico
+})
+.AddCookie(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.Path = "/";
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(120);
+    options.Cookie.IsEssential = true;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidAudience = jwtSettings["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(secretKey)
+    };
 });
 
 //Con esto permitimos solicitudes desde el frontend-web
@@ -135,23 +165,12 @@ builder.Services.AddCors(options =>
             .SetIsOriginAllowed(_ => true));
 });
 
-// Dentro de la configuración de servicios
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-{
-    // Si usas SQL Server:
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        sqlServerOptionsAction: sqlOptions =>
-        {
-            sqlOptions.EnableRetryOnFailure(
-                maxRetryCount: 5,
-                maxRetryDelay: TimeSpan.FromSeconds(30),
-                errorNumbersToAdd: null);
-        }
-    );
-});
 
-// Agregar el servicio JwtTokenService al contenedor de dependencias
+
+builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+
 builder.Services.AddScoped<JwtTokenService>();
 builder.Services.AddHttpClient();
 // Servicios Multi-Tenant
@@ -179,10 +198,6 @@ builder.Services.AddScoped<ICanjeService, CanjeService>();
 builder.Services.AddScoped<IPointsRuleEngine, PointsRuleEngine>();
 builder.Services.AddScoped<INAFTAService, NAFTAService>();
 builder.Services.AddScoped<IUbicacionService, UbicacionService>();
-
-// Configuramos la conexi�n a la base de datos
-builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Construye la aplicaci�n web
 var app = builder.Build();

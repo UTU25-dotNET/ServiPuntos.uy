@@ -5,7 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc; // Necesario para [ApiController], [Route], IActionResult, etc.
 using Microsoft.Extensions.Logging;
 using ServiPuntos.Core.Interfaces; // Donde está IAudienciaService y los DTOs
-using ServiPuntos.Core.Entities;  // Para la entidad Audiencia si la devuelves directamente
+using ServiPuntos.Core.Entities;
+using ServiPuntos.Core.DTOs;  // Para la entidad Audiencia si la devuelves directamente
 
 // Si usas un DTO para la salida de GetDefinicionesAudienciaAsync, defínelo.
 // Por ejemplo:
@@ -62,7 +63,7 @@ public class AudienciasController : ControllerBase
     [ProducesResponseType(typeof(Audiencia), 200)] // 200 OK (si actualiza)
     [ProducesResponseType(400)] // Bad Request
     [ProducesResponseType(404)] // Not Found (si se intenta actualizar una audiencia inexistente por ID)
-    public async Task<IActionResult> GuardarAudiencia(Guid tenantId, [FromBody] AudienciaInputDto dto)
+    public async Task<IActionResult> GuardarAudiencia(Guid tenantId, [FromBody] AudienciaDto dto)
     {
         tenantId = GetEffectiveTenantId(tenantId);
         if (dto == null) return BadRequest("El cuerpo de la solicitud no puede ser nulo.");
@@ -71,7 +72,7 @@ public class AudienciasController : ControllerBase
         try
         {
             _logger.LogInformation("API: Solicitud para guardar audiencia '{NombreUnico}' para TenantId {TenantId}", dto.NombreUnicoInterno, tenantId);
-            Audiencia audienciaGuardada = await _audienciaService.GuardarDefinicionAudienciaAsync(tenantId, dto);
+            Audiencia audienciaGuardada = await _audienciaService.GuardarAudienciaAsync(tenantId, dto);
 
             if (dto.Id == Guid.Empty || audienciaGuardada.FechaCreacion == audienciaGuardada.FechaModificacion) // Asumir que si las fechas son iguales, es nueva
             {
@@ -160,7 +161,7 @@ public class AudienciasController : ControllerBase
         _logger.LogInformation("API: Solicitud para eliminar audiencia ID {AudienciaId} para TenantId {TenantId}", audienciaId, tenantId);
         try
         {
-            await _audienciaService.EliminarDefinicionAudienciaAsync(tenantId, audienciaId);
+            await _audienciaService.EliminarAudienciaAsync(tenantId, audienciaId);
             return NoContent();
         }
         catch (KeyNotFoundException ex)
@@ -189,8 +190,8 @@ public class AudienciasController : ControllerBase
         _logger.LogInformation("API: Solicitud para recalcular segmentos para TenantId {TenantId}", tenantId);
         // No esperamos que termine aquí, solo que se inicie.
         // Para una operación larga, considera usar un sistema de colas/trabajos en segundo plano.
-        await _audienciaService.
-        await _audienciaService.ActualizarSegmentosUsuariosAsync(tenantId);
+       
+        await _audienciaService.ActualizarSegmentosUsuariosAsync(tenantId, null); // Se puede pasar una lista de usuarios para segmentar, o null para todos los usuarios.
         _logger.LogInformation("API: Recalculación de segmentos iniciada para TenantId {TenantId}", tenantId);
         return Accepted();
     }

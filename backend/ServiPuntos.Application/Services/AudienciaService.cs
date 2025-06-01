@@ -72,15 +72,15 @@ namespace ServiPuntos.Application.Services
             return audiencia;
         }
         //GET ALL AUDIENCIAS
-        public async Task<IEnumerable<Audiencia>> GetAllAudienciasAsync(Guid tenantId, bool soloActivas = false)
+        public async Task<IEnumerable<Audiencia>> GetAllAudienciasAsync(Guid tenantId)
         {
             tenantId = GetCurrentTenantId(tenantId); // Asegurar TenantId
-            _logger.LogInformation("Obteniendo todas las audiencias para TenantId: {TenantId}, SoloActivas: {SoloActivas}", tenantId, soloActivas);
-            return await _audienciaRepository.ListByTenantIdWithReglasAsync(tenantId, soloActivas, ordenarPorPrioridad: true);
+            _logger.LogInformation("Obteniendo todas las audiencias para TenantId: {TenantId}, SoloActivas: {SoloActivas}", tenantId);
+            return await _audienciaRepository.ListByTenantIdWithReglasAsync(tenantId, ordenarPorPrioridad: true);
         }
 
-
-        public async Task<Audiencia> GuardarDefinicionAudienciaAsync(Guid tenantId, AudienciaDto dto)
+        
+        public async Task<Audiencia> GuardarAudienciaAsync(Guid tenantId, AudienciaDto dto)
         {
             tenantId = GetCurrentTenantId(tenantId); // Asegurar TenantId
             _logger.LogInformation("Guardando definición de audiencia para TenantId: {TenantId}, NombreUnicoInput: {NombreUnicoInput}, AudienciaIdInput: {DtoId}",
@@ -158,7 +158,7 @@ namespace ServiPuntos.Application.Services
             return await _audienciaRepository.GetByIdWithReglasAsync(audienciaDb.Id); // Devolver la entidad completa desde la BD
         }
 
-        public async Task EliminarDefinicionAudienciaAsync(Guid tenantId, Guid audienciaId)
+        public async Task EliminarAudienciaAsync(Guid tenantId, Guid audienciaId)
         {
             tenantId = GetCurrentTenantId(tenantId);
             _logger.LogInformation("Eliminando AudienciaId: {AudienciaId} para TenantId: {TenantId}", audienciaId, tenantId);
@@ -281,7 +281,7 @@ namespace ServiPuntos.Application.Services
             return usuariosDelTenant.Where(u => u.Rol == RolUsuario.UsuarioFinal && u.SegmentoDinamicoId == audienciaObjetivo.Id);
         }
 
-        public async Task<Dictionary<string, IEnumerable<Usuario>>> GetTodasLasAudienciasConUsuariosAsync(Guid tenantId)
+        public async Task<Dictionary<string, IEnumerable<Usuario>>> GetAllAudienciasConUsuariosAsync(Guid tenantId)
         {
             tenantId = GetCurrentTenantId(tenantId);
             _logger.LogDebug("Iniciando GetTodasLasAudienciasConUsuariosAsync para TenantId: {TenantId}", tenantId);
@@ -323,7 +323,7 @@ namespace ServiPuntos.Application.Services
         public async Task<Dictionary<string, int>> GetDistribucionUsuariosPorAudienciaAsync(Guid tenantId)
         {
             tenantId = GetCurrentTenantId(tenantId);
-            var audienciasConUsuarios = await GetTodasLasAudienciasConUsuariosAsync(tenantId); // Ya actualiza y agrupa
+            var audienciasConUsuarios = await GetAllAudienciasConUsuariosAsync(tenantId); // Ya actualiza y agrupa
             return audienciasConUsuarios.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Count());
         }
 
@@ -335,7 +335,7 @@ namespace ServiPuntos.Application.Services
             // Obtener nombres para los IDs de las audiencias
             var audienciasDefinidas = (await _audienciaRepository.ListByTenantIdWithReglasAsync(tenantId, soloActivas: true)).ToList();
 
-            var audienciasConUsuarios = await GetTodasLasAudienciasConUsuariosAsync(tenantId);
+            var audienciasConUsuarios = await GetAllAudienciasConUsuariosAsync(tenantId);
 
             foreach (var kvp in audienciasConUsuarios)
             {
