@@ -1,4 +1,4 @@
-﻿namespace ServiPuntos.Application.DTOs
+﻿namespace ServiPuntos.Core.DTOs
 {
     public class UsuarioDto
     {
