@@ -1,6 +1,7 @@
 ﻿// Namespace: ServiPuntos.Core.Entities
 using System;
 using System.ComponentModel.DataAnnotations;
+using ServiPuntos.Core.DTOs;
 
 namespace ServiPuntos.Core.Entities
 {
@@ -28,5 +29,33 @@ namespace ServiPuntos.Core.Entities
         public int OrdenEvaluacion { get; set; } // O simplemente Orden si es para evaluación
 
         public Audiencia Audiencia { get; set; }
+
+        // Mapeo a la entidad ReglaAudienciaDto
+        public static ReglaAudienciaDto ToDto(ReglaAudiencia regla)
+        {
+            return new ReglaAudienciaDto
+            {
+                Id = regla.Id,
+                Propiedad = regla.Propiedad,
+                Operador = regla.Operador,
+                Valor = regla.Valor,
+                OperadorLogicoConSiguiente = regla.OperadorLogicoConSiguiente,
+                OrdenEvaluacion = regla.OrdenEvaluacion
+            };
+        }
+
+        // Mapeo desde la entidad ReglaAudienciaDto
+        public static ReglaAudiencia FromDto(ReglaAudienciaDto dto)
+        {
+            return new ReglaAudiencia
+            {
+                Id = dto.Id,
+                Propiedad = dto.Propiedad,
+                Operador = dto.Operador,
+                Valor = dto.Valor,
+                OperadorLogicoConSiguiente = dto.OperadorLogicoConSiguiente,
+                OrdenEvaluacion = dto.OrdenEvaluacion
+            };
+        }
     }
 }

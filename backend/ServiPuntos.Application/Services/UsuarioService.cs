@@ -1,5 +1,4 @@
-﻿using ServiPuntos.Application.DTOs;
-using ServiPuntos.Core.Entities;
+﻿using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
 
 public class UsuarioService : IUsuarioService
