@@ -30,6 +30,34 @@ namespace ServiPuntos.API.Controllers
 
             var respuesta = await _naftaService.ProcesarTransaccionAsync(mensaje);
 
+            // Para transacciones pendientes de pago PayPal, devolver 202 Accepted
+            if (respuesta.Codigo == "PENDING_PAYMENT")
+            {
+                return Accepted(respuesta);
+            }
+
+            if (respuesta.Codigo == "ERROR")
+            {
+                return BadRequest(respuesta);
+            }
+
+            return Ok(respuesta);
+        }
+
+        /// <summary>
+        /// Confirma un pago de PayPal después de la aprobación del usuario
+        /// </summary>
+        [HttpPost("confirmar-paypal")]
+        [AllowAnonymous]
+        public async Task<ActionResult<RespuestaNAFTA>> ConfirmarPagoPayPal([FromBody] MensajeNAFTA mensaje)
+        {
+            if (mensaje == null)
+            {
+                return BadRequest("El mensaje no puede ser nulo");
+            }
+
+            var respuesta = await _naftaService.ConfirmarPagoPayPalAsync(mensaje);
+
             if (respuesta.Codigo == "ERROR")
             {
                 return BadRequest(respuesta);

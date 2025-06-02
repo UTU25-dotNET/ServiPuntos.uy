@@ -70,15 +70,15 @@ namespace ServiPuntos.Application.Services
 
             // Crear la transacción
             TipoTransaccion tipoTransaccion;
-            switch (transaccionNAFTA.TipoTransaccion.ToLower())
+            switch (transaccionNAFTA.TipoTransaccion)
             {
-                case "combustible":
+                case TipoTransaccion.CompraCombustible:
                     tipoTransaccion = TipoTransaccion.CompraCombustible;
                     break;
-                case "minimercado":
+                case TipoTransaccion.CompraMinimercado:
                     tipoTransaccion = TipoTransaccion.CompraMinimercado;
                     break;
-                case "servicio":
+                case TipoTransaccion.UsoServicio:
                     tipoTransaccion = TipoTransaccion.UsoServicio;
                     break;
                 default:
@@ -95,7 +95,6 @@ namespace ServiPuntos.Application.Services
                 TipoTransaccion = tipoTransaccion,
                 Monto = transaccionNAFTA.Monto,
                 PuntosOtorgados = puntosOtorgados,
-                ReferenciaExterna = transaccionNAFTA.IdTransaccion,
                 Detalles = JsonSerializer.Serialize(transaccionNAFTA.Productos)
             };
 
