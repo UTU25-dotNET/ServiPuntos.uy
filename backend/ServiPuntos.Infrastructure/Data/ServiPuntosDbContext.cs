@@ -41,6 +41,10 @@ namespace ServiPuntos.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<Usuario>()
+                .Property(u => u.Intereses)
+                .IsRequired(false);
+
             // Relación Usuario – Tenant (1:N)
             modelBuilder.Entity<Usuario>()
                 .HasOne(u => u.Tenant)
