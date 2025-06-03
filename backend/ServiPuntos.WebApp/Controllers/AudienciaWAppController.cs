@@ -24,15 +24,15 @@ using ServiPuntos.Core.DTOs;  // Para la entidad Audiencia si la devuelves direc
 [ApiController]
 [Route("api/tenants/{tenantId}/audiencias")] // Ruta base para las audiencias de un tenant
 // [Authorize] // Asegúrate de proteger tus endpoints
-public class AudienciasController : ControllerBase
+public class AudienciasWAppController : ControllerBase
 {
     private readonly IAudienciaService _audienciaService;
-    private readonly ILogger<AudienciasController> _logger;
+    private readonly ILogger<AudienciasWAppController> _logger;
     private readonly ITenantContext _tenantContext; // Opcional, si obtienes tenantId del contexto
 
-    public AudienciasController(
+    public AudienciasWAppController(
         IAudienciaService audienciaService,
-        ILogger<AudienciasController> logger,
+        ILogger<AudienciasWAppController> logger,
         ITenantContext tenantContext = null) // Hacerlo opcional si siempre viene en la ruta
     {
         _audienciaService = audienciaService ?? throw new ArgumentNullException(nameof(audienciaService));
