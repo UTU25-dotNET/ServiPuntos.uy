@@ -11,7 +11,9 @@ namespace ServiPuntos.Core.Entities
 
         // Configuracion Global
         public decimal ValorPunto { get; set; }
-        public decimal TasaPuntos { get; set; }
+        public decimal TasaCombustible { get; set; } = 0.01m; //tasa de puntos por litro de combustible, por defecto 0.01 puntos por litro
+        public decimal TasaMinimercado { get; set; } = 0.02m; //tasa de puntos por compra en minimercado, por defecto 0.02 puntos por cada 1 unidad monetaria gastada
+        public decimal TasaServicios { get; set; } = 0.03m; //tasa de puntos por pago de servicios, por defecto 0.03 puntos por cada 1 unidad monetaria gastada
         public int DiasCaducidadPuntos { get; set; } = 365; //dias de caducidad de los puntos, por defecto 365 dias
 
         public DateTime FechaCreacion { get; set; }
