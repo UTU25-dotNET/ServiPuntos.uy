@@ -70,7 +70,7 @@
                 <div class="col-md-6">
                     <div class="form-group mb-3">
                         <label for="Telefono">Teléfono</label>
-                        @* <input type="text" class="form-control" name="Telefono" id="Telefono" placeholder="099 123 456" /> *@
+                         <input type="text" class="form-control" name="Telefono" id="Telefono" placeholder="099 123 456" /> 
                         <div class="form-text">Número de contacto de la ubicación</div>
                     </div>
                 </div>
@@ -101,13 +101,13 @@
                 <div class="col-md-6">
                     <div class="form-group mb-3">
                         <label for="HoraApertura">Hora de Apertura *</label>
-                        @* <input type="time" class="form-control" asp-for="HoraApertura" id="HoraApertura" required value="08:00" /> *@
+                         <input type="time" class="form-control" asp-for="HoraApertura" id="HoraApertura" required value="08:00" />
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group mb-3">
                         <label for="HoraCierre">Hora de Cierre *</label>
-                        @* <input type="time" class="form-control" asp-for="HoraCierre" id="HoraCierre" required value="20:00" /> *@
+                        <input type="time" class="form-control" asp-for="HoraCierre" id="HoraCierre" required value="20:00" />
                     </div>
                 </div>
             </div>
@@ -182,17 +182,17 @@
                         </label>
                     </div>
                 </div>
-                @* <div class="col-md-6">
+                 <div class="col-md-6">
                     <div class="form-check">
-                        <input type="checkbox" class="form-check-input" asp-for="CambioAceite" id="CambioAceite" />
-                        <label class="form-check-label" for="CambioAceite">
+                        <input type="checkbox" class="form-check-input" asp-for="CambioDeAceite" id="CambioDeAceite" />
+                        <label class="form-check-label" for="CambioDeAceite">
                             <i class="fas fa-wrench me-1 text-success"></i>
                             <strong>Cambio de Aceite</strong>
                             <br>
                             <small class="text-muted">Servicio de cambio de aceite y filtros</small>
                         </label>
                     </div>
-                </div> *@
+                </div> 
             </div>
         </div>
     </div>
@@ -223,7 +223,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Validación de horarios
-            @* const horaApertura = document.getElementById('HoraApertura');
+             const horaApertura = document.getElementById('HoraApertura');
             const horaCierre = document.getElementById('HoraCierre');
             
             function validarHorarios() {
@@ -237,7 +237,7 @@
             }
             
             horaApertura.addEventListener('change', validarHorarios);
-            horaCierre.addEventListener('change', validarHorarios); *@
+            horaCierre.addEventListener('change', validarHorarios); 
             
             // Validación de precios
             const precios = document.querySelectorAll('input[type="number"][step="0.01"]');
@@ -254,7 +254,7 @@
             });
             
             // Formateo automático de teléfono (opcional)
-            @* const telefono = document.getElementById('Telefono');
+             const telefono = document.getElementById('Telefono');
             telefono.addEventListener('input', function() {
                 // Remover caracteres no numéricos
                 let value = this.value.replace(/\D/g, '');
@@ -267,7 +267,7 @@
                 }
                 
                 this.value = value;
-            }); *@
+            });
             
             // Capitalizar primera letra de ciudad y departamento
             const ciudad = document.getElementById('Ciudad');

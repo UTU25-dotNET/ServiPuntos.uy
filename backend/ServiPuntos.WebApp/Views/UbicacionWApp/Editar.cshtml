@@ -9,7 +9,7 @@
 <form asp-action="Editar" method="post">
     <input type="hidden" asp-for="Id" />
     <input type="hidden" asp-for="TenantId" />
-    @* <input type="hidden" asp-for="FechaCreacion" /> *@
+     <input type="hidden" asp-for="FechaCreacion" /> 
     
     <div class="row">
         <div class="col-md-6">
@@ -120,8 +120,8 @@
                 </label>
             </div>
              <div class="form-check">
-                <input type="checkbox" class="form-check-input" asp-for="CambioAceite" />
-                <label class="form-check-label" for="CambioAceite">
+                <input type="checkbox" class="form-check-input" asp-for="CambioDeAceite" />
+                <label class="form-check-label" for="CambioDeAceite">
                     <i class="fas fa-wrench me-1"></i>
                     Cambio de Aceite
                 </label>
