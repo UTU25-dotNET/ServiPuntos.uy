@@ -116,8 +116,8 @@ namespace ServiPuntos.WebApp.Controllers
                 return View(ubicacion);
             }
 
-            // ubicacion.FechaCreacion = DateTime.UtcNow;
-            // ubicacion.FechaModificacion = DateTime.UtcNow;
+             ubicacion.FechaCreacion = DateTime.UtcNow;
+             ubicacion.FechaModificacion = DateTime.UtcNow;
 
             try
             {
@@ -183,7 +183,7 @@ namespace ServiPuntos.WebApp.Controllers
                 return View(ubicacion);
             }
 
-            //ubicacion.FechaModificacion = DateTime.UtcNow;
+            ubicacion.FechaModificacion = DateTime.UtcNow;
             await _ubicacionRepository.UpdateAsync(ubicacion.TenantId, ubicacion);
 
             // Si es AdminTenant, redirigir a Administrar, sino a Index

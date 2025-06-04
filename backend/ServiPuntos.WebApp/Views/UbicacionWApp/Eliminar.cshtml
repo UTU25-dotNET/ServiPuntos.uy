@@ -46,20 +46,20 @@
 
             <dt class="col-sm-3">Teléfono:</dt>
             <dd class="col-sm-9">
-                @* @if (!string.IsNullOrEmpty(Model.Telefono))
+                 @if (!string.IsNullOrEmpty(Model.Telefono))
                 {
                     <i class="fas fa-phone me-1"></i>@Model.Telefono
                 }
                 else
                 {
                     <span class="text-muted">No especificado</span>
-                } *@
+                } 
             </dd>
 
             <dt class="col-sm-3">Horario:</dt>
             <dd class="col-sm-9">
                 <i class="fas fa-clock me-2"></i>
-                @* @Model.HoraApertura.ToString(@"hh\:mm") - @Model.HoraCierre.ToString(@"hh\:mm") *@
+                 @Model.HoraApertura.ToString(@"hh\:mm") - @Model.HoraCierre.ToString(@"hh\:mm") 
             </dd>
 
             <dt class="col-sm-3">Precios:</dt>
@@ -77,10 +77,10 @@
                 {
                     <span class="badge bg-success me-1">Lavado</span>
                 }
-                @* @if (Model.CambioAceite)
+                 @if (Model.CambioAceite)
                 {
                     <span class="badge bg-primary me-1">Cambio de Aceite</span>
-                } *@
+                } 
                 @if (!Model.Lavado)
                 {
                     <span class="text-muted">Sin servicios adicionales</span>

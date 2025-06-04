@@ -36,7 +36,7 @@
 
             <dt class="col-sm-3">Teléfono:</dt>
             <dd class="col-sm-9">
-                @* @if (!string.IsNullOrEmpty(Model.Telefono))
+                 @if (!string.IsNullOrEmpty(Model.Telefono))
                 {
                     <a href="tel:@Model.Telefono" class="text-decoration-none">
                         <i class="fas fa-phone me-1"></i>@Model.Telefono
@@ -45,7 +45,7 @@
                 else
                 {
                     <span class="text-muted">No especificado</span>
-                } *@
+                } 
             </dd>
 
             <dt class="col-sm-3">Horario:</dt>
@@ -63,12 +63,12 @@
                             <i class="fas fa-car me-1"></i>Lavado
                         </span>
                     }
-                    @* @if (Model.CambioAceite)
+                     @if (Model.CambioAceite)
                     {
                         <span class="badge bg-primary">
                             <i class="fas fa-wrench me-1"></i>Cambio de Aceite
                         </span>
-                    } *@
+                    } 
                     @if (!Model.Lavado)
                     {
                         <span class="text-muted">No hay servicios adicionales configurados</span>
@@ -108,12 +108,12 @@
 
             <dt class="col-sm-3">Fecha de Creación:</dt>
             <dd class="col-sm-9">
-                @* <small class="text-muted">@Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</small> *@
+                 <small class="text-muted">@Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</small> 
             </dd>
 
             <dt class="col-sm-3">Última Modificación:</dt>
             <dd class="col-sm-9">
-                @* <small class="text-muted">@Model.FechaModificacion.ToString("dd/MM/yyyy HH:mm")</small> *@
+                 <small class="text-muted">@Model.FechaModificacion.ToString("dd/MM/yyyy HH:mm")</small> 
             </dd>
         </dl>
     </div>

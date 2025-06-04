@@ -1,0 +1,535 @@
+@page
+@using System.Linq
+@using System.Security.Claims
+@{
+    ViewData["Title"] = "Test API Audiencias Unificado";
+    string tenantIdInitialValue = string.Empty;
+
+    // Intenta obtener el TenantId de la claim si el usuario es AdminTenant
+    // Esto es C# ejecutándose en el servidor antes de enviar la página al cliente.
+    if (User.Identity.IsAuthenticated && User.IsInRole("AdminTenant"))
+    {
+        var tenantIdFromClaim = User.Claims.FirstOrDefault(c => c.Type == "tenantId")?.Value;
+        if (!string.IsNullOrEmpty(tenantIdFromClaim) && Guid.TryParse(tenantIdFromClaim, out Guid parsedGuid))
+        {
+            tenantIdInitialValue = parsedGuid.ToString();
+        }
+    }
+    // También podrías leer de Request.Query["tenantId"] aquí si quisieras
+}
+
+<h1>Test API Audiencias (Todo en Uno)</h1>
+
+<div class="container">
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label for="tenantIdInput" class="form-label">Tenant ID (GUID):</label>
+            <input type="text" id="tenantIdInput" class="form-control"
+                   value="@tenantIdInitialValue"
+                   placeholder="Ingrese Tenant ID">
+            <small class="form-text text-muted">
+                @if (!string.IsNullOrEmpty(tenantIdInitialValue))
+                {
+                    <span>Cargado desde el servidor.</span>
+                }
+                else
+                {
+                    <span>No se pudo cargar automáticamente. Por favor, ingréselo.</span>
+                }
+            </small>
+        </div>
+    </div>
+
+    <hr />
+
+    <!-- SECCIÓN: GUARDAR/ACTUALIZAR AUDIENCIA -->
+    <h2>Guardar/Actualizar Audiencia (Envía AudienciaDto)</h2>
+    <form id="audienciaForm">
+        <input type="hidden" id="audienciaFormId" />
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="nombreUnicoInterno" class="form-label">Nombre Único Interno:</label>
+                <input type="text" id="nombreUnicoInterno" class="form-control" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="nombreDescriptivo" class="form-label">Nombre Descriptivo:</label>
+                <input type="text" id="nombreDescriptivo" class="form-control" required>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="descripcionAudiencia" class="form-label">Descripción:</label>
+            <textarea id="descripcionAudiencia" class="form-control" rows="3"></textarea>
+        </div>
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <label for="prioridad" class="form-label">Prioridad:</label>
+                <input type="number" id="prioridad" class="form-control" value="0" required>
+            </div>
+            <div class="col-md-3 mb-3 form-check align-self-center mt-4">
+                <input type="checkbox" id="activa" class="form-check-input" checked>
+                <label for="activa" class="form-check-label">Activa</label>
+            </div>
+        </div>
+
+        <h4>Reglas (Envía List<ReglaAudienciaDto>)</h4>
+        <div id="reglasContainer">
+            <!-- Las reglas se agregarán aquí dinámicamente -->
+        </div>
+        <button type="button" class="btn btn-sm btn-secondary mb-3" onclick="agregarRegla()">Agregar Regla</button>
+        <br />
+        <button type="submit" class="btn btn-primary">Guardar Audiencia</button>
+        <button type="button" class="btn btn-info" onclick="limpiarFormularioAudiencia()">Limpiar Formulario</button>
+    </form>
+
+    <hr />
+
+    <!-- SECCIÓN: LISTAR AUDIENCIAS -->
+    <h2>Listado de Audiencias (Recibe Entidad Audiencia)</h2>
+    <button class="btn btn-success mb-2" onclick="getTodasLasDefiniciones()">Obtener Todas las Audiencias</button>
+    <table class="table table-striped" id="audienciasTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre Único</th>
+                <th>Nombre Descriptivo</th>
+                <th>Descripción (Entidad)</th>
+                <th>Prioridad</th>
+                <th>Activa</th>
+                <th>Num. Reglas (Entidad)</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Filas se agregarán aquí -->
+        </tbody>
+    </table>
+
+    <hr />
+
+    <!-- SECCIÓN: OTRAS ACCIONES -->
+    <h2>Otras Acciones</h2>
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Recalcular Segmentos</h5>
+                    <p class="card-text">Fuerza la reclasificación de todos los usuarios del tenant.</p>
+                    <button class="btn btn-warning mt-auto" onclick="recalcularSegmentos()">Recalcular Segmentos</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Obtener Distribución</h5>
+                    <p class="card-text">Obtiene la distribución de usuarios por audiencia.</p>
+                    <button class="btn btn-info mt-auto" onclick="getDistribucion()">Obtener Distribución</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Obtener Estadísticas</h5>
+                    <p class="card-text">Obtiene estadísticas globales y por audiencia.</p>
+                    <button class="btn btn-info mt-auto" onclick="getEstadisticas()">Obtener Estadísticas</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Obtener Usuarios de Audiencia</h5>
+                    <div class="mb-2">
+                        <label for="nombreUnicoAudienciaInput" class="form-label">Nombre Único Audiencia:</label>
+                        <input type="text" id="nombreUnicoAudienciaInput" class="form-control" placeholder="ej: ClientesVIP">
+                    </div>
+                    <button class="btn btn-info mt-auto" onclick="getUsuariosDeAudiencia()">Obtener Usuarios</button>
+                    <div class="mt-2">
+                        <h6>Usuarios Encontrados:</h6>
+                        <pre id="usuariosAudienciaResult" style="background-color: #eee; border: 1px solid #ccc; padding: 10px; min-height:50px; max-height: 200px; overflow-y: auto;"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Clasificar Usuario</h5>
+                    <div class="mb-2">
+                        <label for="clasificarUsuarioIdInput" class="form-label">ID Usuario a Clasificar:</label>
+                        <input type="text" id="clasificarUsuarioIdInput" class="form-control" placeholder="GUID del usuario">
+                    </div>
+                    <button class="btn btn-info mt-auto" onclick="clasificarUsuario()">Clasificar Usuario</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <hr />
+
+    <!-- SECCIÓN: RESULTADOS GENERALES API -->
+    <h2>Resultados API (General)</h2>
+    <pre id="apiResult" style="background-color: #f5f5f5; border: 1px solid #ccc; padding: 10px; min-height:100px; max-height: 400px; overflow-y: auto;"></pre>
+
+</div>
+
+@section Scripts {
+    <script>
+        const API_BASE_URL = "/api/tenants"; // Ajusta si la raíz de tu API es diferente
+        const GUID_EMPTY = "00000000-0000-0000-0000-000000000000";
+
+        function getTenantId() {
+            const tenantId = document.getElementById('tenantIdInput').value;
+            if (!tenantId) {
+                alert('Por favor, ingrese un Tenant ID.');
+                return null;
+            }
+            if (!/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(tenantId)) {
+                alert('El Tenant ID ingresado no parece ser un GUID válido: ' + tenantId);
+                return null;
+            }
+            return tenantId;
+        }
+
+        function displayResult(data, status, targetElementId = 'apiResult') {
+            const resultArea = document.getElementById(targetElementId);
+            resultArea.textContent = `Status: ${status}\n\n${JSON.stringify(data, null, 2)}`;
+        }
+
+        function displayError(errorResponse, status, targetElementId = 'apiResult') {
+            const resultArea = document.getElementById(targetElementId);
+            console.error("API Error Response:", errorResponse);
+            let errorMessage = "Error desconocido.";
+            if (errorResponse) {
+                if (typeof errorResponse === 'string') {
+                    errorMessage = errorResponse;
+                } else if (errorResponse.message) {
+                     errorMessage = errorResponse.message;
+                     if (typeof errorResponse.message !== 'string' && errorResponse.message.title) {
+                        errorMessage = errorResponse.message.title + "\n" + JSON.stringify(errorResponse.message.errors || errorResponse.message, null, 2);
+                     } else if (typeof errorResponse.message !== 'string') {
+                         errorMessage = JSON.stringify(errorResponse.message, null, 2);
+                     }
+                } else if (errorResponse.title) {
+                    errorMessage = errorResponse.title;
+                    if (errorResponse.errors) {
+                        errorMessage += "\n" + JSON.stringify(errorResponse.errors, null, 2);
+                    } else if (errorResponse.detail) {
+                         errorMessage += "\n" + errorResponse.detail;
+                    }
+                }
+                 else {
+                    errorMessage = JSON.stringify(errorResponse, null, 2);
+                }
+            }
+            resultArea.textContent = `Error (Status: ${status || 'N/A'})\n\n${errorMessage}`;
+        }
+
+        let reglaCounter = 0;
+
+        function agregarRegla(reglaEntidad = null) {
+            reglaCounter++;
+            const container = document.getElementById('reglasContainer');
+            const reglaDiv = document.createElement('div');
+            reglaDiv.classList.add('row', 'mb-2', 'regla-item');
+            reglaDiv.id = `regla-${reglaCounter}`;
+
+            const reglaDto = {
+                Id: reglaEntidad ? reglaEntidad.id : GUID_EMPTY,
+                Propiedad: reglaEntidad ? reglaEntidad.propiedad : '',
+                Operador: reglaEntidad ? reglaEntidad.operador : 'EQUALS',
+                Valor: reglaEntidad ? reglaEntidad.valor : '',
+                OperadorLogicoConSiguiente: reglaEntidad ? reglaEntidad.operadorLogicoConSiguiente : 'AND',
+                OrdenEvaluacion: reglaEntidad ? reglaEntidad.ordenEvaluacion : 0
+            };
+            reglaDiv.dataset.reglaDto = JSON.stringify(reglaDto);
+
+            reglaDiv.innerHTML = `
+                <div class="col-md-3">
+                    <input type="text" class="form-control regla-propiedad" placeholder="Propiedad (ej: Puntos)" value="${reglaDto.Propiedad}">
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select regla-operador">
+                        <option value="EQUALS" ${reglaDto.Operador === 'EQUALS' ? 'selected' : ''}>Igual a (=)</option>
+                        <option value="NOT_EQUALS" ${reglaDto.Operador === 'NOT_EQUALS' ? 'selected' : ''}>Distinto de (!=)</option>
+                        <option value="CONTAINS" ${reglaDto.Operador === 'CONTAINS' ? 'selected' : ''}>Contiene</option>
+                        <option value="STARTS_WITH" ${reglaDto.Operador === 'STARTS_WITH' ? 'selected' : ''}>Comienza con</option>
+                        <option value="ENDS_WITH" ${reglaDto.Operador === 'ENDS_WITH' ? 'selected' : ''}>Termina con</option>
+                        <option value="GREATER_THAN" ${reglaDto.Operador === 'GREATER_THAN' ? 'selected' : ''}>Mayor que (>)</option>
+                        <option value="LESS_THAN" ${reglaDto.Operador === 'LESS_THAN' ? 'selected' : ''}>Menor que (<)</option>
+                        <option value="GREATER_THAN_OR_EQUAL" ${reglaDto.Operador === 'GREATER_THAN_OR_EQUAL' ? 'selected' : ''}>Mayor o igual (>=)</option>
+                        <option value="LESS_THAN_OR_EQUAL" ${reglaDto.Operador === 'LESS_THAN_OR_EQUAL' ? 'selected' : ''}>Menor o igual (<=)</option>
+                        <option value="IN" ${reglaDto.Operador === 'IN' ? 'selected' : ''}>En (lista separada por comas)</option>
+                        <option value="NOT_IN" ${reglaDto.Operador === 'NOT_IN' ? 'selected' : ''}>No en (lista separada por comas)</option>
+                        <option value="IS_NULL_OR_EMPTY" ${reglaDto.Operador === 'IS_NULL_OR_EMPTY' ? 'selected' : ''}>Es nulo o vacío</option>
+                        <option value="IS_NOT_NULL_OR_EMPTY" ${reglaDto.Operador === 'IS_NOT_NULL_OR_EMPTY' ? 'selected' : ''}>No es nulo ni vacío</option>
+                        <option value="REGEX" ${reglaDto.Operador === 'REGEX' ? 'selected' : ''}>Expresión Regular</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" class="form-control regla-valor" placeholder="Valor (ej: 100)" value="${reglaDto.Valor}">
+                </div>
+                <div class="col-md-2">
+                     <select class="form-select regla-op-logico" title="Operador Lógico con Siguiente">
+                        <option value="AND" ${reglaDto.OperadorLogicoConSiguiente === 'AND' ? 'selected' : ''}>AND</option>
+                        <option value="OR" ${reglaDto.OperadorLogicoConSiguiente === 'OR' ? 'selected' : ''}>OR</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="eliminarRegla('regla-${reglaCounter}')">X</button>
+                </div>
+            `;
+            container.appendChild(reglaDiv);
+        }
+
+        function eliminarRegla(reglaId) {
+            document.getElementById(reglaId)?.remove();
+        }
+
+        function limpiarFormularioAudiencia() {
+            document.getElementById('audienciaForm').reset();
+            document.getElementById('audienciaFormId').value = '';
+            document.getElementById('descripcionAudiencia').value = '';
+            document.getElementById('reglasContainer').innerHTML = '';
+            document.getElementById('activa').checked = true;
+            document.getElementById('prioridad').value = 0;
+            reglaCounter = 0;
+            document.getElementById('nombreUnicoInterno').focus();
+        }
+
+        document.getElementById('audienciaForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const tenantId = getTenantId();
+            if (!tenantId) return;
+
+            const audienciaId = document.getElementById('audienciaFormId').value || GUID_EMPTY;
+
+            const reglasDto = [];
+            document.querySelectorAll('.regla-item').forEach((item, index) => {
+                const storedDto = JSON.parse(item.dataset.reglaDto);
+                reglasDto.push({
+                    Id: storedDto.Id,
+                    Propiedad: item.querySelector('.regla-propiedad').value,
+                    Operador: item.querySelector('.regla-operador').value,
+                    Valor: item.querySelector('.regla-valor').value,
+                    OperadorLogicoConSiguiente: item.querySelector('.regla-op-logico').value,
+                    OrdenEvaluacion: storedDto.OrdenEvaluacion || index
+                });
+            });
+
+            const audienciaDtoToSend = {
+                Id: audienciaId,
+                NombreUnicoInterno: document.getElementById('nombreUnicoInterno').value,
+                NombreDescriptivo: document.getElementById('nombreDescriptivo').value,
+                Descripcion: document.getElementById('descripcionAudiencia').value,
+                Prioridad: parseInt(document.getElementById('prioridad').value),
+                Activa: document.getElementById('activa').checked,
+                Reglas: reglasDto
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/${tenantId}/audiencias`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(audienciaDtoToSend)
+                });
+                const responseData = await response.json();
+                if (!response.ok) throw { responseBody: responseData, status: response.status };
+                displayResult(responseData, response.status);
+                limpiarFormularioAudiencia();
+                getTodasLasDefiniciones();
+            } catch (error) {
+                displayError(error.responseBody || "Error de red o JS", error.status);
+            }
+        });
+
+        async function getTodasLasDefiniciones() {
+            const tenantId = getTenantId();
+            if (!tenantId) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/${tenantId}/audiencias`);
+                const audienciasEntidades = await response.json();
+                if (!response.ok) throw { responseBody: audienciasEntidades, status: response.status };
+                displayResult(audienciasEntidades, response.status);
+
+                const tbody = document.getElementById('audienciasTable').getElementsByTagName('tbody')[0];
+                tbody.innerHTML = '';
+                audienciasEntidades.forEach(audEntidad => {
+                    const row = tbody.insertRow();
+                    row.insertCell().textContent = audEntidad.id;
+                    row.insertCell().textContent = audEntidad.nombreUnicoInterno;
+                    row.insertCell().textContent = audEntidad.nombreDescriptivo;
+                    row.insertCell().textContent = audEntidad.descripcion || '';
+                    row.insertCell().textContent = audEntidad.prioridad;
+                    row.insertCell().textContent = audEntidad.activa ? 'Sí' : 'No';
+                    row.insertCell().textContent = (audEntidad.reglas && Array.isArray(audEntidad.reglas)) ? audEntidad.reglas.length : 0;
+
+                    const actionsCell = row.insertCell();
+                    actionsCell.innerHTML = `
+                        <button class="btn btn-sm btn-warning me-1" onclick="cargarAudienciaParaEditar('${tenantId}', '${audEntidad.id}')">Editar</button>
+                        <button class="btn btn-sm btn-danger me-1" onclick="eliminarAudiencia('${tenantId}', '${audEntidad.id}')">Eliminar</button>
+                        <button class="btn btn-sm btn-outline-info" onclick="prepararGetUsuarios('${audEntidad.nombreUnicoInterno}')">Ver Usuarios</button>
+                    `;
+                });
+            } catch (error) {
+                displayError(error.responseBody || "Error de red o JS", error.status);
+            }
+        }
+
+        function prepararGetUsuarios(nombreUnico){
+            document.getElementById('nombreUnicoAudienciaInput').value = nombreUnico;
+            getUsuariosDeAudiencia();
+        }
+
+        async function cargarAudienciaParaEditar(tenantId, audienciaId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/${tenantId}/audiencias/${audienciaId}`);
+                const audienciaEntidad = await response.json();
+                if (!response.ok) throw { responseBody: audienciaEntidad, status: response.status };
+                displayResult(audienciaEntidad, response.status + " (Entidad Audiencia cargada para editar)");
+
+                limpiarFormularioAudiencia();
+                document.getElementById('audienciaFormId').value = audienciaEntidad.id;
+                document.getElementById('nombreUnicoInterno').value = audienciaEntidad.nombreUnicoInterno;
+                document.getElementById('nombreDescriptivo').value = audienciaEntidad.nombreDescriptivo;
+                document.getElementById('descripcionAudiencia').value = audienciaEntidad.descripcion || '';
+                document.getElementById('prioridad').value = audienciaEntidad.prioridad;
+                document.getElementById('activa').checked = audienciaEntidad.activa;
+
+                document.getElementById('reglasContainer').innerHTML = '';
+                reglaCounter = 0;
+                audienciaEntidad.reglas?.forEach(reglaEntidad => agregarRegla(reglaEntidad));
+                window.scrollTo(0, 0);
+            } catch (error) {
+                displayError(error.responseBody || "Error de red o JS", error.status);
+            }
+        }
+
+        async function eliminarAudiencia(tenantId, audienciaId) {
+            if (!confirm(`¿Estás seguro de eliminar la audiencia ${audienciaId}?`)) return;
+            try {
+                const response = await fetch(`${API_BASE_URL}/${tenantId}/audiencias/${audienciaId}`, { method: 'DELETE' });
+                if (response.status === 204) {
+                    displayResult({ message: `Audiencia ${audienciaId} eliminada.` }, response.status);
+                    getTodasLasDefiniciones();
+                } else if (response.ok) {
+                     const data = await response.json().catch(() => ({ message: "Eliminada (pero no 204)"}));
+                     displayResult(data, response.status);
+                     getTodasLasDefiniciones();
+                } else {
+                    const errorData = await response.json().catch(() => ({ message: "Error al eliminar: " + response.statusText }));
+                    throw { responseBody: errorData, status: response.status };
+                }
+            } catch (error) {
+                displayError(error.responseBody || "Error de red o JS", error.status);
+            }
+        }
+
+        async function recalcularSegmentos() {
+            const tenantId = getTenantId();
+            if (!tenantId) return;
+            try {
+                const response = await fetch(`${API_BASE_URL}/${tenantId}/audiencias/recalcular-segmentos`, { method: 'POST' });
+                if (response.status === 202) {
+                    displayResult({ message: "Solicitud de recalcular segmentos aceptada." }, response.status);
+                } else {
+                    const data = await response.json().catch(() => ({ message: "Respuesta inesperada: " + response.statusText }));
+                    if (!response.ok) throw { responseBody: data, status: response.status };
+                    displayResult(data, response.status);
+                }
+            } catch (error) {
+                displayError(error.responseBody || "Error de red o JS", error.status);
+            }
+        }
+
+        async function getUsuariosDeAudiencia() {
+            const tenantId = getTenantId();
+            if (!tenantId) return;
+            const nombreUnicoAudiencia = document.getElementById('nombreUnicoAudienciaInput').value;
+            if (!nombreUnicoAudiencia) {
+                alert('Por favor, ingresa el Nombre Único de la Audiencia.');
+                return;
+            }
+            const resultDisplay = document.getElementById('usuariosAudienciaResult');
+            resultDisplay.textContent = 'Cargando...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/${tenantId}/audiencias/${encodeURIComponent(nombreUnicoAudiencia)}/usuarios`);
+                const usuariosEntidades = await response.json();
+                if (!response.ok) throw { responseBody: usuariosEntidades, status: response.status };
+
+                if (usuariosEntidades && usuariosEntidades.length > 0) {
+                    let output = `Status: ${response.status} | Encontrados: ${usuariosEntidades.length}\n\n`;
+                    output += usuariosEntidades.map(u => `ID: ${u.id}\n  ${u.nombre||''} ${u.apellido||''} (${u.email})\n  Puntos: ${u.puntos}, SegID: ${u.segmentoDinamicoId || 'N/A'}\n`).join('\n');
+                    resultDisplay.textContent = output;
+                } else {
+                    resultDisplay.textContent = `Status: ${response.status}\nNo se encontraron usuarios para '${nombreUnicoAudiencia}' o la audiencia no existe.`;
+                }
+                displayResult(usuariosEntidades, response.status);
+            } catch (error) {
+                displayError(error.responseBody || "Error de red o JS", error.status, 'usuariosAudienciaResult');
+                if(error.responseBody) displayResult(error.responseBody, error.status);
+            }
+        }
+
+        async function getDistribucion() {
+            const tenantId = getTenantId();
+            if (!tenantId) return;
+            try {
+                const response = await fetch(`${API_BASE_URL}/${tenantId}/audiencias/distribucion`);
+                const data = await response.json();
+                if (!response.ok) throw { responseBody: data, status: response.status };
+                displayResult(data, response.status);
+            } catch (error) {
+                displayError(error.responseBody || "Error de red o JS", error.status);
+            }
+        }
+
+        async function getEstadisticas() {
+            const tenantId = getTenantId();
+            if (!tenantId) return;
+            try {
+                const response = await fetch(`${API_BASE_URL}/${tenantId}/audiencias/estadisticas`);
+                const data = await response.json();
+                if (!response.ok) throw { responseBody: data, status: response.status };
+                displayResult(data, response.status);
+            } catch (error) {
+                displayError(error.responseBody || "Error de red o JS", error.status);
+            }
+        }
+
+        async function clasificarUsuario() {
+            const tenantId = getTenantId();
+            if (!tenantId) return;
+            const usuarioId = document.getElementById('clasificarUsuarioIdInput').value;
+            if (!usuarioId || !/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(usuarioId)) {
+                alert('Por favor, ingresa un ID de Usuario válido (GUID).');
+                return;
+            }
+            try {
+                const response = await fetch(`${API_BASE_URL}/${tenantId}/audiencias/usuarios/${usuarioId}/clasificar`);
+                const data = await response.json();
+                if (!response.ok) throw { responseBody: data, status: response.status };
+                displayResult(data, response.status);
+            } catch (error) {
+                displayError(error.responseBody || "Error de red o JS", error.status);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const tenantIdVal = document.getElementById('tenantIdInput').value;
+            if (tenantIdVal && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(tenantIdVal)) {
+                getTodasLasDefiniciones();
+            } else {
+                if (!tenantIdVal) {
+                    document.getElementById('apiResult').textContent = "Por favor, ingrese un Tenant ID para comenzar.";
+                }
+            }
+        });
+    </script>
+}
