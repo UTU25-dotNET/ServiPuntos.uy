@@ -46,6 +46,14 @@ builder.Services.AddScoped<ITenantRepository, TenantRepository>();
 builder.Services.AddScoped<IUbicacionService, UbicacionService>();  
 builder.Services.AddScoped<IUbicacionRepository, UbicacionRepository>();
 
+
+
+// Servicios de Audiencia
+builder.Services.AddScoped<IAudienciaService, AudienciaService>();
+builder.Services.AddScoped<IAudienciaRepository, AudienciaRepository>();
+
+
+
 // Multi-tenancy
 builder.Services.AddHttpContextAccessor();
 
