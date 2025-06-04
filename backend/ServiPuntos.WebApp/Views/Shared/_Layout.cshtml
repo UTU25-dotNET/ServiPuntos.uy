@@ -33,6 +33,20 @@
                                     Dashboard
                                 </a>
                             </li>
+                            
+                            @* Nuevo botón "Mi Tenant" solo para AdminTenant *@
+                            @if (User.IsInRole("AdminTenant"))
+                            {
+                                var tenantIdClaim = User.Claims.FirstOrDefault(c => c.Type == "tenantId")?.Value;
+                                @if (!string.IsNullOrEmpty(tenantIdClaim) && Guid.TryParse(tenantIdClaim, out Guid tenantId))
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-area="" asp-controller="TenantWApp" asp-action="Editar" asp-route-id="@tenantId">
+                                            Mi Tenant
+                                        </a>
+                                    </li>
+                                }
+                            }
                         }
                     </ul>
                     <ul class="navbar-nav ms-auto">
