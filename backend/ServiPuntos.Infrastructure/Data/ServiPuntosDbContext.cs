@@ -18,6 +18,8 @@ namespace ServiPuntos.Infrastructure.Data
         }
 
         // DbSets
+        public DbSet<Audiencia> Audiencias { get; set; }
+        public DbSet<ReglaAudiencia> ReglasAudiencia { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<ProductoCanjeable> ProductosCanjeables { get; set; }
         public DbSet<ProductoUbicacion> ProductoUbicaciones { get; set; }
@@ -26,11 +28,22 @@ namespace ServiPuntos.Infrastructure.Data
         public DbSet<Tenant> Tenants { get; set; }
         public DbSet<Transaccion> Transacciones { get; set; }
         public DbSet<Canje> Canjes { get; set; }
-        public DbSet<SaldoPuntos> SaldosPuntos { get; set; }
+
+        public DbSet<ConfigPlataforma> ConfigPlataformas { get; set; }
+
+        // SEEDER 
+        //public DbSet<OperadorDisponible> OperadoresDisponibles { get; set; }
+        //public DbSet<CampoDisponible> CamposDisponibles { get; set; }
+
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Usuario>()
+                .Property(u => u.Intereses)
+                .IsRequired(false);
 
             // Relación Usuario – Tenant (1:N)
             modelBuilder.Entity<Usuario>()
@@ -110,18 +123,6 @@ namespace ServiPuntos.Infrastructure.Data
                 .HasForeignKey(c => c.ProductoCanjeableId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<SaldoPuntos>()
-                .HasOne(s => s.Usuario)
-                .WithMany()
-                .HasForeignKey(s => s.UsuarioId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<SaldoPuntos>()
-                .HasOne(s => s.Tenant)
-                .WithMany()
-                .HasForeignKey(s => s.TenantId)
-                .OnDelete(DeleteBehavior.Restrict);
-
             // Índices para mejor rendimiento
             modelBuilder.Entity<Transaccion>()
                 .HasIndex(t => t.UsuarioId);
@@ -138,10 +139,6 @@ namespace ServiPuntos.Infrastructure.Data
 
             modelBuilder.Entity<Canje>()
                 .HasIndex(c => c.UsuarioId);
-
-            modelBuilder.Entity<SaldoPuntos>()
-                .HasIndex(s => new { s.UsuarioId, s.TenantId })
-                .IsUnique();
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
