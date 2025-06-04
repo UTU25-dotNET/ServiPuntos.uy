@@ -43,6 +43,9 @@ builder.Services.AddScoped<IUbicacionRepository, UbicacionRepository>();
 builder.Services.AddScoped<IConfigPlataformaRepository, ConfigPlataformaRepository>();
 builder.Services.AddScoped<IConfigPlataformaService, ConfigPlataformaService>();
 
+builder.Services.AddScoped<IAudienciaService, AudienciaService>();
+builder.Services.AddScoped<IAudienciaRepository, AudienciaRepository>();
+
 // Multi-tenancy
 builder.Services.AddHttpContextAccessor();
 

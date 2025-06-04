@@ -9,9 +9,9 @@ using Microsoft.EntityFrameworkCore; // Necesario para EF Core
 using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
 // Asume que tienes un DbContext llamado AppDbContext
-// using ServiPuntos.Infrastructure.Data; 
+using ServiPuntos.Infrastructure.Data; 
 
-namespace ServiPuntos.Infrastructure.Data.Repositories
+namespace ServiPuntos.Infrastructure.Repositories
 {
     public class AudienciaRepository : IAudienciaRepository // Implementa tu interfaz
     {
