@@ -16,7 +16,7 @@
             </div>
         }
 
-        @if (User.IsInRole("AdminPlataforma") || User.IsInRole("AdminTenant"))
+        @if (User.IsInRole("AdminPlataforma"))
         {
             <div class="col-md-4 mb-4">
                 <div class="card bg-white text-dark h-100">
@@ -49,7 +49,124 @@
             </div>
         }
     </div>
-<!-- Esta es la sección completa para AdminTenant que reemplaza la actual en Index.cshtml -->
+@if (User.IsInRole("AdminPlataforma"))
+    {
+         <div class="row">
+        @*    <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Usuarios por Rol</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="usuariosPorRol" width="400" height="300"></canvas>
+                    </div>
+                </div>
+            </div> *@
+            
+            <div class="row">
+    <!-- Gráfica a la izquierda -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title">Usuarios por Tenant</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="usuariosPorTenant" width="100%" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="col-md-6 mb-4">
+        <div class="row">
+            
+            <div class="col-6 mb-3">
+                <div class="card bg-success text-white h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Usuarios Finales</h5>
+                        <p class="card-text display-6" id="usuariosFinales"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-6 mb-3">
+                <div class="card bg-success text-dark h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Dinero Generado</h5>
+                        <p class="card-text display-6" id="dineroGenerado"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-6 mb-3">
+                <div class="card bg-success text-dark h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Otr ametrica</h5>
+                        <p class="card-text display-6">El dinero generado es usuarios finales x 10.</p>
+                        <p class="card-text display-6" id=""></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-6 mb-3">
+                <div class="card bg-success text-dark h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Dinero Generado</h5>
+                        <p class="card-text display-6">No se que mas metricas agregar</p>
+                        <p class="card-text display-6" id=""></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button type="button" class="btn btn-outline-primary mb-3" data-bs-toggle="modal" data-bs-target="#configModal">
+    Configurar Plataforma
+</button>
+<div class="modal fade" id="configModal" tabindex="-1" aria-labelledby="configModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="configModalLabel">Configuración de Plataforma</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="configuracionForm">
+                    <div class="mb-3">
+                        <label for="expiracionSesion" class="form-label">Tiempo de expiración de sesión (minutos)</label>
+                        <input type="number" class="form-control" id="expiracionSesion" name="expiracionSesion" min="1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="maxIntentos" class="form-label">Cantidad máxima de intentos fallidos de login</label>
+                        <input type="number" class="form-control" id="maxIntentos" name="maxIntentos" min="1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="largoMinimo" class="form-label">Largo mínimo de la contraseña</label>
+                        <input type="number" class="form-control" id="largoMinimo" name="largoMinimo" min="1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="campo4" class="form-label">Campo 4</label>
+                        <input type="text" class="form-control" id="campo4" name="campo4" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label for="campo5" class="form-label">Campo 5</label>
+                        <input type="text" class="form-control" id="campo5" name="campo5" disabled>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="configuracionForm" class="btn btn-primary">Guardar Configuración</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+</div>
+    }
 
 @if (User.IsInRole("AdminTenant"))
 {  
