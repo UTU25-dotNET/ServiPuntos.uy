@@ -42,7 +42,7 @@ namespace ServiPuntos.Core.Entities
 
         public Guid UbicacionPreferida { get; set; } = Guid.Empty; //ubicacion preferida del usuario, se actualiza automaticamente al visitar una ubicacion
 
-        public List<string> Intereses { get; set; } = new List<string>(); // Ejemplo de propiedad de lista
+        public List<string>? Intereses { get; set; } = new List<string>();// Ejemplo de propiedad de lista
 
         public Guid? SegmentoDinamicoId { get; set; }// ID del segmento dinámico al que pertenece
 

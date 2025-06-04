@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServiPuntos.Infrastructure.Data;
@@ -12,9 +13,11 @@ using ServiPuntos.Infrastructure.Data;
 namespace ServiPuntos.Infrastructure.Migrations
 {
     [DbContext(typeof(ServiPuntosDbContext))]
-    partial class ServiPuntosDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250602234532_Migracion2")]
+    partial class Migracion2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -298,13 +301,7 @@ namespace ServiPuntos.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("TasaCombustible")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("TasaMinimercado")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("TasaServicios")
+                    b.Property<decimal>("TasaPuntos")
                         .HasColumnType("numeric");
 
                     b.Property<decimal>("ValorPunto")
@@ -374,10 +371,7 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.Property<bool>("CambioAceite")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("CambioDeAceite")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("CambioDeNeumaticos")
+                    b.Property<bool>("CambioNeumaticos")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Ciudad")
@@ -402,9 +396,6 @@ namespace ServiPuntos.Infrastructure.Migrations
                         .HasColumnType("interval");
 
                     b.Property<bool>("Lavado")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("LavadoDeAuto")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Nombre")
