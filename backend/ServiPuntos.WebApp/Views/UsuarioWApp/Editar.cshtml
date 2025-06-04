@@ -1,0 +1,52 @@
+@model ServiPuntos.Core.Entities.Usuario
+
+@{
+    ViewData["Title"] = "Editar Usuario";
+    var tenants = (IEnumerable<ServiPuntos.Core.Entities.Tenant>)ViewBag.Tenants;
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form asp-action="Editar" method="post">
+    <input type="hidden" asp-for="Id" />
+    
+    <div class="form-group">
+        <label for="nombre">Nombre</label>
+        <input type="text" class="form-control" id="nombre" name="nombre" value="@Model.Nombre" required />
+    </div>
+
+    <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" class="form-control" id="email" name="email" value="@Model.Email" required />
+    </div>
+
+    <div class="form-group">
+        <label for="ci">CI</label>
+        <input type="number" class="form-control" id="ci" name="ci" value="@Model.Ci" required />
+    </div>
+
+    <div class="form-group">
+        <label for="tenantId">Tenant</label>
+        <select name="tenantId" id="tenantId" class="form-control" required>
+            @foreach (var tenant in tenants)
+            {
+                <option value="@tenant.Id" selected="@(tenant.Id == Model.TenantId)">@tenant.Nombre</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="rol">Rol</label>
+        <select name="rol" id="rol" class="form-control" required>
+            @foreach (var rol in Enum.GetValues<ServiPuntos.Core.Enums.RolUsuario>())
+            {
+                <option value="@rol" selected="@(rol == Model.Rol)">@rol</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group mt-3">
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        <a asp-action="Index" asp-route-tenantId="@Model.TenantId" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
