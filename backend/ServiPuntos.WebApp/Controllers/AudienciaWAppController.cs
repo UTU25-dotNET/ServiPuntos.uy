@@ -21,8 +21,6 @@ using ServiPuntos.Core.DTOs;  // Para la entidad Audiencia si la devuelves direc
 // }
 
 
-[ApiController]
-[Route("api/tenants/{tenantId}/audiencias")] // Ruta base para las audiencias de un tenant
 // [Authorize] // Asegúrate de proteger tus endpoints
 public class AudienciasWAppController : ControllerBase
 {
