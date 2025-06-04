@@ -1,0 +1,103 @@
+@model ServiPuntos.Core.Entities.Ubicacion
+
+@{
+    ViewData["Title"] = "Eliminar Ubicación";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="alert alert-danger">
+    <strong>¿Estás seguro que quieres eliminar esta ubicación?</strong>
+    <p class="mb-0">Esta acción no se puede deshacer y eliminará permanentemente:</p>
+    <ul class="mb-0 mt-2">
+        <li>La información de la ubicación</li>
+        <li>Los precios de combustible configurados</li>
+        <li>El historial de la ubicación</li>
+    </ul>
+</div>
+
+<div class="card">
+    <div class="card-header bg-danger text-white">
+        <h4 class="mb-0">
+            <i class="fas fa-store me-2"></i>
+            @Model.Nombre
+        </h4>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID:</dt>
+            <dd class="col-sm-9">
+                <code>@Model.Id</code>
+            </dd>
+
+            <dt class="col-sm-3">Nombre:</dt>
+            <dd class="col-sm-9">@Model.Nombre</dd>
+
+            <dt class="col-sm-3">Dirección:</dt>
+            <dd class="col-sm-9">@Model.Direccion</dd>
+
+            <dt class="col-sm-3">Ciudad:</dt>
+            <dd class="col-sm-9">
+                <span class="badge bg-secondary">@Model.Ciudad</span>
+            </dd>
+
+            <dt class="col-sm-3">Departamento:</dt>
+            <dd class="col-sm-9">@Model.Departamento</dd>
+
+            <dt class="col-sm-3">Teléfono:</dt>
+            <dd class="col-sm-9">
+                 @if (!string.IsNullOrEmpty(Model.Telefono))
+                {
+                    <i class="fas fa-phone me-1"></i>@Model.Telefono
+                }
+                else
+                {
+                    <span class="text-muted">No especificado</span>
+                } 
+            </dd>
+
+            <dt class="col-sm-3">Horario:</dt>
+            <dd class="col-sm-9">
+                <i class="fas fa-clock me-2"></i>
+                 @Model.HoraApertura.ToString(@"hh\:mm") - @Model.HoraCierre.ToString(@"hh\:mm") 
+            </dd>
+
+            <dt class="col-sm-3">Precios:</dt>
+            <dd class="col-sm-9">
+                <div class="small">
+                    <div><strong>Nafta Súper:</strong> $@Model.PrecioNaftaSuper</div>
+                    <div><strong>Nafta Premium:</strong> $@Model.PrecioNaftaPremium</div>
+                    <div><strong>Diesel:</strong> $@Model.PrecioDiesel</div>
+                </div>
+            </dd>
+
+            <dt class="col-sm-3">Servicios:</dt>
+            <dd class="col-sm-9">
+                @if (Model.Lavado)
+                {
+                    <span class="badge bg-success me-1">Lavado</span>
+                }
+                 @if (Model.CambioDeAceite)
+                {
+                    <span class="badge bg-primary me-1">Cambio de Aceite</span>
+                } 
+                @if (!Model.Lavado)
+                {
+                    <span class="text-muted">Sin servicios adicionales</span>
+                }
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<form asp-action="Eliminar" method="post" class="mt-3">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger" onclick="return confirm('¿Estás completamente seguro? Esta acción NO se puede deshacer.')">
+        <i class="fas fa-trash me-2"></i>
+        Sí, Eliminar Ubicación Definitivamente
+    </button>
+    <a asp-action="Administrar" class="btn btn-secondary">
+        <i class="fas fa-times me-2"></i>
+        Cancelar
+    </a>
+</form>

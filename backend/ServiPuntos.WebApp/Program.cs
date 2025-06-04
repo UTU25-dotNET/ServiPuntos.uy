@@ -1,64 +1,67 @@
 using System;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using ServiPuntos.Application.Services;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Data;
 using ServiPuntos.Infrastructure.Middleware;
 using ServiPuntos.Infrastructure.MultiTenancy;
 using ServiPuntos.Infrastructure.Repositories;
+using ServiPuntos.Application.Services;
+using ServiPuntos.Application.Services.Rules;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // -------------------------
-// ConfiguraciÛn de servicios
+// Configuraci√≥n de servicios
 // -------------------------
 
 // MVC (Controllers + Views)
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add<ServiPuntos.WebApp.Filters.TenantNavbarFilter>();
+});
+
+// Tambi√©n registrar el filtro como servicio
+builder.Services.AddScoped<ServiPuntos.WebApp.Filters.TenantNavbarFilter>();
 
 // Contextos de base de datos
 builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-//builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
-//options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// Repositorios y servicios de negocio
-builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+// ===== REPOSITORIOS B√ÅSICOS =====
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
-
-builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<ITenantRepository, TenantRepository>();
-
-builder.Services.AddScoped<IProductoCanjeableService, ProductoCanjeableService>();
-builder.Services.AddScoped<IProductoCanjeableRepository, ProductoCanjeableRepository>();
-
-builder.Services.AddScoped<IProductoUbicacionService, ProductoUbicacionService>();
-builder.Services.AddScoped<IProductoUbicacionRepository, ProductoUbicacionRepository>();
-
-builder.Services.AddScoped<IUbicacionService, UbicacionService>();
 builder.Services.AddScoped<IUbicacionRepository, UbicacionRepository>();
 
-builder.Services.AddScoped<IConfigPlataformaRepository, ConfigPlataformaRepository>();
-builder.Services.AddScoped<IConfigPlataformaService, ConfigPlataformaService>();
+// ===== REPOSITORIOS NAFTA (solo los que definitivamente existen) =====
+builder.Services.AddScoped<ITransaccionRepository, TransaccionRepository>();
 
-builder.Services.AddScoped<IAudienciaService, AudienciaService>();
+// ===== REPOSITORIOS AUDIENCIA =====
 builder.Services.AddScoped<IAudienciaRepository, AudienciaRepository>();
 
-// Multi-tenancy
-builder.Services.AddHttpContextAccessor();
+// ===== SERVICIOS B√ÅSICOS =====
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<ITenantService, TenantService>();
+builder.Services.AddScoped<IUbicacionService, UbicacionService>();
 
+// ===== SERVICIOS AUDIENCIA =====
+builder.Services.AddScoped<IAudienciaRuleEngine, AudienciaRuleEngine>();
+builder.Services.AddScoped<IAudienciaService, AudienciaService>();
+
+// ===== MULTI-TENANCY =====
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITenantResolver, TenantResolver>();
 builder.Services.AddScoped<ITenantContext, TenantContext>();
 
-// AutenticaciÛn y AutorizaciÛn con Cookies
+// ===== AUTENTICACI√ìN =====
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/AccountWApp/Login";   // Ruta del login
-        options.AccessDeniedPath = "/AccountWApp/AccessDenied";   // Ruta de acceso denegado
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // Tiempo de expiraciÛn
+        options.LoginPath = "/AccountWApp/Login";
+        options.AccessDeniedPath = "/AccountWApp/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
     });
 
 builder.Services.AddAuthorization(options =>
@@ -66,49 +69,41 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("AdminTenant", policy => policy.RequireRole("AdminTenant"));
 });
 
-
 // -------------------------
-// ConstrucciÛn de la app
+// Construcci√≥n de la app
 // -------------------------
 
 var app = builder.Build();
 
 // -------------------------
-// ConfiguraciÛn de middlewares
+// Configuraci√≥n de middlewares
 // -------------------------
-
-// ConfiguraciÛn de Swagger (opcional, para desarrollo)
-/*if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}*/
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
-// Asegurarse de que el enrutamiento estÈ configurado antes de autenticaciÛn
 app.UseRouting();
-
-// Middleware de AutenticaciÛn y AutorizaciÛn
-
-// 1. AutenticaciÛn
-app.UseAuthentication();// Aseg˙rate de que se ejecute antes de TenantMiddleware
-
-// 2. TenantMiddleware (despuÈs de autenticaciÛn, pero ANTES de MapControllerRoute)
+app.UseAuthentication();
 app.UseMiddleware<TenantMiddleware>();
-
-// 3. AutorizaciÛn
 app.UseAuthorization();
 
 // -------------------------
 // Ruteo
 // -------------------------
 
-// ConfiguraciÛn de la ruta por defecto
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+var defaultCulture = new CultureInfo("en-US");
+var localizationOptions = new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture(defaultCulture),
+    SupportedCultures = new[] { defaultCulture },
+    SupportedUICultures = new[] { defaultCulture }
+};
+
+CultureInfo.DefaultThreadCurrentCulture = defaultCulture;
+CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
+app.UseRequestLocalization(localizationOptions);
 
 app.Run();
