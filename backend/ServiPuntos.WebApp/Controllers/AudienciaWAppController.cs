@@ -1,289 +1,491 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc; // Necesario para [ApiController], [Route], IActionResult, etc.
-using Microsoft.Extensions.Logging;
-using ServiPuntos.Core.Interfaces; // Donde está IAudienciaService y los DTOs
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ServiPuntos.Core.Entities;
-using ServiPuntos.Core.DTOs;  // Para la entidad Audiencia si la devuelves directamente
+using ServiPuntos.Core.Interfaces;
+using ServiPuntos.Core.DTOs;
 
-// Si usas un DTO para la salida de GetDefinicionesAudienciaAsync, defínelo.
-// Por ejemplo:
-// public class AudienciaDefinicionDto
-// {
-//     public Guid Id { get; set; }
-//     public string NombreUnicoInterno { get; set; }
-//     public string NombreDescriptivo { get; set; }
-//     public int Prioridad { get; set; }
-//     public bool Activa { get; set; }
-//     public int NumeroDeReglas { get; set; }
-// }
-
-
-// [Authorize] // Asegúrate de proteger tus endpoints
-public class AudienciasWAppController : ControllerBase
+namespace ServiPuntos.WebApp.Controllers
 {
-    private readonly IAudienciaService _audienciaService;
-    private readonly ILogger<AudienciasWAppController> _logger;
-    private readonly ITenantContext _tenantContext; // Opcional, si obtienes tenantId del contexto
-
-    public AudienciasWAppController(
-        IAudienciaService audienciaService,
-        ILogger<AudienciasWAppController> logger,
-        ITenantContext tenantContext = null) // Hacerlo opcional si siempre viene en la ruta
+    // [Authorize(Roles = "AdminTenant")]
+    public class AudienciaWAppController : Controller
     {
-        _audienciaService = audienciaService ?? throw new ArgumentNullException(nameof(audienciaService));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _tenantContext = tenantContext; // Puede ser null si no se inyecta globalmente
-    }
+        private readonly IAudienciaService _iAudienciaService;
+        private readonly ITenantService _iTenantService;
+        private readonly IUsuarioService _iUsuarioService;
+        private readonly ITenantContext _iTenantContext;
 
-    /// <summary>
-    /// Obtiene el TenantId a usar, priorizando el de la ruta, luego el del contexto.
-    /// </summary>
-    private Guid GetEffectiveTenantId(Guid tenantIdFromRoute)
-    {
-        if (tenantIdFromRoute != Guid.Empty) return tenantIdFromRoute;
-        if (_tenantContext != null && _tenantContext.TenantId != Guid.Empty) return _tenantContext.TenantId;
-
-        _logger.LogError("TenantId no pudo ser determinado.");
-        throw new InvalidOperationException("TenantId es requerido y no pudo ser determinado.");
-    }
-
-    /// <summary>
-    /// Crea una nueva definición de audiencia o actualiza una existente si se provee un ID en el DTO.
-    /// </summary>
-    /// <param name="tenantId">ID del tenant.</param>
-    /// <param name="dto">Datos de la audiencia a crear o actualizar.</param>
-    /// <returns>La audiencia creada o actualizada.</returns>
-    [HttpPost] // Usar POST para crear, PUT para actualizar completamente, PATCH para actualizar parcialmente
-    [ProducesResponseType(typeof(Audiencia), 201)] // 201 Created
-    [ProducesResponseType(typeof(Audiencia), 200)] // 200 OK (si actualiza)
-    [ProducesResponseType(400)] // Bad Request
-    [ProducesResponseType(404)] // Not Found (si se intenta actualizar una audiencia inexistente por ID)
-    public async Task<IActionResult> GuardarAudiencia(Guid tenantId, [FromBody] AudienciaDto dto)
-    {
-        tenantId = GetEffectiveTenantId(tenantId);
-        if (dto == null) return BadRequest("El cuerpo de la solicitud no puede ser nulo.");
-        if (!ModelState.IsValid) return BadRequest(ModelState); // Validar DTO con DataAnnotations
-
-        try
+        public AudienciaWAppController(
+            IAudienciaService audienciaService,
+            ITenantService tenantService,
+            IUsuarioService usuarioService,
+            ITenantContext tenantContext = null)
         {
-            _logger.LogInformation("API: Solicitud para guardar audiencia '{NombreUnico}' para TenantId {TenantId}", dto.NombreUnicoInterno, tenantId);
-            Audiencia audienciaGuardada = await _audienciaService.GuardarAudienciaAsync(tenantId, dto);
+            _iAudienciaService = audienciaService;
+            _iTenantService = tenantService;
+            _iUsuarioService = usuarioService;
+            _iTenantContext = tenantContext;
+        }
 
-            if (dto.Id == Guid.Empty || audienciaGuardada.FechaCreacion == audienciaGuardada.FechaModificacion) // Asumir que si las fechas son iguales, es nueva
+        /// <summary>
+        /// Obtiene el TenantId efectivo, priorizando el claim del usuario autenticado
+        /// </summary>
+        private Guid GetEffectiveTenantId(Guid? tenantIdFromRoute = null)
+        {
+            // Si es AdminTenant, usar su propio tenant
+            if (User.IsInRole("AdminTenant"))
             {
-                _logger.LogInformation("API: Audiencia '{NombreUnico}' creada con ID {AudienciaId}", audienciaGuardada.NombreUnicoInterno, audienciaGuardada.Id);
-                // Para POST (crear), es común devolver 201 Created con la URI del nuevo recurso.
-                return CreatedAtAction(nameof(GetAudienciaPorId), new { tenantId = tenantId, audienciaId = audienciaGuardada.Id }, audienciaGuardada);
+                var tenantIdClaim = User.Claims.FirstOrDefault(c => c.Type == "tenantId")?.Value;
+                if (!string.IsNullOrEmpty(tenantIdClaim) && Guid.TryParse(tenantIdClaim, out Guid userTenantId))
+                {
+                    return userTenantId;
+                }
             }
-            else
+
+            // Si viene de la ruta y es AdminPlataforma
+            if (tenantIdFromRoute.HasValue && tenantIdFromRoute.Value != Guid.Empty)
             {
-                _logger.LogInformation("API: Audiencia '{NombreUnico}' actualizada con ID {AudienciaId}", audienciaGuardada.NombreUnicoInterno, audienciaGuardada.Id);
-                return Ok(audienciaGuardada); // Para PUT/PATCH (actualizar), 200 OK o 204 No Content.
+                return tenantIdFromRoute.Value;
             }
-        }
-        catch (InvalidOperationException ex) // Ej: NombreUnicoInterno duplicado
-        {
-            _logger.LogWarning(ex, "API: Error de operación al guardar audiencia para TenantId {TenantId}: {ErrorMessage}", tenantId, ex.Message);
-            return Conflict(new { message = ex.Message }); // 409 Conflict
-        }
-        catch (KeyNotFoundException ex) // Ej: Audiencia no encontrada para actualizar
-        {
-            _logger.LogWarning(ex, "API: Audiencia no encontrada al intentar guardar para TenantId {TenantId}: {ErrorMessage}", tenantId, ex.Message);
-            return NotFound(new { message = ex.Message }); // 404 Not Found
-        }
-        catch (ArgumentException ex)
-        {
-            _logger.LogWarning(ex, "API: Argumento inválido al guardar audiencia para TenantId {TenantId}: {ErrorMessage}", tenantId, ex.Message);
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "API: Error inesperado al guardar audiencia para TenantId {TenantId}", tenantId);
-            return StatusCode(500, "Ocurrió un error interno al procesar la solicitud.");
-        }
-    }
 
-    /// <summary>
-    /// Obtiene la definición de una audiencia específica por su ID.
-    /// </summary>
-    [HttpGet("{audienciaId}")]
-    [ProducesResponseType(typeof(Audiencia), 200)]
-    [ProducesResponseType(404)]
-    public async Task<IActionResult> GetAudienciaPorId(Guid tenantId, Guid audienciaId)
-    {
-        tenantId = GetEffectiveTenantId(tenantId);
-        _logger.LogInformation("API: Solicitud para obtener audiencia por ID {AudienciaId} para TenantId {TenantId}", audienciaId, tenantId);
-
-        // IAudienciaService debería tener un método para esto, o usamos el repositorio directamente si es solo lectura de definición.
-        // Por ahora, asumimos que GetDefinicionesAudienciaAsync y filtramos. Mejor si hay un GetById específico.
-        var audiencia = (await _audienciaService.GetDefinicionesAudienciaAsync(tenantId))
-                        .FirstOrDefault(a => a.Id == audienciaId);
-
-        if (audiencia == null)
-        {
-            _logger.LogWarning("API: Audiencia por ID {AudienciaId} no encontrada para TenantId {TenantId}", audienciaId, tenantId);
-            return NotFound();
-        }
-        return Ok(audiencia);
-    }
-
-
-    /// <summary>
-    /// Obtiene todas las definiciones de audiencia para un tenant.
-    /// </summary>
-    [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<Audiencia>), 200)] // Podrías usar un AudienciaDefinicionDto aquí
-    public async Task<IActionResult> GetTodasLasDefinicionesDeAudiencia(Guid tenantId)
-    {
-        tenantId = GetEffectiveTenantId(tenantId);
-        _logger.LogInformation("API: Solicitud para obtener todas las definiciones de audiencia para TenantId {TenantId}", tenantId);
-        var definiciones = await _audienciaService.GetDefinicionesAudienciaAsync(tenantId);
-        // Si usas DTOs para la salida:
-        // var dtos = definiciones.Select(a => new AudienciaDefinicionDto { ... mapeo ... });
-        // return Ok(dtos);
-        return Ok(definiciones);
-    }
-
-    /// <summary>
-    /// Elimina una definición de audiencia.
-    /// </summary>
-    [HttpDelete("{audienciaId}")]
-    [ProducesResponseType(204)] // No Content
-    [ProducesResponseType(404)]
-    public async Task<IActionResult> EliminarAudiencia(Guid tenantId, Guid audienciaId)
-    {
-        tenantId = GetEffectiveTenantId(tenantId);
-        _logger.LogInformation("API: Solicitud para eliminar audiencia ID {AudienciaId} para TenantId {TenantId}", audienciaId, tenantId);
-        try
-        {
-            await _audienciaService.EliminarAudienciaAsync(tenantId, audienciaId);
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            _logger.LogWarning(ex, "API: Audiencia ID {AudienciaId} no encontrada para eliminar en TenantId {TenantId}", audienciaId, tenantId);
-            return NotFound(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "API: Error inesperado al eliminar audiencia ID {AudienciaId} para TenantId {TenantId}", audienciaId, tenantId);
-            return StatusCode(500, "Ocurrió un error interno.");
-        }
-    }
-
-    /// <summary>
-    /// Fuerza la reclasificación de todos los usuarios del tenant.
-    /// </summary>
-    /// <remarks>
-    /// Esta operación puede ser intensiva en recursos. Usar con precaución.
-    /// </remarks>
-    [HttpPost("recalcular-segmentos")]
-    [ProducesResponseType(202)] // Accepted (la operación se inició)
-    public async Task<IActionResult> RecalcularSegmentos(Guid tenantId)
-    {
-        tenantId = GetEffectiveTenantId(tenantId);
-        _logger.LogInformation("API: Solicitud para recalcular segmentos para TenantId {TenantId}", tenantId);
-        // No esperamos que termine aquí, solo que se inicie.
-        // Para una operación larga, considera usar un sistema de colas/trabajos en segundo plano.
-       
-        await _audienciaService.ActualizarSegmentosUsuariosAsync(tenantId, null); // Se puede pasar una lista de usuarios para segmentar, o null para todos los usuarios.
-        _logger.LogInformation("API: Recalculación de segmentos iniciada para TenantId {TenantId}", tenantId);
-        return Accepted();
-    }
-
-    /// <summary>
-    /// Obtiene la lista de usuarios que pertenecen a una audiencia específica.
-    /// </summary>
-    /// <param name="tenantId">ID del tenant.</param>
-    /// <param name="nombreUnicoAudiencia">El NombreUnicoInterno de la audiencia.</param>
-    /// <returns>Una lista de usuarios.</returns>
-    [HttpGet("{nombreUnicoAudiencia}/usuarios")]
-    [ProducesResponseType(typeof(IEnumerable<Usuario>), 200)]
-    [ProducesResponseType(404)] // Si la audiencia no existe
-    public async Task<IActionResult> GetUsuariosDeAudiencia(Guid tenantId, string nombreUnicoAudiencia)
-    {
-        tenantId = GetEffectiveTenantId(tenantId);
-        _logger.LogInformation("API: Solicitud para obtener usuarios de la audiencia '{NombreUnico}' para TenantId {TenantId}", nombreUnicoAudiencia, tenantId);
-
-        if (string.IsNullOrWhiteSpace(nombreUnicoAudiencia))
-        {
-            return BadRequest("El nombre único de la audiencia es requerido.");
-        }
-
-        var usuarios = await _audienciaService.GetUsuariosPorAudienciaAsync(tenantId, nombreUnicoAudiencia);
-
-        // GetUsuariosPorAudienciaAsync podría devolver vacío si la audiencia no existe o no tiene usuarios.
-        // Podrías añadir una verificación explícita si la audiencia existe si quieres un 404 más preciso
-        // cuando la audiencia en sí no se encuentra, versus cuando simplemente no tiene usuarios.
-        // var audienciaDef = (await _audienciaService.GetDefinicionesAudienciaAsync(tenantId))
-        //                  .FirstOrDefault(a => a.NombreUnicoInterno.Equals(nombreUnicoAudiencia, StringComparison.OrdinalIgnoreCase));
-        // if (audienciaDef == null && !nombreUnicoAudiencia.Equals(KeyParaUsuariosNoAsignados, StringComparison.OrdinalIgnoreCase) ) // Asumiendo KeyParaUsuariosNoAsignados
-        // {
-        //     return NotFound($"Audiencia '{nombreUnicoAudiencia}' no encontrada.");
-        // }
-
-        return Ok(usuarios);
-    }
-
-    /// <summary>
-    /// Obtiene la distribución de usuarios por cada audiencia (NombreUnicoInterno y conteo).
-    /// </summary>
-    [HttpGet("distribucion")]
-    [ProducesResponseType(typeof(Dictionary<string, int>), 200)]
-    public async Task<IActionResult> GetDistribucion(Guid tenantId)
-    {
-        tenantId = GetEffectiveTenantId(tenantId);
-        _logger.LogInformation("API: Solicitud para obtener distribución de audiencias para TenantId {TenantId}", tenantId);
-        var distribucion = await _audienciaService.GetDistribucionUsuariosPorAudienciaAsync(tenantId);
-        return Ok(distribucion);
-    }
-
-    /// <summary>
-    /// Obtiene estadísticas globales y por audiencia.
-    /// </summary>
-    [HttpGet("estadisticas")]
-    [ProducesResponseType(typeof(EstadisticasAudienciaDinamica), 200)]
-    public async Task<IActionResult> GetEstadisticas(Guid tenantId)
-    {
-        tenantId = GetEffectiveTenantId(tenantId);
-        _logger.LogInformation("API: Solicitud para obtener estadísticas de audiencias para TenantId {TenantId}", tenantId);
-        var estadisticas = await _audienciaService.GetEstadisticasGlobalesYAporAudienciaAsync(tenantId);
-        return Ok(estadisticas);
-    }
-
-    /// <summary>
-    /// Clasifica un usuario específico y devuelve el NombreUnicoInterno de la audiencia a la que pertenece.
-    /// </summary>
-    [HttpGet("usuarios/{usuarioId}/clasificar")]
-    [ProducesResponseType(typeof(string), 200)]
-    [ProducesResponseType(404)] // Si el usuario no existe
-    public async Task<IActionResult> ClasificarUsuario(Guid tenantId, Guid usuarioId)
-    {
-        tenantId = GetEffectiveTenantId(tenantId);
-        _logger.LogInformation("API: Solicitud para clasificar UsuarioId {UsuarioId} en TenantId {TenantId}", usuarioId, tenantId);
-        try
-        {
-            string nombreUnicoAudiencia = await _audienciaService.ClasificarUsuarioAsync(usuarioId, tenantId);
-            if (nombreUnicoAudiencia == null)
+            // Fallback al contexto
+            if (_iTenantContext?.TenantId != Guid.Empty)
             {
-                // Esto significa que el usuario no cayó en ninguna audiencia específica y no hay un "default" con nombre
-                // o el servicio devuelve null para el default implícito.
-                return Ok(new { usuarioId = usuarioId, audienciaAsignada = (string)null, mensaje = "Usuario no asignado a una audiencia específica o pertenece al segmento por defecto implícito." });
+                return _iTenantContext.TenantId;
             }
-            return Ok(new { usuarioId = usuarioId, audienciaAsignada = nombreUnicoAudiencia });
+
+            throw new InvalidOperationException("No se pudo determinar el TenantId.");
         }
-        catch (KeyNotFoundException ex) // Si el usuario no se encuentra en ClasificarUsuarioAsync (aunque nuestro servicio actual devuelve null)
+
+        [HttpGet]
+        public async Task<IActionResult> Index(Guid? tenantId)
         {
-            _logger.LogWarning(ex, "API: UsuarioId {UsuarioId} no encontrado al clasificar en TenantId {TenantId}", usuarioId, tenantId);
-            return NotFound(new { message = ex.Message });
+            try
+            {
+                var tenants = await _iTenantService.GetAllAsync();
+                ViewBag.Tenants = tenants;
+
+                // Obtener tenant efectivo
+                Guid effectiveTenantId;
+                try
+                {
+                    effectiveTenantId = GetEffectiveTenantId(tenantId);
+                }
+                catch (InvalidOperationException)
+                {
+                    // Si no se puede determinar el tenant y hay tenants disponibles, usar el primero (solo AdminPlataforma)
+                    if (tenants.Any() && User.IsInRole("AdminPlataforma"))
+                    {
+                        effectiveTenantId = tenants.First().Id;
+                    }
+                    else
+                    {
+                        TempData["Error"] = "No se pudo identificar el tenant.";
+                        return View(new List<Audiencia>());
+                    }
+                }
+
+                ViewBag.TenantSeleccionado = effectiveTenantId;
+
+                // Obtener audiencias del tenant seleccionado
+                var audiencias = await _iAudienciaService.GetDefinicionesAudienciaAsync(effectiveTenantId);
+
+                return View(audiencias);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error al cargar audiencias: {ex.Message}";
+                Console.WriteLine($"❌ Error en Index: {ex.Message}");
+                return View(new List<Audiencia>());
+            }
         }
-        catch (Exception ex)
+
+        [HttpGet]
+        public async Task<IActionResult> Detalles(Guid id)
         {
-            _logger.LogError(ex, "API: Error inesperado al clasificar UsuarioId {UsuarioId} en TenantId {TenantId}", usuarioId, tenantId);
-            return StatusCode(500, "Ocurrió un error interno.");
+            try
+            {
+                Guid tenantId = GetEffectiveTenantId();
+                
+                // Obtener la audiencia específica
+                var audiencias = await _iAudienciaService.GetDefinicionesAudienciaAsync(tenantId);
+                var audiencia = audiencias.FirstOrDefault(a => a.Id == id);
+
+                if (audiencia == null)
+                {
+                    TempData["Error"] = "Audiencia no encontrada.";
+                    return RedirectToAction("Index", new { tenantId = tenantId });
+                }
+
+                // Obtener información del tenant
+                var tenant = await _iTenantService.GetByIdAsync(tenantId);
+                ViewBag.TenantNombre = tenant?.Nombre ?? "Tenant no encontrado";
+
+                // Obtener usuarios de la audiencia
+                var usuarios = await _iAudienciaService.GetUsuariosPorAudienciaAsync(tenantId, audiencia.NombreUnicoInterno);
+                ViewBag.UsuariosAudiencia = usuarios;
+                ViewBag.TotalUsuarios = usuarios.Count();
+
+                // Obtener estadísticas
+                var estadisticas = await _iAudienciaService.GetEstadisticasGlobalesYAporAudienciaAsync(tenantId);
+                ViewBag.Estadisticas = estadisticas;
+
+                return View(audiencia);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error al cargar detalles de la audiencia: {ex.Message}";
+                Console.WriteLine($"❌ Error en Detalles: {ex.Message}");
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Editar(Guid id)
+        {
+            try
+            {
+                Guid tenantId = GetEffectiveTenantId();
+                
+                // Obtener la audiencia específica
+                var audiencias = await _iAudienciaService.GetDefinicionesAudienciaAsync(tenantId);
+                var audiencia = audiencias.FirstOrDefault(a => a.Id == id);
+
+                if (audiencia == null)
+                {
+                    TempData["Error"] = "Audiencia no encontrada.";
+                    return RedirectToAction("Index", new { tenantId = tenantId });
+                }
+
+                // Solo AdminPlataforma puede cambiar el tenant
+                if (User.IsInRole("AdminPlataforma"))
+                {
+                    ViewBag.Tenants = await _iTenantService.GetAllAsync();
+                }
+
+                return View(audiencia);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error al cargar audiencia para editar: {ex.Message}";
+                Console.WriteLine($"❌ Error en Editar GET: {ex.Message}");
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Editar(Guid id, AudienciaDto dto)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    Guid tenantId = GetEffectiveTenantId();
+                    
+                    // Establecer el ID para actualización
+                    dto.Id = id;
+
+                    await _iAudienciaService.GuardarAudienciaAsync(tenantId, dto);
+                    
+                    TempData["Success"] = "Audiencia actualizada exitosamente.";
+                    return RedirectToAction("Index", new { tenantId = tenantId });
+                }
+
+                // Si hay errores de validación, recargar datos necesarios
+                if (User.IsInRole("AdminPlataforma"))
+                {
+                    ViewBag.Tenants = await _iTenantService.GetAllAsync();
+                }
+
+                return View(dto);
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["Error"] = $"Error de operación: {ex.Message}";
+                ModelState.AddModelError("", ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                TempData["Error"] = $"Audiencia no encontrada: {ex.Message}";
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error al actualizar audiencia: {ex.Message}";
+                Console.WriteLine($"❌ Error en Editar POST: {ex.Message}");
+            }
+
+            // Recargar datos en caso de error
+            if (User.IsInRole("AdminPlataforma"))
+            {
+                ViewBag.Tenants = await _iTenantService.GetAllAsync();
+            }
+            
+            return View(dto);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Borrar(Guid id)
+        {
+            try
+            {
+                Guid tenantId = GetEffectiveTenantId();
+                
+                // Obtener la audiencia específica
+                var audiencias = await _iAudienciaService.GetDefinicionesAudienciaAsync(tenantId);
+                var audiencia = audiencias.FirstOrDefault(a => a.Id == id);
+
+                if (audiencia == null)
+                {
+                    TempData["Error"] = "Audiencia no encontrada.";
+                    return RedirectToAction("Index", new { tenantId = tenantId });
+                }
+
+                // Obtener información del tenant
+                var tenant = await _iTenantService.GetByIdAsync(tenantId);
+                ViewBag.TenantNombre = tenant?.Nombre ?? "Tenant no encontrado";
+
+                // Obtener usuarios afectados
+                var usuarios = await _iAudienciaService.GetUsuariosPorAudienciaAsync(tenantId, audiencia.NombreUnicoInterno);
+                ViewBag.UsuariosAfectados = usuarios.Count();
+
+                return View(audiencia);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error al cargar audiencia para eliminar: {ex.Message}";
+                Console.WriteLine($"❌ Error en Borrar GET: {ex.Message}");
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpPost, ActionName("Borrar")]
+        public async Task<IActionResult> BorrarConfirmed(Guid id)
+        {
+            try
+            {
+                Guid tenantId = GetEffectiveTenantId();
+                
+                await _iAudienciaService.EliminarAudienciaAsync(tenantId, id);
+                
+                TempData["Success"] = "Audiencia eliminada exitosamente.";
+                return RedirectToAction("Index", new { tenantId = tenantId });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                TempData["Error"] = $"Audiencia no encontrada: {ex.Message}";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error al eliminar audiencia: {ex.Message}";
+                Console.WriteLine($"❌ Error en BorrarConfirmed: {ex.Message}");
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Crear()
+        {
+            try
+            {
+                // Solo AdminPlataforma puede seleccionar tenant, AdminTenant usa el suyo
+                if (User.IsInRole("AdminPlataforma"))
+                {
+                    ViewBag.Tenants = await _iTenantService.GetAllAsync();
+                }
+                
+                return View(new AudienciaDto());
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error al cargar formulario de creación: {ex.Message}";
+                Console.WriteLine($"❌ Error en Crear GET: {ex.Message}");
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Crear(AudienciaDto dto)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    Guid tenantId = GetEffectiveTenantId();
+
+                    // Limpiar el ID para creación
+                    dto.Id = Guid.Empty;
+
+                    await _iAudienciaService.GuardarAudienciaAsync(tenantId, dto);
+                    
+                    TempData["Success"] = "Audiencia creada exitosamente.";
+                    return RedirectToAction("Index", new { tenantId = tenantId });
+                }
+
+                // Si hay errores de validación, recargar tenants si es AdminPlataforma
+                if (User.IsInRole("AdminPlataforma"))
+                {
+                    ViewBag.Tenants = await _iTenantService.GetAllAsync();
+                }
+                
+                return View(dto);
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["Error"] = $"Error de operación: {ex.Message}";
+                ModelState.AddModelError("", ex.Message);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error al crear audiencia: {ex.Message}";
+                Console.WriteLine($"❌ Error en Crear POST: {ex.Message}");
+            }
+
+            // Recargar datos en caso de error
+            if (User.IsInRole("AdminPlataforma"))
+            {
+                ViewBag.Tenants = await _iTenantService.GetAllAsync();
+            }
+            
+            return View(dto);
+        }
+
+        /// <summary>
+        /// Recalcula los segmentos de usuarios para el tenant
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> RecalcularSegmentos()
+        {
+            try
+            {
+                Guid tenantId = GetEffectiveTenantId();
+
+                await _iAudienciaService.ActualizarSegmentosUsuariosAsync(tenantId, null);
+                
+                TempData["Success"] = "Recalculación de segmentos iniciada exitosamente.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error al recalcular segmentos: {ex.Message}";
+                Console.WriteLine($"❌ Error en RecalcularSegmentos: {ex.Message}");
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        /// <summary>
+        /// Muestra estadísticas globales de audiencias
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> Estadisticas()
+        {
+            try
+            {
+                Guid tenantId = GetEffectiveTenantId();
+
+                // Obtener estadísticas globales
+                var estadisticas = await _iAudienciaService.GetEstadisticasGlobalesYAporAudienciaAsync(tenantId);
+                ViewBag.Estadisticas = estadisticas;
+
+                // Obtener distribución de usuarios
+                var distribucion = await _iAudienciaService.GetDistribucionUsuariosPorAudienciaAsync(tenantId);
+                ViewBag.Distribucion = distribucion;
+
+                // Obtener información del tenant
+                var tenant = await _iTenantService.GetByIdAsync(tenantId);
+                ViewBag.TenantNombre = tenant?.Nombre ?? "Tenant no encontrado";
+
+                return View();
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error al cargar estadísticas: {ex.Message}";
+                Console.WriteLine($"❌ Error en Estadisticas: {ex.Message}");
+                return RedirectToAction("Index");
+            }
+        }
+
+        /// <summary>
+        /// Clasifica un usuario específico (AJAX)
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> ClasificarUsuario(Guid usuarioId)
+        {
+            try
+            {
+                Guid tenantId = GetEffectiveTenantId();
+
+                string nombreUnicoAudiencia = await _iAudienciaService.ClasificarUsuarioAsync(usuarioId, tenantId);
+                
+                return Json(new { 
+                    success = true, 
+                    usuarioId = usuarioId, 
+                    audienciaAsignada = nombreUnicoAudiencia ?? "Sin audiencia específica"
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return Json(new { success = false, message = $"Usuario no encontrado: {ex.Message}" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error en ClasificarUsuario: {ex.Message}");
+                return Json(new { success = false, message = "Error interno al clasificar usuario" });
+            }
+        }
+
+        /// <summary>
+        /// Obtiene usuarios de una audiencia específica (AJAX)
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetUsuariosAudiencia(string nombreUnicoAudiencia)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(nombreUnicoAudiencia))
+                {
+                    return Json(new { success = false, message = "Nombre de audiencia requerido" });
+                }
+
+                Guid tenantId = GetEffectiveTenantId();
+
+                var usuarios = await _iAudienciaService.GetUsuariosPorAudienciaAsync(tenantId, nombreUnicoAudiencia);
+                
+                var usuariosDto = usuarios.Select(u => new {
+                    id = u.Id,
+                    nombre = u.Nombre,
+                    email = u.Email,
+                    puntos = u.Puntos
+                });
+
+                return Json(new { success = true, usuarios = usuariosDto });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error en GetUsuariosAudiencia: {ex.Message}");
+                return Json(new { success = false, message = "Error al obtener usuarios" });
+            }
+        }
+
+        /// <summary>
+        /// Obtiene la distribución de audiencias (AJAX)
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetDistribucion()
+        {
+            try
+            {
+                Guid tenantId = GetEffectiveTenantId();
+
+                var distribucion = await _iAudienciaService.GetDistribucionUsuariosPorAudienciaAsync(tenantId);
+                
+                return Json(new { success = true, distribucion = distribucion });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error en GetDistribucion: {ex.Message}");
+                return Json(new { success = false, message = "Error al obtener distribución" });
+            }
         }
     }
 }
