@@ -27,9 +27,44 @@ namespace ServiPuntos.API.Controllers
             return Ok(usuarios);
         }
 
+        [HttpGet("email/{email}")]
+        public async Task<IActionResult> GetUsuarioByEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return BadRequest(new { message = "El email es requerido" });
+            }
+
+            try
+            {
+                // Decodificar el email por si viene URL-encoded
+                email = Uri.UnescapeDataString(email).ToLower().Trim();
+
+                Console.WriteLine($"[GetUsuarioByEmail] Buscando usuario con email: {email}");
+
+                // Buscar el usuario por email
+                var usuarios = await _iUsuarioService.GetAllUsuariosAsync();
+                var usuario = usuarios.FirstOrDefault(u => u.Email.ToLower() == email);
+
+                if (usuario == null)
+                {
+                    Console.WriteLine($"[GetUsuarioByEmail] Usuario no encontrado: {email}");
+                    return NotFound(new { message = "Usuario no encontrado" });
+                }
+
+                Console.WriteLine($"[GetUsuarioByEmail] Usuario encontrado: {usuario.Nombre}");
+                return Ok(usuario);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GetUsuarioByEmail] Error: {ex.Message}");
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+        }
+
         // Obtener un usuario por ID.
 
-        [HttpGet("{id}")]
+            [HttpGet("{id}")]
         public async Task<IActionResult> GetUsuario(Guid id)
         {
             var usuario = await _iUsuarioService.GetUsuarioAsync(id);
