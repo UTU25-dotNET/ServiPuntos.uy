@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServiPuntos.Infrastructure.Data;
@@ -12,9 +13,11 @@ using ServiPuntos.Infrastructure.Data;
 namespace ServiPuntos.Infrastructure.Migrations
 {
     [DbContext(typeof(ServiPuntosDbContext))]
-    partial class ServiPuntosDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250604222848_MigracionFecha")]
+    partial class MigracionFecha
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -392,6 +395,12 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.Property<DateTime>("FechaCreacion")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime>("FechaDeCreacion")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("FechaDeModificacion")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("FechaModificacion")
                         .HasColumnType("timestamp with time zone");
 
@@ -420,9 +429,6 @@ namespace ServiPuntos.Infrastructure.Migrations
                         .HasColumnType("numeric");
 
                     b.Property<string>("Telefono")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Telefonoo")
                         .HasColumnType("text");
 
                     b.Property<Guid>("TenantId")
