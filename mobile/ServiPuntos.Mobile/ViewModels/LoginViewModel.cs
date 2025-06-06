@@ -32,6 +32,23 @@ namespace ServiPuntos.Mobile.ViewModels
 
         public ICommand LoginCommand { get; }
 
+        // **CORREGIDO: Constructor por defecto sin parámetros**
+        public LoginViewModel()
+        {
+            // Crear un tenant por defecto
+            Tenant = new TenantConfig
+            {
+                Id = "1", // **CORREGIDO: String en lugar de int**
+                Name = "ServiPuntos",
+                LogoUrl = "https://via.placeholder.com/150x100/0066CC/FFFFFF?text=ServiPuntos",
+                PrimaryColor = "#0066CC",
+                SecondaryColor = "#FFFFFF"
+            };
+            
+            LoginCommand = new Command(OnLogin);
+        }
+
+        // **MANTENER: Constructor con tenant (por si se necesita más adelante)**
         public LoginViewModel(TenantConfig tenant)
         {
             Tenant = tenant;
@@ -51,7 +68,8 @@ namespace ServiPuntos.Mobile.ViewModels
             // Mock login válido
             if (Username == "admin" && Password == "1234")
             {
-                await Application.Current.MainPage.Navigation.PushAsync(new Views.HomePage(Tenant));
+                // Por ahora, mostrar un mensaje de éxito
+                await Application.Current.MainPage.DisplayAlert("Éxito", "Login tradicional exitoso", "OK");
             }
             else
             {
