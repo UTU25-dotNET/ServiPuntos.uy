@@ -72,7 +72,7 @@ namespace ServiPuntos.Application.Services
                     {
                         amount = new
                         {
-                            total = amount.ToString("F2"),
+                            total = amount.ToString("F2", System.Globalization.CultureInfo.InvariantCulture),
                             currency = currency
                         },
                         description = description

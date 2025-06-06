@@ -383,7 +383,13 @@ namespace ServiPuntos.Application.Services
                     return CrearErrorRespuesta(mensaje.IdMensaje, "Formato de mensaje inválido");
                 }
 
-                string identificadorUsuario = mensaje.Datos["identificadorUsuario"].ToString();
+                string identificadorUsuarioStr = mensaje.Datos["identificadorUsuario"].ToString();
+
+                if (!Guid.TryParse(identificadorUsuarioStr, out Guid identificadorUsuario))
+                {
+                    return CrearErrorRespuesta(mensaje.IdMensaje, "Identificador de usuario no válido");
+                }
+
                 var usuario = await _usuarioService.GetUsuarioAsync(identificadorUsuario);
 
                 if (usuario == null)
