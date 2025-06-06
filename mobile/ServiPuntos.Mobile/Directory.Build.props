@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <AndroidSdkDirectory>$(HOME)/.dotnet/maui-sdks/android-sdk</AndroidSdkDirectory>
+    <JavaSdkDirectory>/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home</JavaSdkDirectory>
+  </PropertyGroup>
+</Project>

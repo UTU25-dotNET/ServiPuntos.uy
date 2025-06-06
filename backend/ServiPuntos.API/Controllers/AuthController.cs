@@ -69,70 +69,79 @@ public class AuthController : ControllerBase
         }
     }
 
-    [HttpGet("google-login")]
-    public IActionResult GoogleLogin()
+[HttpGet("google-login")]
+public IActionResult GoogleLogin()
+{
+    // Generar un estado aleatorio
+    var state = Guid.NewGuid().ToString();
+
+    var userAgent = Request.Headers["User-Agent"].ToString();
+    var isMobileRequest = userAgent.Contains("ServiPuntos.Mobile") || userAgent.Contains("Mobile");
+    
+    Console.WriteLine($"[GoogleAuth] Request móvil detectada: {isMobileRequest}");
+
+    // Guardar el estado en una variable de sesión en lugar de una cookie
+    try
     {
-        // Generar un estado aleatorio
-        var state = Guid.NewGuid().ToString();
-
-        // Guardar el estado en una variable de sesión en lugar de una cookie
-        try
-        {
-            // Intentar usar la sesión
-            HttpContext.Session.SetString("GoogleOAuthState", state);
-            Console.WriteLine($"[GoogleAuth] Estado guardado en sesión: {state}");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[GoogleAuth] Error al usar sesión: {ex.Message}");
-
-            // Alternativa: usar una cookie
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                Path = "/",
-                SameSite = SameSiteMode.Lax,
-                MaxAge = TimeSpan.FromMinutes(15)
-            };
-            Response.Cookies.Append("GoogleAuthState", state, cookieOptions);
-            Console.WriteLine($"[GoogleAuth] Estado guardado en cookie: {state}");
-        }
-
-        // Parámetros de OAuth
-        var clientId = _configuration["Authentication:Google:ClientId"];
-        if (string.IsNullOrEmpty(clientId))
-        {
-            throw new InvalidOperationException("Google ClientId is not configured.");
-        }
-        var redirectUri = "https://localhost:5019/api/auth/google-callback";
-        var scope = "email profile openid";
-
-        var pkceValues = PKCE.Create(64, "S256");
-        string[] parts = pkceValues.Split(',');
-        string code_verifier = parts[0];
-        string code_challenge = parts[1];
-
-        HttpContext.Session.SetString("CodeVerifier", code_verifier);
-        Console.WriteLine($"[GoogleAuth] Code Verifier guardado en sesión: {code_verifier}");
-
-        // Construir la URL de autorización de Google
-        var googleAuthUrl =
-            "https://accounts.google.com/o/oauth2/v2/auth" +
-            $"?client_id={Uri.EscapeDataString(clientId)}" +
-            $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
-            $"&response_type=code" +
-            $"&scope={Uri.EscapeDataString(scope)}" +
-            $"&code_challenge_method=S256" +
-            $"&code_challenge={Uri.EscapeDataString(code_challenge)}" +
-            $"&state={Uri.EscapeDataString(state)}" +
-            $"&include_granted_scopes=true";
-
-        Console.WriteLine($"[GoogleAuth] Estado generado: {state}");
-        Console.WriteLine($"[GoogleAuth] URL de redirección: {redirectUri}");
-
-        return Redirect(googleAuthUrl);
+        // Intentar usar la sesión
+        HttpContext.Session.SetString("GoogleOAuthState", state);
+        // **NUEVO: Guardar también si es móvil**
+        HttpContext.Session.SetString("IsMobileRequest", isMobileRequest.ToString());
+        Console.WriteLine($"[GoogleAuth] Estado guardado en sesión: {state}");
     }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[GoogleAuth] Error al usar sesión: {ex.Message}");
+
+        // Alternativa: usar una cookie
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            Path = "/",
+            SameSite = SameSiteMode.Lax,
+            MaxAge = TimeSpan.FromMinutes(15)
+        };
+        Response.Cookies.Append("GoogleAuthState", state, cookieOptions);
+        Response.Cookies.Append("IsMobileRequest", isMobileRequest.ToString(), cookieOptions);
+    }
+
+    // **RESTO DEL CÓDIGO EXISTENTE...**
+    var clientId = _configuration["Authentication:Google:ClientId"];
+    if (string.IsNullOrEmpty(clientId))
+    {
+        throw new InvalidOperationException("Google ClientId is not configured.");
+    }
+        // var redirectUri = "https://localhost:5019/api/auth/google-callback";
+    var redirectUri = "https://1add-167-60-73-88.ngrok-free.app/api/auth/google-callback";
+
+    var scope = "email profile openid";
+
+    var pkceValues = PKCE.Create(64, "S256");
+    string[] parts = pkceValues.Split(',');
+    string code_verifier = parts[0];
+    string code_challenge = parts[1];
+
+    HttpContext.Session.SetString("CodeVerifier", code_verifier);
+    Console.WriteLine($"[GoogleAuth] Code Verifier guardado en sesión: {code_verifier}");
+
+    // Construir la URL de autorización de Google
+    var googleAuthUrl =
+        "https://accounts.google.com/o/oauth2/v2/auth" +
+        $"?client_id={Uri.EscapeDataString(clientId)}" +
+        $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
+        $"&response_type=code" +
+        $"&scope={Uri.EscapeDataString(scope)}" +
+        $"&code_challenge_method=S256" +
+        $"&code_challenge={Uri.EscapeDataString(code_challenge)}" +
+        $"&state={Uri.EscapeDataString(state)}" +
+        $"&include_granted_scopes=true";
+
+    Console.WriteLine($"[GoogleAuth] Estado generado: {state}");
+    Console.WriteLine($"[GoogleAuth] URL de redirección: {redirectUri}");
+
+    return Redirect(googleAuthUrl);
+}
 
     [HttpGet("google-callback")]
     public async Task<IActionResult> GoogleCallback([FromQuery(Name = "code")] string? code, [FromQuery] string state, [FromQuery] string? error, [FromQuery] string? cedula)
@@ -142,6 +151,7 @@ public class AuthController : ControllerBase
         Console.WriteLine($"[GoogleCallback] Error: {error}");
 
         string? savedState;
+        bool isMobileRequest = false;
 
         if (string.IsNullOrEmpty(code))
         {
@@ -152,21 +162,37 @@ public class AuthController : ControllerBase
         {
             // Intentar recuperar de la sesión
             savedState = HttpContext.Session.GetString("GoogleOAuthState");
+            var isMobileStr = HttpContext.Session.GetString("IsMobileRequest");
+            bool.TryParse(isMobileStr, out isMobileRequest);
+
             Console.WriteLine($"[GoogleCallback] Estado recuperado de sesión: {savedState}");
+            Console.WriteLine($"[GoogleCallback] Es request móvil: {isMobileRequest}");
         }
         catch
         {
             // Si falla, intentar recuperar de la cookie
             if (Request.Cookies.TryGetValue("GoogleAuthState", out savedState))
             {
+                var isMobileStr = Request.Cookies["IsMobileRequest"];
+                bool.TryParse(isMobileStr, out isMobileRequest);
                 Console.WriteLine($"[GoogleCallback] Estado recuperado de cookie: {savedState}");
+                Console.WriteLine($"[GoogleCallback] Es request móvil (cookie): {isMobileRequest}");
             }
         }
 
         // Verificar el estado
         if (string.IsNullOrEmpty(savedState) || state != savedState)
         {
-            return Content($@"
+            var errorMsg = $"Estado no coincide. Recibido: {state}, Guardado: {savedState ?? "No encontrado"}";
+
+            if (isMobileRequest)
+            {
+                // **NUEVO: Para móvil, redirigir al esquema personalizado con error**
+                return Redirect($"servipuntos://auth-callback?error={Uri.EscapeDataString(errorMsg)}");
+            }
+            else
+            {
+                return Content($@"
         <html>
             <body>
                 <h1>Error de autenticación</h1>
@@ -175,6 +201,7 @@ public class AuthController : ControllerBase
                 <p>Estado guardado: {savedState ?? "No encontrado"}</p>
             </body>
         </html>", "text/html");
+            }
         }
 
         try
@@ -186,7 +213,8 @@ public class AuthController : ControllerBase
             {
                 throw new InvalidOperationException("Google ClientId or ClientSecret is not configured.");
             }
-            var redirectUri = "https://localhost:5019/api/auth/google-callback";
+            //var redirectUri = "https://localhost:5019/api/auth/google-callback";
+            var redirectUri = "https://1add-167-60-73-88.ngrok-free.app/api/auth/google-callback";
             var code_verifier = HttpContext.Session.GetString("CodeVerifier");
             Console.WriteLine($"[GoogleCallback] Code Verifier recuperado de sesión: {code_verifier}");
             if (string.IsNullOrEmpty(code_verifier))
@@ -289,22 +317,41 @@ public class AuthController : ControllerBase
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal, authProperties);
             Console.WriteLine("[GoogleCallback] Usuario autenticado con cookies");
 
-            // No eliminamos el estado porque volveremos a este endpoint
+            // Retornar el token JWT generado
             var tempToken = _jwtTokenService.GenerateJwtToken(claims);
-            return Redirect($"http://localhost:3000/auth-callback?token={Uri.EscapeDataString(tempToken)}&state={Uri.EscapeDataString(state)}&returnUrl=/auth-callback");
+            if (isMobileRequest)
+            {
+                Console.WriteLine("[GoogleCallback] Redirigiendo a app móvil...");
+                // Redirigir al esquema personalizado de la app móvil
+                return Redirect($"servipuntos://auth-callback?token={Uri.EscapeDataString(tempToken)}&state={Uri.EscapeDataString(state)}");
+            }
+            else
+            {
+                Console.WriteLine("[GoogleCallback] Redirigiendo a web app...");
+                // Redirigir a la web app como antes
+                return Redirect($"http://localhost:3000/auth-callback?token={Uri.EscapeDataString(tempToken)}&state={Uri.EscapeDataString(state)}&returnUrl=/auth-callback");
+            }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"[GoogleCallback] Error: {ex.Message}");
-            Console.WriteLine($"[GoogleCallback] Stack: {ex.StackTrace}");
-            return Content($"<h1>Error en el proceso</h1><p>{ex.Message}</p><pre>{ex.StackTrace}</pre>", "text/html");
+
+            // **NUEVO: También para errores, detectar el tipo de cliente**
+            if (isMobileRequest)
+            {
+                return Redirect($"servipuntos://auth-callback?error={Uri.EscapeDataString(ex.Message)}");
+            }
+            else
+            {
+                return Content($"<h1>Error en el proceso</h1><p>{ex.Message}</p><pre>{ex.StackTrace}</pre>", "text/html");
+            }
         }
     }
 
     /// <summary>
-    /// Obtiene la información del usuario autenticado mediante cookies de sesión
-    /// </summary>
-    [HttpGet("session-userinfo")]
+        /// Obtiene la información del usuario autenticado mediante cookies de sesión
+        /// </summary>
+        [HttpGet("session-userinfo")]
     public async Task<IActionResult> GetSessionUserInfo()
     {
         var authenticateResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);

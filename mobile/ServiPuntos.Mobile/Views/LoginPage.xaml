@@ -55,5 +55,13 @@
             BackgroundColor="#512BD4"
             TextColor="White"
             CornerRadius="12"/>
+
+        <Button x:Name="GoogleLoginButton"
+                Text="Iniciar sesión con Google"
+                BackgroundColor="#4285F4"
+                TextColor="White"
+                Clicked="OnGoogleLoginClicked"
+                Margin="20,10" />
+
     </StackLayout>
 </ContentPage>
