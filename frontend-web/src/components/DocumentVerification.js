@@ -20,7 +20,7 @@ const DocumentVerification = () => {
     const returnUrl = params.get("returnUrl") || "/auth-callback";
 
     useEffect(() => {
-        // Lógica existente...
+        // Lï¿½gica existente...
         console.log("Token recibido:", token);
         console.log("Code:", code);
         console.log("State:", state);
@@ -179,7 +179,7 @@ const DocumentVerification = () => {
                         maxLength="11" // Longitud mÃ¡xima: 8 dÃ­gitos + 3 separadores
                     />
                     <small style={{ color: "#6c757d" }}>
-                        Ingresa solo los números, los separadores se agregarán automáticamente
+                        Ingresa solo los nï¿½meros, los separadores se agregarï¿½n automï¿½ticamente
                     </small>
                 </div>
 

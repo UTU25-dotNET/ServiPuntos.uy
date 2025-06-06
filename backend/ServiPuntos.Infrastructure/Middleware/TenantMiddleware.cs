@@ -18,6 +18,8 @@ namespace ServiPuntos.Infrastructure.Middleware
 
             // 1. Si está autenticado (backoffice), usar el claim
             var tenantClaim = context.User?.FindFirst("tenantId");
+            Console.WriteLine(tenantClaim);
+            //var tenantClaim = context.User.Claims.FirstOrDefault(c => c.Type == "tenantId")?.Value;
             if (tenantClaim != null && Guid.TryParse(tenantClaim.Value, out tenantId))
             {
                 tenantContext.TenantId = tenantId;

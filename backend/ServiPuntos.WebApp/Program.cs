@@ -50,6 +50,16 @@ builder.Services.AddScoped<IUbicacionService, UbicacionService>();
 builder.Services.AddScoped<IAudienciaRuleEngine, AudienciaRuleEngine>();
 builder.Services.AddScoped<IAudienciaService, AudienciaService>();
 
+// ===== SERVICIOS PRODUCTO CANJEABLE =====
+builder.Services.AddScoped<IProductoCanjeableService, ProductoCanjeableService>();
+builder.Services.AddScoped<IProductoCanjeableRepository, ProductoCanjeableRepository>();
+
+// ===== SERVICIOS PRODUCTO UBICACION =====
+builder.Services.AddScoped<IProductoUbicacionService, ProductoUbicacionService>();
+builder.Services.AddScoped<IProductoUbicacionRepository, ProductoUbicacionRepository>();
+
+
+
 // ===== MULTI-TENANCY =====
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITenantResolver, TenantResolver>();
