@@ -3,80 +3,48 @@
     ViewData["Title"] = "Editar Producto Canjeable";
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-edit mr-2"></i>
-                        Editar Producto Canjeable
-                    </h3>
+                    <h3 class="card-title mb-0">@ViewData["Title"]</h3>
                 </div>
                 <div class="card-body">
                     <form asp-action="Editar" method="post">
                         @Html.AntiForgeryToken()
-                        <input type="hidden" asp-for="Id" />
+                        <input asp-for="Id" type="hidden" />
 
-                        <div class="form-group">
-                            <label asp-for="Nombre" class="form-label required">Nombre del Producto</label>
-                            <input asp-for="Nombre" class="form-control" placeholder="Ej: Café Premium, Lavado Completo, etc." />
+                        <div class="mb-3">
+                            <label asp-for="Nombre" class="form-label">Nombre del Producto</label>
+                            <input asp-for="Nombre" class="form-control" />
                             <span asp-validation-for="Nombre" class="text-danger"></span>
                         </div>
 
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label asp-for="Descripcion" class="form-label">Descripción</label>
-                            <textarea asp-for="Descripcion" class="form-control" rows="3"
-                                      placeholder="Descripción detallada del producto o servicio..."></textarea>
+                            <textarea asp-for="Descripcion" class="form-control" rows="3"></textarea>
                             <span asp-validation-for="Descripcion" class="text-danger"></span>
-                            <small class="form-text text-muted">Opcional - Proporcione una descripción clara del producto o servicio.</small>
                         </div>
 
-                        <div class="form-group">
-                            <label asp-for="CostoEnPuntos" class="form-label required">Costo en Puntos</label>
+                        <div class="mb-3">
+                            <label asp-for="CostoEnPuntos" class="form-label">Costo en Puntos</label>
                             <div class="input-group">
-                                <input asp-for="CostoEnPuntos" type="number" class="form-control" min="1" placeholder="100" />
-                                <div class="input-group-append">
-                                    <span class="input-group-text">puntos</span>
-                                </div>
+                                <input asp-for="CostoEnPuntos" class="form-control" type="number" min="1" />
+                                <span class="input-group-text">puntos</span>
                             </div>
                             <span asp-validation-for="CostoEnPuntos" class="text-danger"></span>
-                            <small class="form-text text-muted">Cantidad de puntos requeridos para canjear este producto.</small>
                         </div>
 
-                        <div class="form-group mt-4">
-                            <div class="row">
-                                <div class="col-6">
-                                    <button type="submit" class="btn btn-primary btn-block">
-                                        <i class="fas fa-save mr-2"></i>
-                                        Actualizar Producto
-                                    </button>
-                                </div>
-                                <div class="col-6">
-                                    <a href="@Url.Action("Index")" class="btn btn-secondary btn-block">
-                                        <i class="fas fa-times mr-2"></i>
-                                        Cancelar
-                                    </a>
-                                </div>
-                            </div>
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Volver
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar Cambios
+                            </button>
                         </div>
                     </form>
-                </div>
-            </div>
-
-            <!-- Card de información -->
-            <div class="card mt-4 border-left-warning">
-                <div class="card-body">
-                    <h6 class="card-title text-warning">
-                        <i class="fas fa-exclamation-triangle mr-2"></i>
-                        Información sobre la Edición
-                    </h6>
-                    <ul class="mb-0">
-                        <li>Los cambios afectarán a todas las ubicaciones donde esté asignado este producto.</li>
-                        <li>Si cambia el costo en puntos, se aplicará a futuros canjes.</li>
-                        <li>Las asignaciones a ubicaciones y el stock no se verán afectados.</li>
-                        <li>Los canjes ya realizados mantendrán el costo original.</li>
-                    </ul>
                 </div>
             </div>
         </div>
