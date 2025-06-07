@@ -5,11 +5,12 @@ import Home from "./components/Home";
 import Login from "./components/Login";
 import AuthCallback from './components/AuthCallback';
 import Dashboard from "./components/Dashboard";
+import Perfil from "./components/Perfil";
 import TokenDisplay from "./components/TokenDisplay";
+import Estaciones from "./components/Estaciones"; // Nuevo componente
 import PrivateRoute from "./components/PrivateRoute";
 import DocumentVerification from "./components/DocumentVerification";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-
 
 function App() {
   return (
@@ -20,13 +21,15 @@ function App() {
           {/* Rutas públicas */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
-                  <Route path="/auth-callback" element={<AuthCallback />} />
-                  <Route path="/verify-age" element={<DocumentVerification />} />
+          <Route path="/auth-callback" element={<AuthCallback />} />
+          <Route path="/verify-age" element={<DocumentVerification />} />
 
           {/* Rutas privadas */}
           <Route element={<PrivateRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/perfil" element={<Perfil />} />
             <Route path="/token" element={<TokenDisplay />} />
+            <Route path="/estaciones" element={<Estaciones />} /> {/* Nueva ruta para el listado de estaciones */}
           </Route>
         </Routes>
       </Router>
