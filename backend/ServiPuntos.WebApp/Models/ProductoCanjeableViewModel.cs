@@ -31,25 +31,5 @@ namespace ServiPuntos.WebApp.Models
         [Range(1, int.MaxValue, ErrorMessage = "El costo en puntos debe ser mayor a 0")]
         public int CostoEnPuntos { get; set; }
     }
-    public class AsignarProductoUbicacionViewModel
-    {
-        public Guid ProductoId { get; set; }
-        public string ProductoNombre { get; set; } = string.Empty;
-        public List<UbicacionSelectionViewModel> Ubicaciones { get; set; } = new();
-        [Required(ErrorMessage = "El stock inicial es obligatorio")]
-        [Range(0, int.MaxValue, ErrorMessage = "El stock inicial debe ser mayor o igual a 0")]
-        public int StockInicial { get; set; }
-    }
-    public class UbicacionSelectionViewModel
-    {
-        public Guid Id { get; set; }
-        public string Nombre { get; set; } = string.Empty;
-        public bool Selected { get; set; }
-    }
-    public class GestionarStockViewModel
-    {
-        public Guid UbicacionId { get; set; }
-        public string UbicacionNombre { get; set; } = string.Empty;
-        public List<ProductoUbicacion> ProductosUbicacion { get; set; } = new();
-    }
+    
 }

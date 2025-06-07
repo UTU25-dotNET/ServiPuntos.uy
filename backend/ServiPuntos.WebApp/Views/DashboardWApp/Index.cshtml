@@ -30,6 +30,19 @@
                     </div>
                 </div>
             </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card bg-success text-dark h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Producto</h5>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <button class="btn text-dark btn-sm w-100" onclick="window.location.href='ProductoCanjeableWApp/Index'">
+                        Administracion de Productos <i class="fas fa-angle-right ms-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
         }
 
         @if (User.IsInRole("AdminPlataforma") || User.IsInRole("AdminUbicacion"))
@@ -47,6 +60,19 @@
                     </div>
                 </div>
             </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card bg-success h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-white">Stock</h5>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <button class="btn btn-sm w-100 text-white" onclick="window.location.href='ProductoUbicacionWApp/Index'">
+                        Administracion de productos <i class="fas fa-angle-right ms-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
         }
     </div>
 @if (User.IsInRole("AdminPlataforma"))

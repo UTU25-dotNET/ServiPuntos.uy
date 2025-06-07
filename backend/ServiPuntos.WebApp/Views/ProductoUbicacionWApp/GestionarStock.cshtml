@@ -1,0 +1,234 @@
+﻿@model ServiPuntos.WebApp.Models.GestionarStockViewModel
+@{
+    ViewData["Title"] = $"Gestionar Stock - {Model.UbicacionNombre}";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>Gestionar Stock</h2>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-map-marker-alt"></i> @Model.UbicacionNombre
+                    </p>
+                </div>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Productos en esta Ubicación</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.ProductosUbicacion.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Costo en Puntos</th>
+                                        <th>Stock Actual</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.ProductosUbicacion)
+                                    {
+                                        <tr id="row-@item.Id">
+                                            <td>
+                                                <strong>@item.ProductoCanjeable?.Nombre</strong>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">
+                                                    <i class="fas fa-coins"></i> @item.ProductoCanjeable?.CostoEnPuntos
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge @(item.StockDisponible > 0 ? "bg-success" : "bg-warning") fs-6">
+                                                    @item.StockDisponible unidades
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge @(item.Activo ? "bg-success" : "bg-secondary")">
+                                                    @(item.Activo ? "Activo" : "Inactivo")
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn btn-primary btn-sm"
+                                                        onclick="mostrarFormularioStock('@item.Id', @item.StockDisponible, @item.Activo.ToString().ToLower())">
+                                                    <i class="fas fa-edit"></i> Actualizar Stock
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr id="form-row-@item.Id" style="display: none;">
+                                            <td colspan="5">
+                                                <form method="post" asp-action="ActualizarStock" class="p-3 bg-light rounded">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="productoUbicacionId" value="@item.Id" />
+
+                                                    <div class="row align-items-end">
+                                                        <div class="col-md-3">
+                                                            <label class="form-label">Nuevo Stock</label>
+                                                            <input type="number" name="nuevoStock"
+                                                                   class="form-control"
+                                                                   value="@item.StockDisponible"
+                                                                   min="0" required />
+                                                        </div>
+                                                        <div class="col-md-3">
+                                                            <div class="form-check">
+                                                                <input type="checkbox" name="activo"
+                                                                       class="form-check-input"
+                                                                       value="true"
+                                                                @(item.Activo ? "checked" : "") />
+                                                                <input type="hidden" name="activo" value="false" />
+                                                                <label class="form-check-label">Activo</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="btn-group">
+                                                                <button type="submit" class="btn btn-success btn-sm">
+                                                                    <i class="fas fa-save"></i> Guardar
+                                                                </button>
+                                                                <button type="button" class="btn btn-secondary btn-sm"
+                                                                        onclick="ocultarFormularioStock('@item.Id')">
+                                                                    <i class="fas fa-times"></i> Cancelar
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Resumen de stock -->
+                        <div class="row mt-4">
+                            <div class="col-md-12">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="fas fa-chart-bar"></i> Resumen de Stock
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <div class="text-center">
+                                                    <h4 class="text-primary">@Model.ProductosUbicacion.Count</h4>
+                                                    <p class="text-muted mb-0">Total Productos</p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="text-center">
+                                                    <h4 class="text-success">@Model.ProductosUbicacion.Count(p => p.Activo)</h4>
+                                                    <p class="text-muted mb-0">Productos Activos</p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="text-center">
+                                                    <h4 class="text-info">@Model.ProductosUbicacion.Sum(p => p.StockDisponible)</h4>
+                                                    <p class="text-muted mb-0">Stock Total</p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="text-center">
+                                                    <h4 class="text-warning">@Model.ProductosUbicacion.Count(p => p.StockDisponible == 0)</h4>
+                                                    <p class="text-muted mb-0">Sin Stock</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No hay productos asignados a esta ubicación</h5>
+                            <p class="text-muted">Vaya a la página principal para asignar productos</p>
+                            <a asp-action="AsignarProducto" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Asignar Productos
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function mostrarFormularioStock(id, stockActual, activo) {
+            // Ocultar todos los formularios abiertos
+            const formularios = document.querySelectorAll('[id^="form-row-"]');
+            formularios.forEach(form => {
+                form.style.display = 'none';
+            });
+
+            // Mostrar el formulario específico
+            const formRow = document.getElementById('form-row-' + id);
+            if (formRow) {
+                formRow.style.display = 'table-row';
+
+                // Hacer scroll al formulario
+                formRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                // Enfocar el campo de stock
+                const stockInput = formRow.querySelector('input[name="nuevoStock"]');
+                if (stockInput) {
+                    setTimeout(() => stockInput.focus(), 100);
+                }
+            }
+        }
+
+        function ocultarFormularioStock(id) {
+            const formRow = document.getElementById('form-row-' + id);
+            if (formRow) {
+                formRow.style.display = 'none';
+            }
+        }
+
+        // Validación de formularios
+        document.addEventListener('DOMContentLoaded', function() {
+            const forms = document.querySelectorAll('form[asp-action="ActualizarStock"]');
+            forms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    const stockInput = form.querySelector('input[name="nuevoStock"]');
+                    const stock = parseInt(stockInput.value);
+
+                    if (isNaN(stock) || stock < 0) {
+                        e.preventDefault();
+                        alert('El stock debe ser un número mayor o igual a 0.');
+                        stockInput.focus();
+                        return false;
+                    }
+                });
+            });
+        });
+    </script>
+}
