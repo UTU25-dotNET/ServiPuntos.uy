@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiPuntos.Core\ServiPuntos.Core.csproj" />
+    
   </ItemGroup>
 
   <PropertyGroup>
