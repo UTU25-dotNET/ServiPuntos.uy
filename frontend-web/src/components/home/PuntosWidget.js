@@ -23,10 +23,41 @@ const PuntosWidget = ({ userProfile, tenantInfo }) => {
       // Obtener todos los productos disponibles para calcular estadísticas
       const productos = await apiService.getAllProductosUbicacion();
       
+      console.log("Productos obtenidos:", productos?.length); // Debug log
+      
       if (productos && productos.length > 0) {
+        // Debug: examinar estructura de los primeros productos
+        console.log("Muestra del primer producto:", productos[0]);
+        console.log("Estructura del productoCanjeable:", productos[0]?.productoCanjeable);
+        
+        // Debug: verificar cada condición del filtro individualmente
+        const activosCount = productos.filter(pu => pu.activo).length;
+        const conStockCount = productos.filter(pu => pu.stockDisponible > 0).length;
+        const conCanjeableCount = productos.filter(pu => pu.productoCanjeable).length;
+        
+        console.log("Productos activos:", activosCount);
+        console.log("Productos con stock > 0:", conStockCount);
+        console.log("Productos con productoCanjeable:", conCanjeableCount);
+        
         // Filtrar productos únicos y activos
         const productosUnicos = productos
-          .filter(pu => pu.activo && pu.stockDisponible > 0 && pu.productoCanjeable)
+          .filter(pu => {
+            const cumpleActivo = pu.activo;
+            const cumpleStock = pu.stockDisponible > 0;
+            const cumpleCanjeable = pu.productoCanjeable;
+            
+            if (!cumpleActivo || !cumpleStock || !cumpleCanjeable) {
+              console.log("Producto filtrado:", {
+                id: pu.id,
+                activo: pu.activo,
+                stock: pu.stockDisponible,
+                tieneCanjeable: !!pu.productoCanjeable,
+                canjeable: pu.productoCanjeable
+              });
+            }
+            
+            return cumpleActivo && cumpleStock && cumpleCanjeable;
+          })
           .reduce((acc, current) => {
             const existing = acc.find(p => p.productoCanjeable.id === current.productoCanjeable.id);
             if (!existing) {
@@ -34,36 +65,73 @@ const PuntosWidget = ({ userProfile, tenantInfo }) => {
             }
             return acc;
           }, []);
-
+  
+        console.log("Productos únicos filtrados:", productosUnicos?.length); // Debug log
         setProductosCanjeables(productosUnicos);
-
+  
         // Calcular estadísticas
         if (productosUnicos.length > 0) {
-          const productosConPuntos = productosUnicos.map(p => p.productoCanjeable);
+          const productosConPuntos = productosUnicos
+            .map(p => p.productoCanjeable)
+            .filter(p => p && typeof p.costoEnPuntos === 'number' && p.costoEnPuntos > 0); // ← FIX: Filtrar productos con costoEnPuntos válido
+  
+          console.log("Productos con puntos válidos:", productosConPuntos?.length); // Debug log
+          console.log("Puntos del usuario:", userProfile.puntos); // Debug log
+  
+          const puntosUsuario = userProfile.puntos || 0;
+          
           const productosCanjeablesConPuntos = productosConPuntos.filter(p => 
-            p.costoEnPuntos <= (userProfile.puntos || 0)
+            p.costoEnPuntos <= puntosUsuario
           );
-
-          const productoMasBarato = productosConPuntos.reduce((min, producto) => 
-            producto.costoEnPuntos < min.costoEnPuntos ? producto : min
-          );
-
+  
+          console.log("Productos canjeables con puntos:", productosCanjeablesConPuntos?.length); // Debug log
+  
+          // ← FIX: Verificar que hay productos válidos antes de calcular min/max
+          const productoMasBarato = productosConPuntos.length > 0 
+            ? productosConPuntos.reduce((min, producto) => 
+                producto.costoEnPuntos < min.costoEnPuntos ? producto : min
+              )
+            : null;
+  
           const productoMasCaro = productosCanjeablesConPuntos.length > 0 
             ? productosCanjeablesConPuntos.reduce((max, producto) => 
                 producto.costoEnPuntos > max.costoEnPuntos ? producto : max
               )
             : null;
-
+  
+          console.log("Producto más barato:", productoMasBarato); // Debug log
+          console.log("Producto más caro canjeable:", productoMasCaro); // Debug log
+  
           setEstadisticas({
             productosDisponibles: productosCanjeablesConPuntos.length,
             productoMasBarato,
             productoMasCaro
           });
+        } else {
+          // ← FIX: Resetear estadísticas si no hay productos
+          setEstadisticas({
+            productosDisponibles: 0,
+            productoMasBarato: null,
+            productoMasCaro: null
+          });
         }
+      } else {
+        console.log("No se obtuvieron productos"); // Debug log
+        // ← FIX: Resetear estadísticas si no hay productos
+        setEstadisticas({
+          productosDisponibles: 0,
+          productoMasBarato: null,
+          productoMasCaro: null
+        });
       }
     } catch (error) {
       console.error("Error al cargar información de productos:", error);
-      // No mostrar error, solo mantener estadísticas vacías
+      // ← FIX: Resetear estadísticas en caso de error
+      setEstadisticas({
+        productosDisponibles: 0,
+        productoMasBarato: null,
+        productoMasCaro: null
+      });
     } finally {
       setLoadingProductos(false);
     }
@@ -255,12 +323,12 @@ const PuntosWidget = ({ userProfile, tenantInfo }) => {
               <div
                 style={{
                   fontSize: "1.5rem",
-                  fontWeight: "bold",
+                  
                   color: "#388e3c",
                   marginBottom: "0.25rem"
                 }}
               >
-                {estadisticas.productoMasBarato ? estadisticas.productoMasBarato.costoEnPuntos : "N/A"}
+                {estadisticas.productoMasBarato ? estadisticas.productoMasBarato.nombre : "N/A"}
               </div>
               <div style={{ fontSize: "0.8rem", color: "#2e7d32" }}>
                 Producto más barato
