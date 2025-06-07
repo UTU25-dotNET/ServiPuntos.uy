@@ -76,6 +76,34 @@ const NavBar = () => {
               </span>
             )}
             
+            {/* Enlace a Estaciones */}
+            <Link 
+              to="/estaciones" 
+              style={{ 
+                color: 'white', 
+                textDecoration: 'none',
+                marginRight: '1rem',
+                padding: '0.5rem 1rem',
+                borderRadius: '6px',
+                transition: 'background-color 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                backgroundColor: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.2)'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'rgba(255,255,255,0.2)';
+                e.target.style.borderColor = 'rgba(255,255,255,0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+                e.target.style.borderColor = 'rgba(255,255,255,0.2)';
+              }}
+            >
+              🏪 Estaciones
+            </Link>
+
             {/* Enlace al Dashboard */}
             <Link 
               to="/dashboard" 
@@ -130,20 +158,23 @@ const NavBar = () => {
           </>
         ) : (
           <>
-            {/* Cuando no está autenticado, podrías mostrar enlaces públicos si los necesitas */}
-            {/* <Link to="/" style={{ 
-              color: 'white', 
-              textDecoration: 'none',
-              marginRight: '1rem'
-            }}>
-              Inicio
-            </Link>
-            <Link to="/login" style={{ 
-              color: 'white', 
-              textDecoration: 'none'
-            }}>
+            {/* Cuando no está autenticado, mostrar enlaces públicos */}
+            <Link 
+              to="/login" 
+              style={{ 
+                color: 'white', 
+                textDecoration: 'none',
+                padding: '0.5rem 1rem',
+                borderRadius: '6px',
+                backgroundColor: '#007bff',
+                transition: 'background-color 0.2s',
+                fontWeight: '500'
+              }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#0056b3'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#007bff'}
+            >
               Iniciar Sesión
-            </Link> */}
+            </Link>
           </>
         )}
       </div>

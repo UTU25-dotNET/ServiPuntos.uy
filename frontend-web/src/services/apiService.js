@@ -329,6 +329,104 @@ const apiService = {
   },
 
   // ==========================================
+// MÉTODOS DE PRODUCTOS (agregar a tu apiService.js existente)
+// ==========================================
+
+// Estructura de ProductoCanjeable según la API:
+// {
+//   "id": "guid",
+//   "nombre": "string",
+//   "descripcion": "string|null", 
+//   "costoEnPuntos": int,
+//   "disponibilidadesPorUbicacion": array
+// }
+
+// Estructura de ProductoUbicacion según la API:
+// {
+//   "id": "guid",
+//   "ubicacionId": "guid",
+//   "ubicacion": object|null,
+//   "productoCanjeableId": "guid", 
+//   "productoCanjeable": object,
+//   "stockDisponible": int,
+//   "activo": boolean
+// }
+
+// Obtener todos los productos canjeables disponibles
+getProductosCanjeables: async () => {
+  try {
+    console.log("Obteniendo todos los productos canjeables...");
+    
+    const response = await apiClient.get('ProductoCanjeable');
+    
+    console.log("Productos canjeables obtenidos:", response.data);
+    return response.data;
+    
+  } catch (error) {
+    console.error("Error obteniendo productos canjeables:", error);
+    
+    if (error.response?.status === 404) {
+      throw new Error("No se encontraron productos canjeables");
+    } else if (error.response?.status === 500) {
+      throw new Error("Error del servidor al obtener productos canjeables");
+    } else {
+      throw new Error(error.message || "Error al obtener productos canjeables");
+    }
+  }
+},
+
+// Obtener productos disponibles en una ubicación específica
+getProductosByUbicacion: async (ubicacionId) => {
+  try {
+    if (!ubicacionId) {
+      throw new Error("ID de ubicación es requerido");
+    }
+
+    console.log("Obteniendo productos para ubicación:", ubicacionId);
+    
+    const response = await apiClient.get(`ProductoUbicacion/ubicacion/${ubicacionId}`);
+    
+    console.log("Productos de ubicación obtenidos:", response.data);
+    return response.data;
+    
+  } catch (error) {
+    console.error("Error obteniendo productos de ubicación:", error);
+    
+    if (error.response?.status === 404) {
+      throw new Error("No se encontraron productos para esta ubicación");
+    } else if (error.response?.status === 500) {
+      throw new Error("Error del servidor al obtener productos de la ubicación");
+    } else {
+      throw new Error(error.message || "Error al obtener productos de la ubicación");
+    }
+  }
+},
+
+// Obtener todos los productos con información de ubicaciones
+getAllProductosUbicacion: async () => {
+  try {
+    console.log("Obteniendo todos los productos con ubicaciones...");
+    
+    const response = await apiClient.get('ProductoUbicacion');
+    
+    console.log("Productos ubicación obtenidos:", response.data);
+    return response.data;
+    
+  } catch (error) {
+    console.error("Error obteniendo productos ubicación:", error);
+    
+    if (error.response?.status === 404) {
+      throw new Error("No se encontraron productos en ubicaciones");
+    } else if (error.response?.status === 500) {
+      throw new Error("Error del servidor al obtener productos de ubicaciones");
+    } else {
+      throw new Error(error.message || "Error al obtener productos de ubicaciones");
+    }
+  }
+},
+
+
+  // ==========================================
   // MÉTODOS HTTP GENÉRICOS
   // ==========================================
 
