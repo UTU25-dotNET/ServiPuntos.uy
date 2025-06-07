@@ -23,15 +23,34 @@ namespace ServiPuntos.API.Controllers
         /// </summary>
         /// <returns>Lista de productos por ubicación</returns>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductoUbicacion>>> GetAll()
+        public async Task<ActionResult<IEnumerable<object>>> GetAll()
         {
             try
             {
+                Console.WriteLine("[ProductoUbicacion] GetAll - Iniciando");
                 var productosUbicacion = await _productoUbicacionService.GetAllAsync();
-                return Ok(productosUbicacion);
+                
+                var productosDto = productosUbicacion.Select(pu => new {
+                    id = pu.Id,
+                    ubicacionId = pu.UbicacionId,
+                    productoCanjeableId = pu.ProductoCanjeableId,
+                    stockDisponible = pu.StockDisponible,
+                    activo = pu.Activo,
+                    productoCanjeable = pu.ProductoCanjeable != null ? new {
+                        id = pu.ProductoCanjeable.Id,
+                        nombre = pu.ProductoCanjeable.Nombre,
+                        descripcion = pu.ProductoCanjeable.Descripcion,
+                        costoEnPuntos = pu.ProductoCanjeable.CostoEnPuntos
+                    } : null
+                }).ToList();
+
+                Console.WriteLine($"[ProductoUbicacion] GetAll - Encontrados: {productosDto.Count} productos");
+                return Ok(productosDto);
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"[ProductoUbicacion] GetAll - Error: {ex.Message}");
+                Console.WriteLine($"[ProductoUbicacion] GetAll - StackTrace: {ex.StackTrace}");
                 return StatusCode(500, new { message = "Error interno del servidor", details = ex.Message });
             }
         }
@@ -42,206 +61,176 @@ namespace ServiPuntos.API.Controllers
         /// <param name="ubicacionId">ID de la ubicación</param>
         /// <returns>Lista de productos de la ubicación</returns>
         [HttpGet("ubicacion/{ubicacionId}")]
-        public async Task<ActionResult<IEnumerable<ProductoUbicacion>>> GetAllByUbicacion(Guid ubicacionId)
+        public async Task<ActionResult<IEnumerable<object>>> GetAllByUbicacion(Guid ubicacionId)
         {
             try
             {
+                Console.WriteLine($"[ProductoUbicacion] GetAllByUbicacion - Iniciando para ubicación: {ubicacionId}");
+
                 if (ubicacionId == Guid.Empty)
                 {
+                    Console.WriteLine("[ProductoUbicacion] GetAllByUbicacion - Error: ubicacionId vacío");
                     return BadRequest(new { message = "El ID de ubicación no puede estar vacío" });
                 }
 
+                Console.WriteLine("[ProductoUbicacion] GetAllByUbicacion - Llamando al servicio");
                 var productosUbicacion = await _productoUbicacionService.GetAllAsync(ubicacionId);
-                return Ok(productosUbicacion);
+                
+                Console.WriteLine("[ProductoUbicacion] GetAllByUbicacion - Servicio completado, procesando datos");
+                var productos = productosUbicacion.ToList();
+                Console.WriteLine($"[ProductoUbicacion] GetAllByUbicacion - Encontrados: {productos.Count} productos");
+
+                // Convertir a DTO para evitar problemas de serialización
+                var productosDto = productos.Select(pu => {
+                    Console.WriteLine($"[ProductoUbicacion] Procesando producto ID: {pu.Id}");
+                    
+                    var dto = new {
+                        id = pu.Id,
+                        ubicacionId = pu.UbicacionId,
+                        productoCanjeableId = pu.ProductoCanjeableId,
+                        stockDisponible = pu.StockDisponible,
+                        activo = pu.Activo,
+                        productoCanjeable = pu.ProductoCanjeable != null ? new {
+                            id = pu.ProductoCanjeable.Id,
+                            nombre = pu.ProductoCanjeable.Nombre ?? "Sin nombre",
+                            descripcion = pu.ProductoCanjeable.Descripcion ?? "Sin descripción",
+                            costoEnPuntos = pu.ProductoCanjeable.CostoEnPuntos
+                        } : null
+                    };
+                    
+                    Console.WriteLine($"[ProductoUbicacion] Producto procesado: {dto.productoCanjeable?.nombre ?? "SIN PRODUCTO CANJEABLE"}");
+                    return dto;
+                }).ToList();
+
+                Console.WriteLine($"[ProductoUbicacion] GetAllByUbicacion - DTOs creados: {productosDto.Count}");
+                Console.WriteLine("[ProductoUbicacion] GetAllByUbicacion - Retornando resultados");
+                
+                return Ok(productosDto);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Error interno del servidor", details = ex.Message });
+                Console.WriteLine($"[ProductoUbicacion] GetAllByUbicacion - ERROR CRÍTICO:");
+                Console.WriteLine($"  Mensaje: {ex.Message}");
+                Console.WriteLine($"  Tipo: {ex.GetType().Name}");
+                Console.WriteLine($"  StackTrace: {ex.StackTrace}");
+                
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"  InnerException: {ex.InnerException.Message}");
+                    Console.WriteLine($"  InnerException StackTrace: {ex.InnerException.StackTrace}");
+                }
+
+                return StatusCode(500, new { 
+                    message = "Error interno del servidor al obtener productos de la ubicación", 
+                    details = ex.Message,
+                    type = ex.GetType().Name,
+                    ubicacionId = ubicacionId.ToString(),
+                    innerException = ex.InnerException?.Message
+                });
             }
         }
 
         /// <summary>
-        /// Obtiene un producto ubicación por su ID
+        /// Endpoint de diagnóstico simple para verificar que el controlador responde
         /// </summary>
-        /// <param name="id">ID del producto ubicación</param>
-        /// <returns>Producto ubicación encontrado</returns>
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ProductoUbicacion>> GetById(Guid id)
+        [HttpGet("test")]
+        public ActionResult Test()
         {
-            try
-            {
-                if (id == Guid.Empty)
-                {
-                    return BadRequest(new { message = "El ID no puede estar vacío" });
-                }
-
-                var productoUbicacion = await _productoUbicacionService.GetAsync(id);
-
-                if (productoUbicacion == null)
-                {
-                    return NotFound(new { message = "Producto ubicación no encontrado" });
-                }
-
-                return Ok(productoUbicacion);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error interno del servidor", details = ex.Message });
-            }
+            return Ok(new { 
+                mensaje = "Controlador ProductoUbicacion funcionando",
+                timestamp = DateTime.UtcNow,
+                version = "1.0"
+            });
         }
 
         /// <summary>
-        /// Crea un nuevo producto ubicación
+        /// Endpoint de diagnóstico para verificar conexión a la base de datos
         /// </summary>
-        /// <param name="request">Datos del producto ubicación a crear</param>
-        /// <returns>Resultado de la operación</returns>
-        [HttpPost]
-        public async Task<ActionResult> Create([FromBody] ProductoUbicacionDto request)
+        [HttpGet("diagnostico")]
+        public async Task<ActionResult> Diagnostico()
         {
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
+                Console.WriteLine("[ProductoUbicacion] Diagnóstico - Iniciando");
 
-                var productoUbicacion = new ProductoUbicacion(
-                    request.UbicacionId,
-                    request.ProductoCanjeableId,
-                    request.StockDisponible)
+                // Probar obtener todos los productos
+                var todosProductos = await _productoUbicacionService.GetAllAsync();
+                var listaTodos = todosProductos.ToList();
+
+                var diagnostico = new
                 {
-                    Id = Guid.NewGuid(),
-                    Activo = request.Activo
+                    timestamp = DateTime.UtcNow,
+                    mensaje = "Diagnóstico del servicio ProductoUbicacion",
+                    totalProductosUbicacion = listaTodos.Count,
+                    muestraProductos = listaTodos.Take(3).Select(p => new {
+                        id = p.Id,
+                        ubicacionId = p.UbicacionId,
+                        productoCanjeableId = p.ProductoCanjeableId,
+                        stock = p.StockDisponible,
+                        activo = p.Activo,
+                        tieneProductoCanjeable = p.ProductoCanjeable != null,
+                        nombreProducto = p.ProductoCanjeable?.Nombre ?? "NO CARGADO"
+                    }).ToList()
                 };
 
-                await _productoUbicacionService.AddAsync(productoUbicacion);
-
-                return CreatedAtAction(
-                    nameof(GetById),
-                    new { id = productoUbicacion.Id },
-                    productoUbicacion);
+                Console.WriteLine($"[ProductoUbicacion] Diagnóstico completado - Total productos: {listaTodos.Count}");
+                return Ok(diagnostico);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Error interno del servidor", details = ex.Message });
+                Console.WriteLine($"[ProductoUbicacion] Diagnóstico - Error: {ex.Message}");
+                return StatusCode(500, new { 
+                    mensaje = "Error en diagnóstico", 
+                    error = ex.Message,
+                    tipo = ex.GetType().Name,
+                    stackTrace = ex.StackTrace
+                });
             }
         }
 
         /// <summary>
-        /// Actualiza un producto ubicación existente
+        /// Verifica si una ubicación existe y tiene productos
         /// </summary>
-        /// <param name="id">ID del producto ubicación a actualizar</param>
-        /// <param name="request">Datos actualizados</param>
-        /// <returns>Resultado de la operación</returns>
-        [HttpPut("{id}")]
-        public async Task<ActionResult> Update(Guid id, [FromBody] ProductoUbicacionDto request)
+        [HttpGet("verificar/{ubicacionId}")]
+        public async Task<ActionResult> VerificarUbicacion(Guid ubicacionId)
         {
             try
             {
-                if (id == Guid.Empty)
+                Console.WriteLine($"[ProductoUbicacion] VerificarUbicacion - Ubicación: {ubicacionId}");
+
+                var productos = await _productoUbicacionService.GetAllAsync(ubicacionId);
+                var lista = productos.ToList();
+
+                var resultado = new
                 {
-                    return BadRequest(new { message = "El ID no puede estar vacío" });
-                }
+                    ubicacionId = ubicacionId,
+                    timestamp = DateTime.UtcNow,
+                    cantidadProductos = lista.Count,
+                    tieneProductos = lista.Count > 0,
+                    productosActivos = lista.Count(p => p.Activo),
+                    productosConStock = lista.Count(p => p.StockDisponible > 0),
+                    productos = lista.Select(p => new {
+                        id = p.Id,
+                        productoCanjeableId = p.ProductoCanjeableId,
+                        stock = p.StockDisponible,
+                        activo = p.Activo,
+                        tieneProductoCanjeable = p.ProductoCanjeable != null,
+                        nombreProducto = p.ProductoCanjeable?.Nombre ?? "SIN NOMBRE",
+                        costoEnPuntos = p.ProductoCanjeable?.CostoEnPuntos ?? 0
+                    }).ToList()
+                };
 
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                var productoUbicacionExistente = await _productoUbicacionService.GetAsync(id);
-
-                if (productoUbicacionExistente == null)
-                {
-                    return NotFound(new { message = "Producto ubicación no encontrado" });
-                }
-
-                // Actualizar propiedades
-                productoUbicacionExistente.UbicacionId = request.UbicacionId;
-                productoUbicacionExistente.ProductoCanjeableId = request.ProductoCanjeableId;
-                productoUbicacionExistente.StockDisponible = request.StockDisponible;
-                productoUbicacionExistente.Activo = request.Activo;
-
-                await _productoUbicacionService.UpdateAsync(productoUbicacionExistente);
-
-                return Ok(new { message = "Producto ubicación actualizado correctamente" });
+                return Ok(resultado);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Error interno del servidor", details = ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// Actualiza solo el stock de un producto ubicación
-        /// </summary>
-        /// <param name="id">ID del producto ubicación</param>
-        /// <param name="request">Nuevo stock</param>
-        /// <returns>Resultado de la operación</returns>
-        [HttpPatch("{id}/stock")]
-        public async Task<ActionResult> UpdateStock(Guid id, [FromBody] ProductoUbicacionDto request)
-        {
-            try
-            {
-                if (id == Guid.Empty)
-                {
-                    return BadRequest(new { message = "El ID no puede estar vacío" });
-                }
-
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                var productoUbicacion = await _productoUbicacionService.GetAsync(id);
-
-                if (productoUbicacion == null)
-                {
-                    return NotFound(new { message = "Producto ubicación no encontrado" });
-                }
-
-                productoUbicacion.StockDisponible = request.StockDisponible;
-                await _productoUbicacionService.UpdateAsync(productoUbicacion);
-
-                return Ok(new { message = "Stock actualizado correctamente", nuevoStock = request.StockDisponible });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error interno del servidor", details = ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// Activa o desactiva un producto ubicación
-        /// </summary>
-        /// <param name="id">ID del producto ubicación</param>
-        /// <param name="request">Estado activo</param>
-        /// <returns>Resultado de la operación</returns>
-        [HttpPatch("{id}/estado")]
-        public async Task<ActionResult> UpdateEstado(Guid id, [FromBody] ProductoUbicacionDto request)
-        {
-            try
-            {
-                if (id == Guid.Empty)
-                {
-                    return BadRequest(new { message = "El ID no puede estar vacío" });
-                }
-
-                var productoUbicacion = await _productoUbicacionService.GetAsync(id);
-
-                if (productoUbicacion == null)
-                {
-                    return NotFound(new { message = "Producto ubicación no encontrado" });
-                }
-
-                productoUbicacion.Activo = request.Activo;
-                await _productoUbicacionService.UpdateAsync(productoUbicacion);
-
-                string estado = request.Activo ? "activado" : "desactivado";
-                return Ok(new { message = $"Producto ubicación {estado} correctamente" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error interno del servidor", details = ex.Message });
+                Console.WriteLine($"[ProductoUbicacion] VerificarUbicacion - Error: {ex.Message}");
+                return StatusCode(500, new { 
+                    mensaje = "Error al verificar ubicación", 
+                    ubicacionId = ubicacionId.ToString(),
+                    error = ex.Message,
+                    stackTrace = ex.StackTrace
+                });
             }
         }
     }

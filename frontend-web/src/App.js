@@ -7,6 +7,7 @@ import AuthCallback from './components/AuthCallback';
 import Dashboard from "./components/Dashboard";
 import Perfil from "./components/Perfil";
 import TokenDisplay from "./components/TokenDisplay";
+import Estaciones from "./components/Estaciones"; // Nuevo componente
 import PrivateRoute from "./components/PrivateRoute";
 import DocumentVerification from "./components/DocumentVerification";
 import { GoogleOAuthProvider } from "@react-oauth/google";
@@ -28,6 +29,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/perfil" element={<Perfil />} />
             <Route path="/token" element={<TokenDisplay />} />
+            <Route path="/estaciones" element={<Estaciones />} /> {/* Nueva ruta para el listado de estaciones */}
           </Route>
         </Routes>
       </Router>
