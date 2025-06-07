@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import authService from "../services/authService";
-import apiService from "../services/apiService";
+import authService from "../../services/authService";
+import apiService from "../../services/apiService";
 
 const Perfil = () => {
   const [user, setUser] = useState(null);
@@ -616,25 +616,7 @@ const Perfil = () => {
                   🔄 Cancelar
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => navigate("/dashboard")}
-                  style={{
-                    backgroundColor: "#17a2b8",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "8px",
-                    padding: "0.75rem 1.5rem",
-                    cursor: "pointer",
-                    fontSize: "1rem",
-                    fontWeight: "600",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem"
-                  }}
-                >
-                  ← Volver al Dashboard
-                </button>
+              
               </div>
             </form>
           </div>
