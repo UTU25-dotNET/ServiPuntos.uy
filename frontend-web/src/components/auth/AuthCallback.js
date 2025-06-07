@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import authService from "../services/authService";
+import authService from "../../services/authService";
 
 const AuthCallback = () => {
   const [loading, setLoading] = useState(true);

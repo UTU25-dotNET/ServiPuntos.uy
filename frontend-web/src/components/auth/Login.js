@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import authService from "../services/authService";
-import '../App.css';
+import authService from "../../services/authService";
+import '../../App.css';
 
 const Login = () => {
     const [credentials, setCredentials] = useState({ email: "", password: "" });
