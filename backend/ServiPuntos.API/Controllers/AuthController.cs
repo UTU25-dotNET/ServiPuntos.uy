@@ -68,6 +68,12 @@ public class AuthController : ControllerBase
             return StatusCode(500, new { message = "Error al obtener la lista de tenants" });
         }
     }
+    [HttpGet("ping")]
+    public IActionResult Ping()
+    {
+        Console.WriteLine("[Ping] Endpoint alcanzado");
+        return Ok(new { message = "Pong" });
+    }
 
 [HttpGet("google-login")]
 public IActionResult GoogleLogin()
