@@ -19,6 +19,7 @@ public static class MauiProgram
 				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
 			});
 
+			builder.Services.AddTransient<LoginViewModel>();
 			builder.Services.AddHttpClient<IAuthService, AuthService>();
         	builder.Services.AddSingleton<IAuthService, AuthService>();
 

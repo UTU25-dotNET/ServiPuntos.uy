@@ -9,13 +9,26 @@ namespace ServiPuntos.Mobile.Views
     {
         private readonly IAuthService _authService;
 
-        public LoginPage(IAuthService authService)
+        public LoginPage()
         {
             InitializeComponent();
-            _authService = authService;
             
-            LogInfo("[LoginPage] Inicializando LoginPage...");
-            SetupDefaultLogin();
+            // **MODIFICAR: Obtener el AuthService desde el contenedor de dependencias**
+            var authService = Application.Current?.Handler?.MauiContext?.Services?.GetService<IAuthService>();
+            
+            if (authService != null)
+            {
+                _authService = authService; // **AGREGAR: Asignar a la variable privada**
+                BindingContext = new LoginViewModel(authService);
+            }
+            else
+            {
+                // Fallback - crear una instancia temporal
+                var httpClient = new HttpClient();
+                var fallbackAuthService = new AuthService(httpClient);
+                _authService = fallbackAuthService; // **AGREGAR: Asignar a la variable privada**
+                BindingContext = new LoginViewModel(fallbackAuthService);
+            }
         }
 
         private void SetupDefaultLogin()
@@ -24,7 +37,11 @@ namespace ServiPuntos.Mobile.Views
             TenantNameLabel.Text = "ServiPuntos";
             LogoImage.Source = "https://via.placeholder.com/150x100/0066CC/FFFFFF?text=ServiPuntos";
             
-            BindingContext = new LoginViewModel();
+            // **MODIFICAR: Usar el authService existente en lugar de crear uno nuevo sin parámetros**
+            if (_authService != null)
+            {
+                BindingContext = new LoginViewModel(_authService);
+            }
         }
 
         private async void OnGoogleLoginClicked(object sender, EventArgs e)

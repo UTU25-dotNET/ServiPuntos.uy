@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text;
 using ServiPuntos.Mobile.Views;
 using static ServiPuntos.Mobile.Services.AppLogger;
 
@@ -14,6 +15,7 @@ namespace ServiPuntos.Mobile.Services
         public AuthService(HttpClient httpClient)
         {
             _httpClient = httpClient;
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
         }
 
         public async Task<bool> LoginWithGoogleAsync()
@@ -71,6 +73,16 @@ namespace ServiPuntos.Mobile.Services
                     {
                         PropertyNameCaseInsensitive = true
                     });
+
+                    // **AGREGAR: Guardar token automáticamente**
+                    if (signinResponse != null && !string.IsNullOrEmpty(signinResponse.Token))
+                    {
+                        await SaveTokenAsync(signinResponse.Token);
+                        
+                        // Configurar el header de autorización
+                        _httpClient.DefaultRequestHeaders.Authorization = 
+                            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", signinResponse.Token);
+                    }
 
                     Console.WriteLine($"[AuthService] Login exitoso para: {signinResponse?.Email}");
                     return signinResponse;
@@ -133,6 +145,19 @@ namespace ServiPuntos.Mobile.Services
             catch (Exception ex)
             {
                 LogInfo($"[AuthService] Error en logout: {ex.Message}");
+            }
+        }
+
+        public async Task SaveTokenAsync(string token)
+        {
+            try
+            {
+                await SecureStorage.SetAsync(TOKEN_KEY, token);
+                LogInfo("[AuthService] Token guardado exitosamente");
+            }
+            catch (Exception ex)
+            {
+                LogInfo($"[AuthService] Error guardando token: {ex.Message}");
             }
         }
 
