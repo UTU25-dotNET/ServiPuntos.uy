@@ -1,4 +1,6 @@
-﻿namespace ServiPuntos.Core.Interfaces
+﻿using ServiPuntos.Core.Entities;
+
+namespace ServiPuntos.Core.Interfaces
 {
     public interface ITenantRepository
     {

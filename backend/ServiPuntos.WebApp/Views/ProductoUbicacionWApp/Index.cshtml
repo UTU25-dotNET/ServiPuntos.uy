@@ -1,0 +1,166 @@
+﻿@model ServiPuntos.WebApp.Models.ProductoUbicacionIndexViewModel
+@{
+    ViewData["Title"] = "Gestión de Productos por Ubicación";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>@ViewData["Title"]</h2>
+                <a asp-action="AsignarProducto" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Asignar Productos
+                </a>
+            </div>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Productos por Ubicación</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.ProductosUbicacion.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Ubicación</th>
+                                        <th>Producto</th>
+                                        <th>Costo en Puntos</th>
+                                        <th>Stock Disponible</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.ProductosUbicacion)
+                                    {
+                                        <tr>
+                                            <td>@item.Ubicacion?.Nombre</td>
+                                            <td>@item.ProductoCanjeable?.Nombre</td>
+                                            <td>@item.ProductoCanjeable?.CostoEnPuntos</td>
+                                            <td>
+                                                <span class="badge @(item.StockDisponible > 0 ? "bg-success" : "bg-warning")">
+                                                    @item.StockDisponible
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge @(item.Activo ? "bg-success" : "bg-secondary")">
+                                                    @(item.Activo ? "Activo" : "Inactivo")
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a asp-action="Details" asp-route-id="@item.Id"
+                                                       class="btn btn-info btn-sm" title="Ver detalles">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a asp-action="Edit" asp-route-id="@item.Id"
+                                                       class="btn btn-warning btn-sm" title="Editar">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    @if (item.Activo)
+                                                    {
+                                                        <button type="button" class="btn btn-danger btn-sm"
+                                                                onclick="confirmarEliminacion('@item.Id')" title="Desactivar">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mt-4">
+                            <h5>Gestión de Stock por Ubicación</h5>
+                            <div class="row">
+                                @foreach (var ubicacion in Model.Ubicaciones)
+                                {
+                                    var productosUbicacion = Model.ProductosUbicacion.Where(pu => pu.UbicacionId == ubicacion.Id);
+                                    <div class="col-md-6 col-lg-4 mb-3">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">@ubicacion.Nombre</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <p class="text-muted mb-2">
+                                                    @productosUbicacion.Count() producto(s) asignado(s)
+                                                </p>
+                                                <a asp-action="GestionarStock" asp-route-ubicacionId="@ubicacion.Id"
+                                                   class="btn btn-outline-primary btn-sm">
+                                                    <i class="fas fa-cogs"></i> Gestionar Stock
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No hay productos asignados</h5>
+                            <p class="text-muted">Comienza asignando productos a las ubicaciones</p>
+                            <a asp-action="AsignarProducto" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Asignar Productos
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación para eliminar -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Desactivación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                ¿Está seguro que desea desactivar este producto de la ubicación?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">Desactivar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmarEliminacion(id) {
+            document.getElementById('deleteForm').action = '@Url.Action("Delete")/' + id;
+            var modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+            modal.show();
+        }
+    </script>
+}

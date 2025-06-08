@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using ServiPuntos.Core.Interfaces;
 
 namespace ServiPuntos.Infrastructure.Middleware
 {
@@ -17,6 +18,8 @@ namespace ServiPuntos.Infrastructure.Middleware
 
             // 1. Si está autenticado (backoffice), usar el claim
             var tenantClaim = context.User?.FindFirst("tenantId");
+            Console.WriteLine(tenantClaim);
+            //var tenantClaim = context.User.Claims.FirstOrDefault(c => c.Type == "tenantId")?.Value;
             if (tenantClaim != null && Guid.TryParse(tenantClaim.Value, out tenantId))
             {
                 tenantContext.TenantId = tenantId;
@@ -27,6 +30,14 @@ namespace ServiPuntos.Infrastructure.Middleware
             // 2. Si es una request API, buscar el header
             if (context.Request.Path.StartsWithSegments("/api"))
             {
+                // No validar tenant si la petición es al endpoint de inicio de sesión o al callback, 
+                //no tiene sentido validar tenant en el middelware cuando el usuario no está autenticado aun
+                if (context.Request.Path.StartsWithSegments("/api/auth") || context.Request.Path.StartsWithSegments("/api/nafta"))
+                {
+                    await _next(context);
+                    return;
+                }
+
                 try
                 {
                     tenantContext.TenantId = resolver.GetCurrentTenantId();
