@@ -90,5 +90,13 @@ namespace ServiPuntos.Infrastructure.Repositories
             int result = await _context.SaveChangesAsync();
             return result > 0;
         }
+        public async Task<Transaccion> GetByPayPalPaymentIdAsync(string pagoPayPalId)
+        {
+            return await _context.Transacciones
+                .Include(t => t.Usuario)
+                .Include(t => t.Ubicacion)
+                .Include(t => t.Tenant)
+                .FirstOrDefaultAsync(t => t.PagoPayPalId == pagoPayPalId);
+        }
     }
 }
