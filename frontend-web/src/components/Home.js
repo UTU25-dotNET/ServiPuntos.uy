@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import authService from "../services/authService";
 import apiService from "../services/apiService";
 import PuntosWidget from "./home/PuntosWidget";
+import PreciosWidget from "./home/PreciosWidget";
 
 const Home = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -182,28 +183,38 @@ const Home = () => {
           maxWidth: "800px",
           margin: "2rem auto",
           padding: "2rem",
-          backgroundColor: "#f8d7da",
-          color: "#721c24",
-          borderRadius: "8px",
-          border: "1px solid #f5c6cb",
           textAlign: "center"
         }}
       >
-        <h3>⚠️ Error al cargar el dashboard</h3>
-        <p>{error}</p>
+        <div
+          style={{
+            backgroundColor: "#fff5f5",
+            border: "1px solid #fed7d7",
+            borderRadius: "8px",
+            padding: "1.5rem",
+            marginBottom: "1rem"
+          }}
+        >
+          <h3 style={{ color: "#c53030", marginBottom: "0.5rem" }}>
+            ⚠️ Error al cargar el dashboard
+          </h3>
+          <p style={{ color: "#742a2a", margin: "0" }}>{error}</p>
+        </div>
+        
         <button
           onClick={loadUserData}
           style={{
-            backgroundColor: "#721c24",
+            backgroundColor: "#7B3F00",
             color: "white",
             border: "none",
-            padding: "0.5rem 1rem",
-            borderRadius: "4px",
+            borderRadius: "8px",
+            padding: "0.75rem 1.5rem",
             cursor: "pointer",
-            marginTop: "1rem"
+            fontSize: "1rem",
+            fontWeight: "600"
           }}
         >
-          Reintentar
+          🔄 Reintentar
         </button>
       </div>
     );
@@ -212,229 +223,184 @@ const Home = () => {
   // Dashboard para usuarios autenticados
   if (isAuthenticated && userProfile && tenantInfo) {
     return (
-      <div
-        style={{
-          maxWidth: "1200px",
-          margin: "0 auto",
-          padding: "1rem",
-          backgroundColor: "#f8f9fa",
-          minHeight: "calc(100vh - 120px)"
-        }}
-      >
-        {/* Header del Dashboard */}
-        <div
-          style={{
-            marginBottom: "2rem",
-            padding: "1.5rem",
-            backgroundColor: "white",
-            borderRadius: "12px",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
-          }}
-        >
-          <h1
-            style={{
+      <div style={{ 
+        minHeight: "80vh", 
+        backgroundColor: "#f8f9fa",
+        padding: "2rem 1rem"
+      }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+          
+          {/* Header del Dashboard */}
+          <div style={{ marginBottom: "2rem" }}>
+            <h1 style={{ 
+              fontSize: "2.5rem", 
+              color: "#7B3F00", 
               margin: "0 0 0.5rem 0",
-              color: "#212529",
-              fontSize: "2rem",
-              fontWeight: "600"
-            }}
-          >
-            ¡Bienvenido, {userProfile.nombre || userProfile.email}!
-          </h1>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              color: "#6c757d",
-              fontSize: "1.1rem"
-            }}
-          >
-            <span>🏢</span>
-            <span>Red: <strong style={{ color: "#7B3F00" }}>{tenantInfo.nombre}</strong></span>
-            <span style={{ margin: "0 0.5rem" }}>•</span>
-            <span>📍 {ubicaciones.length} estacion{ubicaciones.length !== 1 ? 'es' : ''} disponible{ubicaciones.length !== 1 ? 's' : ''}</span>
+              fontWeight: "700"
+            }}>
+              ¡Hola, {userProfile.nombre}! 👋
+            </h1>
+            <p style={{ 
+              fontSize: "1.1rem", 
+              color: "#6c757d", 
+              margin: "0",
+              lineHeight: "1.5"
+            }}>
+              Bienvenido a tu dashboard de {tenantInfo.nombre}
+            </p>
           </div>
-        </div>
 
-        {/* Grid de Widgets */}
-        <div
-          style={{
+          {/* Grid de Widgets */}
+          <div style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-            gap: "1.5rem",
+            gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))",
+            gap: "2rem",
             marginBottom: "2rem"
-          }}
-        >
-          {/* Widget de Puntos */}
-          <PuntosWidget 
-            userProfile={userProfile}
-            tenantInfo={tenantInfo}
-          />
+          }}>
+            
+            {/* Widget de Puntos */}
+            <PuntosWidget 
+              userProfile={userProfile} 
+              tenantInfo={tenantInfo} 
+            />
 
-          {/* Placeholder para próximos widgets */}
-          <div
-            style={{
-              padding: "1.5rem",
-              backgroundColor: "white",
-              borderRadius: "12px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-              border: "2px dashed #dee2e6",
-              textAlign: "center",
-              color: "#6c757d"
-            }}
-          >
-            <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>⛽</div>
-            <h4 style={{ margin: "0 0 0.5rem 0" }}>Precios Widget</h4>
-            <p style={{ margin: "0", fontSize: "0.9rem" }}>Próximamente: Precios en tiempo real</p>
+            {/* Widget de Precios */}
+            <PreciosWidget 
+              tenantInfo={tenantInfo} 
+            />
+
           </div>
 
-          <div
-            style={{
-              padding: "1.5rem",
-              backgroundColor: "white",
-              borderRadius: "12px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-              border: "2px dashed #dee2e6",
-              textAlign: "center",
-              color: "#6c757d"
-            }}
-          >
-            <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>🛒</div>
-            <h4 style={{ margin: "0 0 0.5rem 0" }}>Productos Widget</h4>
-            <p style={{ margin: "0", fontSize: "0.9rem" }}>Próximamente: Productos destacados</p>
-          </div>
-        </div>
-
-        {/* Accesos Rápidos */}
-        <div
-          style={{
-            padding: "1.5rem",
+          {/* Acciones Rápidas */}
+          <div style={{
             backgroundColor: "white",
             borderRadius: "12px",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
-          }}
-        >
-          <h3
-            style={{
-              margin: "0 0 1rem 0",
-              color: "#212529",
-              fontSize: "1.5rem",
+            padding: "1.5rem",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            border: "1px solid #e9ecef",
+            marginBottom: "2rem"
+          }}>
+            <h3 style={{
+              margin: "0 0 1.5rem 0",
+              color: "#7B3F00",
+              fontSize: "1.2rem",
+              fontWeight: "600",
               display: "flex",
               alignItems: "center",
               gap: "0.5rem"
-            }}
-          >
-            🚀 Accesos Rápidos
-          </h3>
-          
-          <div
-            style={{
+            }}>
+              🚀 Acciones Rápidas
+            </h3>
+            
+            <div style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
               gap: "1rem"
-            }}
-          >
-            <Link
-              to="/estaciones"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.75rem",
-                padding: "1rem",
-                backgroundColor: "#f8f9fa",
-                borderRadius: "8px",
-                textDecoration: "none",
-                color: "#495057",
-                transition: "all 0.2s ease",
-                border: "1px solid #dee2e6"
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = "#e9ecef";
-                e.target.style.transform = "translateY(-2px)";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = "#f8f9fa";
-                e.target.style.transform = "translateY(0)";
-              }}
-            >
-              <span style={{ fontSize: "1.5rem" }}>🏪</span>
-              <div>
-                <strong>Ver Estaciones</strong>
-                <div style={{ fontSize: "0.8rem", color: "#6c757d" }}>Ubicaciones y servicios</div>
-              </div>
-            </Link>
+            }}>
+              
+              <Link
+                to="/estaciones"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.75rem",
+                  padding: "1rem",
+                  backgroundColor: "#e8f5e8",
+                  borderRadius: "8px",
+                  textDecoration: "none",
+                  color: "#2d5a2d",
+                  border: "1px solid #c3e6c3",
+                  transition: "transform 0.2s ease, box-shadow 0.2s ease"
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = "translateY(-2px)";
+                  e.target.style.boxShadow = "0 4px 12px rgba(45,90,45,0.2)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = "translateY(0)";
+                  e.target.style.boxShadow = "none";
+                }}
+              >
+                <span style={{ fontSize: "1.5rem" }}>⛽</span>
+                <div>
+                  <strong>Ver Estaciones</strong>
+                  <div style={{ fontSize: "0.8rem", color: "#6c757d" }}>Ubicaciones y precios</div>
+                </div>
+              </Link>
 
-            <Link
-              to="/perfil"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.75rem",
-                padding: "1rem",
-                backgroundColor: "#f8f9fa",
-                borderRadius: "8px",
-                textDecoration: "none",
-                color: "#495057",
-                transition: "all 0.2s ease",
-                border: "1px solid #dee2e6"
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = "#e9ecef";
-                e.target.style.transform = "translateY(-2px)";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = "#f8f9fa";
-                e.target.style.transform = "translateY(0)";
-              }}
-            >
-              <span style={{ fontSize: "1.5rem" }}>👤</span>
-              <div>
-                <strong>Mi Perfil</strong>
-                <div style={{ fontSize: "0.8rem", color: "#6c757d" }}>Configuración y datos</div>
-              </div>
-            </Link>
+              <Link
+                to="/perfil"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.75rem",
+                  padding: "1rem",
+                  backgroundColor: "#fff9c4",
+                  borderRadius: "8px",
+                  textDecoration: "none",
+                  color: "#b8860b",
+                  border: "1px solid #f9c74f",
+                  transition: "transform 0.2s ease, box-shadow 0.2s ease"
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = "translateY(-2px)";
+                  e.target.style.boxShadow = "0 4px 12px rgba(184,134,11,0.2)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = "translateY(0)";
+                  e.target.style.boxShadow = "none";
+                }}
+              >
+                <span style={{ fontSize: "1.5rem" }}>👤</span>
+                <div>
+                  <strong>Mi Perfil</strong>
+                  <div style={{ fontSize: "0.8rem", color: "#6c757d" }}>Configuración y datos</div>
+                </div>
+              </Link>
 
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.75rem",
-                padding: "1rem",
-                backgroundColor: "#f8f9fa",
-                borderRadius: "8px",
-                color: "#6c757d",
-                border: "1px dashed #dee2e6",
-                opacity: 0.7
-              }}
-            >
-              <span style={{ fontSize: "1.5rem" }}>🗺️</span>
-              <div>
-                <strong>Mapa</strong>
-                <div style={{ fontSize: "0.8rem" }}>Próximamente</div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.75rem",
+                  padding: "1rem",
+                  backgroundColor: "#f8f9fa",
+                  borderRadius: "8px",
+                  color: "#6c757d",
+                  border: "1px dashed #dee2e6",
+                  opacity: 0.7
+                }}
+              >
+                <span style={{ fontSize: "1.5rem" }}>🗺️</span>
+                <div>
+                  <strong>Mapa</strong>
+                  <div style={{ fontSize: "0.8rem" }}>Próximamente</div>
+                </div>
               </div>
-            </div>
 
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.75rem",
-                padding: "1rem",
-                backgroundColor: "#f8f9fa",
-                borderRadius: "8px",
-                color: "#6c757d",
-                border: "1px dashed #dee2e6",
-                opacity: 0.7
-              }}
-            >
-              <span style={{ fontSize: "1.5rem" }}>🎁</span>
-              <div>
-                <strong>Promociones</strong>
-                <div style={{ fontSize: "0.8rem" }}>Próximamente</div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.75rem",
+                  padding: "1rem",
+                  backgroundColor: "#f8f9fa",
+                  borderRadius: "8px",
+                  color: "#6c757d",
+                  border: "1px dashed #dee2e6",
+                  opacity: 0.7
+                }}
+              >
+                <span style={{ fontSize: "1.5rem" }}>🎁</span>
+                <div>
+                  <strong>Promociones</strong>
+                  <div style={{ fontSize: "0.8rem" }}>Próximamente</div>
+                </div>
               </div>
             </div>
           </div>
+
+          
         </div>
       </div>
     );
