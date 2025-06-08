@@ -1,0 +1,95 @@
+@model ServiPuntos.Core.Entities.Tenant
+
+@{
+    ViewData["Title"] = "Editar Tenant";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form asp-action="Editar" method="post">
+    <input type="hidden" asp-for="Id" />
+    
+    <div class="form-group mb-3">
+        <label for="nombre">Nombre *</label>
+        <input type="text" class="form-control" id="nombre" name="nombre" value="@Model.Nombre" required />
+        <div class="form-text">El nombre del tenant es obligatorio.</div>
+    </div>
+
+    <div class="form-group mb-3">
+        <label for="logoUrl">URL del Logo</label>
+        <input type="text" class="form-control" id="logoUrl" name="logoUrl" value="@Model.LogoUrl" placeholder="https://ejemplo.com/logo.png" />
+        <div class="form-text">URL opcional para el logo del tenant. Déjalo vacío si no tienes logo.</div>
+    </div>
+
+    <div class="form-group mb-3">
+        <label for="color">Color Corporativo</label>
+        <div class="input-group">
+            <input type="color" class="form-control form-control-color" id="colorPicker" value="@(string.IsNullOrEmpty(Model.Color) ? "#007bff" : Model.Color)" />
+            <input type="text" class="form-control" id="color" name="color" value="@Model.Color" placeholder="#007bff" />
+        </div>
+        <div class="form-text">Color corporativo del tenant en formato hexadecimal (ej: #007bff). Déjalo vacío para usar el color por defecto.</div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="form-group mb-3">
+                <label>Fecha de Creación</label>
+                <input type="text" class="form-control" value="@Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")" readonly />
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="form-group mb-3">
+                <label>Última Modificación</label>
+                <input type="text" class="form-control" value="@Model.FechaModificacion.ToString("dd/MM/yyyy HH:mm")" readonly />
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group mt-3">
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const colorPicker = document.getElementById('colorPicker');
+            const colorText = document.getElementById('color');
+            const logoUrl = document.getElementById('logoUrl');
+            
+            // Sincronizar color picker y texto
+            if (colorText.value && colorText.value.match(/^#[0-9a-fA-F]{6}$/)) {
+                colorPicker.value = colorText.value;
+            } else if (colorPicker.value) {
+                colorText.value = colorPicker.value;
+            }
+            
+            // Actualizar texto cuando cambia el color picker
+            colorPicker.addEventListener('input', function() {
+                colorText.value = this.value;
+            });
+            
+            // Actualizar color picker cuando cambia el texto
+            colorText.addEventListener('input', function() {
+                if (this.value.match(/^#[0-9a-fA-F]{6}$/)) {
+                    colorPicker.value = this.value;
+                }
+            });
+            
+            // Validación opcional de URL (sin bloquear el envío)
+            logoUrl.addEventListener('blur', function() {
+                if (this.value && !this.value.match(/^https?:\/\/.+/)) {
+                    this.setCustomValidity('Si ingresas una URL, debe comenzar con http:// o https://');
+                } else {
+                    this.setCustomValidity('');
+                }
+            });
+            
+            // Limpiar validación al escribir
+            logoUrl.addEventListener('input', function() {
+                this.setCustomValidity('');
+            });
+        });
+    </script>
+}

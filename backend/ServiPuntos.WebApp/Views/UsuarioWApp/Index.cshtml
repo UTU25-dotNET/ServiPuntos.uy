@@ -1,9 +1,9 @@
 ﻿@model IEnumerable<ServiPuntos.Core.Entities.Usuario>
 
-
 @{
     ViewData["Title"] = "Listado de Usuarios WApp";
     var tenants = (IEnumerable<ServiPuntos.Core.Entities.Tenant>)ViewBag.Tenants;
+    var tenantSeleccionado = ViewBag.TenantSeleccionado as Guid?;
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -12,10 +12,12 @@
     <div class="form-group">
         <label for="tenantId">Tenant</label>
         <select name="tenantId" class="form-control" required onchange="this.form.submit()">
-            <option value="">-- Seleccione Tenant --</option>
             @foreach (var t in tenants)
             {
-                <option value="@t.Id">@t.Nombre</option>
+                bool isSelected = tenantSeleccionado.HasValue ? 
+                    t.Id == tenantSeleccionado.Value : 
+                    t == tenants.First();
+                <option value="@t.Id" selected="@isSelected">@t.Nombre</option>
             }
         </select>
     </div>
@@ -27,26 +29,34 @@
             <th>Id</th>
             <th>Nombre</th>
             <th>Email</th>
-			<th>Ci</th>
-			<th>Rol</th>
+            <th>Ci</th>
+            <th>Rol</th>
             <th>Acciones</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var usuario in Model)
+        @if (Model.Any())
+        {
+            @foreach (var usuario in Model)
+            {
+                <tr>
+                    <td>@usuario.Id</td>
+                    <td>@usuario.Nombre</td>
+                    <td>@usuario.Email</td>
+                    <td>@usuario.Ci</td>
+                    <td>@usuario.Rol</td>
+                    <td>
+                        <a asp-action="Editar" asp-route-id="@usuario.Id" class="btn btn-sm btn-primary">Editar</a>
+                        <a asp-action="Detalles" asp-route-id="@usuario.Id" class="btn btn-sm btn-info">Ver</a>
+                        <a asp-action="Borrar" asp-route-id="@usuario.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
         {
             <tr>
-                <td>@usuario.Id</td>
-                <td>@usuario.Nombre</td>
-                <td>@usuario.Email</td>
-				<td>@usuario.Ci</td>
-				<td>@usuario.Rol</td> 
-                
-                <td>
-                    <a asp-action="Edit" asp-route-id="@usuario.Id" class="btn btn-sm btn-primary">Editar</a>
-                    <a asp-action="Details" asp-route-id="@usuario.Id" class="btn btn-sm btn-info">Ver</a>
-                    <a asp-action="Delete" asp-route-id="@usuario.Id" class="btn btn-sm btn-danger">Eliminar</a>
-                </td>
+                <td colspan="6" class="text-center">No hay usuarios para este tenant</td>
             </tr>
         }
     </tbody>

@@ -124,6 +124,8 @@ namespace ServiPuntos.Application.Services
                         })
                     };
 
+                    Console.WriteLine("asdasdasdasd");
+
                     await _transaccionRepository.AddAsync(transaccionPendiente);
 
                     return new RespuestaNAFTA
@@ -140,6 +142,8 @@ namespace ServiPuntos.Application.Services
                         }
                     };
                 }
+
+                Console.WriteLine("Creé RespuestaNAFTA");
 
                 // Si tiene PaymentId, verificar y completar la transacción
                 return await CompletarTransaccion(transaccionNAFTA, mensaje);

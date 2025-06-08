@@ -12,5 +12,7 @@ namespace ServiPuntos.Core.Interfaces
         Task AddProductoAsync(Ubicacion ubicacion, ProductoCanjeable producto);
         Task UpdateProductoAsync(ProductoCanjeable producto);
         Task UpdateProductoAsync(Ubicacion ubicacion, ProductoCanjeable producto);
+        Task DeleteProductoAsync(Guid idProducto);
+        Task DeleteProductoAsync(Ubicacion ubicacion, Guid idProducto);
     }
 }

@@ -1,48 +1,167 @@
-﻿/* Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-for details on configuring this project to bundle and minify static web assets. */
+﻿/* ================== CSS MÍNIMO PARA MODO OSCURO ================== */
+/* Bootstrap data-bs-theme maneja la mayoría, esto es solo para casos específicos */
 
-a.navbar-brand {
-  white-space: normal;
-  text-align: center;
-  word-break: break-all;
+/* ================== DARK MODE TOGGLE ================== */
+.dark-mode-toggle {
+  position: relative;
+  display: inline-block;
 }
 
-a {
-  color: #0077cc;
+.dark-mode-checkbox {
+  display: none;
 }
 
-.btn-primary {
-  color: #fff;
-  background-color: #1b6ec2;
-  border-color: #1861ac;
+.dark-mode-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  width: 60px;
+  height: 30px;
+  background: linear-gradient(45deg, #ffd700, #ff8c00);
+  border-radius: 50px;
+  position: relative;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
-  color: #fff;
-  background-color: #1b6ec2;
-  border-color: #1861ac;
+.dark-mode-label:hover {
+  transform: scale(1.05);
 }
 
-.border-top {
-  border-top: 1px solid #e5e5e5;
-}
-.border-bottom {
-  border-bottom: 1px solid #e5e5e5;
-}
-
-.box-shadow {
-  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+.sun-icon,
+.moon-icon {
+  font-size: 12px;
+  z-index: 2;
+  padding: 0 6px;
+  color: white;
+  transition: all 0.3s ease;
 }
 
-button.accept-policy {
-  font-size: 1rem;
-  line-height: inherit;
+.sun-icon {
+  opacity: 1;
 }
 
-.footer {
+.moon-icon {
+  opacity: 0;
+}
+
+.toggle-slider {
   position: absolute;
-  bottom: 0;
-  width: 100%;
-  white-space: nowrap;
-  line-height: 60px;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  z-index: 1;
+}
+
+/* Checked State */
+.dark-mode-checkbox:checked + .dark-mode-label {
+  background: linear-gradient(45deg, #4a00e0, #8e2de2);
+}
+
+.dark-mode-checkbox:checked + .dark-mode-label .sun-icon {
+  opacity: 0;
+}
+
+.dark-mode-checkbox:checked + .dark-mode-label .moon-icon {
+  opacity: 1;
+}
+
+.dark-mode-checkbox:checked + .dark-mode-label .toggle-slider {
+  transform: translateX(30px);
+}
+
+/* ================== ELEMENTOS ESPECÍFICOS QUE BOOTSTRAP NO CUBRE ================== */
+
+/* Transiciones suaves para todos los elementos */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Fix para elementos inline con estilos específicos */
+body.dark-mode .btn-outline-danger[style*="color"] {
+  color: #dc3545 !important;
+}
+
+/* Asegurar que los iconos de Font Awesome mantengan su color */
+body.dark-mode .fas,
+body.dark-mode .fa,
+body.dark-mode i[class*="fa-"] {
+  color: inherit;
+}
+
+/* Fix para elementos con estilos inline que pueden interferir */
+body.dark-mode [style*="color: #dc3545"] {
+  color: #dc3545 !important;
+}
+
+/* Responsive adjustments para el toggle */
+@media (max-width: 576px) {
+  .dark-mode-toggle {
+    margin-bottom: 8px;
+  }
+  
+  .dark-mode-label {
+    width: 50px;
+    height: 25px;
+  }
+  
+  .toggle-slider {
+    width: 19px;
+    height: 19px;
+    top: 3px;
+  }
+  
+  .dark-mode-checkbox:checked + .dark-mode-label .toggle-slider {
+    transform: translateX(25px);
+  }
+  
+  .sun-icon,
+  .moon-icon {
+    font-size: 10px;
+    padding: 0 4px;
+  }
+}
+
+/* ================== OPCIONAL: MEJORAS VISUALES ================== */
+
+/* Mejorar el hover en tablas dark */
+[data-bs-theme="dark"] .table-hover > tbody > tr:hover > td,
+[data-bs-theme="dark"] .table-hover > tbody > tr:hover > th {
+  background-color: rgba(255, 255, 255, 0.075);
+}
+
+/* Asegurar que los botones dentro de tablas se vean bien */
+[data-bs-theme="dark"] .table .btn {
+  --bs-btn-border-width: 1px;
+}
+
+/* Fix para selects con options (algunos navegadores) */
+[data-bs-theme="dark"] select option {
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+}
+
+/* Asegurar contraste en alerts */
+[data-bs-theme="dark"] .alert {
+  border-width: 1px;
+}
+
+/* Footer específico si no usa Bootstrap classes */
+body.dark-mode .footer:not([data-bs-theme]) {
+  background-color: var(--bs-dark);
+  color: var(--bs-light);
+  border-color: var(--bs-border-color);
+}
+
+/* Custom elements que no son de Bootstrap */
+body.dark-mode .custom-element {
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  border-color: var(--bs-border-color);
 }

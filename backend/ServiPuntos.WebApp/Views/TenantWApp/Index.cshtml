@@ -1,27 +1,66 @@
 ﻿@model IEnumerable<ServiPuntos.Core.Entities.Tenant>
 
 @{
-    ViewData["Title"] = "Tenants";
+    ViewData["Title"] = "Lista de Tenants";
 }
 
-<h2>Lista de Tenants</h2>
+<h1>@ViewData["Title"]</h1>
 
-<table class="table table-bordered">
+<table class="table table-striped">
     <thead>
         <tr>
+            <th>ID</th>
             <th>Nombre</th>
-            
+            <th>Logo URL</th>
+            <th>Color</th>
+            <th>Fecha Creación</th>
+            <th>Acciones</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var tenant in Model)
+        @if (Model.Any())
+        {
+            @foreach (var tenant in Model)
+            {
+                <tr>
+                    <td>@tenant.Id</td>
+                    <td>@tenant.Nombre</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(tenant.LogoUrl))
+                        {
+                            <small class="text-muted">@tenant.LogoUrl</small>
+                        }
+                        else
+                        {
+                            <small class="text-muted">Sin logo</small>
+                        }
+                    </td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(tenant.Color))
+                        {
+                            <span class="badge" style="background-color: @tenant.Color; color: white;">@tenant.Color</span>
+                        }
+                        else
+                        {
+                            <small class="text-muted">Sin color</small>
+                        }
+                    </td>
+                    <td>@tenant.FechaCreacion.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        <a asp-action="Editar" asp-route-id="@tenant.Id" class="btn btn-sm btn-primary">Editar</a>
+                        <a asp-action="Detalles" asp-route-id="@tenant.Id" class="btn btn-sm btn-info">Ver</a>
+                        <a asp-action="Borrar" asp-route-id="@tenant.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
         {
             <tr>
-                <td>@tenant.Nombre</td>
-                
+                <td colspan="6" class="text-center">No hay tenants registrados</td>
             </tr>
         }
     </tbody>
 </table>
 
-<a class="btn btn-primary" asp-action="Crear">Crear Nuevo Tenant</a>
+<a asp-action="Crear" class="btn btn-success">Crear Nuevo Tenant</a>

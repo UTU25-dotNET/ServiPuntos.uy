@@ -25,26 +25,112 @@ namespace ServiPuntos.WebApp.Controllers
             var tenants = await _iTenantService.GetAllAsync();
             ViewBag.Tenants = tenants;
 
-            if (!tenantId.HasValue)
+            // Si no hay tenant seleccionado, usar el primero por defecto
+            if (!tenantId.HasValue && tenants.Any())
             {
-                // No hay tenant seleccionado aún, no mostramos usuarios, solo el dropdown
-                return View(new List<Usuario>());
+                tenantId = tenants.First().Id;
             }
 
-            // Tenant seleccionado, traemos usuarios
-            var usuarios = await _iUsuarioService.GetAllUsuariosAsync(tenantId.Value);
-        
             ViewBag.TenantSeleccionado = tenantId;
+
+            // Obtener usuarios del tenant seleccionado
+            IEnumerable<Usuario> usuarios = new List<Usuario>();
+            if (tenantId.HasValue)
+            {
+                usuarios = await _iUsuarioService.GetAllUsuariosAsync(tenantId.Value);
+            }
 
             return View(usuarios);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Detalles(Guid id)
+        {
+            var usuario = await _iUsuarioService.GetUsuarioAsync(id);
+            if (usuario == null)
+            {
+                return NotFound();
+            }
+
+            // Obtener información del tenant para mostrar el nombre
+            var tenant = await _iTenantService.GetByIdAsync(usuario.TenantId);
+            ViewBag.TenantNombre = tenant?.Nombre ?? "Tenant no encontrado";
+
+            return View(usuario);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Editar(Guid id)
+        {
+            var usuario = await _iUsuarioService.GetUsuarioAsync(id);
+            if (usuario == null)
+            {
+                return NotFound();
+            }
+            
+            ViewBag.Tenants = await _iTenantService.GetAllAsync();
+            return View(usuario);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Editar(Guid id, string nombre, string email, int ci, Guid tenantId, RolUsuario rol)
+        {
+            if (ModelState.IsValid)
+            {
+                var usuario = await _iUsuarioService.GetUsuarioAsync(id);
+                if (usuario == null)
+                {
+                    return NotFound();
+                }
+
+                // Actualizar propiedades del usuario
+                usuario.Nombre = nombre;
+                usuario.Email = email;
+                usuario.Ci = ci;
+                usuario.TenantId = tenantId;
+                usuario.Rol = rol;
+
+                await _iUsuarioService.UpdateUsuarioAsync(usuario);
+                return RedirectToAction("Index", new { tenantId = tenantId });
+            }
+
+            ViewBag.Tenants = await _iTenantService.GetAllAsync();
+            var usuarioModel = await _iUsuarioService.GetUsuarioAsync(id);
+            return View(usuarioModel);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Borrar(Guid id)
+        {
+            var usuario = await _iUsuarioService.GetUsuarioAsync(id);
+            if (usuario == null)
+            {
+                return NotFound();
+            }
+
+            // Obtener información del tenant para mostrar el nombre
+            var tenant = await _iTenantService.GetByIdAsync(usuario.TenantId);
+            ViewBag.TenantNombre = tenant?.Nombre ?? "Tenant no encontrado";
+
+            return View(usuario);
+        }
+
+        [HttpPost, ActionName("Borrar")]
+        public async Task<IActionResult> BorrarConfirmed(Guid id)
+        {
+            var usuario = await _iUsuarioService.GetUsuarioAsync(id);
+            if (usuario != null)
+            {
+                var tenantId = usuario.TenantId;
+                await _iUsuarioService.DeleteUsuarioAsync(id);
+                return RedirectToAction("Index", new { tenantId = tenantId });
+            }
+            return RedirectToAction("Index");
+        }
 
         [HttpGet]
         public async Task<IActionResult> Crear()
         {
-            // Obtiene todas las tenants desde tu servicio
-            // Pásalas a la vista, por ejemplo en ViewBag
             ViewBag.Tenants = await _iTenantService.GetAllAsync();
             return View();
         }
@@ -57,17 +143,11 @@ namespace ServiPuntos.WebApp.Controllers
                 var usuario = new Usuario(nombre, email, password, ci, tenantId, rol);
 
                 await _iUsuarioService.AddUsuarioAsync(usuario);
-                //return RedirectToAction("Index");
+                // Redirigir de vuelta al Index con el tenant seleccionado
+                return RedirectToAction("Index", new { tenantId = tenantId });
             }
             ViewBag.Tenants = await _iTenantService.GetAllAsync();
             return View();
         }
-    }
-
-    internal class UsuarioIndexViewModel
-    {
-        public List<Tenant> Tenants { get; set; }
-        public List<Usuario> Usuarios { get; set; }
-        public Guid? TenantSeleccionado { get; set; }
     }
 }

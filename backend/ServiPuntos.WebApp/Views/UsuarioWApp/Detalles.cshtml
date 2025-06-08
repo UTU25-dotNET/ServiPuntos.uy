@@ -1,0 +1,39 @@
+@model ServiPuntos.Core.Entities.Usuario
+
+@{
+    ViewData["Title"] = "Detalles del Usuario";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="card">
+    <div class="card-header">
+        <h4>@Model.Nombre</h4>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID:</dt>
+            <dd class="col-sm-9">@Model.Id</dd>
+
+            <dt class="col-sm-3">Nombre:</dt>
+            <dd class="col-sm-9">@Model.Nombre</dd>
+
+            <dt class="col-sm-3">Email:</dt>
+            <dd class="col-sm-9">@Model.Email</dd>
+
+            <dt class="col-sm-3">CI:</dt>
+            <dd class="col-sm-9">@Model.Ci</dd>
+
+            <dt class="col-sm-3">Rol:</dt>
+            <dd class="col-sm-9">@Model.Rol</dd>
+
+            <dt class="col-sm-3">Tenant:</dt>
+            <dd class="col-sm-9">@ViewBag.TenantNombre</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-primary">Editar</a>
+    <a asp-action="Index" asp-route-tenantId="@Model.TenantId" class="btn btn-secondary">Volver al Listado</a>
+</div>

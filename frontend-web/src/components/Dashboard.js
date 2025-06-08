@@ -16,7 +16,7 @@ const Dashboard = () => {
       setLoading(true);
 
       try {
-        // si no esta logeado va a l login
+        // Si no está logueado va al login
         if (!authService.isAuthenticated()) {
           navigate("/login");
           return;
@@ -24,12 +24,30 @@ const Dashboard = () => {
 
         // Obtener datos del usuario desde el token
         const userData = authService.getCurrentUser();
+        console.log("Datos del usuario desde el token:", userData);
         setUser(userData);
 
-        // Obtener perfil del usuario (simulado)
-        const userProfile = await apiService.getUserProfile();
-        setProfile(userProfile);
+        // Intentar obtener perfil del usuario
+        try {
+          const userProfile = await apiService.getUserProfile();
+          console.log("Perfil obtenido del API:", userProfile);
+          setProfile(userProfile);
+        } catch (profileError) {
+          console.warn("Error al cargar perfil completo, usando datos del token:", profileError);
+          // Si falla el API, usar datos del token como perfil básico
+          setProfile({
+            id: userData.id || userData.sub || "token-user",
+            nombre: userData.name || userData.nombre || "Usuario",
+            email: userData.email || "",
+            role: userData.role || userData.rol || "usuario",
+            puntos: userData.puntos || 0,
+            isAdult: userData.is_adult === "true"
+          });
+          setError("Algunos datos del perfil podrían no estar actualizados");
+        }
+
       } catch (err) {
+        console.error("Error en loadUserData:", err);
         setError(err.message || "Error al cargar los datos del usuario");
       } finally {
         setLoading(false);
@@ -53,7 +71,25 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div style={{ textAlign: "center", padding: "2rem" }}>Cargando...</div>
+      <div style={{ textAlign: "center", padding: "2rem" }}>
+        <div style={{
+          border: "4px solid #f3f3f3",
+          borderTop: "4px solid #3498db",
+          borderRadius: "50%",
+          width: "40px",
+          height: "40px",
+          animation: "spin 2s linear infinite",
+          margin: "0 auto 1rem"
+        }} />
+        <p>Cargando dashboard...</p>
+        
+        <style jsx>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
     );
   }
 
@@ -64,17 +100,19 @@ const Dashboard = () => {
       {error && (
         <div
           style={{
-            backgroundColor: "#f8d7da",
-            color: "#721c24",
+            backgroundColor: "#fff3cd",
+            color: "#856404",
             padding: "0.75rem",
             borderRadius: "4px",
             marginBottom: "1rem",
+            border: "1px solid #ffeaa7"
           }}
         >
-          {error}
+          ⚠️ {error}
         </div>
       )}
 
+      {/* Información del JWT Token */}
       {user && (
         <div
           style={{
@@ -93,31 +131,35 @@ const Dashboard = () => {
               columnGap: "1rem",
             }}
           >
-            <div>
-              <strong>ID:</strong>
-            </div>
-            <div>{user.id}</div>
+            <div><strong>ID:</strong></div>
+            <div>{user.id || user.sub || "No disponible"}</div>
 
-            <div>
-              <strong>Usuario:</strong>
-            </div>
-            <div>{user.name}</div>
+            <div><strong>Nombre:</strong></div>
+            <div>{user.name || user.nombre || "No disponible"}</div>
 
-            <div>
-              <strong>Email:</strong>
-            </div>
-            <div>{user.email}</div>
+            <div><strong>Email:</strong></div>
+            <div>{user.email || "No disponible"}</div>
 
-            <div>
-              <strong>Rol:</strong>
-            </div>
-            <div>{user.role}</div>
+            <div><strong>Rol:</strong></div>
+            <div>{user.role || user.rol || "No disponible"}</div>
+
+            {user.ci && (
+              <>
+                <div><strong>CI:</strong></div>
+                <div>{user.ci}</div>
+              </>
+            )}
+
+            {user.tenantId && (
+              <>
+                <div><strong>Tenant ID:</strong></div>
+                <div>{user.tenantId}</div>
+              </>
+            )}
 
             {user.exp && (
               <>
-                <div>
-                  <strong>Expiración:</strong>
-                </div>
+                <div><strong>Expiración:</strong></div>
                 <div>{new Date(user.exp * 1000).toLocaleString()}</div>
               </>
             )}
@@ -125,6 +167,7 @@ const Dashboard = () => {
         </div>
       )}
 
+      {/* Información del Perfil (API) */}
       {profile && (
         <div
           style={{
@@ -134,10 +177,7 @@ const Dashboard = () => {
             marginBottom: "1rem",
           }}
         >
-          <h3>Perfil de Usuario (API)</h3>
-          <p>
-            <small>Simulado para desarrollo</small>
-          </p>
+          <h3>Perfil de Usuario</h3>
           <div
             style={{
               display: "grid",
@@ -146,52 +186,112 @@ const Dashboard = () => {
               columnGap: "1rem",
             }}
           >
-            {Object.entries(profile).map(([key, value]) => (
-              <React.Fragment key={key}>
-                <div>
-                  <strong>{key}:</strong>
-                </div>
-                <div>
-                  {typeof value === "object" ? JSON.stringify(value) : value}
-                </div>
-              </React.Fragment>
-            ))}
+            <div><strong>ID:</strong></div>
+            <div>{profile.id}</div>
+
+            <div><strong>Nombre:</strong></div>
+            <div>{profile.nombre}</div>
+
+            <div><strong>Email:</strong></div>
+            <div>{profile.email}</div>
+
+            <div><strong>Rol:</strong></div>
+            <div>
+              <span style={{
+                backgroundColor: profile.role === "admin" ? "#6f42c1" : "#28a745",
+                color: "white",
+                padding: "0.25rem 0.5rem",
+                borderRadius: "3px",
+                fontSize: "0.8rem"
+              }}>
+                {profile.role}
+              </span>
+            </div>
+
+            {profile.ci && (
+              <>
+                <div><strong>CI:</strong></div>
+                <div>{profile.ci}</div>
+              </>
+            )}
+
+            <div><strong>Puntos:</strong></div>
+            <div>{profile.puntos || 0}</div>
+
+            {profile.tenantId && (
+              <>
+                <div><strong>Tenant:</strong></div>
+                <div>{profile.tenantId}</div>
+              </>
+            )}
+
+            {profile.fechaCreacion && (
+              <>
+                <div><strong>Fecha de Registro:</strong></div>
+                <div>{new Date(profile.fechaCreacion).toLocaleDateString()}</div>
+              </>
+            )}
           </div>
         </div>
-          )}
+      )}
 
-        {user && (
-            <div
-                style={{
-                    padding: "0.75rem",
-                    borderRadius: "4px",
-                    marginBottom: "1rem",
-                    backgroundColor: user.is_adult === "true" ? "#d4edda" : "#f8d7da",
-                    color: user.is_adult === "true" ? "#155724" : "#721c24",
-                    fontWeight: "bold"
-                }}
-            >
-                {user.is_adult === "true"
-                    ? "Identidad Verificada, el usuario es mayor de edad"
-                    : "Identidad Verificada, el usuario es menor de edad"}
-            </div>
-        )}
+      {/* Verificación de Edad */}
+      {user && (
+        <div
+          style={{
+            padding: "0.75rem",
+            borderRadius: "4px",
+            marginBottom: "1rem",
+            backgroundColor: user.is_adult === "true" ? "#d4edda" : "#f8d7da",
+            color: user.is_adult === "true" ? "#155724" : "#721c24",
+            fontWeight: "bold"
+          }}
+        >
+          {user.is_adult === "true"
+            ? "✅ Identidad Verificada, el usuario es mayor de edad"
+            : "⚠️ Identidad Verificada, el usuario es menor de edad"}
+        </div>
+      )}
 
-      {user?.role === "admin" && (
+      {/* Panel de Administración */}
+      {(user?.role === "admin" || profile?.role === "admin") && (
         <div
           style={{
             backgroundColor: "#f0f9e8",
             padding: "1rem",
             borderRadius: "4px",
             marginBottom: "1rem",
+            border: "1px solid #c3e6cb"
           }}
         >
-          <h3>Panel de Administración</h3>
+          <h3>🛠️ Panel de Administración</h3>
           <p>Esta sección solo es visible para administradores.</p>
+          <div style={{ marginTop: "0.5rem" }}>
+            <small>
+              • Gestión de usuarios<br/>
+              • Configuración del sistema<br/>
+              • Reportes y estadísticas
+            </small>
+          </div>
         </div>
       )}
 
-      <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
+      {/* Botones de acción */}
+      <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem", flexWrap: "wrap" }}>
+        <button
+          onClick={() => navigate("/perfil")}
+          style={{
+            backgroundColor: "#28a745",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            padding: "0.5rem 1rem",
+            cursor: "pointer",
+          }}
+        >
+          👤 Ver Perfil
+        </button>
+
         <button
           onClick={handleViewToken}
           style={{
@@ -203,7 +303,7 @@ const Dashboard = () => {
             cursor: "pointer",
           }}
         >
-          Ver Token
+          🔑 Ver Token
         </button>
 
         <button
@@ -217,7 +317,7 @@ const Dashboard = () => {
             cursor: "pointer",
           }}
         >
-          Cerrar Sesión
+          🚪 Cerrar Sesión
         </button>
       </div>
     </div>
