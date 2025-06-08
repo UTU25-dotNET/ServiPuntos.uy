@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import authService from "../../services/authService";
 import apiService from "../../services/apiService";
+import HistorialCanjes from "./HistorialCanjes";
 
 const Perfil = () => {
   const [user, setUser] = useState(null);
@@ -24,6 +25,7 @@ const Perfil = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [showHistorial, setShowHistorial] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
   const navigate = useNavigate();
 
@@ -872,11 +874,12 @@ if (loading) {
 
       {/* Pestaña de Estadísticas */}
       {activeTab === "stats" && readOnlyData && (
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-          gap: "1.5rem"
-        }}>
+        <div>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+            gap: "1.5rem"
+          }}>
           {/* Tarjeta de Puntos */}
           <div style={{
             backgroundColor: "#e3f2fd",
@@ -970,6 +973,28 @@ if (loading) {
               </div>
             </div>
           </div>
+          </div>
+
+          <div style={{ marginTop: "1.5rem" }}>
+            <button
+              type="button"
+              onClick={() => setShowHistorial(!showHistorial)}
+              style={{
+                backgroundColor: "#007bff",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+                padding: "0.5rem 1rem",
+                cursor: "pointer"
+              }}
+            >
+              {showHistorial ? "Ocultar historial" : "Ver historial de canjes"}
+            </button>
+          </div>
+
+          {showHistorial && (
+            <HistorialCanjes usuarioId={readOnlyData.id} onClose={() => setShowHistorial(false)} />
+          )}
         </div>
       )}
     </div>
