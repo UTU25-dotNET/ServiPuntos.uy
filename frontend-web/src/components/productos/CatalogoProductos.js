@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import apiService from "../../services/apiService";
 
-const CatalogoProductos = ({ ubicacion, onClose, isOpen }) => {
+const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [canjeQR, setCanjeQR] = useState(null);
+  const [canjeLoading, setCanjeLoading] = useState(false);
+  const [canjeError, setCanjeError] = useState("");
 
   useEffect(() => {
     if (isOpen && ubicacion) {
@@ -30,6 +34,20 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen }) => {
       setProductos([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCanjear = async (productoId) => {
+    setCanjeLoading(true);
+    setCanjeError("");
+    try {
+      const result = await apiService.generarCanje(productoId, ubicacion.id);
+      setCanjeQR(result?.datos?.codigoQR || null);
+    } catch (err) {
+      console.error("Error generando canje:", err);
+      setCanjeError(err.message);
+    } finally {
+      setCanjeLoading(false);
     }
   };
 
@@ -155,6 +173,51 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen }) => {
             </button>
           </div>
         </div>
+
+        {canjeQR && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0,0,0,0.6)",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              zIndex: 2000,
+            }}
+          >
+            <div
+              style={{
+                background: "white",
+                padding: "2rem",
+                borderRadius: "12px",
+                textAlign: "center",
+              }}
+            >
+              <h3 style={{ marginTop: 0 }}>Código de Canje</h3>
+              {canjeLoading ? (
+                <p>Generando código...</p>
+              ) : (
+                <>
+                  <QRCodeSVG value={canjeQR} size={180} />
+                  <p style={{ wordBreak: "break-all" }}>{canjeQR}</p>
+                </>
+              )}
+              {canjeError && (
+                <p style={{ color: "#dc3545" }}>{canjeError}</p>
+              )}
+              <button
+                onClick={() => setCanjeQR(null)}
+                style={{ marginTop: "1rem", padding: "0.5rem 1rem" }}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Contenido del modal */}
         <div
@@ -403,6 +466,25 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen }) => {
                         >
                           ⚠️ Producto temporalmente no disponible
                         </div>
+                      )}
+
+                      {productoUbicacion.activo && productoUbicacion.stockDisponible > 0 && (
+                        <button
+                          onClick={() => handleCanjear(producto.id)}
+                          disabled={!userProfile || (userProfile.puntos || 0) < producto.costoEnPuntos || canjeLoading}
+                          style={{
+                            width: "100%",
+                            marginTop: "0.5rem",
+                            padding: "0.5rem",
+                            backgroundColor: "#007bff",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "6px",
+                            cursor: "pointer"
+                          }}
+                        >
+                          Canjear
+                        </button>
                       )}
 
                       {/* Footer con información adicional */}
