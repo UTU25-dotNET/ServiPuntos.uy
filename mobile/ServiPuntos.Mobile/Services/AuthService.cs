@@ -51,7 +51,11 @@ namespace ServiPuntos.Mobile.Services
         {
             try
             {
-                Console.WriteLine($"[AuthService] Iniciando login para: {email}");
+                Console.WriteLine($"[AuthService] === INICIO SIGNIN ===");
+                Console.WriteLine($"[AuthService] Email: {email}");
+                Console.WriteLine($"[AuthService] Password present: {!string.IsNullOrEmpty(password)}");
+                Console.WriteLine($"[AuthService] API_BASE_URL: {API_BASE_URL}");
+                Console.WriteLine($"[AuthService] HttpClient configurado: {_httpClient != null}");
 
                 var request = new SignInRequest
                 {
@@ -60,18 +64,24 @@ namespace ServiPuntos.Mobile.Services
                 };
 
                 var jsonContent = JsonSerializer.Serialize(request);
+                Console.WriteLine($"[AuthService] JSON serializado: {jsonContent}");
+                
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                Console.WriteLine($"[AuthService] StringContent creado");
+                Console.WriteLine($"[AuthService] Content-Type: {content.Headers.ContentType}");
 
-                var response = await _httpClient.PostAsync($"{API_BASE_URL}/signin", content);
-                if (response.StatusCode != System.Net.HttpStatusCode.OK && response.StatusCode != System.Net.HttpStatusCode.Created)
-                {
-                    Console.WriteLine($"[AuthService] Error al hacer POST: {response.StatusCode}");
-                    throw new HttpRequestException($"Error al hacer POST: {response.StatusCode}");
-                }
+                var url = $"{API_BASE_URL}/signin";
+                Console.WriteLine($"[AuthService] URL completa: {url}");
+                Console.WriteLine($"[AuthService] Iniciando petición HTTP POST...");
+
+                var response = await _httpClient.PostAsync(url, content);
+                
+                Console.WriteLine($"[AuthService] Petición completada");
+                Console.WriteLine($"[AuthService] Status Code: {response.StatusCode}");
+                Console.WriteLine($"[AuthService] IsSuccessStatusCode: {response.IsSuccessStatusCode}");
                 
                 var responseContent = await response.Content.ReadAsStringAsync();
-
-                Console.WriteLine($"[AuthService] Respuesta: {response.StatusCode}");
+                Console.WriteLine($"[AuthService] Response Content: {responseContent}");
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -80,12 +90,10 @@ namespace ServiPuntos.Mobile.Services
                         PropertyNameCaseInsensitive = true
                     });
 
-                    // **AGREGAR: Guardar token automáticamente**
                     if (signinResponse != null && !string.IsNullOrEmpty(signinResponse.Token))
                     {
                         await SaveTokenAsync(signinResponse.Token);
                         
-                        // Configurar el header de autorización
                         _httpClient.DefaultRequestHeaders.Authorization = 
                             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", signinResponse.Token);
                     }
@@ -99,9 +107,23 @@ namespace ServiPuntos.Mobile.Services
                     throw new HttpRequestException($"Error de autenticación: {response.StatusCode}");
                 }
             }
+            catch (HttpRequestException httpEx)
+            {
+                Console.WriteLine($"[AuthService] HttpRequestException: {httpEx.Message}");
+                Console.WriteLine($"[AuthService] HttpRequestException StackTrace: {httpEx.StackTrace}");
+                throw;
+            }
+            catch (TaskCanceledException timeoutEx)
+            {
+                Console.WriteLine($"[AuthService] TaskCanceledException (posible timeout): {timeoutEx.Message}");
+                Console.WriteLine($"[AuthService] TaskCanceledException StackTrace: {timeoutEx.StackTrace}");
+                throw new HttpRequestException("Timeout al conectar con el servidor");
+            }
             catch (Exception ex)
             {
-                Console.WriteLine($"[AuthService] Excepción: {ex.Message}");
+                Console.WriteLine($"[AuthService] Exception general: {ex.GetType().Name}");
+                Console.WriteLine($"[AuthService] Exception message: {ex.Message}");
+                Console.WriteLine($"[AuthService] Exception StackTrace: {ex.StackTrace}");
                 throw;
             }
         }
