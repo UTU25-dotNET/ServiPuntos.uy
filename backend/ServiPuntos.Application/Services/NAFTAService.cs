@@ -124,8 +124,6 @@ namespace ServiPuntos.Application.Services
                         })
                     };
 
-                    Console.WriteLine("asdasdasdasd");
-
                     await _transaccionRepository.AddAsync(transaccionPendiente);
 
                     return new RespuestaNAFTA
@@ -142,8 +140,6 @@ namespace ServiPuntos.Application.Services
                         }
                     };
                 }
-
-                Console.WriteLine("Creé RespuestaNAFTA");
 
                 // Si tiene PaymentId, verificar y completar la transacción
                 return await CompletarTransaccion(transaccionNAFTA, mensaje);
@@ -320,6 +316,40 @@ namespace ServiPuntos.Application.Services
             catch (Exception ex)
             {
                 return CrearErrorRespuesta(mensaje.IdMensaje, $"Error al verificar usuario: {ex.Message}");
+            }
+        }
+
+        public async Task<RespuestaNAFTA> GenerarCanjeAsync(MensajeNAFTA mensaje)
+        {
+            try
+            {
+                if (mensaje == null && !mensaje.Datos.ContainsKey("productoCanjeableId")! && mensaje.Datos.ContainsKey("usuarioId"))
+                {
+                    return CrearErrorRespuesta(mensaje.IdMensaje, "Formato de mensaje inválido");
+                }
+
+                if (!Guid.TryParse(mensaje.Datos["productoCanjeableId"].ToString(), out Guid productoId) ||
+                    !Guid.TryParse(mensaje.Datos["usuarioId"].ToString(), out Guid usuarioId))
+                {
+                    return CrearErrorRespuesta(mensaje.IdMensaje, "Datos de canje inválidos");
+                }
+
+                var codigo = await _canjeService.GenerarCodigoCanjeAsync(usuarioId, productoId, mensaje.UbicacionId, mensaje.TenantId);
+
+                return new RespuestaNAFTA
+                {
+                    IdMensajeReferencia = mensaje.IdMensaje,
+                    Codigo = "OK",
+                    Mensaje = "Canje generado correctamente",
+                    Datos = new System.Collections.Generic.Dictionary<string, object>
+                    {
+                        { "codigoQR", codigo }
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return CrearErrorRespuesta(mensaje.IdMensaje, $"Error al generar el canje: {ex.Message}");
             }
         }
 
