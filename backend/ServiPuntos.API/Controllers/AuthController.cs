@@ -378,67 +378,90 @@ public IActionResult GoogleLogin()
         return Ok(userClaims);
     }
 
-    [HttpPost("signin")]
-    public async Task<IActionResult> SignIn([FromBody] SignInRequest request)
+[HttpPost("signin")]
+public async Task<IActionResult> SignIn([FromBody] SignInRequest request)
+{
+    var claims = new List<Claim>(); 
+    try
     {
-        var claims = new List<Claim>(); 
-        try
+        // **NUEVO: Detectar si es una request móvil**
+        var userAgent = Request.Headers["User-Agent"].ToString();
+        var isMobileRequest = userAgent.Contains("ServiPuntos.Mobile") || userAgent.Contains("Mobile");
+        Console.WriteLine($"[SignIn] Request móvil detectada: {isMobileRequest}");
+
+        if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
         {
-            if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
-            {
-                return BadRequest(new { message = "Email y contraseña son requeridos" });
-            }
-
-            // Buscar el usuario en la base de datos
-            var usuario = await _context.Usuarios
-                .FirstOrDefaultAsync(u => u.Email == request.Email);
-
-            // Verificar si el usuario existe
-            if (usuario == null)
-            {
-                return Unauthorized(new { message = "Email o contraseña incorrectos" });
-            }
-
-            // Verificar la contraseña
-            bool passwordValid = VerifyPassword(request.Password, usuario.Password);
-            if (!passwordValid)
-            {
-                return Unauthorized(new { message = "Email o contraseña incorrectos" });
-            }
-
-            // Si tenemos cédula, verificamos la edad
-            bool isAdult = false;
-
-            claims.Add(new Claim(ClaimTypes.Name, usuario.Nombre ?? string.Empty));
-            claims.Add(new Claim(ClaimTypes.Email, usuario.Email ?? string.Empty));
-            claims.Add(new Claim("is_adult", isAdult.ToString().ToLower()));
-            claims.Add(new Claim("role", usuario.Rol.ToString()));
-
-            // // Si hay atributos adicionales que quieras incluir en el token
-            // if (usuario != null && !string.IsNullOrEmpty(usuario.Ci))
-            // {
-            //     claims.Add(new Claim("cedula", usuario.Ci));
-            // }
-
-            // Generar el token JWT
-            var token = _jwtTokenService.GenerateJwtToken(claims);
-
-            // Devolver token y datos básicos del usuario
-            return Ok(new
-            {
-                token,
-                userId = usuario!.Id,
-                username = usuario.Nombre,
-                email = usuario.Email,
-                role = usuario.Rol,
-            });
+            return BadRequest(new { message = "Email y contraseña son requeridos" });
         }
-        catch (Exception ex)
+
+        // Buscar el usuario en la base de datos
+        var usuario = await _context.Usuarios
+            .FirstOrDefaultAsync(u => u.Email == request.Email);
+
+        // Verificar si el usuario existe
+        if (usuario == null)
         {
-            Console.WriteLine($"[SignIn] Error: {ex.Message}");
-            return StatusCode(500, new { message = "Error interno del servidor" });
+            return Unauthorized(new { message = "Email o contraseña incorrectos" });
         }
+
+        // Verificar la contraseña
+        bool passwordValid = VerifyPassword(request.Password, usuario.Password);
+        if (!passwordValid)
+        {
+            return Unauthorized(new { message = "Email o contraseña incorrectos" });
+        }
+
+        // Si tenemos cédula, verificamos la edad
+        bool isAdult = false;
+
+        claims.Add(new Claim(ClaimTypes.Name, usuario.Nombre ?? string.Empty));
+        claims.Add(new Claim(ClaimTypes.Email, usuario.Email ?? string.Empty));
+        claims.Add(new Claim("is_adult", isAdult.ToString().ToLower()));
+        claims.Add(new Claim("role", usuario.Rol.ToString()));
+        claims.Add(new Claim("TenantId", usuario.TenantId.ToString() ?? string.Empty));
+
+        // **NUEVO: Para requests web, crear cookies de autenticación**
+        if (!isMobileRequest)
+        {
+            Console.WriteLine("[SignIn] Generando cookies de autenticación para web...");
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+
+            var authProperties = new AuthenticationProperties
+            {
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddHours(24)
+            };
+
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal, authProperties);
+            Console.WriteLine("[SignIn] Usuario autenticado con cookies para web");
+        }
+
+        // Generar el token JWT (tanto para web como para móvil)
+        var token = _jwtTokenService.GenerateJwtToken(claims);
+
+        // **MODIFICADO: Respuesta diferenciada según el tipo de cliente**
+        var response = new
+        {
+            token,
+            userId = usuario!.Id,
+            username = usuario.Nombre,
+            email = usuario.Email,
+            role = usuario.Rol,
+            tenantId = usuario.TenantId,
+            //isMobile = isMobileRequest // **NUEVO: Indicar si es móvil**
+        };
+
+        Console.WriteLine($"[SignIn] Login exitoso para {usuario.Email} - Tipo: {(isMobileRequest ? "Mobile" : "Web")}");
+        
+        return Ok(response);
     }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[SignIn] Error: {ex.Message}");
+        return StatusCode(500, new { message = "Error interno del servidor" });
+    }
+}
     
     // Método auxiliar para verificar la contraseña
     private bool VerifyPassword(string providedPassword, string storedPassword)
