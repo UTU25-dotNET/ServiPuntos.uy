@@ -15,5 +15,6 @@ namespace ServiPuntos.Core.Interfaces
         Task<Guid> AddAsync(Transaccion transaccion);
         Task<bool> UpdateAsync(Transaccion transaccion);
         Task<bool> DeleteAsync(Guid id);
+        Task<Transaccion> GetByPayPalPaymentIdAsync(string pagoPayPalId);
     }
 }

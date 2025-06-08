@@ -1,4 +1,5 @@
-﻿using ServiPuntos.Core.Interfaces;
+﻿using ServiPuntos.Core.Enums;
+using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Core.NAFTA;
 using System;
 using System.Linq;
@@ -33,17 +34,17 @@ namespace ServiPuntos.Application.Services
             int puntosCalculados = 0;
 
             // Aplicar reglas según el tipo de transacción
-            switch (transaccion.TipoTransaccion.ToLower())
+            switch (transaccion.TipoTransaccion)
             {
-                case "combustible":
+                case TipoTransaccion.CompraCombustible:
                     puntosCalculados = transaccion.Monto * tasaConversionCombustible;
                     break;
 
-                case "minimercado":
+                case TipoTransaccion.CompraMinimercado:
                     puntosCalculados = transaccion.Monto * tasaConversionMinimercado;
                     break;
 
-                case "servicio":
+                case TipoTransaccion.UsoServicio:
                     puntosCalculados = transaccion.Monto * tasaConversionServicios;
                     break;
 

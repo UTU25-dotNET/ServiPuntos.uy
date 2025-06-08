@@ -200,6 +200,8 @@ builder.Services.AddScoped<IPointsRuleEngine, PointsRuleEngine>();
 builder.Services.AddScoped<INAFTAService, NAFTAService>();
 builder.Services.AddScoped<IUbicacionService, UbicacionService>();
 builder.Services.AddScoped<IProductoUbicacionService, ProductoUbicacionService>();
+builder.Services.AddScoped<IPayPalService, PayPalService>();
+
 // Construye la aplicaci�n web
 var app = builder.Build();
 
