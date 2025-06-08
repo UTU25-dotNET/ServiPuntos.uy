@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,6 +22,8 @@ namespace ServiPuntos.Core.Entities
 
         //Constructor
         public ProductoUbicacion() { }
+
+        [SetsRequiredMembers]
         public ProductoUbicacion(Guid ubicacionId, Guid productoCanjeableId, int stockDisponible)
         {
             UbicacionId = ubicacionId;

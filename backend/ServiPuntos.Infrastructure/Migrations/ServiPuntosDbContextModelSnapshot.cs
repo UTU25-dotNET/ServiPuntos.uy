@@ -422,6 +422,9 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.Property<string>("Telefono")
                         .HasColumnType("text");
 
+                    b.Property<string>("Telefonoo")
+                        .HasColumnType("text");
+
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");
 
