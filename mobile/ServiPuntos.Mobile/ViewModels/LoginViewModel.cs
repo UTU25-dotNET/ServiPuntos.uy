@@ -1,10 +1,13 @@
 using System.Windows.Input;
 using ServiPuntos.Mobile.Models;
+using ServiPuntos.Mobile.Services;
 
 namespace ServiPuntos.Mobile.ViewModels
 {
     public class LoginViewModel : BindableObject
     {
+        private readonly IAuthService _authService;
+
         public TenantConfig Tenant { get; set; }
 
         private string _username;
@@ -28,17 +31,26 @@ namespace ServiPuntos.Mobile.ViewModels
             set { _errorMessage = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasError)); }
         }
 
+        private bool _isLoading;
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set { _isLoading = value; OnPropertyChanged(); }
+        }
+
         public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
         public ICommand LoginCommand { get; }
 
-        // **CORREGIDO: Constructor por defecto sin parámetros**
-        public LoginViewModel()
+        // Constructor que recibe AuthService por inyección de dependencias
+        public LoginViewModel(IAuthService authService)
         {
+            _authService = authService;
+            
             // Crear un tenant por defecto
             Tenant = new TenantConfig
             {
-                Id = "1", // **CORREGIDO: String en lugar de int**
+                Id = "1",
                 Name = "ServiPuntos",
                 LogoUrl = "https://via.placeholder.com/150x100/0066CC/FFFFFF?text=ServiPuntos",
                 PrimaryColor = "#0066CC",
@@ -48,32 +60,43 @@ namespace ServiPuntos.Mobile.ViewModels
             LoginCommand = new Command(OnLogin);
         }
 
-        // **MANTENER: Constructor con tenant (por si se necesita más adelante)**
-        public LoginViewModel(TenantConfig tenant)
-        {
-            Tenant = tenant;
-            LoginCommand = new Command(OnLogin);
-        }
-
         private async void OnLogin()
         {
             ErrorMessage = "";
+            IsLoading = true;
 
             if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Password))
             {
                 ErrorMessage = "Completa usuario y contraseña.";
+                IsLoading = false;
                 return;
             }
 
-            // Mock login válido
-            if (Username == "admin" && Password == "1234")
+            try
             {
-                // Por ahora, mostrar un mensaje de éxito
-                await Application.Current.MainPage.DisplayAlert("Éxito", "Login tradicional exitoso", "OK");
+                // Usar el AuthService
+                var response = await _authService.SignInAsync(Username, Password);
+
+                if (response != null)
+                {
+                    // Login exitoso
+                    await Application.Current.MainPage.DisplayAlert("Éxito", "Login exitoso", "OK");
+                    
+                    // Navegar a la página principal
+                    // await Shell.Current.GoToAsync("//main");
+                }
             }
-            else
+            catch (HttpRequestException ex)
             {
-                ErrorMessage = "Credenciales inválidas.";
+                ErrorMessage = "Email o contraseña incorrectos.";
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = "Error de conexión. Inténtalo de nuevo.";
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
     }

@@ -45,6 +45,53 @@ namespace ServiPuntos.Mobile.Services
             }
         }
 
+        public async Task<SignInResponse?> SignInAsync(string email, string password)
+        {
+            try
+            {
+                Console.WriteLine($"[AuthService] Iniciando login para: {email}");
+
+                var request = new SignInRequest
+                {
+                    Email = email,
+                    Password = password
+                };
+
+                var jsonContent = JsonSerializer.Serialize(request);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync($"{API_BASE_URL}/api/auth/signin", content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                Console.WriteLine($"[AuthService] Respuesta: {response.StatusCode}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var signinResponse = JsonSerializer.Deserialize<SignInResponse>(responseContent, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+
+                    Console.WriteLine($"[AuthService] Login exitoso para: {signinResponse?.Email}");
+                    return signinResponse;
+                }
+                else
+                {
+                    Console.WriteLine($"[AuthService] Error: {responseContent}");
+                    throw new HttpRequestException($"Error de autenticación: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[AuthService] Excepción: {ex.Message}");
+                throw;
+            }
+        }
+
+        public void Dispose()
+        {
+            _httpClient?.Dispose();
+        }
         public async Task<bool> IsAuthenticatedAsync()
         {
             try
