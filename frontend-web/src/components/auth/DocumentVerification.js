@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import authService from "../services/authService";
+import authService from "../../services/authService";
 
 // Renombra el componente a DocumentVerification para mantener consistencia con el nombre del archivo
 const DocumentVerification = () => {

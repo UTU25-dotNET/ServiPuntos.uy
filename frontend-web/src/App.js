@@ -1,15 +1,14 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import NavBar from "./components/NavBar";
+import NavBar from "./components/layout/NavBar";
 import Home from "./components/Home";
-import Login from "./components/Login";
-import AuthCallback from './components/AuthCallback';
-import Dashboard from "./components/Dashboard";
-import Perfil from "./components/Perfil";
+import Login from "./components/auth/Login";
+import AuthCallback from "./components/auth/AuthCallback";
+import Perfil from "./components/auth/Perfil";
 import TokenDisplay from "./components/TokenDisplay";
-import Estaciones from "./components/Estaciones"; // Nuevo componente
+import EstacionesList from "./components/estaciones/EstacionesList";
 import PrivateRoute from "./components/PrivateRoute";
-import DocumentVerification from "./components/DocumentVerification";
+import DocumentVerification from "./components/auth/DocumentVerification";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 function App() {
@@ -26,10 +25,9 @@ function App() {
 
           {/* Rutas privadas */}
           <Route element={<PrivateRoute />}>
-            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/perfil" element={<Perfil />} />
             <Route path="/token" element={<TokenDisplay />} />
-            <Route path="/estaciones" element={<Estaciones />} /> {/* Nueva ruta para el listado de estaciones */}
+            <Route path="/estaciones" element={<EstacionesList />} />
           </Route>
         </Routes>
       </Router>
