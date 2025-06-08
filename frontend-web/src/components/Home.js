@@ -2,591 +2,412 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import authService from "../services/authService";
 import apiService from "../services/apiService";
-import CatalogoProductos from "./CatalogoProductos";
+import PuntosWidget from "./home/PuntosWidget";
+import PreciosWidget from "./home/PreciosWidget";
 
 const Home = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [ubicaciones, setUbicaciones] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [userProfile, setUserProfile] = useState(null);
   const [tenantInfo, setTenantInfo] = useState(null);
-  
-  // Estados para el modal de productos
-  const [modalAbierto, setModalAbierto] = useState(false);
-  const [ubicacionSeleccionada, setUbicacionSeleccionada] = useState(null);
+  const [ubicaciones, setUbicaciones] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const checkAuth = () => {
+    const initializeHome = async () => {
       const authenticated = authService.isAuthenticated();
       setIsAuthenticated(authenticated);
       
-      // Si está autenticado, cargar ubicaciones para mostrar precios
       if (authenticated) {
-        loadUbicaciones();
+        await loadUserData();
+      } else {
+        setLoading(false);
       }
     };
 
-    checkAuth();
+    initializeHome();
   }, []);
 
-  const loadUbicaciones = async () => {
+  const loadUserData = async () => {
     setLoading(true);
     setError("");
     
     try {
-      console.log("Cargando ubicaciones para mostrar precios...");
+      console.log("Cargando datos del usuario para dashboard...");
       
-      // Primero obtener el perfil del usuario
+      // Cargar datos del usuario
       const profile = await apiService.getUserProfile();
       setUserProfile(profile);
       
-      // Obtener información del tenant
+      // Cargar información del tenant
       const tenant = await apiService.getTenantInfo();
       setTenantInfo(tenant);
       
-      // Luego obtener las ubicaciones de su tenant
+      // Cargar ubicaciones para información general
       const ubicacionesData = await apiService.getUbicacionesByUserTenant();
       setUbicaciones(ubicacionesData);
       
-      console.log("Ubicaciones cargadas para precios:", ubicacionesData);
+      console.log("Datos del dashboard cargados:", { profile, tenant, ubicaciones: ubicacionesData.length });
       
     } catch (err) {
-      console.error("Error al cargar ubicaciones:", err);
-      setError(err.message);
-      
-      // Como fallback, mostrar mensaje sin ubicaciones
-      setUbicaciones([]);
+      console.error("Error al cargar datos del dashboard:", err);
+      setError("Error al cargar la información del dashboard");
     } finally {
       setLoading(false);
     }
   };
 
-  // Función para formatear precios
-  const formatPrice = (price) => {
-    if (!price || price === 0) return "N/D";
-    return `$${price.toFixed(2)}`;
-  };
-
-  // Función para determinar el color del precio (puedes personalizar la lógica)
-  const getPriceColor = (price, type) => {
-    if (!price || price === 0) return "#6c757d";
-    
-    // Colores diferentes para cada tipo de combustible
-    switch (type) {
-      case "super": return "#28a745";      // Verde para Súper
-      case "premium": return "#007bff";    // Azul para Premium  
-      case "diesel": return "#fd7e14";     // Naranja para Diesel
-      default: return "#495057";
-    }
-  };
-
-  // Función para abrir el modal de productos
-  const abrirCatalogoProductos = (ubicacion) => {
-    setUbicacionSeleccionada(ubicacion);
-    setModalAbierto(true);
-  };
-
-  // Función para cerrar el modal de productos
-  const cerrarCatalogoProductos = () => {
-    setModalAbierto(false);
-    setUbicacionSeleccionada(null);
-  };
-
-  return (
+  // Renderizado para usuarios no autenticados
+  const renderWelcomeScreen = () => (
     <div
       style={{
-        maxWidth: "1200px",
-        margin: "0 auto",
-        padding: "1rem",
+        minHeight: "80vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#f8f9fa"
       }}
     >
-      {/* Header */}
-      <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-        <h1 style={{ color: "#7B3F00", fontSize: "2.5rem", marginBottom: "0.5rem" }}>
-          Servipuntos
-        </h1>
-        <p style={{ fontSize: "1.2rem", color: "#6c757d" }}>
-          Precios actualizados de combustible en nuestras estaciones
-        </p>
-      </div>
-
-      {/* Contenido principal */}
       <div
         style={{
-          backgroundColor: "#f8f9fa",
-          padding: "2rem",
-          borderRadius: "12px",
-          marginBottom: "2rem",
+          textAlign: "center",
+          maxWidth: "600px",
+          padding: "3rem",
+          backgroundColor: "white",
+          borderRadius: "16px",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.1)"
         }}
       >
-        {isAuthenticated ? (
-          <>
-            {loading && (
-              <div style={{ textAlign: "center", padding: "3rem" }}>
-                <div style={{
-                  border: "4px solid #f3f3f3",
-                  borderTop: "4px solid #7B3F00",
-                  borderRadius: "50%",
-                  width: "60px",
-                  height: "60px",
-                  animation: "spin 1s linear infinite",
-                  margin: "0 auto 1rem"
-                }} />
-                <p style={{ color: "#7B3F00", fontSize: "1.1rem" }}>Cargando precios...</p>
-                
-                <style>{`
-                  @keyframes spin {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
-                  }
-                `}</style>
-              </div>
-            )}
+        <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>⛽</div>
+        <h1 style={{ color: "#7B3F00", fontSize: "3rem", marginBottom: "1rem" }}>
+          Servipuntos
+        </h1>
+        <p style={{ fontSize: "1.3rem", color: "#6c757d", marginBottom: "2rem", lineHeight: "1.6" }}>
+          Tu plataforma para gestionar puntos, consultar precios y canjear productos en toda nuestra red de estaciones.
+        </p>
+        <Link
+          to="/login"
+          style={{
+            display: "inline-block",
+            backgroundColor: "#7B3F00",
+            color: "white",
+            padding: "1rem 2rem",
+            borderRadius: "8px",
+            textDecoration: "none",
+            fontSize: "1.1rem",
+            fontWeight: "600",
+            transition: "transform 0.2s ease, box-shadow 0.2s ease"
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.transform = "translateY(-2px)";
+            e.target.style.boxShadow = "0 8px 20px rgba(123,63,0,0.3)";
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.transform = "translateY(0)";
+            e.target.style.boxShadow = "none";
+          }}
+        >
+          Iniciar Sesión
+        </Link>
+        
+        {/* Características destacadas */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: "1.5rem",
+            marginTop: "3rem",
+            textAlign: "center"
+          }}
+        >
+          <div>
+            <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>💰</div>
+            <h4 style={{ color: "#7B3F00", marginBottom: "0.5rem" }}>Puntos y Recompensas</h4>
+            <p style={{ color: "#6c757d", fontSize: "0.9rem" }}>Acumula puntos y canjea productos</p>
+          </div>
+          <div>
+            <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>📊</div>
+            <h4 style={{ color: "#7B3F00", marginBottom: "0.5rem" }}>Precios en Tiempo Real</h4>
+            <p style={{ color: "#6c757d", fontSize: "0.9rem" }}>Consulta precios actualizados</p>
+          </div>
+          <div>
+            <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>🗺️</div>
+            <h4 style={{ color: "#7B3F00", marginBottom: "0.5rem" }}>Red de Estaciones</h4>
+            <p style={{ color: "#6c757d", fontSize: "0.9rem" }}>Encuentra estaciones cerca tuyo</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
-            {error && (
-              <div style={{
-                backgroundColor: "#f8d7da",
-                color: "#721c24",
-                padding: "1.5rem",
-                borderRadius: "8px",
-                marginBottom: "1rem",
-                border: "1px solid #f5c6cb"
-              }}>
-                <strong>⚠️ Error:</strong> {error}
-              </div>
-            )}
+  // Loading state
+  if (loading) {
+    return (
+      <div
+        style={{
+          minHeight: "80vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "column"
+        }}
+      >
+        <div
+          style={{
+            border: "4px solid #f3f3f3",
+            borderTop: "4px solid #7B3F00",
+            borderRadius: "50%",
+            width: "60px",
+            height: "60px",
+            animation: "spin 1s linear infinite",
+            marginBottom: "1rem"
+          }}
+        />
+        <p style={{ color: "#7B3F00", fontSize: "1.1rem" }}>Cargando tu dashboard...</p>
+        
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
-            {!loading && !error && ubicaciones.length === 0 && (
-              <div style={{
-                backgroundColor: "#fff3cd",
-                color: "#856404",
-                padding: "3rem",
-                borderRadius: "12px",
-                textAlign: "center",
-                border: "1px solid #ffeaa7"
-              }}>
-                <h4 style={{ margin: "0 0 1rem 0", fontSize: "1.25rem" }}>
-                  📋 Sin precios disponibles
-                </h4>
-                <p style={{ margin: "0", fontSize: "1rem" }}>
-                  No se encontraron estaciones de servicio para mostrar precios en este momento.
-                </p>
-              </div>
-            )}
+  // Error state
+  if (error) {
+    return (
+      <div
+        style={{
+          maxWidth: "800px",
+          margin: "2rem auto",
+          padding: "2rem",
+          textAlign: "center"
+        }}
+      >
+        <div
+          style={{
+            backgroundColor: "#fff5f5",
+            border: "1px solid #fed7d7",
+            borderRadius: "8px",
+            padding: "1.5rem",
+            marginBottom: "1rem"
+          }}
+        >
+          <h3 style={{ color: "#c53030", marginBottom: "0.5rem" }}>
+            ⚠️ Error al cargar el dashboard
+          </h3>
+          <p style={{ color: "#742a2a", margin: "0" }}>{error}</p>
+        </div>
+        
+        <button
+          onClick={loadUserData}
+          style={{
+            backgroundColor: "#7B3F00",
+            color: "white",
+            border: "none",
+            borderRadius: "8px",
+            padding: "0.75rem 1.5rem",
+            cursor: "pointer",
+            fontSize: "1rem",
+            fontWeight: "600"
+          }}
+        >
+          🔄 Reintentar
+        </button>
+      </div>
+    );
+  }
 
-            {!loading && ubicaciones.length > 0 && (
-              <>
-                {/* Información resumida */}
-                <div style={{
-                  marginBottom: "2rem",
-                  padding: "1.5rem",
-                  backgroundColor: "#e3f2fd",
-                  borderRadius: "12px",
-                  border: "1px solid #bbdefb",
-                  textAlign: "center"
-                }}>
-                  <h3 style={{ 
-                    margin: "0 0 0.5rem 0", 
-                    color: "#1976d2",
-                    fontSize: "1.5rem"
-                  }}>
-                    💰 Precios de Combustible
-                  </h3>
-                  <p style={{ 
-                    margin: "0 0 1rem 0", 
-                    color: "#1565c0",
-                    fontSize: "1.1rem"
-                  }}>
-                    {ubicaciones.length} estación{ubicaciones.length !== 1 ? 'es' : ''} disponible{ubicaciones.length !== 1 ? 's' : ''} • Precios actualizados
-                  </p>
-                  
-                  {/* Enlaces para navegación */}
-                  <div style={{ 
-                    display: "flex", 
-                    justifyContent: "center", 
-                    gap: "1rem",
-                    flexWrap: "wrap"
-                  }}>
-                    <Link 
-                      to="/estaciones"
-                      style={{
-                        display: "inline-block",
-                        backgroundColor: "#007bff",
-                        color: "white",
-                        padding: "0.75rem 1.5rem",
-                        borderRadius: "8px",
-                        textDecoration: "none",
-                        fontSize: "1rem",
-                        fontWeight: "500",
-                        transition: "background-color 0.2s ease"
-                      }}
-                      onMouseEnter={(e) => e.target.style.backgroundColor = "#0056b3"}
-                      onMouseLeave={(e) => e.target.style.backgroundColor = "#007bff"}
-                    >
-                      🏪 Ver información completa de las estaciones
-                    </Link>
-                  </div>
-                </div>
-
-                {/* Grid de precios por estación */}
-                <div style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-                  gap: "1.5rem"
-                }}>
-                  {ubicaciones.map((ubicacion) => (
-                    <div
-                      key={ubicacion.id}
-                      style={{
-                        backgroundColor: "white",
-                        border: "2px solid #e9ecef",
-                        borderRadius: "16px",
-                        padding: "1.5rem",
-                        boxShadow: "0 4px 6px rgba(0,0,0,0.07)",
-                        transition: "all 0.3s ease"
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = "translateY(-4px)";
-                        e.currentTarget.style.boxShadow = "0 8px 25px rgba(0,0,0,0.15)";
-                        e.currentTarget.style.borderColor = "#007bff";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = "translateY(0)";
-                        e.currentTarget.style.boxShadow = "0 4px 6px rgba(0,0,0,0.07)";
-                        e.currentTarget.style.borderColor = "#e9ecef";
-                      }}
-                    >
-                      {/* Header de la estación */}
-                      <div style={{ 
-                        marginBottom: "1.5rem",
-                        paddingBottom: "1rem",
-                        borderBottom: "2px solid #f8f9fa"
-                      }}>
-                        <h4 style={{ 
-                          margin: "0 0 0.5rem 0", 
-                          color: "#212529",
-                          fontSize: "1.3rem",
-                          fontWeight: "600",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.5rem"
-                        }}>
-                          ⛽ {ubicacion.nombre}
-                        </h4>
-                        <p style={{ 
-                          margin: "0", 
-                          color: "#6c757d",
-                          fontSize: "0.95rem",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.25rem"
-                        }}>
-                          📍 {ubicacion.ciudad}, {ubicacion.departamento}
-                        </p>
-                      </div>
-
-                      {/* Grid de precios */}
-                      <div style={{
-                        display: "grid",
-                        gap: "1rem",
-                        marginBottom: "1.5rem"
-                      }}>
-                        {/* Nafta Súper */}
-                        <div style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          padding: "1rem",
-                          backgroundColor: "#f8fff9",
-                          borderRadius: "10px",
-                          border: "1px solid #d4edda"
-                        }}>
-                          <div style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.5rem"
-                          }}>
-                            <span style={{ 
-                              fontSize: "1.2rem",
-                              backgroundColor: "#28a745",
-                              color: "white",
-                              padding: "0.25rem 0.5rem",
-                              borderRadius: "6px",
-                              fontSize: "0.8rem",
-                              fontWeight: "600"
-                            }}>
-                              S
-                            </span>
-                            <span style={{ 
-                              fontWeight: "600",
-                              color: "#155724",
-                              fontSize: "1rem"
-                            }}>
-                              Nafta Súper
-                            </span>
-                          </div>
-                          <span style={{ 
-                            fontWeight: "bold",
-                            fontSize: "1.4rem",
-                            color: getPriceColor(ubicacion.precioNaftaSuper, "super")
-                          }}>
-                            {formatPrice(ubicacion.precioNaftaSuper)}
-                          </span>
-                        </div>
-
-                        {/* Nafta Premium */}
-                        <div style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          padding: "1rem",
-                          backgroundColor: "#f8f9ff",
-                          borderRadius: "10px",
-                          border: "1px solid #cce7ff"
-                        }}>
-                          <div style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.5rem"
-                          }}>
-                            <span style={{ 
-                              backgroundColor: "#007bff",
-                              color: "white",
-                              padding: "0.25rem 0.5rem",
-                              borderRadius: "6px",
-                              fontSize: "0.8rem",
-                              fontWeight: "600"
-                            }}>
-                              P
-                            </span>
-                            <span style={{ 
-                              fontWeight: "600",
-                              color: "#004085",
-                              fontSize: "1rem"
-                            }}>
-                              Nafta Premium
-                            </span>
-                          </div>
-                          <span style={{ 
-                            fontWeight: "bold",
-                            fontSize: "1.4rem",
-                            color: getPriceColor(ubicacion.precioNaftaPremium, "premium")
-                          }}>
-                            {formatPrice(ubicacion.precioNaftaPremium)}
-                          </span>
-                        </div>
-
-                        {/* Diesel */}
-                        <div style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          padding: "1rem",
-                          backgroundColor: "#fff8f0",
-                          borderRadius: "10px",
-                          border: "1px solid #ffeaa7"
-                        }}>
-                          <div style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.5rem"
-                          }}>
-                            <span style={{ 
-                              backgroundColor: "#fd7e14",
-                              color: "white",
-                              padding: "0.25rem 0.5rem",
-                              borderRadius: "6px",
-                              fontSize: "0.8rem",
-                              fontWeight: "600"
-                            }}>
-                              D
-                            </span>
-                            <span style={{ 
-                              fontWeight: "600",
-                              color: "#8a4100",
-                              fontSize: "1rem"
-                            }}>
-                              Diesel
-                            </span>
-                          </div>
-                          <span style={{ 
-                            fontWeight: "bold",
-                            fontSize: "1.4rem",
-                            color: getPriceColor(ubicacion.precioDiesel, "diesel")
-                          }}>
-                            {formatPrice(ubicacion.precioDiesel)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Botón para ver productos */}
-                      <div style={{ marginBottom: "1rem" }}>
-                        <button
-                          onClick={() => abrirCatalogoProductos(ubicacion)}
-                          style={{
-                            width: "100%",
-                            backgroundColor: "#28a745",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "8px",
-                            padding: "0.75rem 1rem",
-                            fontSize: "0.95rem",
-                            fontWeight: "500",
-                            cursor: "pointer",
-                            transition: "background-color 0.2s ease",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: "0.5rem"
-                          }}
-                          onMouseEnter={(e) => e.target.style.backgroundColor = "#218838"}
-                          onMouseLeave={(e) => e.target.style.backgroundColor = "#28a745"}
-                        >
-                          🛒 Ver Productos
-                        </button>
-                      </div>
-
-                      {/* Footer con información adicional */}
-                      <div style={{
-                        paddingTop: "1rem",
-                        borderTop: "1px solid #f8f9fa",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        fontSize: "0.85rem",
-                        color: "#6c757d"
-                      }}>
-                        <span>🕐 Precios actualizados</span>
-                        <Link 
-                          to="/estaciones"
-                          style={{
-                            color: "#007bff",
-                            textDecoration: "none",
-                            fontWeight: "500",
-                            fontSize: "0.9rem"
-                          }}
-                        >
-                          Ver detalles →
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Nota sobre el futuro mapa */}
-                <div style={{
-                  marginTop: "2rem",
-                  padding: "1.5rem",
-                  backgroundColor: "#fff3cd",
-                  borderRadius: "12px",
-                  border: "1px solid #ffeaa7",
-                  textAlign: "center"
-                }}>
-                  <h4 style={{ 
-                    margin: "0 0 0.5rem 0", 
-                    color: "#856404",
-                    fontSize: "1.2rem"
-                  }}>
-                    🗺️ Próximamente: Mapa Interactivo
-                  </h4>
-                  <p style={{ 
-                    margin: "0", 
-                    color: "#856404",
-                    fontSize: "1rem"
-                  }}>
-                    Estamos trabajando en un mapa interactivo con OpenStreetMaps para mostrar la ubicación de nuestras estaciones.
-                  </p>
-                </div>
-              </>
-            )}
-          </>
-        ) : (
-          <>
-            <h2 style={{ color: "#495057", marginBottom: "1rem" }}>
-              ¡Bienvenido a Servipuntos!
-            </h2>
-            <p style={{ marginBottom: "1.5rem", fontSize: "1.1rem" }}>
-              Ingresa para ver precios actualizados de combustible en las estaciones de tu red.
-            </p>
-            <Link
-              to="/login"
-              style={{
-                display: "inline-block",
-                backgroundColor: "#7B3F00",
-                color: "white",
-                padding: "0.75rem 1.5rem",
-                borderRadius: "6px",
-                textDecoration: "none",
-                fontSize: "1rem",
-                fontWeight: "500",
-                transition: "background-color 0.2s ease"
-              }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = "#5a2d00"}
-              onMouseLeave={(e) => e.target.style.backgroundColor = "#7B3F00"}
-            >
-              Iniciar Sesión
-            </Link>
-            
-            {/* Información adicional para usuarios no autenticados */}
-            <div style={{
-              marginTop: "2rem",
-              padding: "2rem",
-              backgroundColor: "white",
-              borderRadius: "12px",
-              border: "1px solid #dee2e6"
+  // Dashboard para usuarios autenticados
+  if (isAuthenticated && userProfile && tenantInfo) {
+    return (
+      <div style={{ 
+        minHeight: "80vh", 
+        backgroundColor: "#f8f9fa",
+        padding: "2rem 1rem"
+      }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+          
+          {/* Header del Dashboard */}
+          <div style={{ marginBottom: "2rem" }}>
+            <h1 style={{ 
+              fontSize: "2.5rem", 
+              color: "#7B3F00", 
+              margin: "0 0 0.5rem 0",
+              fontWeight: "700"
             }}>
-              <h3 style={{ color: "#495057", marginBottom: "1rem" }}>
-                ¿Qué puedes hacer en Servipuntos?
-              </h3>
-              <div style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-                gap: "1.5rem",
-                marginTop: "1.5rem"
-              }}>
-                <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: "3rem", marginBottom: "0.5rem" }}>💰</div>
-                  <h4 style={{ color: "#7B3F00", marginBottom: "0.5rem" }}>Precios Actualizados</h4>
-                  <p style={{ color: "#6c757d", fontSize: "0.95rem" }}>
-                    Consulta precios en tiempo real de Nafta Súper, Premium y Diesel
-                  </p>
+              ¡Hola, {userProfile.nombre}! 👋
+            </h1>
+            <p style={{ 
+              fontSize: "1.1rem", 
+              color: "#6c757d", 
+              margin: "0",
+              lineHeight: "1.5"
+            }}>
+              Bienvenido a tu dashboard de {tenantInfo.nombre}
+            </p>
+          </div>
+
+          {/* Grid de Widgets */}
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))",
+            gap: "2rem",
+            marginBottom: "2rem"
+          }}>
+            
+            {/* Widget de Puntos */}
+            <PuntosWidget 
+              userProfile={userProfile} 
+              tenantInfo={tenantInfo} 
+            />
+
+            {/* Widget de Precios */}
+            <PreciosWidget 
+              tenantInfo={tenantInfo} 
+            />
+
+          </div>
+
+          {/* Acciones Rápidas */}
+          <div style={{
+            backgroundColor: "white",
+            borderRadius: "12px",
+            padding: "1.5rem",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            border: "1px solid #e9ecef",
+            marginBottom: "2rem"
+          }}>
+            <h3 style={{
+              margin: "0 0 1.5rem 0",
+              color: "#7B3F00",
+              fontSize: "1.2rem",
+              fontWeight: "600",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem"
+            }}>
+              🚀 Acciones Rápidas
+            </h3>
+            
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: "1rem"
+            }}>
+              
+              <Link
+                to="/estaciones"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.75rem",
+                  padding: "1rem",
+                  backgroundColor: "#e8f5e8",
+                  borderRadius: "8px",
+                  textDecoration: "none",
+                  color: "#2d5a2d",
+                  border: "1px solid #c3e6c3",
+                  transition: "transform 0.2s ease, box-shadow 0.2s ease"
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = "translateY(-2px)";
+                  e.target.style.boxShadow = "0 4px 12px rgba(45,90,45,0.2)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = "translateY(0)";
+                  e.target.style.boxShadow = "none";
+                }}
+              >
+                <span style={{ fontSize: "1.5rem" }}>⛽</span>
+                <div>
+                  <strong>Ver Estaciones</strong>
+                  <div style={{ fontSize: "0.8rem", color: "#6c757d" }}>Ubicaciones y precios</div>
                 </div>
-                <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: "3rem", marginBottom: "0.5rem" }}>🏪</div>
-                  <h4 style={{ color: "#7B3F00", marginBottom: "0.5rem" }}>Red de Estaciones</h4>
-                  <p style={{ color: "#6c757d", fontSize: "0.95rem" }}>
-                    Encuentra todas las estaciones de tu red con información completa
-                  </p>
+              </Link>
+
+              <Link
+                to="/perfil"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.75rem",
+                  padding: "1rem",
+                  backgroundColor: "#fff9c4",
+                  borderRadius: "8px",
+                  textDecoration: "none",
+                  color: "#b8860b",
+                  border: "1px solid #f9c74f",
+                  transition: "transform 0.2s ease, box-shadow 0.2s ease"
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = "translateY(-2px)";
+                  e.target.style.boxShadow = "0 4px 12px rgba(184,134,11,0.2)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = "translateY(0)";
+                  e.target.style.boxShadow = "none";
+                }}
+              >
+                <span style={{ fontSize: "1.5rem" }}>👤</span>
+                <div>
+                  <strong>Mi Perfil</strong>
+                  <div style={{ fontSize: "0.8rem", color: "#6c757d" }}>Configuración y datos</div>
                 </div>
-                <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: "3rem", marginBottom: "0.5rem" }}>🛒</div>
-                  <h4 style={{ color: "#7B3F00", marginBottom: "0.5rem" }}>Catálogo de Productos</h4>
-                  <p style={{ color: "#6c757d", fontSize: "0.95rem" }}>
-                    Descubre productos disponibles para canje en cada estación
-                  </p>
+              </Link>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.75rem",
+                  padding: "1rem",
+                  backgroundColor: "#f8f9fa",
+                  borderRadius: "8px",
+                  color: "#6c757d",
+                  border: "1px dashed #dee2e6",
+                  opacity: 0.7
+                }}
+              >
+                <span style={{ fontSize: "1.5rem" }}>🗺️</span>
+                <div>
+                  <strong>Mapa</strong>
+                  <div style={{ fontSize: "0.8rem" }}>Próximamente</div>
                 </div>
-                <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: "3rem", marginBottom: "0.5rem" }}>🗺️</div>
-                  <h4 style={{ color: "#7B3F00", marginBottom: "0.5rem" }}>Ubicaciones</h4>
-                  <p style={{ color: "#6c757d", fontSize: "0.95rem" }}>
-                    Próximamente: mapa interactivo para ubicar estaciones fácilmente
-                  </p>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.75rem",
+                  padding: "1rem",
+                  backgroundColor: "#f8f9fa",
+                  borderRadius: "8px",
+                  color: "#6c757d",
+                  border: "1px dashed #dee2e6",
+                  opacity: 0.7
+                }}
+              >
+                <span style={{ fontSize: "1.5rem" }}>🎁</span>
+                <div>
+                  <strong>Promociones</strong>
+                  <div style={{ fontSize: "0.8rem" }}>Próximamente</div>
                 </div>
               </div>
             </div>
-          </>
-        )}
-      </div>
+          </div>
 
-      {/* Modal de catálogo de productos */}
-      <CatalogoProductos
-        ubicacion={ubicacionSeleccionada}
-        isOpen={modalAbierto}
-        onClose={cerrarCatalogoProductos}
-      />
-    </div>
-  );
+          
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback para usuarios autenticados sin datos
+  return renderWelcomeScreen();
 };
 
 export default Home;

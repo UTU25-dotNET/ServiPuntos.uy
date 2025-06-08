@@ -169,49 +169,85 @@ const apiService = {
   },
 
   // Actualizar perfil del usuario actual
-  updateUserProfile: async (profileData) => {
-    try {
-      // Primero obtener el perfil actual para conseguir el ID
-      const currentProfile = await apiService.getUserProfile();
-      
-      console.log("Actualizando perfil para usuario ID:", currentProfile.id);
+// Reemplaza el método updateUserProfile en apiService.js
 
-      const updateData = {
-        nombre: profileData.nombre,
-        apellido: profileData.apellido || null,
-        email: profileData.email,
-        telefono: parseInt(profileData.telefono) || 0,
-        ciudadResidencia: profileData.ciudadResidencia || null,
-        fechaNacimiento: profileData.fechaNacimiento || "0001-01-01T00:00:00",
-        combustiblePreferido: profileData.combustiblePreferido || "",
-        intereses: profileData.intereses || null,
-        // Mantener campos que no se editan
-        puntos: currentProfile.puntos || 0,
-        tenantId: currentProfile.tenantId,
-        // Solo incluir password si se proporciona
-        ...(profileData.password && { password: profileData.password })
-      };
+// Actualizar perfil del usuario actual
+updateUserProfile: async (profileData) => {
+  try {
+    // Primero obtener el perfil actual para conseguir el ID
+    const currentProfile = await apiService.getUserProfile();
+    
+    console.log("Actualizando perfil para usuario ID:", currentProfile.id);
+    console.log("Datos recibidos para actualizar:", profileData);
 
-      const response = await apiClient.put(`usuario/${currentProfile.id}`, updateData);
-      console.log("Perfil actualizado exitosamente:", response.data);
-      
-      return response.data;
-
-    } catch (error) {
-      console.error("Error actualizando perfil:", error);
-      
-      // Manejar errores específicos
-      if (error.response?.status === 400) {
-        throw new Error(error.response.data?.message || "Datos inválidos");
-      } else if (error.response?.status === 404) {
-        throw new Error("Usuario no encontrado");
-      } else if (error.response?.status === 401) {
-        throw new Error("No autorizado para actualizar este perfil");
-      } else {
-        throw new Error(error.message || "Error al actualizar el perfil");
-      }
+    // Construir objeto de actualización solo con campos presentes
+    const updateData = {};
+    
+    // Campos básicos
+    if (profileData.nombre !== undefined) updateData.nombre = profileData.nombre;
+    if (profileData.apellido !== undefined) updateData.apellido = profileData.apellido || null;
+    if (profileData.email !== undefined) updateData.email = profileData.email;
+    if (profileData.ciudadResidencia !== undefined) updateData.ciudadResidencia = profileData.ciudadResidencia || null;
+    if (profileData.combustiblePreferido !== undefined) updateData.combustiblePreferido = profileData.combustiblePreferido || "";
+    
+    // Teléfono - manejar conversión
+    if (profileData.telefono !== undefined) {
+      const telefonoNum = parseInt(profileData.telefono);
+      updateData.telefono = isNaN(telefonoNum) ? 0 : telefonoNum;
     }
-  },
+    
+    // Fecha de nacimiento - solo si se proporciona
+    if (profileData.fechaNacimiento) {
+      updateData.fechaNacimiento = profileData.fechaNacimiento;
+    } else {
+      // Mantener valor existente o usar default
+      updateData.fechaNacimiento = currentProfile.fechaNacimiento || "0001-01-01T00:00:00";
+    }
+    
+    // Intereses - solo si se proporciona
+    if (profileData.intereses !== undefined) {
+      updateData.intereses = profileData.intereses;
+    }
+    
+    // Mantener campos que no se editan
+    updateData.puntos = currentProfile.puntos || 0;
+    updateData.tenantId = currentProfile.tenantId;
+    
+    // Solo incluir password si se proporciona
+    if (profileData.password) {
+      updateData.password = profileData.password;
+    }
+
+    console.log("Datos finales a enviar al backend:", updateData);
+
+    const response = await apiClient.put(`usuario/${currentProfile.id}`, updateData);
+    console.log("Perfil actualizado exitosamente:", response.data);
+    
+    return response.data;
+
+  } catch (error) {
+    console.error("Error actualizando perfil:", error);
+    
+    // Mostrar detalles del error para debugging
+    if (error.response?.data) {
+      console.error("Detalles del error del backend:", error.response.data);
+    }
+    
+    // Manejar errores específicos
+    if (error.response?.status === 400) {
+      const errorMessage = error.response.data?.message || 
+                          error.response.data?.errors?.[0] || 
+                          "Datos inválidos";
+      throw new Error(errorMessage);
+    } else if (error.response?.status === 404) {
+      throw new Error("Usuario no encontrado");
+    } else if (error.response?.status === 401) {
+      throw new Error("No autorizado para actualizar este perfil");
+    } else {
+      throw new Error(error.message || "Error al actualizar el perfil");
+    }
+  }
+},
 
   // ==========================================
   // MÉTODOS DE TENANT
