@@ -429,6 +429,7 @@ const EstacionesList = () => {
         ubicacion={ubicacionSeleccionada}
         isOpen={modalAbierto}
         onClose={cerrarCatalogoProductos}
+        userProfile={userProfile}
       />
     </div>
   );

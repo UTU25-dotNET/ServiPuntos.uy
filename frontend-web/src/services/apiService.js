@@ -439,9 +439,9 @@ getProductosByUbicacion: async (ubicacionId) => {
 },
 
 // Obtener todos los productos con información de ubicaciones
-getAllProductosUbicacion: async () => {
-  try {
-    console.log("Obteniendo todos los productos con ubicaciones...");
+  getAllProductosUbicacion: async () => {
+    try {
+      console.log("Obteniendo todos los productos con ubicaciones...");
     
     const response = await apiClient.get('ProductoUbicacion');
     
@@ -461,6 +461,33 @@ getAllProductosUbicacion: async () => {
   }
 },
 
+// Generar un canje para un producto y obtener el código QR
+  generarCanje: async (productoId, ubicacionId) => {
+  try {
+    if (!productoId || !ubicacionId) {
+      throw new Error("Producto y ubicación son requeridos para el canje");
+    }
+
+    const user = await apiService.getUserProfile();
+
+    const mensaje = {
+      tipoMensaje: 2, // TipoMensajeNAFTA.Canje
+      ubicacionId: ubicacionId,
+      tenantId: user.tenantId,
+      datos: {
+        productoCanjeableId: productoId,
+        usuarioId: user.id
+      }
+    };
+
+    const response = await apiClient.post('nafta/generar-canje', mensaje);
+    return response.data;
+  } catch (error) {
+    console.error('Error generando canje:', error);
+    throw new Error(error.response?.data?.mensaje || 'Error al generar el canje');
+  }
+},
+
 
   // ==========================================
   // MÉTODOS HTTP GENÉRICOS
@@ -474,6 +501,43 @@ getAllProductosUbicacion: async () => {
     } catch (error) {
       console.error(`Error en GET ${endpoint}:`, error);
       throw error;
+    }
+  },
+
+  // Obtener historial de canjes del usuario
+  getCanjesByUsuario: async (usuarioId) => {
+    try {
+      const response = await apiClient.get(`canje/usuario/${usuarioId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error obteniendo historial de canjes:', error);
+      throw new Error(error.response?.data?.message || 'Error al obtener el historial de canjes');
+    }
+  },
+
+  generarCanjes: async (productoIds, ubicacionId) => {
+    try {
+      if (!Array.isArray(productoIds) || productoIds.length === 0 || !ubicacionId) {
+        throw new Error("Productos y ubicación son requeridos");
+      }
+
+      const user = await apiService.getUserProfile();
+
+      const mensaje = {
+        tipoMensaje: 2,
+        ubicacionId: ubicacionId,
+        tenantId: user.tenantId,
+        datos: {
+          productoIds: productoIds,
+          usuarioId: user.id
+        }
+      };
+
+      const response = await apiClient.post('nafta/generar-canjes', mensaje);
+      return response.data;
+    } catch (error) {
+      console.error('Error generando canjes:', error);
+      throw new Error(error.response?.data?.mensaje || 'Error al generar canjes');
     }
   },
 
