@@ -62,7 +62,7 @@ namespace ServiPuntos.Mobile.Services
                 var jsonContent = JsonSerializer.Serialize(request);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PostAsync($"{API_BASE_URL}/api/auth/signin", content);
+                var response = await _httpClient.PostAsync($"{API_BASE_URL}/signin", content);
                 var responseContent = await response.Content.ReadAsStringAsync();
 
                 Console.WriteLine($"[AuthService] Respuesta: {response.StatusCode}");
