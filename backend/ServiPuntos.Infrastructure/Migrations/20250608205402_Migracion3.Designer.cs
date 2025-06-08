@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServiPuntos.Infrastructure.Data;
@@ -12,9 +13,11 @@ using ServiPuntos.Infrastructure.Data;
 namespace ServiPuntos.Infrastructure.Migrations
 {
     [DbContext(typeof(ServiPuntosDbContext))]
-    partial class ServiPuntosDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250608205402_Migracion3")]
+    partial class Migracion3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -182,13 +185,6 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.Property<bool>("Activo")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("Categoria")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<double>("Precio")
-                        .HasColumnType("double precision");
-
                     b.Property<Guid>("ProductoCanjeableId")
                         .HasColumnType("uuid");
 
@@ -353,9 +349,11 @@ namespace ServiPuntos.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("PayPalPayerId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("PayPalToken")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int?>("ProductoId")
