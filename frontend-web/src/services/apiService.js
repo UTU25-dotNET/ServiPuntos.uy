@@ -462,7 +462,7 @@ getProductosByUbicacion: async (ubicacionId) => {
 },
 
 // Generar un canje para un producto y obtener el código QR
-generarCanje: async (productoId, ubicacionId) => {
+  generarCanje: async (productoId, ubicacionId) => {
   try {
     if (!productoId || !ubicacionId) {
       throw new Error("Producto y ubicación son requeridos para el canje");
@@ -501,6 +501,32 @@ generarCanje: async (productoId, ubicacionId) => {
     } catch (error) {
       console.error(`Error en GET ${endpoint}:`, error);
       throw error;
+    }
+  },
+
+  generarCanjes: async (productoIds, ubicacionId) => {
+    try {
+      if (!Array.isArray(productoIds) || productoIds.length === 0 || !ubicacionId) {
+        throw new Error("Productos y ubicación son requeridos");
+      }
+
+      const user = await apiService.getUserProfile();
+
+      const mensaje = {
+        tipoMensaje: 2,
+        ubicacionId: ubicacionId,
+        tenantId: user.tenantId,
+        datos: {
+          productoIds: productoIds,
+          usuarioId: user.id
+        }
+      };
+
+      const response = await apiClient.post('nafta/generar-canjes', mensaje);
+      return response.data;
+    } catch (error) {
+      console.error('Error generando canjes:', error);
+      throw new Error(error.response?.data?.mensaje || 'Error al generar canjes');
     }
   },
 
