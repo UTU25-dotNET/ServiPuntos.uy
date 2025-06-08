@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import authService from "../services/authService";
-import apiService from "../services/apiService";
+import authService from "../../services/authService";
+import apiService from "../../services/apiService";
 
 const Perfil = () => {
   const [user, setUser] = useState(null);
@@ -263,29 +263,34 @@ const Perfil = () => {
     setSuccess("");
   };
 
-  if (loading) {
-    return (
-      <div style={{ textAlign: "center", padding: "2rem" }}>
-        <div style={{
-          border: "4px solid #f3f3f3",
-          borderTop: "4px solid #3498db",
-          borderRadius: "50%",
-          width: "40px",
-          height: "40px",
-          animation: "spin 2s linear infinite",
-          margin: "0 auto 1rem"
-        }} />
-        <p>Cargando perfil...</p>
+  // Reemplaza la sección problemática en Perfil.js línea 278
+
+if (loading) {
+  return (
+    <div style={{ textAlign: "center", padding: "2rem" }}>
+      <div className="spinner" />
+      <p>Cargando perfil...</p>
+      
+      {/* Reemplazar el <style jsx> problemático con CSS-in-JS */}
+      <style>{`
+        .spinner {
+          border: 4px solid #f3f3f3;
+          border-top: 4px solid #3498db;
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          animation: spin 2s linear infinite;
+          margin: 0 auto 1rem;
+        }
         
-        <style jsx>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
-      </div>
-    );
-  }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
+  );
+}
 
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "1rem" }}>
@@ -616,25 +621,7 @@ const Perfil = () => {
                   🔄 Cancelar
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => navigate("/dashboard")}
-                  style={{
-                    backgroundColor: "#17a2b8",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "8px",
-                    padding: "0.75rem 1.5rem",
-                    cursor: "pointer",
-                    fontSize: "1rem",
-                    fontWeight: "600",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem"
-                  }}
-                >
-                  ← Volver al Dashboard
-                </button>
+              
               </div>
             </form>
           </div>

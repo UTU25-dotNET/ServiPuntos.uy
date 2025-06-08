@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import authService from "../services/authService";
+import authService from "../../services/authService";
 
 const AuthCallback = () => {
   const [loading, setLoading] = useState(true);
@@ -50,7 +50,7 @@ const AuthCallback = () => {
         console.log("Token guardado exitosamente, redirigiendo al dashboard");
 
         // Redirigir al dashboard
-        navigate("/dashboard");
+        window.location.href = "/";
 
       } catch (err) {
         console.error("Error en AuthCallback:", err);

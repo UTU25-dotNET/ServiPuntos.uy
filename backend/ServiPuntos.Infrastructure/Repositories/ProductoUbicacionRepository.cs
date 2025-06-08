@@ -16,14 +16,20 @@ namespace ServiPuntos.Infrastructure.Repositories
             => _dbContext.ProductoUbicaciones
                 .FirstOrDefaultAsync(p => p.Id == id);
 
-        public async Task<IEnumerable<ProductoUbicacion>> GetAllAsync()
-            => await _dbContext.ProductoUbicaciones
-                .ToListAsync();
-        public async Task<IEnumerable<ProductoUbicacion>> GetAllAsync(Guid idUbicacion)
-            => await _dbContext.ProductoUbicaciones
-                .Include(p => p.ProductoCanjeable)
-                .Where(p => p.UbicacionId == idUbicacion)
-                .ToListAsync();
+        // En ProductoUbicacionRepository.cs  
+public async Task<IEnumerable<ProductoUbicacion>> GetAllAsync()
+{
+    return await _dbContext.ProductoUbicaciones
+        .Include(pu => pu.ProductoCanjeable)  
+        .ToListAsync();
+}
+        public async Task<IEnumerable<ProductoUbicacion>> GetAllAsync(Guid ubicacionId)
+{
+    return await _dbContext.ProductoUbicaciones
+        .Where(pu => pu.UbicacionId == ubicacionId)
+        .Include(pu => pu.ProductoCanjeable)  // ← AGREGAR ESTA LÍNEA
+        .ToListAsync();
+}
 
         public Task AddAsync(ProductoUbicacion productoUbicacion)
         {

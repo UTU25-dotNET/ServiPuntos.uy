@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import authService from "../services/authService";
-import '../App.css';
+import authService from "../../services/authService";
+import '../../App.css';
 
 const Login = () => {
     const [credentials, setCredentials] = useState({ email: "", password: "" });
@@ -25,7 +25,7 @@ const Login = () => {
 
     useEffect(() => {
         if (authService.isAuthenticated()) {
-            navigate("/dashboard");
+            navigate("/");
         }
 
         // Leer parámetros de la URL
@@ -138,7 +138,7 @@ const Login = () => {
             } else {
                 // Login normal
                 await authService.login(credentials.email, credentials.password);
-                window.location.href = "/dashboard";
+                window.location.href = "/";
             }
         } catch (err) {
             setError(err.message || (isRegisterMode ? "Error en el registro" : "Error en el inicio de sesión"));
