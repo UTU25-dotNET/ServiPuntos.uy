@@ -504,6 +504,17 @@ getProductosByUbicacion: async (ubicacionId) => {
     }
   },
 
+  // Obtener historial de canjes del usuario
+  getCanjesByUsuario: async (usuarioId) => {
+    try {
+      const response = await apiClient.get(`canje/usuario/${usuarioId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error obteniendo historial de canjes:', error);
+      throw new Error(error.response?.data?.message || 'Error al obtener el historial de canjes');
+    }
+  },
+
   generarCanjes: async (productoIds, ubicacionId) => {
     try {
       if (!Array.isArray(productoIds) || productoIds.length === 0 || !ubicacionId) {
