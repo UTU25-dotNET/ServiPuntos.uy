@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using ServiPuntos.Core.Interfaces;
 using System;
@@ -9,7 +10,7 @@ namespace ServiPuntos.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class CanjeController : ControllerBase
     {
         private readonly ICanjeService _canjeService;
