@@ -50,7 +50,7 @@ const AuthCallback = () => {
         console.log("Token guardado exitosamente, redirigiendo al dashboard");
 
         // Redirigir al dashboard
-        navigate("/dashboard");
+        window.location.href = "/";
 
       } catch (err) {
         console.error("Error en AuthCallback:", err);
