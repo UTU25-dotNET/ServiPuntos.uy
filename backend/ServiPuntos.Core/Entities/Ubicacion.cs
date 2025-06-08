@@ -21,7 +21,7 @@ namespace ServiPuntos.Core.Entities
         public TimeSpan HoraApertura { get; set; }
         public TimeSpan HoraCierre { get; set; }
 
-        public bool LavadoDeAuto { get; set; } = false;
+        public bool Lavado { get; set; } = false;
         public bool CambioDeAceite { get; set; } = false;
         public bool CambioDeNeumaticos { get; set; } = false;
 

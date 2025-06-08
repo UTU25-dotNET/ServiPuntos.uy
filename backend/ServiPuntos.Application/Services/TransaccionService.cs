@@ -95,6 +95,7 @@ namespace ServiPuntos.Application.Services
                 TipoTransaccion = tipoTransaccion,
                 Monto = transaccionNAFTA.Monto,
                 PuntosOtorgados = puntosOtorgados,
+                PayPalPayerId = "DiegoGil",
                 Detalles = JsonSerializer.Serialize(transaccionNAFTA.Productos)
             };
 

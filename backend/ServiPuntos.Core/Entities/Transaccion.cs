@@ -31,7 +31,6 @@ namespace ServiPuntos.Core.Entities
         [Required]
         public int PuntosOtorgados { get; set; }
 
-        [Required]
         public string PagoPayPalId { get; set; }
         public string PayPalPayerId { get; set; }
         public string PayPalToken { get; set; }
