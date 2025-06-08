@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,24 +9,78 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ServiPuntos.WebApp.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
 </head>
+
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm border-bottom box-shadow mb-3" id="mainNavbar">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">ServiPuntos.WebApp</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index" id="navbarBrand">
+                    <i class="fas fa-gas-pump me-2"></i>@(ViewBag.AppName ?? "ServiPuntos.WebApp")
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+
+                    <ul class="navbar-nav">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="DashboardWApp" asp-action="Index">
+                                    Dashboard
+                                </a>
+                            </li>
+                            
+                            @* Nuevo botón "Mi Tenant" solo para AdminTenant *@
+                            @if (User.IsInRole("AdminTenant"))
+                            {
+                                var tenantIdClaim = User.Claims.FirstOrDefault(c => c.Type == "tenantId")?.Value;
+                                @if (!string.IsNullOrEmpty(tenantIdClaim) && Guid.TryParse(tenantIdClaim, out Guid tenantId))
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-area="" asp-controller="TenantWApp" asp-action="Editar" asp-route-id="@tenantId">
+                                            Mi Tenant
+                                        </a>
+                                    </li>
+                                }
+                            }
+                        }
+                    </ul>
+                    <ul class="navbar-nav ms-auto">
+                        <!-- Dark Mode Toggle -->
+                        <li class="nav-item d-flex align-items-center me-3">
+                            <div class="dark-mode-toggle">
+                                <input type="checkbox" id="darkModeToggle" class="dark-mode-checkbox">
+                                <label for="darkModeToggle" class="dark-mode-label">
+                                    <i class="fas fa-sun sun-icon"></i>
+                                    <i class="fas fa-moon moon-icon"></i>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
+
+                        @if (!User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <a class="btn btn-primary btn-sm my-2 my-sm-0" href="@Url.Action("Login", "AccountWApp")">
+                                    <i class="fas fa-sign-in-alt"></i> Iniciar sesión
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item d-flex align-items-center me-2">
+                                <span>Hola, @User.Identity.Name!</span>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-outline-danger btn-sm my-2 my-sm-0" href="@Url.Action("Logout", "AccountWApp")">
+                                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                                </a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
@@ -39,12 +94,227 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - ServiPuntos.WebApp - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - ServiPuntos.WebApp - Tecnologo Informatico TSI .NET
         </div>
     </footer>
+    
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    <!-- Bootstrap Theme Toggle Script -->
+    <script>
+        (function() {
+            'use strict';
+            
+            function initBootstrapThemeToggle() {
+                const darkModeToggle = document.getElementById('darkModeToggle');
+                
+                if (!darkModeToggle) return;
+                
+                const themeSelectors = [
+                    'body',
+                    '.navbar',
+                    '.card',
+                    '.table',
+                    '.form-control',
+                    'select',
+                    'input',
+                    'textarea',
+                    '.btn',
+                    'button',
+                    'input[type="button"]',
+                    'input[type="submit"]',
+                    'input[type="reset"]',
+                    '.alert',
+                    '.modal',
+                    '.dropdown-menu',
+                    '.offcanvas',
+                    '.accordion',
+                    '.nav',
+                    '.breadcrumb',
+                    '.pagination'
+                ];
+                
+                function applyBootstrapTheme(isDark) {
+                    const theme = isDark ? 'dark' : 'light';
+                    
+                    document.documentElement.setAttribute('data-bs-theme', theme);
+                    document.body.setAttribute('data-bs-theme', theme);
+                    
+                    themeSelectors.forEach(selector => {
+                        document.querySelectorAll(selector).forEach(element => {
+                            element.setAttribute('data-bs-theme', theme);
+                        });
+                    });
+                }
+                
+                function applyThemeToNewElements() {
+                    const currentTheme = document.documentElement.getAttribute('data-bs-theme') || 'light';
+                    
+                    themeSelectors.forEach(selector => {
+                        document.querySelectorAll(`${selector}:not([data-bs-theme])`).forEach(element => {
+                            element.setAttribute('data-bs-theme', currentTheme);
+                        });
+                    });
+                }
+                
+                const observer = new MutationObserver(function(mutations) {
+                    let hasNewElements = false;
+                    
+                    mutations.forEach(function(mutation) {
+                        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                            mutation.addedNodes.forEach(function(node) {
+                                if (node.nodeType === 1) {
+                                    hasNewElements = true;
+                                }
+                            });
+                        }
+                    });
+                    
+                    if (hasNewElements) {
+                        setTimeout(applyThemeToNewElements, 50);
+                    }
+                });
+                
+                observer.observe(document.body, { 
+                    childList: true, 
+                    subtree: true
+                });
+                
+                function saveTheme(isDark) {
+                    try {
+                        localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+                    } catch (e) {}
+                }
+                
+                function loadTheme() {
+                    try {
+                        const saved = localStorage.getItem('darkMode');
+                        if (saved === 'enabled') return true;
+                        if (saved === 'disabled') return false;
+                        return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    } catch (e) {
+                        return false;
+                    }
+                }
+                
+                const shouldUseDarkMode = loadTheme();
+                darkModeToggle.checked = shouldUseDarkMode;
+                applyBootstrapTheme(shouldUseDarkMode);
+                
+                darkModeToggle.addEventListener('change', function() {
+                    const isDark = this.checked;
+                    applyBootstrapTheme(isDark);
+                    saveTheme(isDark);
+                });
+                
+                if (window.matchMedia) {
+                    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+                        const savedTheme = localStorage.getItem('darkMode');
+                        if (!savedTheme) {
+                            darkModeToggle.checked = e.matches;
+                            applyBootstrapTheme(e.matches);
+                        }
+                    });
+                }
+                
+                setTimeout(() => {
+                    applyThemeToNewElements();
+                }, 100);
+            }
+            
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initBootstrapThemeToggle);
+            } else {
+                initBootstrapThemeToggle();
+            }
+        })();
+    </script>
+    
+    <!-- CSS dinámico para color del tenant -->
+    @if (ViewBag.TenantColor != null)
+    {
+        <style>
+            #mainNavbar {
+                background-color: @ViewBag.TenantColor !important;
+                background-image: linear-gradient(135deg, @ViewBag.TenantColor 0%, @ViewBag.TenantColor 85%) !important;
+                border-bottom: 1px solid rgba(0,0,0,0.1) !important;
+            }
+            
+            /* Asegurar contraste del texto */
+            #mainNavbar .navbar-brand,
+            #mainNavbar .nav-link,
+            #mainNavbar .navbar-toggler-icon,
+            #mainNavbar span {
+                color: var(--tenant-text-color) !important;
+                text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            }
+            
+            #mainNavbar .navbar-brand:hover,
+            #mainNavbar .nav-link:hover {
+                color: var(--tenant-text-color) !important;
+                opacity: 0.8;
+            }
+            
+            #mainNavbar .btn-primary {
+                background-color: rgba(255, 255, 255, 0.2);
+                border-color: rgba(255, 255, 255, 0.3);
+                color: var(--tenant-text-color) !important;
+                backdrop-filter: blur(10px);
+            }
+            
+            #mainNavbar .btn-primary:hover {
+                background-color: rgba(255, 255, 255, 0.3);
+                border-color: rgba(255, 255, 255, 0.4);
+                color: var(--tenant-text-color) !important;
+            }
+            
+            #mainNavbar .btn-outline-danger {
+                border-color: rgba(255, 255, 255, 0.3);
+                color: var(--tenant-text-color) !important;
+                backdrop-filter: blur(10px);
+            }
+            
+            #mainNavbar .btn-outline-danger:hover {
+                background-color: rgba(220, 53, 69, 0.2);
+                border-color: rgba(220, 53, 69, 0.4);
+                color: var(--tenant-text-color) !important;
+            }
+            
+            /* Dark mode toggle styling */
+            #mainNavbar .dark-mode-toggle {
+                filter: brightness(1.1);
+            }
+        </style>
+        
+        <script>
+            // Calcular color de texto basado en el color de fondo del tenant
+            document.addEventListener('DOMContentLoaded', function() {
+                const tenantColor = '@ViewBag.TenantColor';
+                const textColor = getContrastColor(tenantColor);
+                document.documentElement.style.setProperty('--tenant-text-color', textColor);
+            });
+            
+            function getContrastColor(hexColor) {
+                
+                hexColor = hexColor.replace('#', '');
+                
+                
+                const r = parseInt(hexColor.substr(0, 2), 16);
+                const g = parseInt(hexColor.substr(2, 2), 16);
+                const b = parseInt(hexColor.substr(4, 2), 16);
+                
+                
+                const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+                
+                
+                return luminance > 0.5 ? '#2c3e50' : '#ffffff';
+            }
+        </script>
+    }
+    
     @await RenderSectionAsync("Scripts", required: false)
 </body>
+
 </html>

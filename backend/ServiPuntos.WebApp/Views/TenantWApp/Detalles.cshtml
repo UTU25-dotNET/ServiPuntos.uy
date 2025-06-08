@@ -1,0 +1,62 @@
+@model ServiPuntos.Core.Entities.Tenant
+
+@{
+    ViewData["Title"] = "Detalles del Tenant";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="card">
+    <div class="card-header">
+        <h4>@Model.Nombre</h4>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID:</dt>
+            <dd class="col-sm-9">@Model.Id</dd>
+
+            <dt class="col-sm-3">Nombre:</dt>
+            <dd class="col-sm-9">@Model.Nombre</dd>
+
+            <dt class="col-sm-3">Logo URL:</dt>
+            <dd class="col-sm-9">
+                @if (!string.IsNullOrEmpty(Model.LogoUrl))
+                {
+                    <a href="@Model.LogoUrl" target="_blank" class="text-decoration-none">
+                        @Model.LogoUrl <i class="fas fa-external-link-alt ms-1"></i>
+                    </a>
+                }
+                else
+                {
+                    <span class="text-muted">Sin logo configurado</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Color:</dt>
+            <dd class="col-sm-9">
+                @if (!string.IsNullOrEmpty(Model.Color))
+                {
+                    <div class="d-flex align-items-center">
+                        <div class="rounded me-2" style="width: 30px; height: 30px; background-color: @Model.Color; border: 1px solid #dee2e6;"></div>
+                        <span>@Model.Color</span>
+                    </div>
+                }
+                else
+                {
+                    <span class="text-muted">Sin color configurado</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Fecha de Creación:</dt>
+            <dd class="col-sm-9">@Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</dd>
+
+            <dt class="col-sm-3">Última Modificación:</dt>
+            <dd class="col-sm-9">@Model.FechaModificacion.ToString("dd/MM/yyyy HH:mm")</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-primary">Editar</a>
+    <a asp-action="Index" class="btn btn-secondary">Volver al Listado</a>
+</div>

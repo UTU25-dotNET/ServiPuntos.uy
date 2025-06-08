@@ -4,9 +4,10 @@
 Si querés acceso directo al TenantId en tiempo real.
 
 Si no necesitás guardar el tenant en memoria por request.*/
-
-public interface ITenantResolver
+namespace ServiPuntos.Core.Interfaces
 {
-    Guid GetCurrentTenantId();
+    public interface ITenantResolver
+    {
+        Guid GetCurrentTenantId();
+    }
 }
-
