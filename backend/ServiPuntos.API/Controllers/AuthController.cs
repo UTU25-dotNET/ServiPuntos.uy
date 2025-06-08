@@ -6,6 +6,7 @@ using ServiPuntos.Core.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Text;
 using ServiPuntos.Infrastructure.Data;
 using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
@@ -381,35 +382,77 @@ public IActionResult GoogleLogin()
 [HttpPost("signin")]
 public async Task<IActionResult> SignIn([FromBody] SignInRequest request)
 {
+    Console.WriteLine($"[SignIn] === NUEVA REQUEST RECIBIDA ===");
+    Console.WriteLine($"[SignIn] Timestamp: {DateTime.Now}");
+    Console.WriteLine($"[SignIn] Method: {Request.Method}");
+    Console.WriteLine($"[SignIn] Path: {Request.Path}");
+    Console.WriteLine($"[SignIn] Content-Type: {Request.ContentType}");
+    Console.WriteLine($"[SignIn] Content-Length: {Request.ContentLength}");
+    
     var claims = new List<Claim>(); 
     try
     {
+        // Leer el body raw para debugging
+        string bodyContent = "";
+        try
+        {
+            Request.Body.Position = 0;
+            using (var reader = new StreamReader(Request.Body, Encoding.UTF8, leaveOpen: true))
+            {
+                bodyContent = await reader.ReadToEndAsync();
+                Request.Body.Position = 0;
+            }
+            Console.WriteLine($"[SignIn] Body raw: {bodyContent}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[SignIn] Error leyendo body: {ex.Message}");
+        }
+
         // **NUEVO: Detectar si es una request móvil**
         var userAgent = Request.Headers["User-Agent"].ToString();
         var isMobileRequest = userAgent.Contains("ServiPuntos.Mobile") || userAgent.Contains("Mobile");
+        Console.WriteLine($"[SignIn] User-Agent: {userAgent}");
         Console.WriteLine($"[SignIn] Request móvil detectada: {isMobileRequest}");
+
+        Console.WriteLine($"[SignIn] Request object: {request?.GetType().Name ?? "null"}");
+        Console.WriteLine($"[SignIn] Email: {request?.Email ?? "null"}");
+        Console.WriteLine($"[SignIn] Password present: {!string.IsNullOrEmpty(request?.Password)}");
 
         if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
         {
+            Console.WriteLine("[SignIn] ERROR: Email y contraseña son requeridos");
             return BadRequest(new { message = "Email y contraseña son requeridos" });
         }
+
+        Console.WriteLine($"[SignIn] Buscando usuario en BD: {request.Email}");
 
         // Buscar el usuario en la base de datos
         var usuario = await _context.Usuarios
             .FirstOrDefaultAsync(u => u.Email == request.Email);
 
+        Console.WriteLine($"[SignIn] Usuario encontrado: {usuario != null}");
+
         // Verificar si el usuario existe
         if (usuario == null)
         {
+            Console.WriteLine("[SignIn] ERROR: Usuario no encontrado");
             return Unauthorized(new { message = "Email o contraseña incorrectos" });
         }
 
+        Console.WriteLine("[SignIn] Verificando contraseña...");
+
         // Verificar la contraseña
         bool passwordValid = VerifyPassword(request.Password, usuario.Password);
+        Console.WriteLine($"[SignIn] Contraseña válida: {passwordValid}");
+        
         if (!passwordValid)
         {
+            Console.WriteLine("[SignIn] ERROR: Contraseña incorrecta");
             return Unauthorized(new { message = "Email o contraseña incorrectos" });
         }
+
+        Console.WriteLine("[SignIn] Creando claims...");
 
         // Si tenemos cédula, verificamos la edad
         bool isAdult = false;
@@ -419,6 +462,8 @@ public async Task<IActionResult> SignIn([FromBody] SignInRequest request)
         claims.Add(new Claim("is_adult", isAdult.ToString().ToLower()));
         claims.Add(new Claim("role", usuario.Rol.ToString()));
         claims.Add(new Claim("TenantId", usuario.TenantId.ToString() ?? string.Empty));
+
+        Console.WriteLine($"[SignIn] Claims creados: {claims.Count}");
 
         // **NUEVO: Para requests web, crear cookies de autenticación**
         if (!isMobileRequest)
@@ -437,8 +482,12 @@ public async Task<IActionResult> SignIn([FromBody] SignInRequest request)
             Console.WriteLine("[SignIn] Usuario autenticado con cookies para web");
         }
 
+        Console.WriteLine("[SignIn] Generando token JWT...");
+
         // Generar el token JWT (tanto para web como para móvil)
         var token = _jwtTokenService.GenerateJwtToken(claims);
+
+        Console.WriteLine($"[SignIn] Token generado: {token.Substring(0, Math.Min(20, token.Length))}...");
 
         // **MODIFICADO: Respuesta diferenciada según el tipo de cliente**
         var response = new
@@ -449,16 +498,17 @@ public async Task<IActionResult> SignIn([FromBody] SignInRequest request)
             email = usuario.Email,
             role = usuario.Rol,
             tenantId = usuario.TenantId,
-            //isMobile = isMobileRequest // **NUEVO: Indicar si es móvil**
         };
 
         Console.WriteLine($"[SignIn] Login exitoso para {usuario.Email} - Tipo: {(isMobileRequest ? "Mobile" : "Web")}");
+        Console.WriteLine("[SignIn] === RESPUESTA EXITOSA ===");
         
         return Ok(response);
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"[SignIn] Error: {ex.Message}");
+        Console.WriteLine($"[SignIn] EXCEPCIÓN: {ex.Message}");
+        Console.WriteLine($"[SignIn] Stack trace: {ex.StackTrace}");
         return StatusCode(500, new { message = "Error interno del servidor" });
     }
 }

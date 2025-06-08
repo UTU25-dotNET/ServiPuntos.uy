@@ -63,6 +63,12 @@ namespace ServiPuntos.Mobile.Services
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
                 var response = await _httpClient.PostAsync($"{API_BASE_URL}/signin", content);
+                if (response.StatusCode != System.Net.HttpStatusCode.OK && response.StatusCode != System.Net.HttpStatusCode.Created)
+                {
+                    Console.WriteLine($"[AuthService] Error al hacer POST: {response.StatusCode}");
+                    throw new HttpRequestException($"Error al hacer POST: {response.StatusCode}");
+                }
+                
                 var responseContent = await response.Content.ReadAsStringAsync();
 
                 Console.WriteLine($"[AuthService] Respuesta: {response.StatusCode}");
