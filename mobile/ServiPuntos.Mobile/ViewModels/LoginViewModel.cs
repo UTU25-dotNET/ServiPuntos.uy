@@ -62,6 +62,11 @@ namespace ServiPuntos.Mobile.ViewModels
 
         private async void OnLogin()
         {
+            Console.WriteLine($"[LoginViewModel] === INICIO OnLogin ===");
+            Console.WriteLine($"[LoginViewModel] Username: {Username}");
+            Console.WriteLine($"[LoginViewModel] Password present: {!string.IsNullOrEmpty(Password)}");
+            Console.WriteLine($"[LoginViewModel] AuthService: {_authService != null}");
+
             ErrorMessage = "";
             IsLoading = true;
 
@@ -69,16 +74,22 @@ namespace ServiPuntos.Mobile.ViewModels
             {
                 ErrorMessage = "Completa usuario y contraseña.";
                 IsLoading = false;
+                Console.WriteLine("[LoginViewModel] Error: Campos vacíos");
                 return;
             }
 
             try
             {
-                // Usar el AuthService
+                Console.WriteLine("[LoginViewModel] Llamando a SignInAsync...");
+                
                 var response = await _authService.SignInAsync(Username, Password);
+                
+                Console.WriteLine($"[LoginViewModel] Respuesta recibida: {response != null}");
 
                 if (response != null)
                 {
+                    Console.WriteLine($"[LoginViewModel] Token recibido: {!string.IsNullOrEmpty(response.Token)}");
+                    
                     // Login exitoso
                     await Application.Current.MainPage.DisplayAlert("Éxito", "Login exitoso", "OK");
                     
@@ -88,15 +99,19 @@ namespace ServiPuntos.Mobile.ViewModels
             }
             catch (HttpRequestException ex)
             {
+                Console.WriteLine($"[LoginViewModel] HttpRequestException: {ex.Message}");
                 ErrorMessage = "Email o contraseña incorrectos.";
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"[LoginViewModel] Exception: {ex.Message}");
+                Console.WriteLine($"[LoginViewModel] Exception StackTrace: {ex.StackTrace}");
                 ErrorMessage = "Error de conexión. Inténtalo de nuevo.";
             }
             finally
             {
                 IsLoading = false;
+                Console.WriteLine("[LoginViewModel] === FIN OnLogin ===");
             }
         }
     }
