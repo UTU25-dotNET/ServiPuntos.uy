@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import apiService from "../../services/apiService";
 
-const CatalogoProductos = ({ ubicacion, onClose, isOpen }) => {
+const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [canjeQR, setCanjeQR] = useState(null);
+  const [canjeLoading, setCanjeLoading] = useState(false);
+  const [canjeError, setCanjeError] = useState("");
+  const [carrito, setCarrito] = useState([]);
+  const [qrCarrito, setQrCarrito] = useState([]);
+  const [carritoLoading, setCarritoLoading] = useState(false);
+  const [carritoError, setCarritoError] = useState("");
 
   useEffect(() => {
     if (isOpen && ubicacion) {
@@ -30,6 +38,44 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen }) => {
       setProductos([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCanjear = async (productoId) => {
+    setCanjeLoading(true);
+    setCanjeError("");
+    try {
+      const result = await apiService.generarCanje(productoId, ubicacion.id);
+      setCanjeQR(result?.datos?.codigoQR || null);
+    } catch (err) {
+      console.error("Error generando canje:", err);
+      setCanjeError(err.message);
+    } finally {
+      setCanjeLoading(false);
+    }
+  };
+
+  const agregarAlCarrito = (producto) => {
+    setCarrito((prev) => [...prev, producto]);
+  };
+
+  const quitarDelCarrito = (productoId) => {
+    setCarrito((prev) => prev.filter((p) => p.id !== productoId));
+  };
+
+  const handleCanjearCarrito = async () => {
+    setCarritoLoading(true);
+    setCarritoError("");
+    try {
+      const ids = carrito.map((p) => p.productoCanjeable.id);
+      const result = await apiService.generarCanjes(ids, ubicacion.id);
+      setQrCarrito(result?.datos?.resultados || []);
+      setCarrito([]);
+    } catch (err) {
+      console.error("Error generando canjes:", err);
+      setCarritoError(err.message);
+    } finally {
+      setCarritoLoading(false);
     }
   };
 
@@ -156,6 +202,105 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen }) => {
           </div>
         </div>
 
+        {canjeQR && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0,0,0,0.6)",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              zIndex: 2000,
+            }}
+          >
+            <div
+              style={{
+                background: "white",
+                padding: "2rem",
+                borderRadius: "12px",
+                textAlign: "center",
+              }}
+            >
+              <h3 style={{ marginTop: 0 }}>Código de Canje</h3>
+              {canjeLoading ? (
+                <p>Generando código...</p>
+              ) : (
+                <>
+                  <QRCodeSVG value={canjeQR} size={180} />
+                  <p style={{ wordBreak: "break-all" }}>{canjeQR}</p>
+                </>
+              )}
+              {canjeError && (
+                <p style={{ color: "#dc3545" }}>{canjeError}</p>
+              )}
+              <button
+                onClick={() => setCanjeQR(null)}
+                style={{ marginTop: "1rem", padding: "0.5rem 1rem" }}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        )}
+
+        {qrCarrito.length > 0 && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0,0,0,0.6)",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              zIndex: 2000,
+              overflow: "auto"
+            }}
+          >
+            <div
+              style={{
+                background: "white",
+                padding: "2rem",
+                borderRadius: "12px",
+                textAlign: "center",
+                maxWidth: "90%"
+              }}
+            >
+              <h3 style={{ marginTop: 0 }}>Códigos de Canje</h3>
+              {carritoLoading ? (
+                <p>Generando códigos...</p>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem" }}>
+                  {qrCarrito.map((q) => (
+                    <div key={q.productoId} style={{ padding: "1rem", border: "1px solid #e9ecef", borderRadius: "8px" }}>
+                      {q.codigoQR ? (
+                        <>
+                          <QRCodeSVG value={q.codigoQR} size={160} />
+                          <p style={{ wordBreak: "break-all" }}>{q.codigoQR}</p>
+                        </>
+                      ) : (
+                        <p style={{ color: "#dc3545" }}>{q.error}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <button
+                onClick={() => setQrCarrito([])}
+                style={{ marginTop: "1rem", padding: "0.5rem 1rem" }}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Contenido del modal */}
         <div
           style={{
@@ -249,6 +394,41 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen }) => {
                   💰 {productos.length} producto{productos.length !== 1 ? "s" : ""} disponible{productos.length !== 1 ? "s" : ""} para canje
                 </p>
               </div>
+
+              {carrito.length > 0 && (
+                <div
+                  style={{
+                    marginBottom: "1rem",
+                    padding: "1rem",
+                    backgroundColor: "#e8f5e9",
+                    borderRadius: "8px",
+                    border: "1px solid #c8e6c9"
+                  }}
+                >
+                  <h5 style={{ marginTop: 0 }}>Carrito ({carrito.length})</h5>
+                  <ul style={{ listStyle: "none", padding: 0 }}>
+                    {carrito.map((p) => (
+                      <li key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.25rem" }}>
+                        <span>{p.productoCanjeable.nombre}</span>
+                        <button onClick={() => quitarDelCarrito(p.id)} style={{ border: "none", background: "transparent", color: "#dc3545", cursor: "pointer" }}>✕</button>
+                      </li>
+                    ))}
+                  </ul>
+                  <button onClick={handleCanjearCarrito} disabled={carritoLoading}
+                    style={{
+                      marginTop: "0.5rem",
+                      padding: "0.5rem 1rem",
+                      backgroundColor: "#28a745",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "6px",
+                      cursor: "pointer"
+                    }}>
+                    Canjear carrito
+                  </button>
+                  {carritoError && <p style={{ color: "#dc3545" }}>{carritoError}</p>}
+                </div>
+              )}
 
               {/* Grid de productos */}
               <div
@@ -402,6 +582,41 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen }) => {
                           }}
                         >
                           ⚠️ Producto temporalmente no disponible
+                        </div>
+                      )}
+
+                      {productoUbicacion.activo && productoUbicacion.stockDisponible > 0 && (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                          <button
+                            onClick={() => handleCanjear(producto.id)}
+                            disabled={!userProfile || (userProfile.puntos || 0) < producto.costoEnPuntos || canjeLoading}
+                            style={{
+                              width: "100%",
+                              padding: "0.5rem",
+                              backgroundColor: "#007bff",
+                              color: "white",
+                              border: "none",
+                              borderRadius: "6px",
+                              cursor: "pointer"
+                            }}
+                          >
+                            Canjear
+                          </button>
+                          <button
+                            onClick={() => agregarAlCarrito(productoUbicacion)}
+                            disabled={carritoLoading}
+                            style={{
+                              width: "100%",
+                              padding: "0.5rem",
+                              backgroundColor: "#28a745",
+                              color: "white",
+                              border: "none",
+                              borderRadius: "6px",
+                              cursor: "pointer"
+                            }}
+                          >
+                            Agregar al carrito
+                          </button>
                         </div>
                       )}
 
