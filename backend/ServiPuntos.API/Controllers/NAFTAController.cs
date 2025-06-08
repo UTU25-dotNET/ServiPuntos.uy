@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ServiPuntos.Application.Services;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Core.NAFTA;
 using System.Threading.Tasks;
@@ -86,8 +87,28 @@ namespace ServiPuntos.API.Controllers
             return Ok(respuesta);
         }
 
+        // Genera un canje para que el usuario obtenga el código QR
+        [HttpPost("generar-canje")]
+        [AllowAnonymous]
+        public async Task<ActionResult<RespuestaNAFTA>> GenerarCanje([FromBody] MensajeNAFTA mensaje)
+        {
+            if (mensaje == null)
+            {
+                return BadRequest("El mensaje no puede ser nulo");
+            }
+
+            var respuesta = await _naftaService.GenerarCanjeAsync(mensaje);
+
+            if (respuesta.Codigo == "ERROR")
+            {
+                return BadRequest(respuesta);
+            }
+
+            return Ok(respuesta);
+        }
+
         // Procesa un canje de puntos mediante código QR
-        [HttpPost("canje")]
+        [HttpPost("procesar-canje")]
         [AllowAnonymous]
         public async Task<ActionResult<RespuestaNAFTA>> ProcesarCanje([FromBody] MensajeNAFTA mensaje)
         {

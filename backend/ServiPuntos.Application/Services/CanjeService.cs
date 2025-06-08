@@ -76,8 +76,8 @@ namespace ServiPuntos.Application.Services
                 TenantId = tenantId,
                 ProductoCanjeableId = productoCanjeableId,
                 CodigoQR = codigoQR,
-                FechaGeneracion = DateTime.Now,
-                FechaExpiracion = DateTime.Now.AddHours(24), // Expiración en 24 horas
+                FechaGeneracion = DateTime.UtcNow,
+                FechaExpiracion = DateTime.UtcNow.AddHours(24), // Expiración en 24 horas
                 Estado = EstadoCanje.Generado,
                 PuntosCanjeados = producto.CostoEnPuntos
             };

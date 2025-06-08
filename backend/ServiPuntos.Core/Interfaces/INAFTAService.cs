@@ -10,5 +10,6 @@ namespace ServiPuntos.Core.Interfaces
         Task<RespuestaNAFTA> ProcesarCanjeAsync(MensajeNAFTA mensaje);
         Task<RespuestaNAFTA> ConsultarSaldoAsync(MensajeNAFTA mensaje);
         Task<RespuestaNAFTA> ConfirmarPagoPayPalAsync(MensajeNAFTA mensaje);
+        Task<RespuestaNAFTA> GenerarCanjeAsync(MensajeNAFTA mensaje);
     }
 }
