@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import authService from "../services/authService";
-import apiService from "../services/apiService";
+import authService from "../../services/authService";
+import apiService from "../../services/apiService";
 
 const NavBar = () => {
   const isAuthenticated = authService.isAuthenticated();
@@ -30,12 +30,14 @@ const NavBar = () => {
       style={{
         display: "flex",
         justifyContent: "space-between",
-        padding: "1rem",
+        alignItems: "center",
+        padding: "1rem 2rem",
         backgroundColor: "#343a40",
         color: "white",
-        marginBottom: "1rem",
+        boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
       }}
     >
+      {/* Logo/Brand */}
       <div>
         <Link
           to="/"
@@ -43,46 +45,59 @@ const NavBar = () => {
             color: "white",
             textDecoration: "none",
             fontWeight: "bold",
-            fontSize: "1.2rem",
+            fontSize: "1.3rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem"
           }}
         >
+          <span style={{ fontSize: "1.5rem" }}>⛽</span>
           {isAuthenticated && tenantInfo ? (
             <>
-              {tenantInfo.nombre} <span style={{ color: "grey", fontSize: "0.9rem" }}>Servipuntos</span>
+              {tenantInfo.nombre} 
+              <span style={{ color: "#adb5bd", fontSize: "0.9rem", fontWeight: "normal" }}>
+                Servipuntos
+              </span>
             </>
           ) : (
             <>
-              Servipuntos.uy <span style={{ color: "grey" }}>*Demo*</span>
+              Servipuntos.uy 
+              <span style={{ color: "#adb5bd", fontWeight: "normal" }}>
+                *Demo*
+              </span>
             </>
           )}
         </Link>
       </div>
-      <div style={{ display: "flex", alignItems: "center" }}>
+
+      {/* Navigation Items */}
+      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
         {isAuthenticated ? (
           <>
+            {/* User Info */}
             {user && (
-              <span
+              <div
                 style={{
-                  marginRight: "1rem",
-                  backgroundColor:
-                    user.role === "admin" ? "#6f42c1" : "#28a745",
-                  color: "white",
-                  padding: "0.25rem 0.5rem",
-                  borderRadius: "4px",
-                  fontSize: "0.8rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  padding: "0.5rem 1rem",
+                  backgroundColor: user.role === "admin" ? "#6f42c1" : "#28a745",
+                  borderRadius: "20px",
+                  fontSize: "0.85rem"
                 }}
               >
-                {user.username || user.uniqueName || user.name || user.email}
-              </span>
+                <span>👤</span>
+                <span>{user.username || user.uniqueName || user.name || user.email}</span>
+              </div>
             )}
             
-            {/* Enlace a Estaciones */}
+            {/* Navigation Links */}
             <Link 
               to="/estaciones" 
               style={{ 
                 color: 'white', 
                 textDecoration: 'none',
-                marginRight: '1rem',
                 padding: '0.5rem 1rem',
                 borderRadius: '6px',
                 transition: 'background-color 0.2s',
@@ -90,7 +105,8 @@ const NavBar = () => {
                 alignItems: 'center',
                 gap: '0.5rem',
                 backgroundColor: 'rgba(255,255,255,0.1)',
-                border: '1px solid rgba(255,255,255,0.2)'
+                border: '1px solid rgba(255,255,255,0.2)',
+                fontWeight: '500'
               }}
               onMouseEnter={(e) => {
                 e.target.style.backgroundColor = 'rgba(255,255,255,0.2)';
@@ -104,76 +120,68 @@ const NavBar = () => {
               🏪 Estaciones
             </Link>
 
-            {/* Enlace al Dashboard */}
-            <Link 
-              to="/dashboard" 
-              style={{ 
-                color: 'white', 
-                textDecoration: 'none',
-                marginRight: '1rem',
-                padding: '0.25rem 0.5rem',
-                borderRadius: '4px',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-            >
-              Dashboard
-            </Link>
-
-            {/* Enlace al Perfil */}
             <Link 
               to="/perfil" 
               style={{ 
                 color: 'white', 
                 textDecoration: 'none',
-                marginRight: '1rem',
-                padding: '0.25rem 0.5rem',
-                borderRadius: '4px',
-                transition: 'background-color 0.2s'
+                padding: '0.5rem 1rem',
+                borderRadius: '6px',
+                transition: 'background-color 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontWeight: '500'
               }}
               onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
               onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
             >
-              👤 Perfil
+              ⚙️ Mi Perfil
             </Link>
 
-            {/* Enlace para cerrar sesión */}
+            {/* Logout */}
             <Link
               to="/"
               onClick={() => authService.logout()}
               style={{
                 color: "white",
                 textDecoration: "none",
-                padding: '0.25rem 0.5rem',
-                borderRadius: '4px',
+                padding: '0.5rem 1rem',
+                borderRadius: '6px',
                 transition: 'background-color 0.2s',
                 backgroundColor: '#dc3545',
+                fontWeight: '500',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
               }}
               onMouseEnter={(e) => e.target.style.backgroundColor = '#c82333'}
               onMouseLeave={(e) => e.target.style.backgroundColor = '#dc3545'}
             >
-              Cerrar Sesión
+              🚪 Salir
             </Link>
           </>
         ) : (
           <>
-            {/* Cuando no está autenticado, mostrar enlaces públicos */}
+            {/* Login button for non-authenticated users */}
             <Link 
               to="/login" 
               style={{ 
                 color: 'white', 
                 textDecoration: 'none',
-                padding: '0.5rem 1rem',
+                padding: '0.75rem 1.5rem',
                 borderRadius: '6px',
                 backgroundColor: '#007bff',
                 transition: 'background-color 0.2s',
-                fontWeight: '500'
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
               }}
               onMouseEnter={(e) => e.target.style.backgroundColor = '#0056b3'}
               onMouseLeave={(e) => e.target.style.backgroundColor = '#007bff'}
             >
-              Iniciar Sesión
+              🔑 Iniciar Sesión
             </Link>
           </>
         )}
