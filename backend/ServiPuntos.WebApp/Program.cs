@@ -38,6 +38,7 @@ builder.Services.AddScoped<IUbicacionRepository, UbicacionRepository>();
 
 // ===== REPOSITORIOS NAFTA (solo los que definitivamente existen) =====
 builder.Services.AddScoped<ITransaccionRepository, TransaccionRepository>();
+builder.Services.AddScoped<ICanjeRepository, CanjeRepository>();
 
 // ===== REPOSITORIOS AUDIENCIA =====
 builder.Services.AddScoped<IAudienciaRepository, AudienciaRepository>();
@@ -46,6 +47,12 @@ builder.Services.AddScoped<IAudienciaRepository, AudienciaRepository>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IUbicacionService, UbicacionService>();
+
+builder.Services.AddScoped<IPuntosService, PuntosService>();
+builder.Services.AddScoped<IPointsRuleEngine, PointsRuleEngine>();
+
+builder.Services.AddScoped<ITransaccionService, TransaccionService>();
+builder.Services.AddScoped<ICanjeService, CanjeService>();
 
 // ===== SERVICIOS AUDIENCIA =====
 builder.Services.AddScoped<IAudienciaRuleEngine, AudienciaRuleEngine>();

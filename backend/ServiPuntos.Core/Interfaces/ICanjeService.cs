@@ -11,6 +11,7 @@ namespace ServiPuntos.Core.Interfaces
         Task<Canje> GetCanjeByIdAsync(Guid id);
         Task<Canje> GetCanjeByCodigoQRAsync(string codigoQR);
         Task<IEnumerable<Canje>> GetCanjesByUsuarioIdAsync(Guid usuarioId);
+        Task<IEnumerable<Canje>> GetCanjesByTenantIdAsync(Guid tenantId);
         Task<IEnumerable<Canje>> GetCanjesPendientesByUsuarioIdAsync(Guid usuarioId);
         Task<string> GenerarCodigoCanjeAsync(Guid usuarioId, Guid productoCanjeableId, Guid ubicacionId, Guid tenantId);
         Task<bool> ProcesarCanjeAsync(CanjeNAFTA canje);
