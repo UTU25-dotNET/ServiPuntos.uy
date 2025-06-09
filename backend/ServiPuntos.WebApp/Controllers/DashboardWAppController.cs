@@ -13,18 +13,22 @@ namespace ServiPuntos.Controllers
         private readonly IUsuarioService _iUsuarioService;
         private readonly ITenantService _iTenantService;
         private readonly IUbicacionService _iUbicacionService;
+        private readonly IConfigPlataformaService _iConfigPlataformaService;
 
-        public DashboardWAppController(IUsuarioService usuarioService, ITenantService iTenantService, IUbicacionService ubicacionService)
+        public DashboardWAppController(IUsuarioService usuarioService, ITenantService iTenantService, IUbicacionService ubicacionService, IConfigPlataformaService configPlataformaService)
         {
             _iUsuarioService = usuarioService;
             _iTenantService = iTenantService;
             _iUbicacionService = ubicacionService;
+            _iConfigPlataformaService = configPlataformaService;
         }
 
         public async Task<IActionResult> Index()
         {
             try
             {
+                var config = await _iConfigPlataformaService.ObtenerConfiguracionAsync();
+                ViewBag.ConfigPlataforma = config;
                 if (User.IsInRole("AdminTenant"))
                 {
                     var tenantIdDeCookie = User.Claims.FirstOrDefault(c => c.Type == "tenantId")?.Value;
@@ -123,11 +127,21 @@ namespace ServiPuntos.Controllers
             }
         }
 
-        [HttpGet]
-        public async Task<IActionResult> CambiarConfiguracion()
+        [HttpPost]
+        [Authorize(Roles = "AdminPlataforma")]
+        public async Task<IActionResult> CambiarConfiguracion(int expiracionSesion, int maxIntentos, int largoMinimo)
         {
-            //implementar
-            return View();
+            try
+            {
+                var config = new ServiPuntos.Core.Entities.ConfigPlataforma(maxIntentos, expiracionSesion, largoMinimo);
+                await _iConfigPlataformaService.ActualizarConfiguracionAsync(config);
+                return Json(new { success = true, message = "Configuración actualizada correctamente" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error al actualizar configuración de plataforma: {ex.Message}");
+                return Json(new { success = false, message = $"Error interno: {ex.Message}" });
+            }
         }
 
         // Agregar este método al final de la clase DashboardWAppController, antes de la clase TenantUsuarioInfo

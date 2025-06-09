@@ -161,15 +161,15 @@
                 <form id="configuracionForm">
                     <div class="mb-3">
                         <label for="expiracionSesion" class="form-label">Tiempo de expiración de sesión (minutos)</label>
-                        <input type="number" class="form-control" id="expiracionSesion" name="expiracionSesion" min="1">
+                        <input type="number" class="form-control" id="expiracionSesion" name="expiracionSesion" min="1" value="@((ViewBag.ConfigPlataforma as ServiPuntos.Core.Entities.ConfigPlataforma)?.TiempoExpiracion ?? 0)">
                     </div>
                     <div class="mb-3">
                         <label for="maxIntentos" class="form-label">Cantidad máxima de intentos fallidos de login</label>
-                        <input type="number" class="form-control" id="maxIntentos" name="maxIntentos" min="1">
+                        <input type="number" class="form-control" id="maxIntentos" name="maxIntentos" min="1" value="@((ViewBag.ConfigPlataforma as ServiPuntos.Core.Entities.ConfigPlataforma)?.MaximoIntentosLogin ?? 0)">
                     </div>
                     <div class="mb-3">
                         <label for="largoMinimo" class="form-label">Largo mínimo de la contraseña</label>
-                        <input type="number" class="form-control" id="largoMinimo" name="largoMinimo" min="1">
+                        <input type="number" class="form-control" id="largoMinimo" name="largoMinimo" min="1" value="@((ViewBag.ConfigPlataforma as ServiPuntos.Core.Entities.ConfigPlataforma)?.LargoMinimoPassword ?? 0)">
                     </div>
                     <div class="mb-3">
                         <label for="campo4" class="form-label">Campo 4</label>
@@ -572,6 +572,56 @@
         });
     }
 
+    function guardarConfiguracion(e) {
+        e.preventDefault();
+        const btn = document.querySelector('#configuracionForm button[type="submit"]') || e.submitter;
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+
+        const expiracionSesion = document.getElementById('expiracionSesion').value;
+        const maxIntentos = document.getElementById('maxIntentos').value;
+        const largoMinimo = document.getElementById('largoMinimo').value;
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Guardando...';
+        }
+
+        const params = new URLSearchParams();
+        params.append('expiracionSesion', expiracionSesion);
+        params.append('maxIntentos', maxIntentos);
+        params.append('largoMinimo', largoMinimo);
+        params.append('__RequestVerificationToken', token);
+
+        fetch('@Url.Action("CambiarConfiguracion", "DashboardWApp")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': token
+            },
+            body: params.toString()
+        })
+        .then(r => r.json())
+        .then(data => {
+            mostrarMensaje(data.message, data.success ? 'success' : 'danger');
+            if (data.success) {
+                const modalEl = document.getElementById('configModal');
+                if (modalEl) {
+                    bootstrap.Modal.getInstance(modalEl)?.hide();
+                }
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            mostrarMensaje('Error de conexión. Por favor, intente nuevamente.', 'danger');
+        })
+        .finally(() => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = 'Guardar Configuración';
+            }
+        });
+    }
+
     function mostrarMensaje(mensaje, tipo) {
         const mensajeDiv = document.getElementById('mensajeEstado');
         mensajeDiv.className = `alert alert-${tipo} alert-dismissible fade show`;
@@ -619,6 +669,11 @@
                     btn.classList.add('btn-primary');
                 }
             });
+        }
+
+        const formConfig = document.getElementById('configuracionForm');
+        if (formConfig) {
+            formConfig.addEventListener('submit', guardarConfiguracion);
         }
     });
     </script>

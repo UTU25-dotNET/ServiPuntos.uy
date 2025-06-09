@@ -58,6 +58,10 @@ builder.Services.AddScoped<IProductoCanjeableRepository, ProductoCanjeableReposi
 builder.Services.AddScoped<IProductoUbicacionService, ProductoUbicacionService>();
 builder.Services.AddScoped<IProductoUbicacionRepository, ProductoUbicacionRepository>();
 
+// ===== CONFIGURACIÓN PLATAFORMA =====
+builder.Services.AddScoped<IConfigPlataformaRepository, ConfigPlataformaRepository>();
+builder.Services.AddScoped<IConfigPlataformaService, ConfigPlataformaService>();
+
 
 
 // ===== MULTI-TENANCY =====
