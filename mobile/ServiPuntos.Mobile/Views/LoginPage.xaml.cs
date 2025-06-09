@@ -1,6 +1,7 @@
-using ServiPuntos.Mobile.Models;
-using ServiPuntos.Mobile.ViewModels;
+using System;
+using Microsoft.Maui.Controls;
 using ServiPuntos.Mobile.Services;
+using ServiPuntos.Mobile.ViewModels;
 using static ServiPuntos.Mobile.Services.AppLogger;
 
 namespace ServiPuntos.Mobile.Views
@@ -9,78 +10,36 @@ namespace ServiPuntos.Mobile.Views
     {
         private readonly IAuthService _authService;
 
-        public LoginPage()
+        public LoginPage(LoginViewModel viewModel, IAuthService authService)
         {
             InitializeComponent();
-            
-            // **MODIFICAR: Obtener el AuthService desde el contenedor de dependencias**
-            var authService = Application.Current?.Handler?.MauiContext?.Services?.GetService<IAuthService>();
-            
-            if (authService != null)
-            {
-                _authService = authService; // **AGREGAR: Asignar a la variable privada**
-                BindingContext = new LoginViewModel(authService);
-            }
-            else
-            {
-                // Fallback - crear una instancia temporal
-                var httpClient = new HttpClient();
-                var fallbackAuthService = new AuthService(httpClient);
-                _authService = fallbackAuthService; // **AGREGAR: Asignar a la variable privada**
-                BindingContext = new LoginViewModel(fallbackAuthService);
-            }
-        }
-
-        private void SetupDefaultLogin()
-        {
-            LogInfo("[LoginPage] Configurando login por defecto...");
-            TenantNameLabel.Text = "ServiPuntos";
-            LogoImage.Source = "https://via.placeholder.com/150x100/0066CC/FFFFFF?text=ServiPuntos";
-            
-            // **MODIFICAR: Usar el authService existente en lugar de crear uno nuevo sin parámetros**
-            if (_authService != null)
-            {
-                BindingContext = new LoginViewModel(_authService);
-            }
+            _authService = authService;
+            BindingContext = viewModel;
         }
 
         private async void OnGoogleLoginClicked(object sender, EventArgs e)
         {
-            try
+            if (sender is Button button)
             {
-                LogInfo("[LoginPage] Boton Google clickeado");
-                
-                // DESACTIVAR EL BOTON MIENTRAS PROCESA
-                var button = sender as Button;
-                if (button != null)
+                try
                 {
+                    LogInfo("[LoginPage] Google login iniciado");
                     button.IsEnabled = false;
                     button.Text = "Autenticando...";
+
+                    var success = await _authService.LoginWithGoogleAsync();
+                    if (!success)
+                        await DisplayAlert("Error", "No se pudo abrir el navegador", "OK");
                 }
-                
-                var success = await _authService.LoginWithGoogleAsync();
-                
-                LogInfo($"[LoginPage] Navegador abierto: {success}");
-                
-                if (!success)
+                catch (Exception ex)
                 {
-                    await DisplayAlert("Error", "Error al abrir el navegador", "OK");
+                    LogInfo($"[LoginPage] Error: {ex.Message}");
+                    await DisplayAlert("Error", ex.Message, "OK");
                 }
-                // El callback se maneja en App.xaml.cs
-            }
-            catch (Exception ex)
-            {
-                LogInfo($"[LoginPage] Error: {ex.Message}");
-                await DisplayAlert("Error", $"Error: {ex.Message}", "OK");
-            }
-            finally
-            {
-                // REACTIVAR EL BOTON
-                var button = sender as Button;
-                if (button != null)
+                finally
                 {
                     button.IsEnabled = true;
-                    button.Text = "Iniciar sesion con Google";
+                    button.Text = "Iniciar sesión con Google";
                 }
             }
         }

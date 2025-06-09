@@ -2,11 +2,76 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="ServiPuntos.Mobile.Views.HomePage">
-    <StackLayout Padding="30"
-            Spacing="20">
-        <Label x:Name="WelcomeLabel"
-                FontSize="Large"
-                HorizontalOptions="Center"/>
-    </StackLayout>
+    x:Class="ServiPuntos.Mobile.Views.HomePage"
+    Title="Inicio">
+
+    <ScrollView>
+        <StackLayout Padding="24"
+                Spacing="18">
+
+            <Label Text="¡Hola!"
+                    FontSize="24"
+                    FontAttributes="Bold"/>
+            <Label Text="Tu saldo actual:"
+                    FontSize="16"/>
+            <Label Text="{Binding Saldo}"
+                    FontSize="36"
+                    TextColor="#008800"
+                    FontAttributes="Bold"/>
+            <Label Text="Puntos acumulados este mes: "
+                    FontSize="14"/>
+            <Label Text="{Binding PuntosAcumuladosMes}"
+                    FontSize="22"/>
+
+            <Button Text="Canjear puntos"
+                    BackgroundColor="#4CAF50"
+                    TextColor="White"
+                    CornerRadius="12"
+                    Margin="0,12,0,0"
+                    Command="{Binding GoToCanjeCommand}"/>
+
+            <Button Text="Ver catálogo"
+                    BackgroundColor="#008CBA"
+                    TextColor="White"
+                    CornerRadius="12"
+                    Margin="0,6"
+                    Command="{Binding GoToCatalogoCommand}"/>
+
+            <Button Text="Ver promociones"
+                    BackgroundColor="#FF9800"
+                    TextColor="White"
+                    CornerRadius="12"
+                    Margin="0,6"
+                    Command="{Binding GoToPromosCommand}"/>
+
+            <Label Text="Últimos movimientos:"
+                    FontSize="18"
+                    FontAttributes="Bold"
+                    Margin="0,24,0,6"/>
+            <CollectionView ItemsSource="{Binding Transactions}"
+                    HeightRequest="200">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame CornerRadius="8"
+                                Padding="8"
+                                Margin="0,2">
+                            <StackLayout>
+                                <Label Text="{Binding Fecha, StringFormat='{0:dd/MM/yyyy HH:mm}'}"
+                                        FontSize="12"/>
+                                <Label Text="{Binding Descripcion}"
+                                        FontSize="16"
+                                        FontAttributes="Bold"/>
+                                <Label Text="{Binding Puntos, StringFormat='+{0}'}"
+                                        FontSize="16"
+                                        TextColor="#008800"/>
+                                <Label Text="{Binding Tipo}"
+                                        FontSize="12"
+                                        TextColor="#888"/>
+                            </StackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </StackLayout>
+    </ScrollView>
 </ContentPage>

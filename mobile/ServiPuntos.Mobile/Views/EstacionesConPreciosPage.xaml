@@ -1,0 +1,37 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ServiPuntos.Mobile.Views.EstacionesConPreciosPage"
+             Title="Precios de Combustibles">
+
+    <StackLayout Padding="14">
+        <Label Text="Precios actualizados por estación"
+               FontSize="20"
+               FontAttributes="Bold"
+               Margin="0,0,0,12"/>
+        <CollectionView ItemsSource="{Binding Estaciones}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Frame Padding="10"
+                            CornerRadius="12"
+                            Margin="0,0,0,10">
+                        <StackLayout>
+                            <Label Text="{Binding Nombre}"
+                                    FontSize="17"
+                                    FontAttributes="Bold"/>
+                            <Label Text="{Binding Direccion}"
+                                    FontSize="13"
+                                    TextColor="Gray"/>
+                            <StackLayout Orientation="Horizontal"
+                                    Spacing="12"
+                                    Margin="0,6,0,0">
+                                <Label Text="{Binding PrecioNaftaSuper, StringFormat='Nafta Súper: ${0:F2}'}"/>
+                                <Label Text="{Binding PrecioNaftaPremium, StringFormat='Premium: ${0:F2}'}"/>
+                                <Label Text="{Binding PrecioDiesel, StringFormat='Diesel: ${0:F2}'}"/>
+                            </StackLayout>
+                        </StackLayout>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </StackLayout>
+</ContentPage>

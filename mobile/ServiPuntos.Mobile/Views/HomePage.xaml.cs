@@ -1,12 +1,16 @@
-using ServiPuntos.Mobile.Models;
+using ServiPuntos.Mobile.ViewModels;
+using ServiPuntos.Mobile.Services;
 
-namespace ServiPuntos.Mobile.Views;
-
-public partial class HomePage : ContentPage
+namespace ServiPuntos.Mobile.Views
 {
-    public HomePage(TenantConfig tenant)
+    public partial class HomePage : ContentPage
     {
-        InitializeComponent();
-        WelcomeLabel.Text = $"¡Bienvenido a {tenant.Name}!";
+        public HomePage()
+        {
+            InitializeComponent();
+            var userService = Application.Current?.Handler?.MauiContext?.Services?.GetService<UserService>()
+                              ?? new UserService(new HttpClient());
+            BindingContext = new HomeViewModel(userService);
+        }
     }
 }

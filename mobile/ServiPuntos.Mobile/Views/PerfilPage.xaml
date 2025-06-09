@@ -1,0 +1,31 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ServiPuntos.Mobile.Views.PerfilPage"
+             Title="Mi Perfil">
+
+    <StackLayout Padding="18"
+            Spacing="12">
+        <Label Text="Mi Perfil"
+                FontSize="22"
+                FontAttributes="Bold"
+                Margin="0,0,0,12"/>
+        <Entry Text="{Binding Usuario.Nombre}"
+                Placeholder="Nombre"/>
+        <Entry Text="{Binding Usuario.Email}"
+                Placeholder="Email"
+                IsReadOnly="True"/>
+        <Entry Text="{Binding Usuario.Cedula}"
+                Placeholder="Cédula"/>
+        <Entry Text="{Binding Usuario.Telefono}"
+                Placeholder="Teléfono"/>
+        <Label Text="Estado de Verificación de Identidad:"
+                FontAttributes="Bold"/>
+        <Label Text="{Binding Usuario.EstadoVEAI}"
+                TextColor="{Binding Usuario.VerificadoVEAI, Converter={StaticResource BoolToColorConverter}}"/>
+        <Button Text="Iniciar verificación"
+                Command="{Binding IniciarVerificacionCommand}"
+                IsVisible="{Binding Usuario.VerificadoVEAI, Converter={StaticResource InverseBoolConverter}}"/>
+        <Button Text="Guardar cambios"
+                Command="{Binding GuardarCommand}"/>
+    </StackLayout>
+</ContentPage>
