@@ -7,7 +7,7 @@ Plataforma tecnológica para programas de fidelización personalizados para cade
 ```
 ServiPuntos.uy/
 ├── backend/               # API y backend en .NET
-├── frontend-web/          # Aplicación web en React + Vite + Bootstrap
+├── frontend-web/          # Aplicación web en React (Create React App) + Bootstrap
 ├── mobile/                # Aplicación móvil en .NET MAUI
 ├── docs/                  # Documentación técnica
 ├── README.md              # Este archivo
@@ -21,18 +21,10 @@ Este repositorio contiene varios subproyectos. Cada subproyecto tiene su propio 
 | Carpeta | Proyecto | Leer README local |
 |:--|:--|:--|
 | /backend/ | API en .NET 9 | ✅ |
-| /frontend-web/ | Frontend en React + Vite | ✅ |
+| /frontend-web/ | Frontend en React (Create React App) | ✅ |
 | /mobile/ | App Mobile en .NET MAUI | ✅ |
 
-> 📢 Importante: Antes de iniciar cualquier componente, revisá el README correspondiente para asegurarte de seguir los pasos específicos.
 
-## 💡 Consejos para desarrollo en VS Code
-
-Si usás Visual Studio Code y *no Visual Studio* como entorno de desarrollo, te recomendamos leer:
-
-👉 [`docs/dev/setup/macos/vscode-netcore.md`](docs/dev/setup/macos/vscode-netcore.md)
-
-Allí encontrarás tips sobre cómo configurar `tasks.json`, usar `dotnet test --watch`, habilitar hot-reload, depurar y más.
 
 ## 🚀 Cómo comenzar
 
@@ -40,18 +32,15 @@ Allí encontrarás tips sobre cómo configurar `tasks.json`, usar `dotnet test -
 
 - [.NET SDK 9.0.202](https://dotnet.microsoft.com/en-us/download)
 - Node.js 18+ y npm
-- Docker (dependiendo de tu SO, si tenés Windows de momento no hace falta.)
 - Visual Studio 2022+ o VS Code
-- (Opcional) MAUI workload para trabajar en la app mobile
+- MAUI workload para trabajar en la app mobile
 
 ### 2. Configurar la base de datos
 
-Dependiendo de tu sistema operativo:
-
-- [docs/dev/setup/macos/docker-sqlserver.md](docs/dev/setup/macos/docker-sqlserver.md): Para MacOS usando Docker
-- docs/dev/setup/windows/sqlserver.md: Para Windows usando SSMS o similar
-
-Esto permitirá conectar a SQL Server en localhost:1433.
+El proyecto utiliza **PostgreSQL** y actualmente la base de datos está desplegada en [Railway](https://railway.app/).
+La cadena de conexión por defecto se encuentra en `backend/ServiPuntos.API/appsettings.json`.
+Podés sobreescribirla mediante la variable de entorno `ConnectionStrings__DefaultConnection` si necesitás usar una instancia local.
+Si preferís levantar PostgreSQL localmente podés utilizar Docker o tu gestor favorito.
 
 ### 3. Levantar el backend
 
@@ -59,6 +48,7 @@ Esto permitirá conectar a SQL Server en localhost:1433.
 cd backend
 dotnet build ServiPuntosUY.sln
 dotnet run --project ServiPuntos.API
+dotnet run --project ServiPuntos.WebApp
 ```
 
 ### 4. Levantar el frontend
@@ -66,7 +56,7 @@ dotnet run --project ServiPuntos.API
 ```bash
 cd frontend-web
 npm install
-npm run dev
+npm start
 ```
 
 ### 5. Levantar la app móvil
@@ -79,15 +69,15 @@ dotnet run
 
 > ⚠️ Requiere tener instalado `dotnet workload install maui` si vas a trabajar en la app mobile.
 
-## 🔌 Conexión a SQL Server
+## 🔌 Conexión a PostgreSQL
+
+Ejemplo de cadena de conexión utilizada para desarrollo:
 
 ```
-Server name: localhost,1433 (Así nadie tiene que preguntar "¿en qué puerto está expuesto?" porque ya queda explícito.)
-Authentication Type: SQL Login
-User name: sa
-Password: TuPasswordSegura123 (o la de tu .env)
-Database: master (o la que crees)
+Host=shuttle.proxy.rlwy.net;Port=19577;Username=postgres;Password=********;Database=railway;SSL Mode=Require;Trust Server Certificate=true;
 ```
+
+Podés ajustar los valores según tu entorno local en `appsettings.json` o mediante la variable de entorno `ConnectionStrings__DefaultConnection`.
 
 ## ⚙️ Comandos utilizados para generar la estructura inicial
 
@@ -124,7 +114,7 @@ dotnet new maui -n ServiPuntos.Mobile
 dotnet sln backend/ServiPuntosUY.sln add mobile/ServiPuntos.Mobile/ServiPuntos.Mobile.csproj
 
 # Frontend
-npm create vite@latest frontend-web -- --template react-ts
+npx create-react-app frontend-web
 cd frontend-web
 npm install
 npm install bootstrap

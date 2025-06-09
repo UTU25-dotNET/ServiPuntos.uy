@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import authService from "../../services/authService";
 import apiService from "../../services/apiService";
+import HistorialCanjes from "./HistorialCanjes";
 
 const Perfil = () => {
-  const [user, setUser] = useState(null);
   const [profileData, setProfileData] = useState({
     // Campos editables
     nombre: "",
@@ -24,6 +24,7 @@ const Perfil = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [showHistorial, setShowHistorial] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
   const navigate = useNavigate();
 
@@ -33,11 +34,6 @@ const Perfil = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
-  // Función para formatear fechas para input
-  const formatDateForInput = (dateString) => {
-    if (!dateString || dateString === "0001-01-01T00:00:00") return "";
-    return dateString.split('T')[0];
-  };
 
   // Cargar datos del usuario al inicializar
   useEffect(() => {
@@ -49,8 +45,7 @@ const Perfil = () => {
         }
 
         // Obtener datos básicos del usuario desde el token
-        const userData = authService.getCurrentUser();
-        setUser(userData);
+        
 
         // Cargar los datos completos del perfil desde el backend usando email
         const fullProfile = await apiService.getUserProfile();
@@ -213,7 +208,6 @@ const Perfil = () => {
           const updatedProfile = await apiService.getUserProfile();
           setReadOnlyData(updatedProfile);
         } catch (err) {
-          console.error("Error al recargar datos:", err);
         }
       }, 1000);
 
@@ -872,11 +866,12 @@ if (loading) {
 
       {/* Pestaña de Estadísticas */}
       {activeTab === "stats" && readOnlyData && (
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-          gap: "1.5rem"
-        }}>
+        <div>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+            gap: "1.5rem"
+          }}>
           {/* Tarjeta de Puntos */}
           <div style={{
             backgroundColor: "#e3f2fd",
@@ -970,6 +965,28 @@ if (loading) {
               </div>
             </div>
           </div>
+          </div>
+
+          <div style={{ marginTop: "1.5rem" }}>
+            <button
+              type="button"
+              onClick={() => setShowHistorial(!showHistorial)}
+              style={{
+                backgroundColor: "#007bff",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+                padding: "0.5rem 1rem",
+                cursor: "pointer"
+              }}
+            >
+              {showHistorial ? "Ocultar historial" : "Ver historial de canjes"}
+            </button>
+          </div>
+
+          {showHistorial && (
+            <HistorialCanjes usuarioId={readOnlyData.id} onClose={() => setShowHistorial(false)} />
+          )}
         </div>
       )}
     </div>

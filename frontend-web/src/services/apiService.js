@@ -49,7 +49,6 @@ const apiService = {
         throw new Error("Usuario no autenticado o email no disponible");
       }
 
-      console.log("Obteniendo perfil para email:", user.email);
 
       try {
         // Intentar usar el endpoint específico por email
@@ -99,7 +98,6 @@ const apiService = {
           fechaModificacion: response.data.fechaModificacion
         };
       } catch (endpointError) {
-        console.warn("Endpoint por email no disponible, usando fallback:", endpointError);
         
         // Fallback: Obtener todos los usuarios y filtrar por email
         const allUsers = await apiClient.get('usuario');
@@ -155,7 +153,6 @@ const apiService = {
       }
 
     } catch (error) {
-      console.error("Error obteniendo perfil:", error);
       
       // Si el backend falla, proporcionar información clara
       if (error.response?.status === 404) {
@@ -177,8 +174,6 @@ updateUserProfile: async (profileData) => {
     // Primero obtener el perfil actual para conseguir el ID
     const currentProfile = await apiService.getUserProfile();
     
-    console.log("Actualizando perfil para usuario ID:", currentProfile.id);
-    console.log("Datos recibidos para actualizar:", profileData);
 
     // Construir objeto de actualización solo con campos presentes
     const updateData = {};
@@ -218,20 +213,12 @@ updateUserProfile: async (profileData) => {
       updateData.password = profileData.password;
     }
 
-    console.log("Datos finales a enviar al backend:", updateData);
 
     const response = await apiClient.put(`usuario/${currentProfile.id}`, updateData);
-    console.log("Perfil actualizado exitosamente:", response.data);
     
     return response.data;
 
   } catch (error) {
-    console.error("Error actualizando perfil:", error);
-    
-    // Mostrar detalles del error para debugging
-    if (error.response?.data) {
-      console.error("Detalles del error del backend:", error.response.data);
-    }
     
     // Manejar errores específicos
     if (error.response?.status === 400) {
@@ -263,7 +250,6 @@ updateUserProfile: async (profileData) => {
         throw new Error("Usuario no tiene tenant asociado");
       }
 
-      console.log("Obteniendo información del tenant:", userProfile.tenantId);
 
       // Obtener información del tenant
       const response = await apiClient.get(`tenant/${userProfile.tenantId}`);
@@ -271,7 +257,6 @@ updateUserProfile: async (profileData) => {
       return response.data;
 
     } catch (error) {
-      console.error("Error obteniendo información del tenant:", error);
       
       if (error.response?.status === 404) {
         throw new Error("Tenant no encontrado");
@@ -321,7 +306,6 @@ updateUserProfile: async (profileData) => {
         throw new Error("Usuario no tiene tenant asociado");
       }
 
-      console.log("Obteniendo ubicaciones para tenant:", userProfile.tenantId);
 
       // Obtener ubicaciones del tenant usando tu endpoint existente
       const response = await apiClient.get(`ubicacion/tenant/${userProfile.tenantId}`);
@@ -329,7 +313,6 @@ updateUserProfile: async (profileData) => {
       return response.data;
 
     } catch (error) {
-      console.error("Error obteniendo ubicaciones del tenant:", error);
       
       if (error.response?.status === 404) {
         throw new Error("No se encontraron ubicaciones para este tenant");
@@ -344,11 +327,9 @@ updateUserProfile: async (profileData) => {
   // Obtener todas las ubicaciones
   getAllUbicaciones: async () => {
     try {
-      console.log("Obteniendo todas las ubicaciones");
       const response = await apiClient.get('ubicacion');
       return response.data;
     } catch (error) {
-      console.error("Error obteniendo todas las ubicaciones:", error);
       throw new Error(error.response?.data?.message || "Error al obtener las ubicaciones");
     }
   },
@@ -359,7 +340,6 @@ updateUserProfile: async (profileData) => {
       const response = await apiClient.get(`ubicacion/${id}`);
       return response.data;
     } catch (error) {
-      console.error("Error obteniendo ubicación:", error);
       throw new Error(error.response?.data?.message || "Error al obtener la ubicación");
     }
   },
@@ -391,15 +371,12 @@ updateUserProfile: async (profileData) => {
 // Obtener todos los productos canjeables disponibles
 getProductosCanjeables: async () => {
   try {
-    console.log("Obteniendo todos los productos canjeables...");
     
     const response = await apiClient.get('ProductoCanjeable');
     
-    console.log("Productos canjeables obtenidos:", response.data);
     return response.data;
     
   } catch (error) {
-    console.error("Error obteniendo productos canjeables:", error);
     
     if (error.response?.status === 404) {
       throw new Error("No se encontraron productos canjeables");
@@ -418,15 +395,12 @@ getProductosByUbicacion: async (ubicacionId) => {
       throw new Error("ID de ubicación es requerido");
     }
 
-    console.log("Obteniendo productos para ubicación:", ubicacionId);
     
     const response = await apiClient.get(`ProductoUbicacion/ubicacion/${ubicacionId}`);
     
-    console.log("Productos de ubicación obtenidos:", response.data);
     return response.data;
     
   } catch (error) {
-    console.error("Error obteniendo productos de ubicación:", error);
     
     if (error.response?.status === 404) {
       throw new Error("No se encontraron productos para esta ubicación");
@@ -439,17 +413,14 @@ getProductosByUbicacion: async (ubicacionId) => {
 },
 
 // Obtener todos los productos con información de ubicaciones
-getAllProductosUbicacion: async () => {
-  try {
-    console.log("Obteniendo todos los productos con ubicaciones...");
+  getAllProductosUbicacion: async () => {
+    try {
     
     const response = await apiClient.get('ProductoUbicacion');
     
-    console.log("Productos ubicación obtenidos:", response.data);
     return response.data;
     
   } catch (error) {
-    console.error("Error obteniendo productos ubicación:", error);
     
     if (error.response?.status === 404) {
       throw new Error("No se encontraron productos en ubicaciones");
@@ -458,6 +429,32 @@ getAllProductosUbicacion: async () => {
     } else {
       throw new Error(error.message || "Error al obtener productos de ubicaciones");
     }
+  }
+},
+
+// Generar un canje para un producto y obtener el código QR
+  generarCanje: async (productoId, ubicacionId) => {
+  try {
+    if (!productoId || !ubicacionId) {
+      throw new Error("Producto y ubicación son requeridos para el canje");
+    }
+
+    const user = await apiService.getUserProfile();
+
+    const mensaje = {
+      tipoMensaje: 2, // TipoMensajeNAFTA.Canje
+      ubicacionId: ubicacionId,
+      tenantId: user.tenantId,
+      datos: {
+        productoCanjeableId: productoId,
+        usuarioId: user.id
+      }
+    };
+
+    const response = await apiClient.post('nafta/generar-canje', mensaje);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.mensaje || 'Error al generar el canje');
   }
 },
 
@@ -472,8 +469,42 @@ getAllProductosUbicacion: async () => {
       const response = await apiClient.get(endpoint);
       return response.data;
     } catch (error) {
-      console.error(`Error en GET ${endpoint}:`, error);
       throw error;
+    }
+  },
+
+  // Obtener historial de canjes del usuario
+  getCanjesByUsuario: async (usuarioId) => {
+    try {
+      const response = await apiClient.get(`canje/usuario/${usuarioId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error al obtener el historial de canjes');
+    }
+  },
+
+  generarCanjes: async (productoIds, ubicacionId) => {
+    try {
+      if (!Array.isArray(productoIds) || productoIds.length === 0 || !ubicacionId) {
+        throw new Error("Productos y ubicación son requeridos");
+      }
+
+      const user = await apiService.getUserProfile();
+
+      const mensaje = {
+        tipoMensaje: 2,
+        ubicacionId: ubicacionId,
+        tenantId: user.tenantId,
+        datos: {
+          productoIds: productoIds,
+          usuarioId: user.id
+        }
+      };
+
+      const response = await apiClient.post('nafta/generar-canjes', mensaje);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.mensaje || 'Error al generar canjes');
     }
   },
 
@@ -482,7 +513,6 @@ getAllProductosUbicacion: async () => {
       const response = await apiClient.post(endpoint, data);
       return response.data;
     } catch (error) {
-      console.error(`Error en POST ${endpoint}:`, error);
       throw error;
     }
   },
@@ -492,7 +522,6 @@ getAllProductosUbicacion: async () => {
       const response = await apiClient.put(endpoint, data);
       return response.data;
     } catch (error) {
-      console.error(`Error en PUT ${endpoint}:`, error);
       throw error;
     }
   },
@@ -502,7 +531,6 @@ getAllProductosUbicacion: async () => {
       const response = await apiClient.delete(endpoint);
       return response.data;
     } catch (error) {
-      console.error(`Error en DELETE ${endpoint}:`, error);
       throw error;
     }
   },

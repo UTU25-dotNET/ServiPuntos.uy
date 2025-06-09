@@ -8,26 +8,20 @@ const DocumentVerification = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [userData, setUserData] = useState(null);
-    const [debugInfo, setDebugInfo] = useState("");
     const location = useLocation();
     const navigate = useNavigate();
 
-    // Extraer token y returnUrl de los query params
+    // Extraer datos de la URL
     const params = new URLSearchParams(location.search);
     const token = params.get("token");
     const code = params.get("code");
     const state = params.get("state");
-    const returnUrl = params.get("returnUrl") || "/auth-callback";
 
     useEffect(() => {
         // L�gica existente...
-        console.log("Token recibido:", token);
-        console.log("Code:", code);
-        console.log("State:", state);
 
         // Si no hay token, redirigir al login
         if (!token) {
-            console.error("No se recibió token en los parámetros");
             setError("No se pudo obtener la información de autenticación. Inténtalo de nuevo.");
             setTimeout(() => navigate("/login"), 3000);
             return;
@@ -41,7 +35,6 @@ const DocumentVerification = () => {
             }
 
             const decoded = authService.decodeToken(token);
-            console.log("Token decodificado:", decoded);
 
             if (!decoded) {
                 throw new Error("No se pudo decodificar el token");
@@ -51,11 +44,8 @@ const DocumentVerification = () => {
             const userData = decoded.payload || decoded;
             setUserData(userData);
 
-            // Mostrar información de debug
-            setDebugInfo(`Token recibido: ${token.substring(0, 20)}...`);
 
         } catch (err) {
-            console.error("Error al decodificar token:", err);
             // En lugar de redirigir inmediatamente, mostramos el error y permitimos continuar
             setError(`Error al procesar la información de usuario: ${err.message}`);
 
@@ -110,7 +100,6 @@ const DocumentVerification = () => {
             if (code) callbackUrl += `&code=${encodeURIComponent(code)}`;
             if (state) callbackUrl += `&state=${encodeURIComponent(state)}`;
 
-            console.log("Redirigiendo a:", callbackUrl);
 
             // Redirigir al callback de Google con la cédula
             window.location.href = callbackUrl;

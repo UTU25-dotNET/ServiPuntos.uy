@@ -68,8 +68,14 @@
                         <span class="badge bg-primary">
                             <i class="fas fa-wrench me-1"></i>Cambio de Aceite
                         </span>
-                    } 
-                    @if (!Model.Lavado)
+                    }
+                     @if (Model.CambioDeNeumaticos)
+                    {
+                        <span class="badge bg-warning text-dark">
+                            <i class="fas fa-tools me-1"></i>Cambio de Neumáticos
+                        </span>
+                    }
+                    @if (!Model.Lavado && !Model.CambioDeAceite && !Model.CambioDeNeumaticos)
                     {
                         <span class="text-muted">No hay servicios adicionales configurados</span>
                     }

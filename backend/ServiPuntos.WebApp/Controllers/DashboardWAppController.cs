@@ -13,18 +13,22 @@ namespace ServiPuntos.Controllers
         private readonly IUsuarioService _iUsuarioService;
         private readonly ITenantService _iTenantService;
         private readonly IUbicacionService _iUbicacionService;
+        private readonly IConfigPlataformaService _iConfigPlataformaService;
 
-        public DashboardWAppController(IUsuarioService usuarioService, ITenantService iTenantService, IUbicacionService ubicacionService)
+        public DashboardWAppController(IUsuarioService usuarioService, ITenantService iTenantService, IUbicacionService ubicacionService, IConfigPlataformaService configPlataformaService)
         {
             _iUsuarioService = usuarioService;
             _iTenantService = iTenantService;
             _iUbicacionService = ubicacionService;
+            _iConfigPlataformaService = configPlataformaService;
         }
 
         public async Task<IActionResult> Index()
         {
             try
             {
+                var config = await _iConfigPlataformaService.ObtenerConfiguracionAsync();
+                ViewBag.ConfigPlataforma = config;
                 if (User.IsInRole("AdminTenant"))
                 {
                     var tenantIdDeCookie = User.Claims.FirstOrDefault(c => c.Type == "tenantId")?.Value;
@@ -123,11 +127,21 @@ namespace ServiPuntos.Controllers
             }
         }
 
-        [HttpGet]
-        public async Task<IActionResult> CambiarConfiguracion()
+        [HttpPost]
+        [Authorize(Roles = "AdminPlataforma")]
+        public async Task<IActionResult> CambiarConfiguracion(int expiracionSesion, int maxIntentos, int largoMinimo)
         {
-            //implementar
-            return View();
+            try
+            {
+                var config = new ServiPuntos.Core.Entities.ConfigPlataforma(maxIntentos, expiracionSesion, largoMinimo);
+                await _iConfigPlataformaService.ActualizarConfiguracionAsync(config);
+                return Json(new { success = true, message = "Configuración actualizada correctamente" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error al actualizar configuración de plataforma: {ex.Message}");
+                return Json(new { success = false, message = $"Error interno: {ex.Message}" });
+            }
         }
 
         // Agregar este método al final de la clase DashboardWAppController, antes de la clase TenantUsuarioInfo
@@ -139,7 +153,7 @@ public async Task<IActionResult> ActualizarValorPuntos(decimal valorPuntos)
     try
     {
         var tenantIdClaim = User.Claims.FirstOrDefault(c => c.Type == "tenantId")?.Value;
-        
+
         if (string.IsNullOrEmpty(tenantIdClaim) || !Guid.TryParse(tenantIdClaim, out Guid tenantId))
         {
             return Json(new { success = false, message = "No se pudo identificar su tenant." });
@@ -170,8 +184,9 @@ public async Task<IActionResult> ActualizarValorPuntos(decimal valorPuntos)
 
         Console.WriteLine($"✅ Valor de puntos actualizado para tenant {tenant.Nombre}: ${valorPuntos}");
 
-        return Json(new { 
-            success = true, 
+        return Json(new
+        {
+            success = true,
             message = "Valor de puntos actualizado correctamente",
             nuevoValor = valorPuntos.ToString("F2")
         });
@@ -179,6 +194,105 @@ public async Task<IActionResult> ActualizarValorPuntos(decimal valorPuntos)
     catch (Exception ex)
     {
         Console.WriteLine($"❌ Error al actualizar valor de puntos: {ex.Message}");
+        return Json(new { success = false, message = $"Error interno: {ex.Message}" });
+    }
+}
+
+[HttpPost]
+[Authorize(Roles = "AdminTenant")]
+public async Task<IActionResult> ActualizarNombrePuntos(string nombrePuntos)
+{
+    try
+    {
+        var tenantIdClaim = User.Claims.FirstOrDefault(c => c.Type == "tenantId")?.Value;
+
+        if (string.IsNullOrEmpty(tenantIdClaim) || !Guid.TryParse(tenantIdClaim, out Guid tenantId))
+        {
+            return Json(new { success = false, message = "No se pudo identificar su tenant." });
+        }
+
+        var tenant = await _iTenantService.GetByIdAsync(tenantId);
+        if (tenant == null)
+        {
+            return Json(new { success = false, message = "Tenant no encontrado." });
+        }
+
+        if (string.IsNullOrWhiteSpace(nombrePuntos))
+        {
+            return Json(new { success = false, message = "El nombre de los puntos es obligatorio." });
+        }
+
+        if (nombrePuntos.Length > 50)
+        {
+            return Json(new { success = false, message = "El nombre de los puntos es demasiado largo." });
+        }
+
+        tenant.NombrePuntos = nombrePuntos.Trim();
+        tenant.FechaModificacion = DateTime.UtcNow;
+
+        await _iTenantService.UpdateAsync(tenant);
+
+        Console.WriteLine($"✅ Nombre de puntos actualizado para tenant {tenant.Nombre}: {tenant.NombrePuntos}");
+
+        return Json(new
+        {
+            success = true,
+            message = "Nombre de puntos actualizado correctamente",
+            nuevoNombre = tenant.NombrePuntos
+        });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error al actualizar nombre de puntos: {ex.Message}");
+        return Json(new { success = false, message = $"Error interno: {ex.Message}" });
+    }
+}
+
+[HttpPost]
+[Authorize(Roles = "AdminTenant")]
+public async Task<IActionResult> ActualizarPoliticas(decimal tasaCombustible, decimal tasaMinimercado, decimal tasaServicios, int diasCaducidad)
+{
+    try
+    {
+        var tenantIdClaim = User.Claims.FirstOrDefault(c => c.Type == "tenantId")?.Value;
+
+        if (string.IsNullOrEmpty(tenantIdClaim) || !Guid.TryParse(tenantIdClaim, out Guid tenantId))
+        {
+            return Json(new { success = false, message = "No se pudo identificar su tenant." });
+        }
+
+        var tenant = await _iTenantService.GetByIdAsync(tenantId);
+        if (tenant == null)
+        {
+            return Json(new { success = false, message = "Tenant no encontrado." });
+        }
+
+        if (tasaCombustible < 0 || tasaMinimercado < 0 || tasaServicios < 0 || diasCaducidad < 0)
+        {
+            return Json(new { success = false, message = "Valores no válidos." });
+        }
+
+        tenant.TasaCombustible = tasaCombustible;
+        tenant.TasaMinimercado = tasaMinimercado;
+        tenant.TasaServicios = tasaServicios;
+        tenant.DiasCaducidadPuntos = diasCaducidad;
+        tenant.FechaModificacion = DateTime.UtcNow;
+
+        await _iTenantService.UpdateAsync(tenant);
+
+        return Json(new
+        {
+            success = true,
+            message = "Políticas de acumulación actualizadas correctamente",
+            tasaCombustible = tenant.TasaCombustible.ToString("F2"),
+            tasaMinimercado = tenant.TasaMinimercado.ToString("F2"),
+            tasaServicios = tenant.TasaServicios.ToString("F2"),
+            diasCaducidad = tenant.DiasCaducidadPuntos
+        });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error al actualizar políticas de acumulación: {ex.Message}");
         return Json(new { success = false, message = $"Error interno: {ex.Message}" });
     }
 }
