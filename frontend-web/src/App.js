@@ -9,6 +9,7 @@ import TokenDisplay from "./components/TokenDisplay";
 import EstacionesList from "./components/estaciones/EstacionesList";
 import PrivateRoute from "./components/PrivateRoute";
 import DocumentVerification from "./components/auth/DocumentVerification";
+import PayPalResult from "./components/PayPalResult";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import authService from "./services/authService";
 
@@ -26,6 +27,8 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/auth-callback" element={<AuthCallback />} />
+          <Route path="/paypal-return" element={<PayPalResult />} />
+          <Route path="/paypal-cancel" element={<PayPalResult />} />
           <Route path="/verify-age" element={<DocumentVerification />} />
 
           {/* Rutas privadas */}
