@@ -39,8 +39,9 @@ const AuthCallback = () => {
           return;
         }
 
-        // Guardar el token en localStorage
+        // Guardar el token en localStorage y programar cierre automático
         localStorage.setItem("token", token);
+        authService.scheduleAutoLogout();
 
         // Verificar que el token sea válido
         if (!authService.isAuthenticated()) {
