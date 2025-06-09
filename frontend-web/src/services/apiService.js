@@ -532,6 +532,7 @@ getProductosByUbicacion: async (ubicacionId) => {
     }
   },
 
+
   // Obtener historial de canjes del usuario
   getCanjesByUsuario: async (usuarioId) => {
     try {

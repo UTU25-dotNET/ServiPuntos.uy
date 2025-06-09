@@ -111,6 +111,12 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
     return `${costo.toLocaleString()} pts`;
   };
 
+  // Formatea el precio en pesos uruguayos
+  const formatPrecio = (precio) => {
+    if (precio === null || precio === undefined) return "-";
+    return `$ ${precio.toFixed(2)}`;
+  };
+
   // Función para determinar el color del stock
   const getStockColor = (stock) => {
     if (stock === 0) return "#dc3545"; // Rojo
@@ -535,6 +541,20 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                         <div
                           style={{
                             fontSize: "1.5rem",
+                            fontWeight: "bold",
+                            color: "#856404",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "0.5rem",
+                            marginBottom: "0.25rem"
+                          }}
+                        >
+                          💵 {formatPrecio(productoUbicacion.precio)}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "1.2rem",
                             fontWeight: "bold",
                             color: "#856404",
                             display: "flex",
