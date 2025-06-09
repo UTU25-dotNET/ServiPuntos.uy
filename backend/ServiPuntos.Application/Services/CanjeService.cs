@@ -4,6 +4,7 @@ using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Core.NAFTA;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,17 +17,20 @@ namespace ServiPuntos.Application.Services
         private readonly IPuntosService _puntosService;
         private readonly IUsuarioService _usuarioService;
         private readonly IProductoCanjeableService _productoCanjeableService;
+        private readonly IProductoUbicacionService _productoUbicacionService;
 
         public CanjeService(
             ICanjeRepository canjeRepository,
             IPuntosService puntosService,
             IUsuarioService usuarioService,
-            IProductoCanjeableService productoCanjeableService)
+            IProductoCanjeableService productoCanjeableService,
+            IProductoUbicacionService productoUbicacionService)
         {
             _canjeRepository = canjeRepository;
             _puntosService = puntosService;
             _usuarioService = usuarioService;
             _productoCanjeableService = productoCanjeableService;
+            _productoUbicacionService = productoUbicacionService;
         }
 
         public async Task<Canje> GetCanjeByIdAsync(Guid id)
@@ -57,6 +61,38 @@ namespace ServiPuntos.Application.Services
         public async Task<IEnumerable<Canje>> GetCanjesPendientesByUsuarioIdAsync(Guid usuarioId)
         {
             return await _canjeRepository.GetPendientesByUsuarioIdAsync(usuarioId);
+        }
+
+        public async Task<IEnumerable<Canje>> GetCanjesPendientesByUbicacionIdAsync(Guid ubicacionId)
+        {
+            return await _canjeRepository.GetPendientesByUbicacionIdAsync(ubicacionId);
+        }
+
+        public async Task<bool> ConfirmarCanjeAsync(Guid canjeId)
+        {
+            var canje = await _canjeRepository.GetByIdAsync(canjeId);
+            if (canje == null)
+                throw new Exception("Canje no encontrado");
+
+            if (canje.Estado != EstadoCanje.Generado)
+                throw new Exception("El canje no se puede confirmar");
+
+            if (canje.FechaExpiracion < DateTime.UtcNow)
+                throw new Exception("El canje ha expirado");
+
+            canje.Estado = EstadoCanje.Canjeado;
+            canje.FechaCanje = DateTime.UtcNow;
+
+            // Descontar stock si existe registro
+            var productos = await _productoUbicacionService.GetAllAsync(canje.UbicacionId);
+            var prodUbic = productos.FirstOrDefault(p => p.ProductoCanjeableId == canje.ProductoCanjeableId);
+            if (prodUbic != null && prodUbic.StockDisponible > 0)
+            {
+                prodUbic.StockDisponible -= 1;
+                await _productoUbicacionService.UpdateAsync(prodUbic);
+            }
+
+            return await _canjeRepository.UpdateAsync(canje);
         }
 
         public async Task<string> GenerarCodigoCanjeAsync(Guid usuarioId, Guid productoCanjeableId, Guid ubicacionId, Guid tenantId)
@@ -111,7 +147,7 @@ namespace ServiPuntos.Application.Services
             }
 
             // Verificar que el canje no ha expirado
-            if (canje.FechaExpiracion < DateTime.Now)
+            if (canje.FechaExpiracion < DateTime.UtcNow)
             {
                 throw new Exception("El código de canje ha expirado");
             }
@@ -130,7 +166,7 @@ namespace ServiPuntos.Application.Services
 
             // Actualizar el estado del canje
             canje.Estado = EstadoCanje.Canjeado;
-            canje.FechaCanje = DateTime.Now;
+            canje.FechaCanje = DateTime.UtcNow;
 
             // Guardar cambios
             await _canjeRepository.UpdateAsync(canje);
@@ -146,7 +182,7 @@ namespace ServiPuntos.Application.Services
                 return false;
             }
 
-            return canje.Estado == EstadoCanje.Generado && canje.FechaExpiracion > DateTime.Now;
+            return canje.Estado == EstadoCanje.Generado && canje.FechaExpiracion > DateTime.UtcNow;
         }
 
         private string GenerarCodigoQRUnico()
