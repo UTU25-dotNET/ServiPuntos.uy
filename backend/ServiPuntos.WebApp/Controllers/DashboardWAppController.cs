@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.WebApp.Models;
+using QuestPDF.Fluent;
+using QuestPDF.Infrastructure;
 
 namespace ServiPuntos.Controllers
 {
@@ -324,6 +326,49 @@ public async Task<IActionResult> ActualizarNombrePuntos(string nombrePuntos)
             };
 
             return View(modelo);
+        }
+
+        [Authorize(Roles = "AdminTenant")]
+        public async Task<IActionResult> DescargarReportePdf()
+        {
+            var tenantIdClaim = User.Claims.FirstOrDefault(c => c.Type == "tenantId")?.Value;
+            if (string.IsNullOrEmpty(tenantIdClaim) || !Guid.TryParse(tenantIdClaim, out Guid tenantId))
+            {
+                return RedirectToAction("Reportes");
+            }
+
+            var transacciones = await _iTransaccionService.GetTransaccionesByTenantIdAsync(tenantId);
+            var canjes = await _iCanjeService.GetCanjesByTenantIdAsync(tenantId);
+
+            var modelo = new ReporteTenantViewModel
+            {
+                TotalTransacciones = transacciones.Count(),
+                MontoTotalTransacciones = transacciones.Sum(t => t.Monto),
+                TotalCanjes = canjes.Count(),
+                CanjesCompletados = canjes.Count(c => c.Estado == ServiPuntos.Core.Enums.EstadoCanje.Canjeado)
+            };
+
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(QuestPDF.Helpers.PageSizes.A4);
+                    page.Margin(2, Unit.Centimetre);
+                    page.DefaultTextStyle(x => x.FontSize(16));
+
+                    page.Content().Column(col =>
+                    {
+                        col.Item().Text("Reporte del Tenant").FontSize(20).Bold();
+                        col.Item().Text($"Transacciones: {modelo.TotalTransacciones}");
+                        col.Item().Text($"Monto Total: ${modelo.MontoTotalTransacciones:F2}");
+                        col.Item().Text($"Canjes Generados: {modelo.TotalCanjes}");
+                        col.Item().Text($"Canjes Completados: {modelo.CanjesCompletados}");
+                    });
+                });
+            });
+
+            var pdfBytes = document.GeneratePdf();
+            return File(pdfBytes, "application/pdf", "reporte.pdf");
         }
 
         [HttpGet]

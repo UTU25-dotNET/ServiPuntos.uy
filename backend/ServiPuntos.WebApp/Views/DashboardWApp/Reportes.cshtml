@@ -10,6 +10,14 @@
         </div>
     </div>
 
+    <div class="row mb-2">
+        <div class="col-12 text-end">
+            <a class="btn btn-danger" href="@Url.Action("DescargarReportePdf", "DashboardWApp")" target="_blank">
+                Descargar PDF
+            </a>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-md-3 mb-3">
             <div class="card text-white bg-primary h-100">
@@ -44,4 +52,29 @@
             </div>
         </div>
     </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <canvas id="graficaReporte" height="300"></canvas>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const datosReporte = {
+            labels: ['Transacciones', 'Canjes Generados', 'Canjes Completados'],
+            datasets: [{
+                label: 'Cantidad',
+                data: [@Model.TotalTransacciones, @Model.TotalCanjes, @Model.CanjesCompletados],
+                backgroundColor: ['#0d6efd', '#6c757d', '#198754']
+            }]
+        };
+        new Chart(document.getElementById('graficaReporte').getContext('2d'), {
+            type: 'bar',
+            data: datosReporte,
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    </script>
+}
