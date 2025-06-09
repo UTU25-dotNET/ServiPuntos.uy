@@ -41,6 +41,7 @@ const PuntosWidget = ({ userProfile, tenantInfo }) => {
             const cumpleCanjeable = pu.productoCanjeable;
             
             if (!cumpleActivo || !cumpleStock || !cumpleCanjeable) {
+              console.log("Producto filtrado:", {  
                 id: pu.id,
                 activo: pu.activo,
                 stock: pu.stockDisponible,
@@ -111,6 +112,7 @@ const PuntosWidget = ({ userProfile, tenantInfo }) => {
         });
       }
     } catch (error) {
+      console.error("Error al cargar información de productos:", error);
       // ← FIX: Resetear estadísticas en caso de error
       setEstadisticas({
         productosDisponibles: 0,
