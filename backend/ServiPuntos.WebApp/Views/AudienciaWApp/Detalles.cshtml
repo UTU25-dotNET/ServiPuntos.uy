@@ -1,0 +1,59 @@
+@model ServiPuntos.Core.Entities.Audiencia
+@{
+    ViewData["Title"] = "Detalles de Audiencia";
+    var usuarios = ViewBag.UsuariosAudiencia as IEnumerable<ServiPuntos.Core.Entities.Usuario>;
+    var totalUsuarios = ViewBag.TotalUsuarios as int? ?? 0;
+    var tenantNombre = ViewBag.TenantNombre as string ?? string.Empty;
+    var estadisticas = ViewBag.Estadisticas as ServiPuntos.Core.DTOs.EstadisticasAudienciaDinamica;
+}
+
+<h1 class="mb-4">@ViewData["Title"]</h1>
+<div class="card">
+    <div class="card-header">
+        <h4>@Model.NombreDescriptivo</h4>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID:</dt>
+            <dd class="col-sm-9">@Model.Id</dd>
+
+            <dt class="col-sm-3">Nombre Único:</dt>
+            <dd class="col-sm-9"><code>@Model.NombreUnicoInterno</code></dd>
+
+            <dt class="col-sm-3">Descripción:</dt>
+            <dd class="col-sm-9">@Model.Descripcion</dd>
+
+            <dt class="col-sm-3">Prioridad:</dt>
+            <dd class="col-sm-9">@Model.Prioridad</dd>
+
+            <dt class="col-sm-3">Estado:</dt>
+            <dd class="col-sm-9">@(Model.Activa ? "Activa" : "Inactiva")</dd>
+
+            <dt class="col-sm-3">Tenant:</dt>
+            <dd class="col-sm-9">@tenantNombre</dd>
+
+            <dt class="col-sm-3">Usuarios en esta audiencia:</dt>
+            <dd class="col-sm-9">@totalUsuarios</dd>
+        </dl>
+
+        @if (Model.Reglas != null && Model.Reglas.Count > 0)
+        {
+            <h5 class="mt-4">Reglas</h5>
+            <ul class="list-group">
+                @foreach (var r in Model.Reglas.OrderBy(r => r.OrdenEvaluacion))
+                {
+                    <li class="list-group-item">
+                        <strong>@r.Propiedad</strong> @r.Operador <code>@r.Valor</code>
+                        <span class="text-muted float-end">@r.OperadorLogicoConSiguiente</span>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+</div>
+
+<div class="mt-3">
+    <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-primary">Editar</a>
+    <a asp-action="Borrar" asp-route-id="@Model.Id" class="btn btn-danger">Eliminar</a>
+    <a asp-action="Index" asp-route-tenantId="@Model.TenantId" class="btn btn-secondary">Volver al Listado</a>
+</div>
