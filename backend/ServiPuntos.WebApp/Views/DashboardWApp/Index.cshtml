@@ -340,47 +340,41 @@
         </div>
     </div>
 
-    <!-- Acción rápida para Audiencias -->
+    <!-- Acciones rápidas -->
     <div class="row mb-4">
         <div class="col-md-4 mb-4">
-            <div class="card bg-info h-100">
+            <div class="card h-100" style="background-color:@(miTenant?.Color ?? "#0d6efd")">
                 <div class="card-body">
                     <h5 class="card-title text-white">Audiencias</h5>
                 </div>
                 <div class="card-footer d-flex align-items-center justify-content-between">
-                    <button class="btn btn-sm w-100 text-white" onclick="window.location.href='AudienciaWApp/Index'">
+                    <button class="btn btn-sm w-100 text-white" style="background-color:@(miTenant?.Color ?? "#0d6efd")" onclick="window.location.href='AudienciaWApp/Index'">
                         Administración de Audiencias <i class="fas fa-angle-right ms-2"></i>
                     </button>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Gestión rápida de Productos -->
-    <div class="row mb-4">
         <div class="col-md-4 mb-4">
-            <div class="card bg-success h-100">
+            <div class="card h-100" style="background-color:@(miTenant?.Color ?? "#0d6efd")">
                 <div class="card-body">
                     <h5 class="card-title text-white">Productos</h5>
                 </div>
                 <div class="card-footer d-flex align-items-center justify-content-between">
-                    <button class="btn btn-sm w-100 text-white" onclick="window.location.href='ProductoCanjeableWApp/Index'">
+                    <button class="btn btn-sm w-100 text-white" style="background-color:@(miTenant?.Color ?? "#0d6efd")" onclick="window.location.href='ProductoCanjeableWApp/Index'">
                         Gestión de Productos <i class="fas fa-angle-right ms-2"></i>
                     </button>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Acceso a Reportes -->
-    <div class="row mb-4">
         <div class="col-md-4 mb-4">
-            <div class="card bg-warning h-100">
+            <div class="card h-100" style="background-color:@(miTenant?.Color ?? "#0d6efd")">
                 <div class="card-body">
-                    <h5 class="card-title text-dark">Estadísticas y Reportes</h5>
+                    <h5 class="card-title text-white">Estadísticas y Reportes</h5>
                 </div>
                 <div class="card-footer d-flex align-items-center justify-content-between">
-                    <button class="btn btn-sm w-100 btn-dark" onclick="window.location.href='@Url.Action("Reportes","DashboardWApp")'">
+                    <button class="btn btn-sm w-100 text-white" style="background-color:@(miTenant?.Color ?? "#0d6efd")" onclick="window.location.href='@Url.Action("Reportes","DashboardWApp")'">
                         Ver Reportes <i class="fas fa-angle-right ms-2"></i>
                     </button>
                 </div>
