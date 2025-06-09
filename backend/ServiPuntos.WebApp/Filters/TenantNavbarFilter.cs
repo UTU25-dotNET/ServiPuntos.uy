@@ -29,6 +29,7 @@ namespace ServiPuntos.WebApp.Filters
             // Valores por defecto
             controller.ViewBag.AppName = "ServiPuntos.WebApp";
             controller.ViewBag.TenantColor = null; // Sin color personalizado
+            controller.ViewBag.TenantLogo = "/images/placeholder-logo.png";
 
             if (context.HttpContext.User.IsInRole("AdminTenant"))
             {
@@ -48,6 +49,12 @@ namespace ServiPuntos.WebApp.Filters
                             if (!string.IsNullOrEmpty(tenant.Color))
                             {
                                 controller.ViewBag.TenantColor = tenant.Color;
+                            }
+
+                            // Logo del tenant (o placeholder si no existe)
+                            if (!string.IsNullOrEmpty(tenant.LogoUrl))
+                            {
+                                controller.ViewBag.TenantLogo = tenant.LogoUrl;
                             }
                         }
                         else
