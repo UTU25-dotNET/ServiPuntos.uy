@@ -47,11 +47,11 @@ const authService = {
         const errorMessage = err.response.data?.message || 
                             err.response.data?.error || 
                             `Error del servidor: ${err.response.status}`;
-        throw { message: errorMessage };
+        throw new Error(errorMessage);
       } else if (err.request) {
-        throw { message: "Error de conexión. Verifica tu conexión a internet." };
+        throw new Error("Error de conexión. Verifica tu conexión a internet.");
       } else {
-        throw { message: err.message || "Error desconocido al obtener tenants" };
+        throw new Error(err.message || "Error desconocido al obtener tenants");
       }
     }
   },
@@ -81,11 +81,11 @@ register: async (name, email, password, ci, tenantId) => {
       const errorMessage = err.response.data?.message || 
                            err.response.data?.error || 
                           `Error del servidor: ${err.response.status}`;
-      throw { message: errorMessage };
+      throw new Error(errorMessage);
     } else if (err.request) {
-      throw { message : "Error de conexión. Verifica tu conexión a internet." };
+      throw new Error("Error de conexión. Verifica tu conexión a internet.");
     } else {
-      throw { message: err.message || "Error desconocido en el registro" };
+      throw new Error(err.message || "Error desconocido en el registro");
     }
   }
 },
@@ -106,7 +106,7 @@ register: async (name, email, password, ci, tenantId) => {
       token = response.data.token;
 
       if (!token) {
-        throw { message: "Credenciales inválidas" };
+        throw new Error("Credenciales inválidas");
       } else {
         // Guardar el token en localStorage
         localStorage.setItem('token', response.data.token);
@@ -128,10 +128,9 @@ register: async (name, email, password, ci, tenantId) => {
       //       return response.data;
             
     } catch (error) {
-      throw (
-        error.response?.data ||
-        error || { message: "Error en el inicio de sesión" }
-      );
+      const message =
+        error.response?.data?.message || error.message || "Error en el inicio de sesión";
+      throw new Error(message);
     }
   },
 

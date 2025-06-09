@@ -11,12 +11,11 @@ const DocumentVerification = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    // Extraer token y returnUrl de los query params
+    // Extraer datos de la URL
     const params = new URLSearchParams(location.search);
     const token = params.get("token");
     const code = params.get("code");
     const state = params.get("state");
-    const returnUrl = params.get("returnUrl") || "/auth-callback";
 
     useEffect(() => {
         // L�gica existente...

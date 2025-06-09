@@ -9,7 +9,6 @@ const Home = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const [tenantInfo, setTenantInfo] = useState(null);
-  const [ubicaciones, setUbicaciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -42,9 +41,7 @@ const Home = () => {
       const tenant = await apiService.getTenantInfo();
       setTenantInfo(tenant);
       
-      // Cargar ubicaciones para información general
-      const ubicacionesData = await apiService.getUbicacionesByUserTenant();
-      setUbicaciones(ubicacionesData);
+
       
       
     } catch (err) {

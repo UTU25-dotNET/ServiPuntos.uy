@@ -5,7 +5,6 @@ import apiService from "../../services/apiService";
 import HistorialCanjes from "./HistorialCanjes";
 
 const Perfil = () => {
-  const [user, setUser] = useState(null);
   const [profileData, setProfileData] = useState({
     // Campos editables
     nombre: "",
@@ -35,11 +34,6 @@ const Perfil = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
-  // Función para formatear fechas para input
-  const formatDateForInput = (dateString) => {
-    if (!dateString || dateString === "0001-01-01T00:00:00") return "";
-    return dateString.split('T')[0];
-  };
 
   // Cargar datos del usuario al inicializar
   useEffect(() => {
@@ -52,7 +46,6 @@ const Perfil = () => {
 
         // Obtener datos básicos del usuario desde el token
         const userData = authService.getCurrentUser();
-        setUser(userData);
 
         // Cargar los datos completos del perfil desde el backend usando email
         const fullProfile = await apiService.getUserProfile();

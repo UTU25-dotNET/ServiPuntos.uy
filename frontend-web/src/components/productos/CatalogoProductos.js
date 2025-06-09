@@ -15,28 +15,25 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
   const [carritoError, setCarritoError] = useState("");
 
   useEffect(() => {
+    const loadProductos = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const productosData = await apiService.getProductosByUbicacion(ubicacion.id);
+        setProductos(productosData);
+      } catch (err) {
+        setError(err.message);
+        setProductos([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (isOpen && ubicacion) {
       loadProductos();
     }
   }, [isOpen, ubicacion]);
-
-  const loadProductos = async () => {
-    setLoading(true);
-    setError("");
-    
-    try {
-      
-      const productosData = await apiService.getProductosByUbicacion(ubicacion.id);
-      setProductos(productosData);
-      
-      
-    } catch (err) {
-      setError(err.message);
-      setProductos([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleCanjear = async (productoId) => {
     setCanjeLoading(true);
