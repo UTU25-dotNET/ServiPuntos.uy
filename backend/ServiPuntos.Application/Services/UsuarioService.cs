@@ -114,7 +114,7 @@ public class UsuarioService : IUsuarioService
             return null;
         }
 
-        usuario.IntentosFallidos = 0;
+        
         usuario.Bloqueado = false;
         await _iUsuarioRepository.UpdateAsync(usuario);
         return usuario;

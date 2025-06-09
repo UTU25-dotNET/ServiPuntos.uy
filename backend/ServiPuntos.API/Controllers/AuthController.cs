@@ -377,7 +377,7 @@ public class AuthController : ControllerBase
 
             if (usuario != null)
             {
-                usuario.IntentosFallidos = 0;
+                
                 usuario.Bloqueado = false;
                 _context.Usuarios.Update(usuario);
                 await _context.SaveChangesAsync();
