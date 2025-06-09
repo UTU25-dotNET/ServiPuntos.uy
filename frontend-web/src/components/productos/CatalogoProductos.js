@@ -423,7 +423,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                     fontSize: "1.1rem"
                   }}
                 >
-                  💰 {productos.length} producto{productos.length !== 1 ? "s" : ""} disponible{productos.length !== 1 ? "s" : ""} para canje
+                 🏅 {productos.length} producto{productos.length !== 1 ? "s" : ""} disponible{productos.length !== 1 ? "s" : ""} para canje
                 </p>
               </div>
 
@@ -563,7 +563,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                             gap: "0.5rem"
                           }}
                         >
-                          💰 {formatCosto(producto.costoEnPuntos)}
+                          🏅 {formatCosto(producto.costoEnPuntos)}
                         </div>
                       </div>
 
