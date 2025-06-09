@@ -9,6 +9,7 @@ using System.Security.Claims;
 using ServiPuntos.Infrastructure.Data;
 using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
+using ServiPuntos.Application.Services; // Assuming IConfigService is defined here
 
 /// <summary>
 /// Controlador que maneja la autenticación con Google y la gestión de tokens JWT
@@ -25,15 +26,17 @@ public class AuthController : ControllerBase
     
     private readonly ITenantService _tenantService;
 
+    private readonly IConfigPlataformaService _configPlataformaService;
+
     /// <summary>
     /// Constructor que inyecta las dependencias necesarias
-    /// </summary>
     /// <param name="jwtTokenService">Servicio para generar tokens JWT</param>
-    public AuthController(JwtTokenService jwtTokenService, IConfiguration configuration, IHttpClientFactory httpClientFactory, ServiPuntosDbContext context, ITenantService tenantService)
+    public AuthController(JwtTokenService jwtTokenService, IConfiguration configuration, IHttpClientFactory httpClientFactory, ServiPuntosDbContext context, ITenantService tenantService, IConfigPlataformaService configPlataformaService)
     {
         _context = context;
         _jwtTokenService = jwtTokenService;
-        _configuration = configuration;
+        _tenantService = tenantService;
+        _configPlataformaService = configPlataformaService;
         _httpClientFactory = httpClientFactory;
         _tenantService = tenantService;
 
@@ -338,6 +341,14 @@ public class AuthController : ControllerBase
             var usuario = await _context.Usuarios
                 .FirstOrDefaultAsync(u => u.Email == request.Email);
 
+            var config = await _configPlataformaService.ObtenerConfiguracionAsync();
+            int maxIntentos = config?.MaximoIntentosLogin ?? 3;
+
+            if (usuario != null && usuario.Bloqueado)
+            {
+                return Unauthorized(new { message = "Cuenta bloqueada" });
+            }
+
             // Verificar si el usuario existe
             if (usuario == null)
             {
@@ -348,7 +359,23 @@ public class AuthController : ControllerBase
             bool passwordValid = VerifyPassword(request.Password, usuario.Password);
             if (!passwordValid)
             {
+                if (usuario != null)
+                {
+                    usuario.IntentosFallidos++;
+                    if (usuario.IntentosFallidos >= maxIntentos)
+                    {
+                        usuario.Bloqueado = true;
+                    }
+                    await _context.SaveChangesAsync();
+                }
                 return Unauthorized(new { message = "Email o contraseña incorrectos" });
+            }
+
+            if (usuario != null)
+            {
+                usuario.IntentosFallidos = 0;
+                usuario.Bloqueado = false;
+                await _context.SaveChangesAsync();
             }
 
             // Si tenemos cédula, verificamos la edad
