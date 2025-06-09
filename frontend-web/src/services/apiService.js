@@ -492,17 +492,17 @@ getProductosByUbicacion: async (ubicacionId) => {
       };
 
       const transaccion = {
-        identificadorUsuario: user.id,
+        IdentificadorUsuario: user.id,
         fechaTransaccion: new Date().toISOString(),
         tipoTransaccion: 2, // CompraMinimercado
         monto: Math.round(productoUbicacion.precio),
         metodoPago: 1, // PayPal
-        montoPayPal: Math.round(productoUbicacion.precio),
+        MontoPayPal: Math.round(productoUbicacion.precio),
         productos: [linea],
         puntosUtilizados: 0,
         datosAdicionales: {}
       };
-
+      console.log(transaccion.montoPayPal);
       const mensaje = {
         tipoMensaje: 1,
         ubicacionId: ubicacionId,
