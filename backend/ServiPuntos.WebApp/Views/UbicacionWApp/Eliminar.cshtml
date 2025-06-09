@@ -73,15 +73,15 @@
 
             <dt class="col-sm-3">Servicios:</dt>
             <dd class="col-sm-9">
-                @if (Model.Lavado)
+                @if (Model.Lavado == true)
                 {
                     <span class="badge bg-success me-1">Lavado</span>
                 }
-                 @if (Model.CambioDeAceite)
+                 @if (Model.CambioDeAceite == true)
                 {
                     <span class="badge bg-primary me-1">Cambio de Aceite</span>
-                } 
-                @if (!Model.Lavado)
+                }
+                @if (Model.Lavado != true)
                 {
                     <span class="text-muted">Sin servicios adicionales</span>
                 }
