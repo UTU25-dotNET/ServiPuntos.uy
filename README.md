@@ -32,9 +32,8 @@ Este repositorio contiene varios subproyectos. Cada subproyecto tiene su propio 
 
 - [.NET SDK 9.0.202](https://dotnet.microsoft.com/en-us/download)
 - Node.js 18+ y npm
-- Docker (dependiendo de tu SO, si tenés Windows de momento no hace falta.)
 - Visual Studio 2022+ o VS Code
-- (Opcional) MAUI workload para trabajar en la app mobile
+- MAUI workload para trabajar en la app mobile
 
 ### 2. Configurar la base de datos
 
@@ -49,6 +48,7 @@ Si preferís levantar PostgreSQL localmente podés utilizar Docker o tu gestor f
 cd backend
 dotnet build ServiPuntosUY.sln
 dotnet run --project ServiPuntos.API
+dotnet run --project ServiPuntos.WebApp
 ```
 
 ### 4. Levantar el frontend
