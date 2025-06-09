@@ -828,10 +828,7 @@
             qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(codigo)}" alt="QR"/>`;
         }
 
-        const codigoEl = document.getElementById('qrCodigo');
-        if (codigoEl) {
-            codigoEl.textContent = codigo;
-        }
+
 
         const codigoEl = document.getElementById('qrCodigo');
         if (codigoEl) {
@@ -845,6 +842,10 @@
     }
 
     function confirmarCanje(canjeId) {
+        const modalQr = document.getElementById('qrModal');
+        if (modalQr) {
+            bootstrap.Modal.getInstance(modalQr)?.hide();
+        }
         const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
         fetch('@Url.Action("ConfirmarCanje", "DashboardWApp")', {
             method: 'POST',
@@ -929,7 +930,16 @@
     }
 
     function mostrarMensaje(mensaje, tipo) {
-        const mensajeDiv = document.getElementById('mensajeEstado');
+        let mensajeDiv = document.getElementById('mensajeEstado');
+        if (!mensajeDiv) {
+            mensajeDiv = document.createElement('div');
+            mensajeDiv.id = 'mensajeEstado';
+            mensajeDiv.style.position = 'fixed';
+            mensajeDiv.style.top = '1rem';
+            mensajeDiv.style.right = '1rem';
+            mensajeDiv.style.zIndex = '1055';
+            document.body.appendChild(mensajeDiv);
+        }
         mensajeDiv.className = `alert alert-${tipo} alert-dismissible fade show`;
         mensajeDiv.innerHTML = `
             <i class="fas fa-${tipo === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
