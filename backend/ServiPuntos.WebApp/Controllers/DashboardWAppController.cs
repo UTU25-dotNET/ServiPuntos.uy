@@ -234,6 +234,55 @@ public async Task<IActionResult> ActualizarNombrePuntos(string nombrePuntos)
     }
 }
 
+[HttpPost]
+[Authorize(Roles = "AdminTenant")]
+public async Task<IActionResult> ActualizarPoliticas(decimal tasaCombustible, decimal tasaMinimercado, decimal tasaServicios, int diasCaducidad)
+{
+    try
+    {
+        var tenantIdClaim = User.Claims.FirstOrDefault(c => c.Type == "tenantId")?.Value;
+
+        if (string.IsNullOrEmpty(tenantIdClaim) || !Guid.TryParse(tenantIdClaim, out Guid tenantId))
+        {
+            return Json(new { success = false, message = "No se pudo identificar su tenant." });
+        }
+
+        var tenant = await _iTenantService.GetByIdAsync(tenantId);
+        if (tenant == null)
+        {
+            return Json(new { success = false, message = "Tenant no encontrado." });
+        }
+
+        if (tasaCombustible < 0 || tasaMinimercado < 0 || tasaServicios < 0 || diasCaducidad < 0)
+        {
+            return Json(new { success = false, message = "Valores no válidos." });
+        }
+
+        tenant.TasaCombustible = tasaCombustible;
+        tenant.TasaMinimercado = tasaMinimercado;
+        tenant.TasaServicios = tasaServicios;
+        tenant.DiasCaducidadPuntos = diasCaducidad;
+        tenant.FechaModificacion = DateTime.UtcNow;
+
+        await _iTenantService.UpdateAsync(tenant);
+
+        return Json(new
+        {
+            success = true,
+            message = "Políticas de acumulación actualizadas correctamente",
+            tasaCombustible = tenant.TasaCombustible.ToString("F2"),
+            tasaMinimercado = tenant.TasaMinimercado.ToString("F2"),
+            tasaServicios = tenant.TasaServicios.ToString("F2"),
+            diasCaducidad = tenant.DiasCaducidadPuntos
+        });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error al actualizar políticas de acumulación: {ex.Message}");
+        return Json(new { success = false, message = $"Error interno: {ex.Message}" });
+    }
+}
+
         [HttpGet]
         public async Task<IActionResult> GetCantidadUsuariosPorTipoTodos()
         {
