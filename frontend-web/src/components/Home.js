@@ -9,7 +9,6 @@ const Home = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const [tenantInfo, setTenantInfo] = useState(null);
-  const [ubicaciones, setUbicaciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -33,7 +32,6 @@ const Home = () => {
     setError("");
     
     try {
-      console.log("Cargando datos del usuario para dashboard...");
       
       // Cargar datos del usuario
       const profile = await apiService.getUserProfile();
@@ -43,14 +41,10 @@ const Home = () => {
       const tenant = await apiService.getTenantInfo();
       setTenantInfo(tenant);
       
-      // Cargar ubicaciones para información general
-      const ubicacionesData = await apiService.getUbicacionesByUserTenant();
-      setUbicaciones(ubicacionesData);
+
       
-      console.log("Datos del dashboard cargados:", { profile, tenant, ubicaciones: ubicacionesData.length });
       
     } catch (err) {
-      console.error("Error al cargar datos del dashboard:", err);
       setError("Error al cargar la información del dashboard");
     } finally {
       setLoading(false);

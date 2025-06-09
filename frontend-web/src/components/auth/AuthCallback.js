@@ -13,16 +13,7 @@ const AuthCallback = () => {
       try {
         // Obtener parámetros de la URL
         const token = searchParams.get("token");
-        const state = searchParams.get("state");
-        const returnUrl = searchParams.get("returnUrl");
         const errorParam = searchParams.get("error");
-
-        console.log("AuthCallback - Parámetros recibidos:", {
-          token: token ? "Presente" : "Ausente",
-          state,
-          returnUrl,
-          error: errorParam
-        });
 
         // Si hay un error en los parámetros
         if (errorParam) {
@@ -33,7 +24,6 @@ const AuthCallback = () => {
 
         // Si no hay token, redirigir al login
         if (!token) {
-          console.error("No se recibió token en el callback");
           setError("No se pudo completar la autenticación. Falta el token.");
           setTimeout(() => navigate("/login"), 3000);
           return;
@@ -48,13 +38,11 @@ const AuthCallback = () => {
           throw new Error("El token recibido no es válido");
         }
 
-        console.log("Token guardado exitosamente, redirigiendo al dashboard");
 
         // Redirigir al dashboard
         window.location.href = "/";
 
       } catch (err) {
-        console.error("Error en AuthCallback:", err);
         setError(err.message || "Error al procesar la autenticación");
         setLoading(false);
       }

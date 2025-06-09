@@ -1,0 +1,118 @@
+@{
+    ViewData["Title"] = "Estadísticas de Audiencias";
+    var estadisticas = ViewBag.Estadisticas as ServiPuntos.Core.DTOs.EstadisticasAudienciaDinamica;
+    var distribucion = ViewBag.Distribucion as System.Collections.Generic.Dictionary<string, int>;
+    var tenantNombre = ViewBag.TenantNombre as string ?? string.Empty;
+}
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-6">Estadísticas de Audiencias</h1>
+            @if (!string.IsNullOrEmpty(tenantNombre))
+            {
+                <p class="text-muted">Tenant: <strong>@tenantNombre</strong></p>
+            }
+        </div>
+    </div>
+
+    @if (estadisticas != null)
+    {
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card text-white bg-primary h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Usuarios Totales</h5>
+                        <p class="card-text fs-4">@estadisticas.TotalUsuariosGeneral</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-light h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Gasto Total</h5>
+                        <p class="card-text fs-4">$@estadisticas.GastoTotalGeneral.ToString("F2")</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-light h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Gasto Promedio</h5>
+                        <p class="card-text fs-4">$@estadisticas.GastoPromedioGeneral.ToString("F2")</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-light h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Visitas Totales</h5>
+                        <p class="card-text fs-4">@estadisticas.VisitasTotalesGeneral</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="card h-100">
+                    <div class="card-header">Distribución de Usuarios por Audiencia</div>
+                    <div class="card-body">
+                        <canvas id="distribucionChart" width="100%" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-header">Usuarios por Audiencia</div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Audiencia</th>
+                                        <th class="text-end">Usuarios</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var seg in estadisticas.EstadisticasPorSegmento.Values)
+                                    {
+                                        <tr>
+                                            <td>@seg.NombreSegmento</td>
+                                            <td class="text-end">@seg.TotalUsuarios</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">No se encontraron estadísticas.</div>
+    }
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const distribucion = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(distribucion ?? new System.Collections.Generic.Dictionary<string, int>()));
+        if (Object.keys(distribucion).length > 0) {
+            const ctx = document.getElementById('distribucionChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(distribucion),
+                    datasets: [{
+                        data: Object.values(distribucion),
+                        backgroundColor: Object.keys(distribucion).map((_,i)=>`hsl(${(i*60)%360},70%,60%)`)
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+    </script>
+}

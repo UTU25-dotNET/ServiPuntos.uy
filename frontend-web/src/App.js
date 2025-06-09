@@ -4,7 +4,7 @@ import NavBar from "./components/layout/NavBar";
 import Home from "./components/Home";
 import Login from "./components/auth/Login";
 import AuthCallback from "./components/auth/AuthCallback";
-import Perfil from "./components/auth/Perfil";
+import Perfil from "./components/perfil/Perfil";
 import TokenDisplay from "./components/TokenDisplay";
 import EstacionesList from "./components/estaciones/EstacionesList";
 import PrivateRoute from "./components/PrivateRoute";

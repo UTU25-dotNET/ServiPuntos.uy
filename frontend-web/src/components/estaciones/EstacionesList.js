@@ -10,7 +10,6 @@ const EstacionesList = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [userProfile, setUserProfile] = useState(null);
-  const [tenantInfo, setTenantInfo] = useState(null);
   
   // Estados para el modal de productos
   const [modalAbierto, setModalAbierto] = useState(false);
@@ -35,25 +34,17 @@ const EstacionesList = () => {
     setError("");
     
     try {
-      console.log("Cargando ubicaciones del tenant del usuario...");
       
       // Primero obtener el perfil del usuario
       const profile = await apiService.getUserProfile();
       setUserProfile(profile);
       
-      // Obtener información del tenant
-      const tenant = await apiService.getTenantInfo();
-      setTenantInfo(tenant);
-      
-      // Luego obtener las ubicaciones de su tenant
+      // Obtener las ubicaciones de su tenant
       const ubicacionesData = await apiService.getUbicacionesByUserTenant();
       setUbicaciones(ubicacionesData);
       
-      console.log("Ubicaciones cargadas:", ubicacionesData);
-      console.log("Información del tenant:", tenant);
       
     } catch (err) {
-      console.error("Error al cargar ubicaciones:", err);
       setError(err.message);
       
       // Como fallback, mostrar mensaje sin ubicaciones
