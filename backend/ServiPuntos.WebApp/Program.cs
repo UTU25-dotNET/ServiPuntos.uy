@@ -11,9 +11,12 @@ using ServiPuntos.Application.Services.Rules;
 using ServiPuntos.WebApp.Services;
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Set QuestPDF license
+QuestPDF.Settings.License = LicenseType.Community;
 // -------------------------
 // Configuración de servicios
 // -------------------------
