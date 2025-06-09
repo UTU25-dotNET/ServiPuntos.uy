@@ -126,6 +126,9 @@ namespace ServiPuntos.Application.Services
 
                     await _transaccionRepository.AddAsync(transaccionPendiente);
 
+                    payPalPayment.AdditionalData.TryGetValue("approval_url", out var urlObj);
+                    var approvalUrl = urlObj?.ToString();
+
                     return new RespuestaNAFTA
                     {
                         IdMensajeReferencia = mensaje.IdMensaje,
@@ -134,6 +137,7 @@ namespace ServiPuntos.Application.Services
                         Datos = new System.Collections.Generic.Dictionary<string, object>
                         {
                             { "paymentId", payPalPayment.PaymentId },
+                            { "approvalUrl", approvalUrl },
                             { "transaccionId", transaccionNAFTA.IdTransaccion },
                             { "montoPayPal", transaccionNAFTA.MontoPayPal },
                             { "puntosUtilizados", transaccionNAFTA.PuntosUtilizados }

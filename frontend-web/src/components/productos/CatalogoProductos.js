@@ -13,6 +13,8 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
   const [qrCarrito, setQrCarrito] = useState([]);
   const [carritoLoading, setCarritoLoading] = useState(false);
   const [carritoError, setCarritoError] = useState("");
+  const [compraLoading, setCompraLoading] = useState(false);
+  const [compraError, setCompraError] = useState("");
 
   useEffect(() => {
     const loadProductos = async () => {
@@ -35,6 +37,21 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
     }
   }, [isOpen, ubicacion]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paymentId = params.get('paymentId');
+    const payerId = params.get('PayerID');
+    if (paymentId && payerId) {
+      apiService.confirmarPagoPaypal(paymentId, payerId)
+        .then(() => {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        })
+        .catch(err => {
+          setCompraError(err.message);
+        });
+    }
+  }, []);
+
   const handleCanjear = async (productoId) => {
     setCanjeLoading(true);
     setCanjeError("");
@@ -45,6 +62,23 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
       setCanjeError(err.message);
     } finally {
       setCanjeLoading(false);
+    }
+  };
+
+  const handleComprar = async (productoUbicacion) => {
+    setCompraLoading(true);
+    setCompraError("");
+    try {
+      const result = await apiService.procesarTransaccion(productoUbicacion, ubicacion.id);
+      if (result?.codigo === "PENDING_PAYMENT" && result.datos?.approvalUrl) {
+        window.location.href = result.datos.approvalUrl;
+      } else if (result?.codigo !== "OK") {
+        setCompraError(result?.mensaje || "Error en la compra");
+      }
+    } catch (err) {
+      setCompraError(err.message);
+    } finally {
+      setCompraLoading(false);
     }
   };
 
@@ -580,6 +614,21 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                       {productoUbicacion.activo && productoUbicacion.stockDisponible > 0 && (
                         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                           <button
+                            onClick={() => handleComprar(productoUbicacion)}
+                            disabled={compraLoading}
+                            style={{
+                              width: "100%",
+                              padding: "0.5rem",
+                              backgroundColor: "#ffc107",
+                              color: "#212529",
+                              border: "none",
+                              borderRadius: "6px",
+                              cursor: "pointer"
+                            }}
+                          >
+                            Comprar
+                          </button>
+                          <button
                             onClick={() => handleCanjear(producto.id)}
                             disabled={!userProfile || (userProfile.puntos || 0) < producto.costoEnPuntos || canjeLoading}
                             style={{
@@ -629,6 +678,9 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                   );
                 })}
               </div>
+            {compraError && (
+              <p style={{ color: "#dc3545", marginTop: "1rem" }}>{compraError}</p>
+            )}
             </>
           )}
         </div>
