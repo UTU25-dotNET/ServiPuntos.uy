@@ -271,8 +271,24 @@ namespace ServiPuntos.WebApp.Controllers
                 return View(model);
             }
 
-            model.FechaModificacion = DateTime.UtcNow;
-            await _ubicacionRepository.UpdateAsync(model.TenantId, model);
+                        var ubicacion = await _ubicacionRepository.GetAsync(model.Id);
+            if (ubicacion == null)
+            {
+                return RedirectToAction("Index", "DashboardWApp");
+            }
+
+            // Actualizar solo los campos configurables desde la vista
+            ubicacion.HoraApertura = model.HoraApertura;
+            ubicacion.HoraCierre = model.HoraCierre;
+            ubicacion.Lavado = model.Lavado;
+            ubicacion.CambioDeAceite = model.CambioDeAceite;
+            ubicacion.CambioDeNeumaticos = model.CambioDeNeumaticos;
+            ubicacion.PrecioLavado = model.PrecioLavado;
+            ubicacion.PrecioCambioAceite = model.PrecioCambioAceite;
+            ubicacion.PrecioCambioNeumaticos = model.PrecioCambioNeumaticos;
+            ubicacion.FechaModificacion = DateTime.UtcNow;
+
+            await _ubicacionRepository.UpdateAsync(model.TenantId, ubicacion);
             TempData["Success"] = "Ubicación actualizada.";
             return RedirectToAction("Index", "DashboardWApp");
         }
