@@ -369,6 +369,7 @@ public class AuthController : ControllerBase
                     {
                         usuario.Bloqueado = true;
                     }
+                    _context.Usuarios.Update(usuario);
                     await _context.SaveChangesAsync();
                 }
                 return Unauthorized(new { message = "Email o contraseña incorrectos" });
@@ -378,6 +379,7 @@ public class AuthController : ControllerBase
             {
                 usuario.IntentosFallidos = 0;
                 usuario.Bloqueado = false;
+                _context.Usuarios.Update(usuario);
                 await _context.SaveChangesAsync();
             }
 
