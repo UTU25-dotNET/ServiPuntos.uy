@@ -1,3 +1,4 @@
+@using ServiPuntos.Core.Entities
 <div class="row">
 
         @if (User.IsInRole("AdminPlataforma"))
@@ -159,6 +160,50 @@
             </div>
         </div>
     }
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-inbox me-2"></i> Canjes Pendientes</h5>
+                </div>
+                <div class="card-body">
+                    @Html.AntiForgeryToken()
+                    @{ var pendientes = ViewBag.CanjesPendientes as IEnumerable<Canje> ?? Enumerable.Empty<Canje>(); }
+                    @if (!pendientes.Any())
+                    {
+                        <p>No hay canjes pendientes.</p>
+                    }
+                    else
+                    {
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Usuario</th>
+                                    <th>Generado</th>
+                                    <th>Expira</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var c in pendientes)
+                            {
+                                <tr id="canje-@c.Id">
+                                    <td>@c.ProductoCanjeable?.Nombre</td>
+                                    <td>@c.Usuario?.Nombre</td>
+                                    <td>@c.FechaGeneracion.ToString("g")</td>
+                                    <td>@c.FechaExpiracion.ToString("g")</td>
+                                    <td><button class="btn btn-sm btn-success" onclick="confirmarCanje('@c.Id')">Confirmar</button></td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
 }
 @if (User.IsInRole("AdminPlataforma"))
     {
@@ -716,6 +761,30 @@
         .then(r => r.json())
         .then(data => {
             mostrarMensaje(data.message, data.success ? 'success' : 'danger');
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            mostrarMensaje('Error de conexión. Por favor, intente nuevamente.', 'danger');
+        });
+    }
+
+    function confirmarCanje(canjeId) {
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+        fetch('@Url.Action("ConfirmarCanje", "DashboardWApp")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': token
+            },
+            body: `canjeId=${canjeId}&__RequestVerificationToken=${encodeURIComponent(token)}`
+        })
+        .then(r => r.json())
+        .then(data => {
+            mostrarMensaje(data.message, data.success ? 'success' : 'danger');
+            if (data.success) {
+                const fila = document.getElementById('canje-' + canjeId);
+                if (fila) fila.remove();
+            }
         })
         .catch(err => {
             console.error('Error:', err);
