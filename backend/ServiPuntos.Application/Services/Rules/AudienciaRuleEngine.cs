@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using ServiPuntos.Core.DTOs;
 using ServiPuntos.Core.Entities;
@@ -89,14 +90,25 @@ namespace ServiPuntos.Application.Services.Rules
             var ahora = DateTime.UtcNow;
             var datos = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
             {
-                { "GastoTotal", usuario.GastoTotal }, { "TotalVisitas", usuario.TotalVisitas },
-                { "EsSubscriptorPremium", usuario.EsSubscriptorPremium }, { "CiudadResidencia", usuario.CiudadResidencia },
-                { "Intereses", usuario.Intereses }, { "UltimaCategoriaComprada", usuario.UltimaCategoriaComprada },
-                { "FechaCreacionUsuario", usuario.FechaCreacion }, { "FechaUltimaCompra", usuario.UltimaVisita},
+                { "GastoTotal", usuario.GastoTotal },
+                { "TotalVisitas", usuario.TotalVisitas },
+                { "EsSubscriptorPremium", usuario.EsSubscriptorPremium },
+                { "CiudadResidencia", usuario.CiudadResidencia },
+                { "Intereses", usuario.Intereses },
+                { "UltimaCategoriaComprada", usuario.UltimaCategoriaComprada },
+                { "FechaCreacionUsuario", usuario.FechaCreacion },
+                { "FechaUltimaCompra", usuario.UltimaVisita },
                 { "VerificadoVEAI", usuario.VerificadoVEAI },
                 { "TotalPuntosGanados", datosTransacciones.TotalPuntosGanados },
                 { "NumeroTotalTransacciones", datosTransacciones.TotalTransacciones },
-                { "MontoTotalCompras", datosTransacciones.MontoTotal }
+                { "MontoTotalCompras", datosTransacciones.MontoTotal },
+                { "Puntos", usuario.Puntos },
+                { "Email", usuario.Email },
+                { "Nombre", usuario.Nombre },
+                { "Apellido", usuario.Apellido },
+                { "Telefono", usuario.Telefono },
+                { "FechaCreacion", usuario.FechaCreacion },
+                { "FechaModificacion", usuario.FechaModificacion }
             };
             datos["DiasDesdeRegistro"] = (ahora - usuario.FechaCreacion).Days;
             if (usuario.FechaNacimiento.HasValue) { int edad = ahora.Year - usuario.FechaNacimiento.Value.Year; if (usuario.FechaNacimiento.Value.Date > ahora.AddYears(-edad)) edad--; datos["Edad"] = edad; } else { datos["Edad"] = null; }
@@ -107,18 +119,134 @@ namespace ServiPuntos.Application.Services.Rules
 
         private bool EvaluarReglaIndividual(Dictionary<string, object> datosDelUsuario, ReglaAudiencia regla)
         {
+            if (!datosDelUsuario.TryGetValue(regla.Propiedad, out var valorDelUsuarioObj))
+            {
+                _logger.LogTrace("Propiedad {Prop} no encontrada en datos del usuario", regla.Propiedad);
+                return false;
+            }
+            if (valorDelUsuarioObj == null)
+            {
+                return false;
+            }
 
-            if (!datosDelUsuario.TryGetValue(regla.Propiedad, out var valorDelUsuarioObj)) { /* ... */ return false; }
-            if (valorDelUsuarioObj == null) { /* ... */ return false; }
-            string operadorNormalizado = NormalizarOperador(regla.Operador);
-            try { /* ... toda la lógica de switch por tipo y operador ... */ return false; } // Placeholder, copia la lógica completa
-            catch (Exception ex) { _logger.LogError(ex, "RuleEngine: Error _EvaluarReglaIndividual"); return false; }
+            string operador = NormalizarOperador(regla.Operador);
+            string valorComparacion = regla.Valor ?? string.Empty;
+
+            try
+            {
+                switch (operador)
+                {
+                    case "is_null_or_empty":
+                        return string.IsNullOrEmpty(valorDelUsuarioObj.ToString());
+                    case "is_not_null_or_empty":
+                        return !string.IsNullOrEmpty(valorDelUsuarioObj.ToString());
+                }
+
+                // Manejo de listas para CONTAINS, IN, NOT_IN
+                if (operador == "contains")
+                {
+                    if (valorDelUsuarioObj is IEnumerable<string> lista)
+                        return lista.Any(e => string.Equals(e, valorComparacion, StringComparison.OrdinalIgnoreCase));
+                    return valorDelUsuarioObj.ToString()!.IndexOf(valorComparacion, StringComparison.OrdinalIgnoreCase) >= 0;
+                }
+                if (operador == "starts_with")
+                    return valorDelUsuarioObj.ToString()!.StartsWith(valorComparacion, StringComparison.OrdinalIgnoreCase);
+                if (operador == "ends_with")
+                    return valorDelUsuarioObj.ToString()!.EndsWith(valorComparacion, StringComparison.OrdinalIgnoreCase);
+                if (operador == "regex")
+                    return Regex.IsMatch(valorDelUsuarioObj.ToString()!, valorComparacion);
+
+                // IN / NOT_IN
+                if (operador == "in" || operador == "not_in")
+                {
+                    var listaValores = valorComparacion.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                                        .Select(v => v.Trim())
+                                                        .ToList();
+                    bool contiene;
+                    if (valorDelUsuarioObj is IEnumerable<string> listaUsr)
+                    {
+                        contiene = listaUsr.Any(v => listaValores.Contains(v, StringComparer.OrdinalIgnoreCase));
+                    }
+                    else
+                    {
+                        contiene = listaValores.Contains(valorDelUsuarioObj.ToString()!, StringComparer.OrdinalIgnoreCase);
+                    }
+                    return operador == "in" ? contiene : !contiene;
+                }
+
+                // Comparaciones numéricas o fecha
+                if (TryParseDecimal(valorComparacion, out decimal comparacionDecimal) && decimal.TryParse(valorDelUsuarioObj.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out decimal valorDecimal))
+                {
+                    return operador switch
+                    {
+                        ">" => valorDecimal > comparacionDecimal,
+                        "<" => valorDecimal < comparacionDecimal,
+                        ">=" => valorDecimal >= comparacionDecimal,
+                        "<=" => valorDecimal <= comparacionDecimal,
+                        "=" => valorDecimal == comparacionDecimal,
+                        "!=" => valorDecimal != comparacionDecimal,
+                        _ => false
+                    };
+                }
+                if (DateTime.TryParse(valorComparacion, out DateTime fechaComp) && DateTime.TryParse(valorDelUsuarioObj.ToString(), out DateTime fechaValor))
+                {
+                    return operador switch
+                    {
+                        ">" => fechaValor > fechaComp,
+                        "<" => fechaValor < fechaComp,
+                        ">=" => fechaValor >= fechaComp,
+                        "<=" => fechaValor <= fechaComp,
+                        "=" => fechaValor == fechaComp,
+                        "!=" => fechaValor != fechaComp,
+                        _ => false
+                    };
+                }
+                if (bool.TryParse(valorComparacion, out bool boolComp) && bool.TryParse(valorDelUsuarioObj.ToString(), out bool boolVal))
+                {
+                    return operador == "=" ? boolVal == boolComp : operador == "!=" && boolVal != boolComp;
+                }
+
+                // Fallback a comparación de strings
+                return operador switch
+                {
+                    "=" => string.Equals(valorDelUsuarioObj.ToString(), valorComparacion, StringComparison.OrdinalIgnoreCase),
+                    "!=" => !string.Equals(valorDelUsuarioObj.ToString(), valorComparacion, StringComparison.OrdinalIgnoreCase),
+                    ">" => string.Compare(valorDelUsuarioObj.ToString(), valorComparacion, StringComparison.OrdinalIgnoreCase) > 0,
+                    "<" => string.Compare(valorDelUsuarioObj.ToString(), valorComparacion, StringComparison.OrdinalIgnoreCase) < 0,
+                    ">=" => string.Compare(valorDelUsuarioObj.ToString(), valorComparacion, StringComparison.OrdinalIgnoreCase) >= 0,
+                    "<=" => string.Compare(valorDelUsuarioObj.ToString(), valorComparacion, StringComparison.OrdinalIgnoreCase) <= 0,
+                    _ => false
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "RuleEngine: Error EvaluarReglaIndividual");
+                return false;
+            }
         }
 
         private string NormalizarOperador(string operadorInput)
         {
-            // ... (COPIA COMPLETA de la lógica de _NormalizarOperador que te di antes) ...
-            return operadorInput?.Trim().ToLowerInvariant() switch { "mayorque" => ">", /* ...otros... */ _ => operadorInput?.Trim().ToLowerInvariant() }; // Placeholder
+            if (string.IsNullOrWhiteSpace(operadorInput)) return string.Empty;
+
+            return operadorInput.Trim().ToLowerInvariant() switch
+            {
+                "=" or "==" or "equals" => "=",
+                "!=" or "not_equals" => "!=",
+                ">" or "greater_than" => ">",
+                "<" or "less_than" => "<",
+                ">=" or "greater_than_or_equal" => ">=",
+                "<=" or "less_than_or_equal" => "<=",
+                "contains" => "contains",
+                "starts_with" => "starts_with",
+                "ends_with" => "ends_with",
+                "in" => "in",
+                "not_in" => "not_in",
+                "is_null_or_empty" => "is_null_or_empty",
+                "is_not_null_or_empty" => "is_not_null_or_empty",
+                "regex" => "regex",
+                _ => operadorInput.Trim().ToLowerInvariant()
+            };
         }
 
         // Los helpers de conversión _TryParseDecimal, etc., también irían aquí si son

@@ -8,6 +8,7 @@ using ServiPuntos.Infrastructure.MultiTenancy;
 using ServiPuntos.Infrastructure.Repositories;
 using ServiPuntos.Application.Services;
 using ServiPuntos.Application.Services.Rules;
+using ServiPuntos.WebApp.Services;
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
 
@@ -49,6 +50,7 @@ builder.Services.AddScoped<IUbicacionService, UbicacionService>();
 // ===== SERVICIOS AUDIENCIA =====
 builder.Services.AddScoped<IAudienciaRuleEngine, AudienciaRuleEngine>();
 builder.Services.AddScoped<IAudienciaService, AudienciaService>();
+builder.Services.AddHostedService<ServiPuntos.WebApp.Services.AudienciaBackgroundService>();
 
 // ===== SERVICIOS PRODUCTO CANJEABLE =====
 builder.Services.AddScoped<IProductoCanjeableService, ProductoCanjeableService>();
