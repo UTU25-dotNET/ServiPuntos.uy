@@ -385,6 +385,30 @@ public class AuthController : ControllerBase
         }
     }
     
+
+    [HttpPost("verify-password")]
+    public async Task<IActionResult> VerifyPassword([FromBody] VerifyPasswordRequest request)
+    {
+        if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+        {
+            return BadRequest(new { message = "Email y contraseña son requeridos" });
+        }
+
+        var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == request.Email);
+        if (usuario == null)
+        {
+            return NotFound(new { message = "Usuario no encontrado" });
+        }
+
+        bool passwordValid = VerifyPassword(request.Password, usuario.Password);
+        if (!passwordValid)
+        {
+            return Unauthorized(new { message = "Contraseña incorrecta" });
+        }
+
+        return Ok(new { message = "Contraseña válida" });
+    }
+
     // Método auxiliar para verificar la contraseña
     private bool VerifyPassword(string providedPassword, string storedPassword)
     {
@@ -640,6 +664,15 @@ public class AuthController : ControllerBase
     /// Clase para recibir los datos de inicio de sesión
     /// </summary>
     public class SignInRequest
+    {
+        public string? Email { get; set; }
+        public string? Password { get; set; }
+    }
+
+    /// <summary>
+    /// Clase para recibir los datos de verificación de contraseña
+    /// </summary>
+    public class VerifyPasswordRequest
     {
         public string? Email { get; set; }
         public string? Password { get; set; }
