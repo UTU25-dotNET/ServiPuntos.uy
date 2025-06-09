@@ -49,9 +49,9 @@ else
                     <td>@u.Direccion</td>
                     <td>@u.Ciudad</td>
                     <td>@u.Departamento</td>
-                    <td>@u.PrecioNaftaSuper</td>
-                    <td>@u.PrecioNaftaPremium</td>
-                    <td>@u.PrecioDiesel</td>
+                    <td>@(u.PrecioNaftaSuper?.ToString("0.##") ?? "N/A")</td>
+                    <td>@(u.PrecioNaftaPremium?.ToString("0.##") ?? "N/A")</td>
+                    <td>@(u.PrecioDiesel?.ToString("0.##") ?? "N/A")</td>
                     <td>
                         <a asp-action="Editar" asp-route-id="@u.Id" class="btn btn-sm btn-primary">Editar</a>
                         <a asp-action="Detalle" asp-route-id="@u.Id" class="btn btn-sm btn-info">Ver</a>
