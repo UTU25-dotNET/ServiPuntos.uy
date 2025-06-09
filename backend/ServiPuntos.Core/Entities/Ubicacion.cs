@@ -21,11 +21,11 @@ namespace ServiPuntos.Core.Entities
         public TimeSpan HoraApertura { get; set; }
         public TimeSpan HoraCierre { get; set; }
 
-        public bool? Lavado { get; set; } = false;
+        public bool Lavado { get; set; }
 
-        public bool? LavadoDeAuto { get; set; } = false;
-        public bool? CambioDeAceite { get; set; } = false;
-        public bool? CambioDeNeumaticos { get; set; } = false;
+        public bool LavadoDeAuto { get; set; }
+        public bool CambioDeAceite { get; set; }
+        public bool CambioDeNeumaticos { get; set; }
 
         public decimal? PrecioLavado { get; set; }
         public decimal? PrecioCambioAceite { get; set; }

@@ -398,10 +398,10 @@ namespace ServiPuntos.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<bool?>("CambioDeAceite")
+                    b.Property<bool>("CambioDeAceite")
                         .HasColumnType("boolean");
 
-                    b.Property<bool?>("CambioDeNeumaticos")
+                    b.Property<bool>("CambioDeNeumaticos")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Ciudad")
@@ -425,10 +425,10 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.Property<TimeSpan>("HoraCierre")
                         .HasColumnType("interval");
 
-                    b.Property<bool?>("Lavado")
+                    b.Property<bool>("Lavado")
                         .HasColumnType("boolean");
 
-                    b.Property<bool?>("LavadoDeAuto")
+                    b.Property<bool>("LavadoDeAuto")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Nombre")
