@@ -42,12 +42,10 @@ namespace ServiPuntos.Mobile.ViewModels
 
         public ICommand LoginCommand { get; }
 
-        // Constructor que recibe AuthService por inyección de dependencias
         public LoginViewModel(IAuthService authService)
         {
             _authService = authService;
-            
-            // Crear un tenant por defecto
+
             Tenant = new TenantConfig
             {
                 Id = "1",
@@ -56,17 +54,12 @@ namespace ServiPuntos.Mobile.ViewModels
                 PrimaryColor = "#0066CC",
                 SecondaryColor = "#FFFFFF"
             };
-            
+
             LoginCommand = new Command(OnLogin);
         }
 
         private async void OnLogin()
         {
-            Console.WriteLine($"[LoginViewModel] === INICIO OnLogin ===");
-            Console.WriteLine($"[LoginViewModel] Username: {Username}");
-            Console.WriteLine($"[LoginViewModel] Password present: {!string.IsNullOrEmpty(Password)}");
-            Console.WriteLine($"[LoginViewModel] AuthService: {_authService != null}");
-
             ErrorMessage = "";
             IsLoading = true;
 
@@ -74,44 +67,35 @@ namespace ServiPuntos.Mobile.ViewModels
             {
                 ErrorMessage = "Completa usuario y contraseña.";
                 IsLoading = false;
-                Console.WriteLine("[LoginViewModel] Error: Campos vacíos");
                 return;
             }
 
             try
             {
-                Console.WriteLine("[LoginViewModel] Llamando a SignInAsync...");
-                
                 var response = await _authService.SignInAsync(Username, Password);
-                
-                Console.WriteLine($"[LoginViewModel] Respuesta recibida: {response != null}");
 
-                if (response != null)
+                if (response != null && !string.IsNullOrEmpty(response.Token))
                 {
-                    Console.WriteLine($"[LoginViewModel] Token recibido: {!string.IsNullOrEmpty(response.Token)}");
-                    
-                    // Login exitoso
+
                     await Application.Current.MainPage.DisplayAlert("Éxito", "Login exitoso", "OK");
-                    
-                    // Navegar a la página principal
-                    // await Shell.Current.GoToAsync("//main");
+                    await Shell.Current.GoToAsync("//main");
+                }
+                else
+                {
+                    ErrorMessage = "Email o contraseña incorrectos.";
                 }
             }
-            catch (HttpRequestException ex)
+            catch (HttpRequestException)
             {
-                Console.WriteLine($"[LoginViewModel] HttpRequestException: {ex.Message}");
                 ErrorMessage = "Email o contraseña incorrectos.";
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"[LoginViewModel] Exception: {ex.Message}");
-                Console.WriteLine($"[LoginViewModel] Exception StackTrace: {ex.StackTrace}");
                 ErrorMessage = "Error de conexión. Inténtalo de nuevo.";
             }
             finally
             {
                 IsLoading = false;
-                Console.WriteLine("[LoginViewModel] === FIN OnLogin ===");
             }
         }
     }
