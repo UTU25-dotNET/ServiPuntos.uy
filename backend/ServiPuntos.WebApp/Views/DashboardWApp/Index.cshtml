@@ -154,7 +154,7 @@
                 <div class="card bg-light h-100">
                     <div class="card-body">
                         <h5 class="card-title">Canjes Completados</h5>
-                        <p class="card-text fs-4">@reporte.CanjesCompletados</p>
+                        <p id="canjesCompletados" class="card-text fs-4">@reporte.CanjesCompletados</p>
                     </div>
                 </div>
             </div>
@@ -195,8 +195,8 @@
                                         <td>@c.FechaGeneracion.ToString("g")</td>
                                         <td>@c.FechaExpiracion.ToString("g")</td>
                                         <td class="text-end">
-                                            <button class="btn btn-info btn-sm me-1" onclick="verQR('@c.Id')"><i class="fas fa-qrcode"></i></button>
-                                            <button class="btn btn-success btn-sm" onclick="confirmarCanje('@c.Id')">Confirmar</button>
+                                            <button type="button" class="btn btn-info btn-sm me-1" onclick="verQR('@c.Id')"><i class="fas fa-qrcode"></i></button>
+                                            <button type="button" class="btn btn-success btn-sm" onclick="confirmarCanje('@c.Id')">Confirmar</button>
                                         </td>
                                     </tr>
                                 }
@@ -218,6 +218,7 @@
             </div>
             <div class="modal-body text-center">
                 <div id="qrContainer" class="mb-3"></div>
+                <p id="qrCodigo" class="fw-bold"></p>
                 <p class="text-muted" id="qrExpira"></p>
             </div>
         </div>
@@ -351,6 +352,7 @@
             </div>
             <div class="modal-body text-center">
                 <div id="qrContainer" class="mb-3"></div>
+                <p id="qrCodigo" class="fw-bold"></p>
                 <p class="text-muted" id="qrExpira"></p>
             </div>
         </div>
@@ -823,11 +825,22 @@
         } else if (window.QRCode) {
             new QRCode(qrContainer, { text: codigo, width: 200, height: 200 });
         } else {
-            qrContainer.textContent = codigo;
+            qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(codigo)}" alt="QR"/>`;
+        }
+
+        const codigoEl = document.getElementById('qrCodigo');
+        if (codigoEl) {
+            codigoEl.textContent = codigo;
+        }
+
+        const codigoEl = document.getElementById('qrCodigo');
+        if (codigoEl) {
+            codigoEl.textContent = codigo;
         }
 
         document.getElementById('qrExpira').textContent = 'Expira: ' + expira;
-        const modal = new bootstrap.Modal(document.getElementById('qrModal'));
+        const modalEl = document.getElementById('qrModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
     }
 
@@ -839,14 +852,23 @@
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'RequestVerificationToken': token
             },
-            body: `canjeId=${canjeId}&__RequestVerificationToken=${encodeURIComponent(token)}`
+            body: `canjeId=${encodeURIComponent(canjeId)}&__RequestVerificationToken=${encodeURIComponent(token)}`
         })
-        .then(r => r.json())
+        .then(r => {
+            if (!r.ok) throw new Error('Solicitud falló');
+            return r.json();
+        })
         .then(data => {
             mostrarMensaje(data.message, data.success ? 'success' : 'danger');
             if (data.success) {
                 const fila = document.getElementById('canje-' + canjeId);
                 if (fila) fila.remove();
+
+                const contador = document.getElementById('canjesCompletados');
+                if (contador) {
+                    const val = parseInt(contador.textContent) || 0;
+                    contador.textContent = val + 1;
+                }
             }
         })
         .catch(err => {
