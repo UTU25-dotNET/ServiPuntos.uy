@@ -139,7 +139,7 @@ public async Task<IActionResult> ActualizarValorPuntos(decimal valorPuntos)
     try
     {
         var tenantIdClaim = User.Claims.FirstOrDefault(c => c.Type == "tenantId")?.Value;
-        
+
         if (string.IsNullOrEmpty(tenantIdClaim) || !Guid.TryParse(tenantIdClaim, out Guid tenantId))
         {
             return Json(new { success = false, message = "No se pudo identificar su tenant." });
@@ -170,8 +170,9 @@ public async Task<IActionResult> ActualizarValorPuntos(decimal valorPuntos)
 
         Console.WriteLine($"✅ Valor de puntos actualizado para tenant {tenant.Nombre}: ${valorPuntos}");
 
-        return Json(new { 
-            success = true, 
+        return Json(new
+        {
+            success = true,
             message = "Valor de puntos actualizado correctamente",
             nuevoValor = valorPuntos.ToString("F2")
         });
@@ -179,6 +180,56 @@ public async Task<IActionResult> ActualizarValorPuntos(decimal valorPuntos)
     catch (Exception ex)
     {
         Console.WriteLine($"❌ Error al actualizar valor de puntos: {ex.Message}");
+        return Json(new { success = false, message = $"Error interno: {ex.Message}" });
+    }
+}
+
+[HttpPost]
+[Authorize(Roles = "AdminTenant")]
+public async Task<IActionResult> ActualizarNombrePuntos(string nombrePuntos)
+{
+    try
+    {
+        var tenantIdClaim = User.Claims.FirstOrDefault(c => c.Type == "tenantId")?.Value;
+
+        if (string.IsNullOrEmpty(tenantIdClaim) || !Guid.TryParse(tenantIdClaim, out Guid tenantId))
+        {
+            return Json(new { success = false, message = "No se pudo identificar su tenant." });
+        }
+
+        var tenant = await _iTenantService.GetByIdAsync(tenantId);
+        if (tenant == null)
+        {
+            return Json(new { success = false, message = "Tenant no encontrado." });
+        }
+
+        if (string.IsNullOrWhiteSpace(nombrePuntos))
+        {
+            return Json(new { success = false, message = "El nombre de los puntos es obligatorio." });
+        }
+
+        if (nombrePuntos.Length > 50)
+        {
+            return Json(new { success = false, message = "El nombre de los puntos es demasiado largo." });
+        }
+
+        tenant.NombrePuntos = nombrePuntos.Trim();
+        tenant.FechaModificacion = DateTime.UtcNow;
+
+        await _iTenantService.UpdateAsync(tenant);
+
+        Console.WriteLine($"✅ Nombre de puntos actualizado para tenant {tenant.Nombre}: {tenant.NombrePuntos}");
+
+        return Json(new
+        {
+            success = true,
+            message = "Nombre de puntos actualizado correctamente",
+            nuevoNombre = tenant.NombrePuntos
+        });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error al actualizar nombre de puntos: {ex.Message}");
         return Json(new { success = false, message = $"Error interno: {ex.Message}" });
     }
 }
