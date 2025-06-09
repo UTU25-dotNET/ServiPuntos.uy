@@ -337,9 +337,12 @@ public class AuthController : ControllerBase
                 return BadRequest(new { message = "Email y contraseña son requeridos" });
             }
 
-            // Buscar el usuario en la base de datos
+            // Normalizamos el email para que la búsqueda no sea sensible a mayúsculas
+            var normalizedEmail = request.Email.Trim().ToLower();
+
+            // Buscar el usuario en la base de datos de forma insensible a mayúsculas
             var usuario = await _context.Usuarios
-                .FirstOrDefaultAsync(u => u.Email == request.Email);
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
 
             var config = await _configPlataformaService.ObtenerConfiguracionAsync();
             int maxIntentos = config?.MaximoIntentosLogin ?? 3;
@@ -421,7 +424,8 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = "Email y contraseña son requeridos" });
         }
 
-        var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == request.Email);
+        var normalizedEmail = request.Email.Trim().ToLower();
+        var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
         if (usuario == null)
         {
             return NotFound(new { message = "Usuario no encontrado" });
