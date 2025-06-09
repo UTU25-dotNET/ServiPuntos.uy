@@ -290,7 +290,7 @@ public class AuthController : ControllerBase
             Console.WriteLine("[GoogleCallback] Usuario autenticado con cookies");
 
             // No eliminamos el estado porque volveremos a este endpoint
-            var tempToken = _jwtTokenService.GenerateJwtToken(claims);
+            var tempToken = await _jwtTokenService.GenerateJwtTokenAsync(claims);
             return Redirect($"http://localhost:3000/auth-callback?token={Uri.EscapeDataString(tempToken)}&state={Uri.EscapeDataString(state)}&returnUrl=/auth-callback");
         }
         catch (Exception ex)
@@ -366,7 +366,7 @@ public class AuthController : ControllerBase
             // }
 
             // Generar el token JWT
-            var token = _jwtTokenService.GenerateJwtToken(claims);
+            var token = await _jwtTokenService.GenerateJwtTokenAsync(claims);
 
             // Devolver token y datos básicos del usuario
             return Ok(new
