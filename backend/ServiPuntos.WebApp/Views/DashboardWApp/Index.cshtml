@@ -109,37 +109,35 @@
             <div class="col-6 mb-3">
                 <div class="card bg-success text-white h-100">
                     <div class="card-body">
+                        <h5 class="card-title">Usuarios Totales</h5>
+                        <p class="card-text display-6" id="usuariosTotales"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 mb-3">
+                <div class="card bg-success text-dark h-100">
+                    <div class="card-body">
                         <h5 class="card-title">Usuarios Finales</h5>
                         <p class="card-text display-6" id="usuariosFinales"></p>
                     </div>
                 </div>
             </div>
-            
+
+            <div class="col-6 mb-3">
+                <div class="card bg-success text-dark h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Tenants Registrados</h5>
+                        <p class="card-text display-6" id="tenantsTotales"></p>
+                    </div>
+                </div>
+            </div>
+
             <div class="col-6 mb-3">
                 <div class="card bg-success text-dark h-100">
                     <div class="card-body">
                         <h5 class="card-title">Dinero Generado</h5>
                         <p class="card-text display-6" id="dineroGenerado"></p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-6 mb-3">
-                <div class="card bg-success text-dark h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">Otr ametrica</h5>
-                        <p class="card-text display-6">El dinero generado es usuarios finales x 10.</p>
-                        <p class="card-text display-6" id=""></p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-6 mb-3">
-                <div class="card bg-success text-dark h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">Dinero Generado</h5>
-                        <p class="card-text display-6">No se que mas metricas agregar</p>
-                        <p class="card-text display-6" id=""></p>
                     </div>
                 </div>
             </div>
@@ -415,6 +413,7 @@
 
 <!-- JavaScript para la funcionalidad de actualizar valor de puntos -->
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
     function actualizarValorPuntos() {
         const inputValor = document.getElementById('nuevoValorPuntos').value;
@@ -674,6 +673,50 @@
         const formConfig = document.getElementById('configuracionForm');
         if (formConfig) {
             formConfig.addEventListener('submit', guardarConfiguracion);
+        }
+
+        // Datos para métricas y gráfica (solo AdminPlataforma)
+        const chartCanvas = document.getElementById('usuariosPorTenant');
+        if (chartCanvas) {
+            const tenants = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Tenants ?? new string[0]));
+            const cantidadTenants = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.CantidadesTenants ?? new int[0]));
+            const roles = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Roles ?? new string[0]));
+            const cantidadesRoles = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Cantidades ?? new int[0]));
+
+            const totalUsuarios = cantidadesRoles.reduce((a, b) => a + b, 0);
+            const idxFinal = roles.indexOf('UsuarioFinal');
+            const usuariosFinales = idxFinal !== -1 ? cantidadesRoles[idxFinal] : 0;
+            const dineroGenerado = usuariosFinales * 10;
+
+            if (document.getElementById('usuariosTotales')) {
+                document.getElementById('usuariosTotales').textContent = totalUsuarios;
+            }
+            if (document.getElementById('usuariosFinales')) {
+                document.getElementById('usuariosFinales').textContent = usuariosFinales;
+            }
+            if (document.getElementById('tenantsTotales')) {
+                document.getElementById('tenantsTotales').textContent = tenants.length;
+            }
+            if (document.getElementById('dineroGenerado')) {
+                document.getElementById('dineroGenerado').textContent = `$${dineroGenerado.toFixed(2)}`;
+            }
+
+            new Chart(chartCanvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: tenants,
+                    datasets: [{
+                        label: 'Usuarios',
+                        data: cantidadTenants,
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
         }
     });
     </script>
