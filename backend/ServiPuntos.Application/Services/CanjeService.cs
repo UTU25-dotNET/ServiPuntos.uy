@@ -147,7 +147,7 @@ namespace ServiPuntos.Application.Services
             }
 
             // Verificar que el canje no ha expirado
-            if (canje.FechaExpiracion < DateTime.Now)
+            if (canje.FechaExpiracion < DateTime.UtcNow)
             {
                 throw new Exception("El código de canje ha expirado");
             }
@@ -166,7 +166,7 @@ namespace ServiPuntos.Application.Services
 
             // Actualizar el estado del canje
             canje.Estado = EstadoCanje.Canjeado;
-            canje.FechaCanje = DateTime.Now;
+            canje.FechaCanje = DateTime.UtcNow;
 
             // Guardar cambios
             await _canjeRepository.UpdateAsync(canje);
@@ -182,7 +182,7 @@ namespace ServiPuntos.Application.Services
                 return false;
             }
 
-            return canje.Estado == EstadoCanje.Generado && canje.FechaExpiracion > DateTime.Now;
+            return canje.Estado == EstadoCanje.Generado && canje.FechaExpiracion > DateTime.UtcNow;
         }
 
         private string GenerarCodigoQRUnico()
