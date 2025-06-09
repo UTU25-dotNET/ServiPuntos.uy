@@ -8,7 +8,6 @@ const DocumentVerification = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [userData, setUserData] = useState(null);
-    const [debugInfo, setDebugInfo] = useState("");
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -46,8 +45,6 @@ const DocumentVerification = () => {
             const userData = decoded.payload || decoded;
             setUserData(userData);
 
-            // Mostrar información de debug
-            setDebugInfo(`Token recibido: ${token.substring(0, 20)}...`);
 
         } catch (err) {
             // En lugar de redirigir inmediatamente, mostramos el error y permitimos continuar
