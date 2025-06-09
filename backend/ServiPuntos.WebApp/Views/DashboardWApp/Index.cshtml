@@ -284,7 +284,34 @@
                                 </div>
                             </div>
                         </div>
-                        
+
+                        <div class="row align-items-end mt-4">
+                            <div class="col-md-3 mb-2">
+                                <label for="tasaCombustible" class="form-label">Tasa Combustible</label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="tasaCombustible" value="@(miTenant.TasaCombustible.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="tasaMinimercado" class="form-label">Tasa Minimercado</label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="tasaMinimercado" value="@(miTenant.TasaMinimercado.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="tasaServicios" class="form-label">Tasa Servicios</label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="tasaServicios" value="@(miTenant.TasaServicios.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="diasCaducidad" class="form-label">Días Caducidad</label>
+                                <input type="number" step="1" min="1" class="form-control" id="diasCaducidad" value="@miTenant.DiasCaducidadPuntos">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-12 text-end">
+                                <button type="button" class="btn btn-primary" id="btnActualizarPoliticas" onclick="actualizarPoliticas()">
+                                    <i class="fas fa-save me-1"></i>
+                                    Actualizar Políticas
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Ejemplos informativos -->
                         <div class="mt-3 pt-3 border-top">
                             <small class="text-muted">
@@ -492,7 +519,56 @@
         })
         .finally(() => {
             btnNombre.disabled = false;
-            btnNombre.innerHTML = '<i class="fas fa-save me-1"></i>Actualizar';
+        btnNombre.innerHTML = '<i class="fas fa-save me-1"></i>Actualizar';
+    });
+    }
+
+    function actualizarPoliticas() {
+        const btn = document.getElementById('btnActualizarPoliticas');
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+
+        const tasaCombustible = document.getElementById('tasaCombustible').value.replace(',', '.');
+        const tasaMinimercado = document.getElementById('tasaMinimercado').value.replace(',', '.');
+        const tasaServicios = document.getElementById('tasaServicios').value.replace(',', '.');
+        const diasCaducidad = document.getElementById('diasCaducidad').value;
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Actualizando...';
+
+        const params = new URLSearchParams();
+        params.append('tasaCombustible', tasaCombustible);
+        params.append('tasaMinimercado', tasaMinimercado);
+        params.append('tasaServicios', tasaServicios);
+        params.append('diasCaducidad', diasCaducidad);
+        params.append('__RequestVerificationToken', token);
+
+        fetch('@Url.Action("ActualizarPoliticas", "DashboardWApp")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': token
+            },
+            body: params.toString()
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('tasaCombustible').value = data.tasaCombustible;
+                document.getElementById('tasaMinimercado').value = data.tasaMinimercado;
+                document.getElementById('tasaServicios').value = data.tasaServicios;
+                document.getElementById('diasCaducidad').value = data.diasCaducidad;
+                mostrarMensaje(data.message, 'success');
+            } else {
+                mostrarMensaje(data.message, 'danger');
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            mostrarMensaje('Error de conexión. Por favor, intente nuevamente.', 'danger');
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save me-1"></i>Actualizar Políticas';
         });
     }
 
