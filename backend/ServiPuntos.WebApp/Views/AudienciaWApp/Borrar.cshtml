@@ -1,0 +1,35 @@
+@model ServiPuntos.Core.Entities.Audiencia
+@{
+    ViewData["Title"] = "Eliminar Audiencia";
+    var tenantNombre = ViewBag.TenantNombre as string ?? string.Empty;
+    var usuariosAfectados = ViewBag.UsuariosAfectados as int? ?? 0;
+}
+
+<h1 class="mb-4">@ViewData["Title"]</h1>
+
+<div class="alert alert-danger">
+    <strong>¿Está seguro que desea eliminar esta audiencia?</strong>
+    <p>Esta acción no se puede deshacer. Usuarios afectados: @usuariosAfectados</p>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">
+        <h4>@Model.NombreDescriptivo</h4>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID:</dt>
+            <dd class="col-sm-9">@Model.Id</dd>
+            <dt class="col-sm-3">Nombre Único:</dt>
+            <dd class="col-sm-9"><code>@Model.NombreUnicoInterno</code></dd>
+            <dt class="col-sm-3">Tenant:</dt>
+            <dd class="col-sm-9">@tenantNombre</dd>
+        </dl>
+    </div>
+</div>
+
+<form asp-action="Borrar" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+    <a asp-action="Index" asp-route-tenantId="@Model.TenantId" class="btn btn-secondary">Cancelar</a>
+</form>

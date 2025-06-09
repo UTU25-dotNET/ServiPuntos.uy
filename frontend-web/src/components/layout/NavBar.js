@@ -16,7 +16,6 @@ const NavBar = () => {
           const tenant = await apiService.getTenantInfo();
           setTenantInfo(tenant);
         } catch (err) {
-          console.error("Error al cargar información del tenant:", err);
           // No mostrar error en la UI, mantener el nombre por defecto
         }
       }

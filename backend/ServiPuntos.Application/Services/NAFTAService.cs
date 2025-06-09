@@ -126,6 +126,9 @@ namespace ServiPuntos.Application.Services
 
                     await _transaccionRepository.AddAsync(transaccionPendiente);
 
+                    payPalPayment.AdditionalData.TryGetValue("approval_url", out var urlObj);
+                    var approvalUrl = urlObj?.ToString();
+
                     return new RespuestaNAFTA
                     {
                         IdMensajeReferencia = mensaje.IdMensaje,
@@ -134,6 +137,7 @@ namespace ServiPuntos.Application.Services
                         Datos = new System.Collections.Generic.Dictionary<string, object>
                         {
                             { "paymentId", payPalPayment.PaymentId },
+                            { "approvalUrl", approvalUrl },
                             { "transaccionId", transaccionNAFTA.IdTransaccion },
                             { "montoPayPal", transaccionNAFTA.MontoPayPal },
                             { "puntosUtilizados", transaccionNAFTA.PuntosUtilizados }
@@ -350,6 +354,61 @@ namespace ServiPuntos.Application.Services
             catch (Exception ex)
             {
                 return CrearErrorRespuesta(mensaje.IdMensaje, $"Error al generar el canje: {ex.Message}");
+            }
+        }
+
+        public async Task<RespuestaNAFTA> GenerarCanjesAsync(MensajeNAFTA mensaje)
+        {
+            try
+            {
+                if (mensaje == null || !mensaje.Datos.ContainsKey("productoIds") || !mensaje.Datos.ContainsKey("usuarioId"))
+                {
+                    return CrearErrorRespuesta(mensaje.IdMensaje, "Formato de mensaje inválido");
+                }
+
+                List<Guid> productos;
+                try
+                {
+                    productos = JsonSerializer.Deserialize<List<Guid>>(JsonSerializer.Serialize(mensaje.Datos["productoIds"])) ?? new List<Guid>();
+                }
+                catch (Exception ex)
+                {
+                    return CrearErrorRespuesta(mensaje.IdMensaje, $"Error al deserializar productos: {ex.Message}");
+                }
+
+                if (!Guid.TryParse(mensaje.Datos["usuarioId"].ToString(), out Guid usuarioId))
+                {
+                    return CrearErrorRespuesta(mensaje.IdMensaje, "UsuarioId inválido");
+                }
+
+                var resultados = new List<object>();
+                foreach (var prodId in productos)
+                {
+                    try
+                    {
+                        var codigo = await _canjeService.GenerarCodigoCanjeAsync(usuarioId, prodId, mensaje.UbicacionId, mensaje.TenantId);
+                        resultados.Add(new { productoId = prodId, codigoQR = codigo });
+                    }
+                    catch (Exception ex)
+                    {
+                        resultados.Add(new { productoId = prodId, error = ex.Message });
+                    }
+                }
+
+                return new RespuestaNAFTA
+                {
+                    IdMensajeReferencia = mensaje.IdMensaje,
+                    Codigo = "OK",
+                    Mensaje = "Canjes generados",
+                    Datos = new Dictionary<string, object>
+                    {
+                        { "resultados", resultados }
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return CrearErrorRespuesta(mensaje.IdMensaje, $"Error al generar canjes: {ex.Message}");
             }
         }
 

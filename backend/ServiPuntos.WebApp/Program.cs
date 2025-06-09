@@ -8,11 +8,15 @@ using ServiPuntos.Infrastructure.MultiTenancy;
 using ServiPuntos.Infrastructure.Repositories;
 using ServiPuntos.Application.Services;
 using ServiPuntos.Application.Services.Rules;
+using ServiPuntos.WebApp.Services;
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Set QuestPDF license
+QuestPDF.Settings.License = LicenseType.Community;
 // -------------------------
 // Configuración de servicios
 // -------------------------
@@ -37,6 +41,7 @@ builder.Services.AddScoped<IUbicacionRepository, UbicacionRepository>();
 
 // ===== REPOSITORIOS NAFTA (solo los que definitivamente existen) =====
 builder.Services.AddScoped<ITransaccionRepository, TransaccionRepository>();
+builder.Services.AddScoped<ICanjeRepository, CanjeRepository>();
 
 // ===== REPOSITORIOS AUDIENCIA =====
 builder.Services.AddScoped<IAudienciaRepository, AudienciaRepository>();
@@ -46,9 +51,16 @@ builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IUbicacionService, UbicacionService>();
 
+builder.Services.AddScoped<IPuntosService, PuntosService>();
+builder.Services.AddScoped<IPointsRuleEngine, PointsRuleEngine>();
+
+builder.Services.AddScoped<ITransaccionService, TransaccionService>();
+builder.Services.AddScoped<ICanjeService, CanjeService>();
+
 // ===== SERVICIOS AUDIENCIA =====
 builder.Services.AddScoped<IAudienciaRuleEngine, AudienciaRuleEngine>();
 builder.Services.AddScoped<IAudienciaService, AudienciaService>();
+builder.Services.AddHostedService<ServiPuntos.WebApp.Services.AudienciaBackgroundService>();
 
 // ===== SERVICIOS PRODUCTO CANJEABLE =====
 builder.Services.AddScoped<IProductoCanjeableService, ProductoCanjeableService>();
@@ -57,6 +69,10 @@ builder.Services.AddScoped<IProductoCanjeableRepository, ProductoCanjeableReposi
 // ===== SERVICIOS PRODUCTO UBICACION =====
 builder.Services.AddScoped<IProductoUbicacionService, ProductoUbicacionService>();
 builder.Services.AddScoped<IProductoUbicacionRepository, ProductoUbicacionRepository>();
+
+// ===== CONFIGURACIÓN PLATAFORMA =====
+builder.Services.AddScoped<IConfigPlataformaRepository, ConfigPlataformaRepository>();
+builder.Services.AddScoped<IConfigPlataformaService, ConfigPlataformaService>();
 
 
 

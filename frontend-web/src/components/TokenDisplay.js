@@ -65,7 +65,6 @@ const TokenDisplay = () => {
         alert("Token copiado al portapapeles");
       })
       .catch((err) => {
-        console.error("Error al copiar:", err);
       });
   };
 

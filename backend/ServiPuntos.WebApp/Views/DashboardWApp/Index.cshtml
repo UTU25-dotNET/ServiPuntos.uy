@@ -1,3 +1,4 @@
+@using ServiPuntos.Core.Entities
 <div class="row">
 
         @if (User.IsInRole("AdminPlataforma"))
@@ -53,10 +54,10 @@
                         <h5 class="card-title text-white">Ubicaciones</h5>
                     </div>
                     <div class="card-footer d-flex align-items-center justify-content-between">
-                        <button class="btn btn-sm w-100 text-white" onclick="window.location.href='UbicacionWApp/Index'">
-                            Administracion de ubicaciones <i class="fas fa-angle-right ms-2"></i>
+                        <button class="btn btn-sm w-100 text-white" onclick="window.location.href='UbicacionWApp/GestionarUbicacion'">
+                            Gestionar Ubicacion <i class="fas fa-angle-right ms-2"></i>
                         </button>
-                        <small class="text-muted mt-1">falta pagina de ubicaciones</small>
+                        <small class="text-muted mt-1"></small>
                     </div>
                 </div>
             </div>
@@ -74,7 +75,156 @@
             </div>
         </div>
         }
+</div>
+@if (User.IsInRole("AdminUbicacion"))
+{
+    var miUbicacion = ViewBag.MiUbicacion as ServiPuntos.Core.Entities.Ubicacion;
+    var reporte = ViewBag.ReporteUbicacion as ServiPuntos.WebApp.Models.ReporteUbicacionViewModel;
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-gas-pump me-2"></i> Precios de Combustible
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Nafta Súper</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" step="0.01" class="form-control" id="precioSuper" value="@(miUbicacion?.PrecioNaftaSuper?.ToString("F2") ?? "0.00")" />
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Nafta Premium</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" step="0.01" class="form-control" id="precioPremium" value="@(miUbicacion?.PrecioNaftaPremium?.ToString("F2") ?? "0.00")" />
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Diesel</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" step="0.01" class="form-control" id="precioDiesel" value="@(miUbicacion?.PrecioDiesel?.ToString("F2") ?? "0.00")" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-primary" onclick="actualizarPrecios()">
+                            <i class="fas fa-save me-1"></i> Guardar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
+    @if (reporte != null)
+    {
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card bg-light h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Transacciones</h5>
+                        <p class="card-text fs-4">@reporte.TotalTransacciones</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-light h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Monto Total</h5>
+                        <p class="card-text fs-4">$@reporte.MontoTotalTransacciones.ToString("F2")</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-light h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Canjes Generados</h5>
+                        <p class="card-text fs-4">@reporte.TotalCanjes</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-light h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Canjes Completados</h5>
+                        <p id="canjesCompletados" class="card-text fs-4">@reporte.CanjesCompletados</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+ <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-inbox me-2"></i> Canjes Pendientes</h5>
+                </div>
+                <div class="card-body">
+                    @Html.AntiForgeryToken()
+                    @{ var pendientes = ViewBag.CanjesPendientes as IEnumerable<Canje> ?? Enumerable.Empty<Canje>(); }
+                    @if (!pendientes.Any())
+                    {
+                        <p>No hay canjes pendientes.</p>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th><i class="fas fa-box me-1"></i> Producto</th>
+                                        <th><i class="fas fa-user me-1"></i> Usuario</th>
+                                        <th><i class="fas fa-clock me-1"></i> Generado</th>
+                                        <th><i class="fas fa-hourglass-end me-1"></i> Expira</th>
+                                        <th class="text-end">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                @foreach (var c in pendientes)
+                                {
+                                    <tr id="canje-@c.Id" data-codigo="@c.CodigoQR" data-expira="@c.FechaExpiracion.ToString("g")">
+                                        <td>@c.ProductoCanjeable?.Nombre</td>
+                                        <td>@c.Usuario?.Nombre</td>
+                                        <td>@c.FechaGeneracion.ToString("g")</td>
+                                        <td>@c.FechaExpiracion.ToString("g")</td>
+                                        <td class="text-end">
+                                            <button type="button" class="btn btn-info btn-sm me-1" onclick="verQR('@c.Id')"><i class="fas fa-qrcode"></i></button>
+                                            <button type="button" class="btn btn-success btn-sm" onclick="confirmarCanje('@c.Id')">Confirmar</button>
+                                        </td>
+                                    </tr>
+                                }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        </div>
+<!-- Modal para visualizar código QR -->
+<div class="modal fade" id="qrModal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="qrModalLabel">Código QR</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="qrContainer" class="mb-3"></div>
+                <p id="qrCodigo" class="fw-bold"></p>
+                <p class="text-muted" id="qrExpira"></p>
+            </div>
+        </div>
+    </div>
+    </div>
+    }
 @if (User.IsInRole("AdminPlataforma"))
     {
          <div class="row">
@@ -109,12 +259,30 @@
             <div class="col-6 mb-3">
                 <div class="card bg-success text-white h-100">
                     <div class="card-body">
+                        <h5 class="card-title">Usuarios Totales</h5>
+                        <p class="card-text display-6" id="usuariosTotales"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 mb-3">
+                <div class="card bg-success text-dark h-100">
+                    <div class="card-body">
                         <h5 class="card-title">Usuarios Finales</h5>
                         <p class="card-text display-6" id="usuariosFinales"></p>
                     </div>
                 </div>
             </div>
-            
+
+            <div class="col-6 mb-3">
+                <div class="card bg-success text-dark h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Tenants Registrados</h5>
+                        <p class="card-text display-6" id="tenantsTotales"></p>
+                    </div>
+                </div>
+            </div>
+
             <div class="col-6 mb-3">
                 <div class="card bg-success text-dark h-100">
                     <div class="card-body">
@@ -123,29 +291,11 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="col-6 mb-3">
-                <div class="card bg-success text-dark h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">Otr ametrica</h5>
-                        <p class="card-text display-6">El dinero generado es usuarios finales x 10.</p>
-                        <p class="card-text display-6" id=""></p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-6 mb-3">
-                <div class="card bg-success text-dark h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">Dinero Generado</h5>
-                        <p class="card-text display-6">No se que mas metricas agregar</p>
-                        <p class="card-text display-6" id=""></p>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
+
+
 
 <button type="button" class="btn btn-outline-primary mb-3" data-bs-toggle="modal" data-bs-target="#configModal">
     Configurar Plataforma
@@ -161,15 +311,15 @@
                 <form id="configuracionForm">
                     <div class="mb-3">
                         <label for="expiracionSesion" class="form-label">Tiempo de expiración de sesión (minutos)</label>
-                        <input type="number" class="form-control" id="expiracionSesion" name="expiracionSesion" min="1">
+                        <input type="number" class="form-control" id="expiracionSesion" name="expiracionSesion" min="1" value="@((ViewBag.ConfigPlataforma as ServiPuntos.Core.Entities.ConfigPlataforma)?.TiempoExpiracion ?? 0)">
                     </div>
                     <div class="mb-3">
                         <label for="maxIntentos" class="form-label">Cantidad máxima de intentos fallidos de login</label>
-                        <input type="number" class="form-control" id="maxIntentos" name="maxIntentos" min="1">
+                        <input type="number" class="form-control" id="maxIntentos" name="maxIntentos" min="1" value="@((ViewBag.ConfigPlataforma as ServiPuntos.Core.Entities.ConfigPlataforma)?.MaximoIntentosLogin ?? 0)">
                     </div>
                     <div class="mb-3">
                         <label for="largoMinimo" class="form-label">Largo mínimo de la contraseña</label>
-                        <input type="number" class="form-control" id="largoMinimo" name="largoMinimo" min="1">
+                        <input type="number" class="form-control" id="largoMinimo" name="largoMinimo" min="1" value="@((ViewBag.ConfigPlataforma as ServiPuntos.Core.Entities.ConfigPlataforma)?.LargoMinimoPassword ?? 0)">
                     </div>
                     <div class="mb-3">
                         <label for="campo4" class="form-label">Campo 4</label>
@@ -191,6 +341,22 @@
 
 
 
+</div>
+<!-- Modal para visualizar código QR -->
+<div class="modal fade" id="qrModal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="qrModalLabel">Código QR</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="qrContainer" class="mb-3"></div>
+                <p id="qrCodigo" class="fw-bold"></p>
+                <p class="text-muted" id="qrExpira"></p>
+            </div>
+        </div>
+    </div>
 </div>
     }
 
@@ -227,11 +393,11 @@
                                         <p class="text-muted mb-0">Valor actual por punto</p>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-flex gap-2 align-items-center">
-                                    <div class="input-group" style="max-width: 200px;">
-                                        <span class="input-group-text">$</span>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2 align-items-center">
+                                <div class="input-group" style="max-width: 200px;">
+                                    <span class="input-group-text">$</span>
                                         <input type="number" 
                                                class="form-control" 
                                                id="nuevoValorPuntos" 
@@ -243,8 +409,8 @@
                                                value="@(miTenant.ValorPunto.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))"
                                                title="Ingrese un valor entre $0.01 y $1000.00">
                                     </div>
-                                    <button type="button" 
-                                            class="btn btn-primary" 
+                                    <button type="button"
+                                            class="btn btn-primary"
                                             id="btnActualizarValor"
                                             onclick="actualizarValorPuntos()">
                                         <i class="fas fa-save me-1"></i>
@@ -253,7 +419,65 @@
                                 </div>
                             </div>
                         </div>
-                        
+
+                        <div class="row align-items-center mt-4">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-info rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                        <i class="fas fa-tag text-white" style="font-size: 20px;"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="mb-1"><span id="nombrePuntosActual">@miTenant.NombrePuntos</span></h3>
+                                        <p class="text-muted mb-0">Nombre actual de los puntos</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex gap-2 align-items-center">
+                                    <input type="text"
+                                           class="form-control"
+                                           id="nuevoNombrePuntos"
+                                           style="max-width: 200px;"
+                                           value="@miTenant.NombrePuntos"
+                                           placeholder="Nombre de puntos">
+                                    <button type="button"
+                                            class="btn btn-primary"
+                                            id="btnActualizarNombre"
+                                            onclick="actualizarNombrePuntos()">
+                                        <i class="fas fa-save me-1"></i>
+                                        Actualizar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row align-items-end mt-4">
+                            <div class="col-md-3 mb-2">
+                                <label for="tasaCombustible" class="form-label">Tasa Combustible</label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="tasaCombustible" value="@(miTenant.TasaCombustible.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="tasaMinimercado" class="form-label">Tasa Minimercado</label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="tasaMinimercado" value="@(miTenant.TasaMinimercado.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="tasaServicios" class="form-label">Tasa Servicios</label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="tasaServicios" value="@(miTenant.TasaServicios.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="diasCaducidad" class="form-label">Días Caducidad</label>
+                                <input type="number" step="1" min="1" class="form-control" id="diasCaducidad" value="@miTenant.DiasCaducidadPuntos">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-12 text-end">
+                                <button type="button" class="btn btn-primary" id="btnActualizarPoliticas" onclick="actualizarPoliticas()">
+                                    <i class="fas fa-save me-1"></i>
+                                    Actualizar Políticas
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Ejemplos informativos -->
                         <div class="mt-3 pt-3 border-top">
                             <small class="text-muted">
@@ -283,6 +507,49 @@
             </div>
         </div>
     </div>
+
+    <!-- Acciones rápidas -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100" style="background-color:@(miTenant?.Color ?? "#0d6efd")">
+                <div class="card-body">
+                    <h5 class="card-title text-white">Audiencias</h5>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <button class="btn btn-sm w-100 text-white" style="background-color:@(miTenant?.Color ?? "#0d6efd")" onclick="window.location.href='AudienciaWApp/Index'">
+                        Administración de Audiencias <i class="fas fa-angle-right ms-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100" style="background-color:@(miTenant?.Color ?? "#0d6efd")">
+                <div class="card-body">
+                    <h5 class="card-title text-white">Productos</h5>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <button class="btn btn-sm w-100 text-white" style="background-color:@(miTenant?.Color ?? "#0d6efd")" onclick="window.location.href='ProductoCanjeableWApp/Index'">
+                        Gestión de Productos <i class="fas fa-angle-right ms-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100" style="background-color:@(miTenant?.Color ?? "#0d6efd")">
+                <div class="card-body">
+                    <h5 class="card-title text-white">Estadísticas y Reportes</h5>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <button class="btn btn-sm w-100 text-white" style="background-color:@(miTenant?.Color ?? "#0d6efd")" onclick="window.location.href='@Url.Action("Reportes","DashboardWApp")'">
+                        Ver Reportes <i class="fas fa-angle-right ms-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Sección existente de Ubicaciones -->
     <div class="row">
@@ -357,6 +624,7 @@
 
 <!-- JavaScript para la funcionalidad de actualizar valor de puntos -->
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
     function actualizarValorPuntos() {
         const inputValor = document.getElementById('nuevoValorPuntos').value;
@@ -419,8 +687,259 @@
         });
     }
 
+    function actualizarNombrePuntos() {
+        const inputNombre = document.getElementById('nuevoNombrePuntos').value.trim();
+        const btnNombre = document.getElementById('btnActualizarNombre');
+
+        if (!inputNombre) {
+            mostrarMensaje('El nombre de los puntos no puede estar vacío', 'danger');
+            return;
+        }
+
+        if (inputNombre.length > 50) {
+            mostrarMensaje('El nombre de los puntos es demasiado largo', 'danger');
+            return;
+        }
+
+        btnNombre.disabled = true;
+        btnNombre.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Actualizando...';
+
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+
+        fetch('@Url.Action("ActualizarNombrePuntos", "DashboardWApp")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': token
+            },
+            body: `nombrePuntos=${encodeURIComponent(inputNombre)}&__RequestVerificationToken=${encodeURIComponent(token)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('nombrePuntosActual').textContent = data.nuevoNombre;
+                mostrarMensaje(data.message, 'success');
+            } else {
+                mostrarMensaje(data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            mostrarMensaje('Error de conexión. Por favor, intente nuevamente.', 'danger');
+        })
+        .finally(() => {
+            btnNombre.disabled = false;
+        btnNombre.innerHTML = '<i class="fas fa-save me-1"></i>Actualizar';
+    });
+    }
+
+    function actualizarPoliticas() {
+        const btn = document.getElementById('btnActualizarPoliticas');
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+
+        const tasaCombustible = document.getElementById('tasaCombustible').value.replace(',', '.');
+        const tasaMinimercado = document.getElementById('tasaMinimercado').value.replace(',', '.');
+        const tasaServicios = document.getElementById('tasaServicios').value.replace(',', '.');
+        const diasCaducidad = document.getElementById('diasCaducidad').value;
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Actualizando...';
+
+        const params = new URLSearchParams();
+        params.append('tasaCombustible', tasaCombustible);
+        params.append('tasaMinimercado', tasaMinimercado);
+        params.append('tasaServicios', tasaServicios);
+        params.append('diasCaducidad', diasCaducidad);
+        params.append('__RequestVerificationToken', token);
+
+        fetch('@Url.Action("ActualizarPoliticas", "DashboardWApp")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': token
+            },
+            body: params.toString()
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('tasaCombustible').value = data.tasaCombustible;
+                document.getElementById('tasaMinimercado').value = data.tasaMinimercado;
+                document.getElementById('tasaServicios').value = data.tasaServicios;
+                document.getElementById('diasCaducidad').value = data.diasCaducidad;
+                mostrarMensaje(data.message, 'success');
+            } else {
+                mostrarMensaje(data.message, 'danger');
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            mostrarMensaje('Error de conexión. Por favor, intente nuevamente.', 'danger');
+        })
+        .finally(() => {
+            btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save me-1"></i>Actualizar Políticas';
+        });
+    }
+
+    function actualizarPrecios() {
+        const precioSuper = document.getElementById('precioSuper').value.replace(',', '.');
+        const precioPremium = document.getElementById('precioPremium').value.replace(',', '.');
+        const precioDiesel = document.getElementById('precioDiesel').value.replace(',', '.');
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+
+        fetch('@Url.Action("ActualizarPreciosCombustible", "DashboardWApp")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': token
+            },
+            body: `precioSuper=${precioSuper}&precioPremium=${precioPremium}&precioDiesel=${precioDiesel}&__RequestVerificationToken=${encodeURIComponent(token)}`
+        })
+        .then(r => r.json())
+        .then(data => {
+            mostrarMensaje(data.message, data.success ? 'success' : 'danger');
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            mostrarMensaje('Error de conexión. Por favor, intente nuevamente.', 'danger');
+        });
+    }
+
+    function verQR(canjeId) {
+        const fila = document.getElementById('canje-' + canjeId);
+        if (!fila) return;
+
+        const codigo = fila.getAttribute('data-codigo');
+        const expira = fila.getAttribute('data-expira');
+
+        const qrContainer = document.getElementById('qrContainer');
+        qrContainer.innerHTML = '';
+        if (window.QRious) {
+            const qr = new QRious({
+                element: document.createElement('canvas'),
+                value: codigo,
+                size: 200
+            });
+            qrContainer.appendChild(qr.element);
+        } else if (window.QRCode) {
+            new QRCode(qrContainer, { text: codigo, width: 200, height: 200 });
+        } else {
+            qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(codigo)}" alt="QR"/>`;
+        }
+
+
+
+        const codigoEl = document.getElementById('qrCodigo');
+        if (codigoEl) {
+            codigoEl.textContent = codigo;
+        }
+
+        document.getElementById('qrExpira').textContent = 'Expira: ' + expira;
+        const modalEl = document.getElementById('qrModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+
+    function confirmarCanje(canjeId) {
+        const modalQr = document.getElementById('qrModal');
+        if (modalQr) {
+            bootstrap.Modal.getInstance(modalQr)?.hide();
+        }
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+        fetch('@Url.Action("ConfirmarCanje", "DashboardWApp")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': token
+            },
+            body: `canjeId=${encodeURIComponent(canjeId)}&__RequestVerificationToken=${encodeURIComponent(token)}`
+        })
+        .then(r => {
+            if (!r.ok) throw new Error('Solicitud falló');
+            return r.json();
+        })
+        .then(data => {
+            mostrarMensaje(data.message, data.success ? 'success' : 'danger');
+            if (data.success) {
+                const fila = document.getElementById('canje-' + canjeId);
+                if (fila) fila.remove();
+
+                const contador = document.getElementById('canjesCompletados');
+                if (contador) {
+                    const val = parseInt(contador.textContent) || 0;
+                    contador.textContent = val + 1;
+                }
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            mostrarMensaje('Error de conexión. Por favor, intente nuevamente.', 'danger');
+        });
+    }
+
+
+    function guardarConfiguracion(e) {
+        e.preventDefault();
+        const btn = document.querySelector('#configuracionForm button[type="submit"]') || e.submitter;
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+
+        const expiracionSesion = document.getElementById('expiracionSesion').value;
+        const maxIntentos = document.getElementById('maxIntentos').value;
+        const largoMinimo = document.getElementById('largoMinimo').value;
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Guardando...';
+        }
+
+        const params = new URLSearchParams();
+        params.append('expiracionSesion', expiracionSesion);
+        params.append('maxIntentos', maxIntentos);
+        params.append('largoMinimo', largoMinimo);
+        params.append('__RequestVerificationToken', token);
+
+        fetch('@Url.Action("CambiarConfiguracion", "DashboardWApp")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': token
+            },
+            body: params.toString()
+        })
+        .then(r => r.json())
+        .then(data => {
+            mostrarMensaje(data.message, data.success ? 'success' : 'danger');
+            if (data.success) {
+                const modalEl = document.getElementById('configModal');
+                if (modalEl) {
+                    bootstrap.Modal.getInstance(modalEl)?.hide();
+                }
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            mostrarMensaje('Error de conexión. Por favor, intente nuevamente.', 'danger');
+        })
+        .finally(() => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = 'Guardar Configuración';
+            }
+        });
+    }
+
     function mostrarMensaje(mensaje, tipo) {
-        const mensajeDiv = document.getElementById('mensajeEstado');
+        let mensajeDiv = document.getElementById('mensajeEstado');
+        if (!mensajeDiv) {
+            mensajeDiv = document.createElement('div');
+            mensajeDiv.id = 'mensajeEstado';
+            mensajeDiv.style.position = 'fixed';
+            mensajeDiv.style.top = '1rem';
+            mensajeDiv.style.right = '1rem';
+            mensajeDiv.style.zIndex = '1055';
+            document.body.appendChild(mensajeDiv);
+        }
         mensajeDiv.className = `alert alert-${tipo} alert-dismissible fade show`;
         mensajeDiv.innerHTML = `
             <i class="fas fa-${tipo === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
@@ -464,6 +983,55 @@
                     btn.disabled = false;
                     btn.classList.remove('btn-secondary');
                     btn.classList.add('btn-primary');
+                }
+            });
+        }
+
+        const formConfig = document.getElementById('configuracionForm');
+        if (formConfig) {
+            formConfig.addEventListener('submit', guardarConfiguracion);
+        }
+
+        // Datos para métricas y gráfica (solo AdminPlataforma)
+        const chartCanvas = document.getElementById('usuariosPorTenant');
+        if (chartCanvas) {
+            const tenants = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Tenants ?? new string[0]));
+            const cantidadTenants = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.CantidadesTenants ?? new int[0]));
+            const roles = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Roles ?? new string[0]));
+            const cantidadesRoles = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Cantidades ?? new int[0]));
+
+            const totalUsuarios = cantidadesRoles.reduce((a, b) => a + b, 0);
+            const idxFinal = roles.indexOf('UsuarioFinal');
+            const usuariosFinales = idxFinal !== -1 ? cantidadesRoles[idxFinal] : 0;
+            const dineroGenerado = usuariosFinales * 10;
+
+            if (document.getElementById('usuariosTotales')) {
+                document.getElementById('usuariosTotales').textContent = totalUsuarios;
+            }
+            if (document.getElementById('usuariosFinales')) {
+                document.getElementById('usuariosFinales').textContent = usuariosFinales;
+            }
+            if (document.getElementById('tenantsTotales')) {
+                document.getElementById('tenantsTotales').textContent = tenants.length;
+            }
+            if (document.getElementById('dineroGenerado')) {
+                document.getElementById('dineroGenerado').textContent = `$${dineroGenerado.toFixed(2)}`;
+            }
+
+            new Chart(chartCanvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: tenants,
+                    datasets: [{
+                        label: 'Usuarios',
+                        data: cantidadTenants,
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
                 }
             });
         }
