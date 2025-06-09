@@ -45,7 +45,7 @@ const Perfil = () => {
         }
 
         // Obtener datos básicos del usuario desde el token
-        const userData = authService.getCurrentUser();
+        
 
         // Cargar los datos completos del perfil desde el backend usando email
         const fullProfile = await apiService.getUserProfile();
