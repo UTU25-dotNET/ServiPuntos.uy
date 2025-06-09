@@ -1,60 +1,93 @@
+using System;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.Controls.Hosting;
+using Microsoft.Maui.Hosting;
+using Microsoft.Maui.Controls.Maps;
 using ServiPuntos.Mobile.Services;
-using ServiPuntos.Mobile.Views;
 using ServiPuntos.Mobile.ViewModels;
+using ServiPuntos.Mobile.Views;
 using static ServiPuntos.Mobile.Services.AppLogger;
 
-namespace ServiPuntos.Mobile;
-
-public static class MauiProgram
+namespace ServiPuntos.Mobile
 {
-	public static MauiApp CreateMauiApp()
+	public static class MauiProgram
 	{
-		var builder = MauiApp.CreateBuilder();
-		builder
-			.UseMauiApp<App>()
-			.ConfigureFonts(fonts =>
-			{
-				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-			});
-
-		builder.Services.AddHttpClient<AuthService>(client =>
+		public static MauiApp CreateMauiApp()
 		{
-			// Configurar el cliente HTTP para usar la URL de la API
-			//client.BaseAddress = new Uri("https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth");
-			//client.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
-			client.Timeout = TimeSpan.FromSeconds(60); // Configurar timeout de 30 segundos
-			client.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
-		});
-		
-			builder.Services.AddTransient<LoginViewModel>();
-			builder.Services.AddHttpClient<IAuthService, AuthService>();
-        	builder.Services.AddSingleton<IAuthService, AuthService>();
+			var builder = MauiApp.CreateBuilder();
 
-			//builder.Services.AddTransient<TenantSelectorViewModel>();
-			builder.Services.AddTransient<TokenDisplayPage>();
-        	builder.Services.AddTransient<LoginPage>();
+			builder
+				.UseMauiApp<App>()
+				.UseMauiMaps()
+				.ConfigureFonts(fonts =>
+				{
+					fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+					fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+				});
 
 #if DEBUG
-		builder.Logging.AddDebug();
-		builder.Logging.SetMinimumLevel(LogLevel.Debug);
+            var apiBase = "http://10.0.2.2:5019/api/";
+#else
+			var apiBase = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/";
 #endif
 
-		var app = builder.Build();
-		
-		// Inicializar nuestro logger personalizado
-		var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
-		var logger = loggerFactory.CreateLogger("ServiPuntos");
-		AppLogger.Initialize(logger);
-		
-		// Log de inicio
-		AppLogger.LogInfo("🚀 ServiPuntos Mobile - Sistema de logging inicializado");
-		AppLogger.LogDebug("🔧 Modo DEBUG activo");
 
-		return app;
+			builder.Services.AddHttpClient<IAuthService, AuthService>(client =>
+			{
+				client.BaseAddress = new Uri($"{apiBase}auth/");
+				client.Timeout = TimeSpan.FromSeconds(60);
+				client.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
+			});
+
+
+			builder.Services.AddHttpClient<IUbicacionService, UbicacionService>(client =>
+			{
+				client.BaseAddress = new Uri($"{apiBase}ubicacion/");
+				client.Timeout = TimeSpan.FromSeconds(60);
+				client.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
+			});
+
+
+			builder.Services.AddHttpClient<IProductoService, ProductoService>(client =>
+			{
+				client.BaseAddress = new Uri($"{apiBase}productoCanjeable/");
+				client.Timeout = TimeSpan.FromSeconds(60);
+				client.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
+			});
+
+
+			builder.Services.AddHttpClient<ICanjeService, CanjeService>(client =>
+			{
+				client.BaseAddress = new Uri($"{apiBase}nafta/");
+				client.Timeout = TimeSpan.FromSeconds(60);
+				client.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
+			});
+
+
+			builder.Services.AddTransient<LoginViewModel>();
+			builder.Services.AddTransient<HomeViewModel>();
+			builder.Services.AddTransient<CanjeViewModel>();
+
+
+			builder.Services.AddSingleton<TokenDisplayPage>();
+			builder.Services.AddTransient<LoginPage>();
+			builder.Services.AddTransient<HomePage>();
+			builder.Services.AddTransient<CanjePage>();
+
+#if DEBUG
+            builder.Logging.AddDebug();
+            builder.Logging.SetMinimumLevel(LogLevel.Debug);
+#endif
+
+			var app = builder.Build();
+
+
+			var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
+			Initialize(loggerFactory.CreateLogger("ServiPuntos"));
+			LogInfo("🚀 ServiPuntos Mobile - Logger inicializado");
+			LogDebug("🔧 Modo DEBUG activo");
+
+			return app;
+		}
 	}
 }
-
-
-
