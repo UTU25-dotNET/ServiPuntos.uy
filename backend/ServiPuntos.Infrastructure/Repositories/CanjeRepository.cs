@@ -73,8 +73,20 @@ namespace ServiPuntos.Infrastructure.Repositories
         public async Task<IEnumerable<Canje>> GetPendientesByUsuarioIdAsync(Guid usuarioId)
         {
             return await _context.Canjes
-                .Where(c => c.UsuarioId == usuarioId && c.Estado == EstadoCanje.Generado && c.FechaExpiracion > DateTime.Now)
+                .Where(c => c.UsuarioId == usuarioId && c.Estado == EstadoCanje.Generado && c.FechaExpiracion > DateTime.UtcNow)
                 .Include(c => c.Ubicacion)
+                .Include(c => c.ProductoCanjeable)
+                .OrderByDescending(c => c.FechaGeneracion)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Canje>> GetPendientesByUbicacionIdAsync(Guid ubicacionId)
+        {
+            return await _context.Canjes
+
+                .Where(c => c.UbicacionId == ubicacionId && c.Estado == EstadoCanje.Generado && c.FechaExpiracion > DateTime.UtcNow)
+
+                .Include(c => c.Usuario)
                 .Include(c => c.ProductoCanjeable)
                 .OrderByDescending(c => c.FechaGeneracion)
                 .ToListAsync();
