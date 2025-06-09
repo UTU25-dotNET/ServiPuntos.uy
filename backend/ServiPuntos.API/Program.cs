@@ -30,7 +30,12 @@ builder.Logging.SetMinimumLevel(LogLevel.Trace);
 builder.Logging.AddFilter("Microsoft.AspNetCore.Authentication", LogLevel.Trace);
 
 // Agregar controladores a la aplicaci�n
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(opts =>
+    {
+        opts.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        opts.JsonSerializerOptions.DictionaryKeyPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
 
 // Agregar servicios de Swagger para documentaci�n de API
 builder.Services.AddEndpointsApiExplorer();
