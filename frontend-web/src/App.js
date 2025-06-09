@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import NavBar from "./components/layout/NavBar";
 import Home from "./components/Home";
@@ -10,8 +10,13 @@ import EstacionesList from "./components/estaciones/EstacionesList";
 import PrivateRoute from "./components/PrivateRoute";
 import DocumentVerification from "./components/auth/DocumentVerification";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import authService from "./services/authService";
 
 function App() {
+  useEffect(() => {
+    authService.scheduleAutoLogout();
+  }, []);
+
   return (
     <GoogleOAuthProvider clientId="533296853256-9t4e46f2t6lpb9ioahpgls7u4aula259.apps.googleusercontent.com">
       <Router>

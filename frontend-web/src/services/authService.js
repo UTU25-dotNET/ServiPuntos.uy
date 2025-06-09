@@ -1,6 +1,36 @@
 import axios from "axios";
 import tokenUtils from "../utils/tokenUtils";
 
+let logoutTimer = null;
+
+const scheduleAutoLogout = () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    return;
+  }
+
+  try {
+    const decoded = tokenUtils.getUserFromToken(token);
+    if (!decoded || !decoded.exp) return;
+
+    const expiresInMs = decoded.exp * 1000 - Date.now();
+    if (expiresInMs <= 0) {
+      authService.logout();
+      return;
+    }
+
+    if (logoutTimer) {
+      clearTimeout(logoutTimer);
+    }
+
+    logoutTimer = setTimeout(() => {
+      authService.logout();
+    }, expiresInMs);
+  } catch (err) {
+    console.error("Error scheduling auto logout", err);
+  }
+};
+
 const API_URL = "https://localhost:5019/api/auth/";
 
 const authService = {
@@ -89,6 +119,7 @@ register: async (name, email, password, ci, tenantId) => {
         // Guardar el token en localStorage
         console.log("Token recibido:", token);
         localStorage.setItem('token', response.data.token);
+        scheduleAutoLogout();
       }
       // localStorage.setItem("token", token);
       return response.data;
@@ -133,6 +164,10 @@ register: async (name, email, password, ci, tenantId) => {
   logout: async () => {
     // Primero verificamos si el usuario se logueó con Google
     const token = localStorage.getItem("token");
+    if (logoutTimer) {
+      clearTimeout(logoutTimer);
+      logoutTimer = null;
+    }
     if (token) {
       try {
         const decodedToken = tokenUtils.getUserFromToken(token);
@@ -213,17 +248,25 @@ register: async (name, email, password, ci, tenantId) => {
     switch (tokenType) {
       case "user":
         localStorage.setItem("token", tokenUtils.userToken);
+        scheduleAutoLogout();
         return tokenUtils.userToken;
       case "admin":
         localStorage.setItem("token", tokenUtils.adminToken);
+        scheduleAutoLogout();
         return tokenUtils.adminToken;
       case "expired":
         localStorage.setItem("token", tokenUtils.expiredToken);
+        scheduleAutoLogout();
         return tokenUtils.expiredToken;
       default:
         return null;
     }
   },
+
+  scheduleAutoLogout,
 };
 
 export default authService;
+
+// Al cargar el servicio, programar cierre automático si existe un token
+scheduleAutoLogout();
