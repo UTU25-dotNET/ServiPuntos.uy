@@ -171,16 +171,7 @@ const Login = () => {
                 
                 {/* Error desde URL */}
                 {urlError && (
-                    <div className="url-error-message" style={{
-                        backgroundColor: "#fff3cd",
-                        border: "1px solid #ffeaa7",
-                        color: "#856404",
-                        padding: "12px",
-                        borderRadius: "6px",
-                        marginBottom: "1rem",
-                        textAlign: "center",
-                        fontSize: "14px"
-                    }}>
+                    <div className="error-message">
                         <strong>⚠️ {urlError}</strong>
                         {emailFromUrl && (
                             <div style={{ marginTop: "8px", fontSize: "12px" }}>
