@@ -51,10 +51,8 @@ const Login = () => {
 
     // **NUEVO: Cargar tenants cuando se cambia a modo registro**
     useEffect(() => {
-        console.log("useEffect ejecutándose - isRegisterMode:", isRegisterMode, "tenants.length:", tenants.length);
         
         if (isRegisterMode && tenants.length === 0) {
-            console.log("Llamando a loadTenants...");
             loadTenants();
         }
     }, [isRegisterMode]);
@@ -63,14 +61,11 @@ const Login = () => {
     const loadTenants = async () => {
         try {
             setLoadingTenants(true);
-            console.log("Cargando tenants desde el servicio...");
             
             const tenantsData = await authService.getTenants();
-            console.log("Tenants cargados:", tenantsData);
             
             setTenants(tenantsData);
         } catch (err) {
-            console.error("Error al cargar tenants:", err);
             setError("Error al cargar la lista de empresas: " + (err.message || "Error desconocido"));
         } finally {
             setLoadingTenants(false);

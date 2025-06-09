@@ -25,15 +25,12 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
     setError("");
     
     try {
-      console.log("Cargando productos para ubicación:", ubicacion.nombre);
       
       const productosData = await apiService.getProductosByUbicacion(ubicacion.id);
       setProductos(productosData);
       
-      console.log("Productos cargados:", productosData);
       
     } catch (err) {
-      console.error("Error al cargar productos:", err);
       setError(err.message);
       setProductos([]);
     } finally {
@@ -48,7 +45,6 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
       const result = await apiService.generarCanje(productoId, ubicacion.id);
       setCanjeQR(result?.datos?.codigoQR || null);
     } catch (err) {
-      console.error("Error generando canje:", err);
       setCanjeError(err.message);
     } finally {
       setCanjeLoading(false);
@@ -72,7 +68,6 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
       setQrCarrito(result?.datos?.resultados || []);
       setCarrito([]);
     } catch (err) {
-      console.error("Error generando canjes:", err);
       setCarritoError(err.message);
     } finally {
       setCarritoLoading(false);
