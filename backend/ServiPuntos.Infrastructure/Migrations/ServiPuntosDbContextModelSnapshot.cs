@@ -434,13 +434,22 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.Property<string>("Nombre")
                         .HasColumnType("text");
 
-                    b.Property<decimal>("PrecioDiesel")
+                    b.Property<decimal?>("PrecioCambioAceite")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal>("PrecioNaftaPremium")
+                    b.Property<decimal?>("PrecioCambioNeumaticos")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal>("PrecioNaftaSuper")
+                    b.Property<decimal?>("PrecioDiesel")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("PrecioLavado")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("PrecioNaftaPremium")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("PrecioNaftaSuper")
                         .HasColumnType("numeric");
 
                     b.Property<string>("Telefono")
@@ -540,6 +549,9 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.Property<int>("TotalVisitas")
                         .HasColumnType("integer");
 
+                    b.Property<Guid?>("UbicacionId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("UbicacionPreferida")
                         .HasColumnType("uuid");
 
@@ -558,6 +570,8 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("TenantId");
+
+                    b.HasIndex("UbicacionId");
 
                     b.ToTable("Usuarios");
                 });
@@ -706,7 +720,14 @@ namespace ServiPuntos.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ServiPuntos.Core.Entities.Ubicacion", "Ubicacion")
+                        .WithMany()
+                        .HasForeignKey("UbicacionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Tenant");
+
+                    b.Navigation("Ubicacion");
                 });
 
             modelBuilder.Entity("ServiPuntos.Core.Entities.Audiencia", b =>

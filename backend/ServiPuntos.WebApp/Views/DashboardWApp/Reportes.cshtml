@@ -1,0 +1,80 @@
+@model ServiPuntos.WebApp.Models.ReporteTenantViewModel
+@{
+    ViewData["Title"] = "Reportes";
+}
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-6">Reportes del Tenant</h1>
+        </div>
+    </div>
+
+    <div class="row mb-2">
+        <div class="col-12 text-end">
+            <a class="btn btn-danger" href="@Url.Action("DescargarReportePdf", "DashboardWApp")" target="_blank">
+                Descargar PDF
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-primary h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Transacciones</h5>
+                    <p class="card-text fs-4">@Model.TotalTransacciones</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-light h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Monto Total</h5>
+                    <p class="card-text fs-4">$@Model.MontoTotalTransacciones.ToString("F2")</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-light h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Canjes Generados</h5>
+                    <p class="card-text fs-4">@Model.TotalCanjes</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-light h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Canjes Completados</h5>
+                    <p class="card-text fs-4">@Model.CanjesCompletados</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <canvas id="graficaReporte" height="300"></canvas>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const datosReporte = {
+            labels: ['Transacciones', 'Canjes Generados', 'Canjes Completados'],
+            datasets: [{
+                label: 'Cantidad',
+                data: [@Model.TotalTransacciones, @Model.TotalCanjes, @Model.CanjesCompletados],
+                backgroundColor: ['#0d6efd', '#6c757d', '#198754']
+            }]
+        };
+        new Chart(document.getElementById('graficaReporte').getContext('2d'), {
+            type: 'bar',
+            data: datosReporte,
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    </script>
+}

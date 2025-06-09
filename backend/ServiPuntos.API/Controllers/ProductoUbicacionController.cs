@@ -34,6 +34,7 @@ namespace ServiPuntos.API.Controllers
                     id = pu.Id,
                     ubicacionId = pu.UbicacionId,
                     productoCanjeableId = pu.ProductoCanjeableId,
+                    precio = pu.Precio,
                     stockDisponible = pu.StockDisponible,
                     activo = pu.Activo,
                     productoCanjeable = pu.ProductoCanjeable != null ? new {
@@ -88,6 +89,7 @@ namespace ServiPuntos.API.Controllers
                         id = pu.Id,
                         ubicacionId = pu.UbicacionId,
                         productoCanjeableId = pu.ProductoCanjeableId,
+                        precio = pu.Precio,
                         stockDisponible = pu.StockDisponible,
                         activo = pu.Activo,
                         productoCanjeable = pu.ProductoCanjeable != null ? new {

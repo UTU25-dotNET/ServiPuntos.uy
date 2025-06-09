@@ -6,6 +6,8 @@
 @{
     var tenants = ViewBag.Tenants as IEnumerable<Tenant>
     ?? Enumerable.Empty<Tenant>();
+    var ubicaciones = ViewBag.Ubicaciones as IEnumerable<Ubicacion>
+        ?? Enumerable.Empty<Ubicacion>();
 }
 
 <h2>Crear Usuario</h2>
@@ -36,9 +38,10 @@
 			<option value="">-- Seleccione Rol --</option>
             <option value="AdminTenant">AdminTenant</option>
             <option value="AdminPlataforma">AdminPlataforma</option>
+            <option value="AdminUbicacion">AdminUbicacion</option>
             <option value="UsuarioFinal">UsuarioFinal</option>
-		</select>
-	</div>
+                </select>
+        </div>
 
     <div class="form-group">
         <label for="tenantId">Tenant</label>
@@ -47,6 +50,17 @@
             @foreach (var t in tenants)
             {
                 <option value="@t.Id">@t.Nombre</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="ubicacionId">Ubicación (solo para AdminUbicacion)</label>
+        <select name="ubicacionId" class="form-control">
+            <option value="">-- Seleccione Ubicación --</option>
+            @foreach (var u in ubicaciones)
+            {
+                <option value="@u.Id">@u.Nombre</option>
             }
         </select>
     </div>

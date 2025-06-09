@@ -51,26 +51,21 @@ const Login = () => {
 
     // **NUEVO: Cargar tenants cuando se cambia a modo registro**
     useEffect(() => {
-        console.log("useEffect ejecutándose - isRegisterMode:", isRegisterMode, "tenants.length:", tenants.length);
         
         if (isRegisterMode && tenants.length === 0) {
-            console.log("Llamando a loadTenants...");
             loadTenants();
         }
-    }, [isRegisterMode]);
+    }, [isRegisterMode, tenants.length]);
 
     // Ponemos esto para cargar los tenants en el registro
     const loadTenants = async () => {
         try {
             setLoadingTenants(true);
-            console.log("Cargando tenants desde el servicio...");
             
             const tenantsData = await authService.getTenants();
-            console.log("Tenants cargados:", tenantsData);
             
             setTenants(tenantsData);
         } catch (err) {
-            console.error("Error al cargar tenants:", err);
             setError("Error al cargar la lista de empresas: " + (err.message || "Error desconocido"));
         } finally {
             setLoadingTenants(false);
@@ -151,17 +146,6 @@ const Login = () => {
         window.location.href = "https://localhost:5019/api/auth/google-login";
     };
 
-    const applyTestAccount = (type) => {
-        setError("");
-        setUrlError("");
-        setIsRegisterMode(false);
-        
-        if (type === "user") {
-            setCredentials({ email: "user@gmail.com", password: "user" });
-        } else if (type === "admin") {
-            setCredentials({ email: "admin@gmail.com", password: "admin" });
-        }
-    };
 
     const toggleMode = () => {
         setIsRegisterMode(!isRegisterMode);
@@ -187,16 +171,7 @@ const Login = () => {
                 
                 {/* Error desde URL */}
                 {urlError && (
-                    <div className="url-error-message" style={{
-                        backgroundColor: "#fff3cd",
-                        border: "1px solid #ffeaa7",
-                        color: "#856404",
-                        padding: "12px",
-                        borderRadius: "6px",
-                        marginBottom: "1rem",
-                        textAlign: "center",
-                        fontSize: "14px"
-                    }}>
+                    <div className="error-message">
                         <strong>⚠️ {urlError}</strong>
                         {emailFromUrl && (
                             <div style={{ marginTop: "8px", fontSize: "12px" }}>
@@ -348,15 +323,6 @@ const Login = () => {
                     )}
                 </form>
 
-                {!isRegisterMode && (
-                    <div className="test-accounts">
-                        <h4>Cuentas de prueba</h4>
-                        <div className="test-buttons">
-                            <button onClick={() => applyTestAccount("user")}>Usuario</button>
-                            <button onClick={() => applyTestAccount("admin")}>Admin</button>
-                        </div>
-                    </div>
-                )}
             </div>
         </div>
     );

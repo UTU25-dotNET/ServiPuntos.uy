@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import apiService from "../../services/apiService";
 
 const PuntosWidget = ({ userProfile, tenantInfo }) => {
-  const [productosCanjeables, setProductosCanjeables] = useState([]);
   const [loadingProductos, setLoadingProductos] = useState(true);
   const [estadisticas, setEstadisticas] = useState({
     productosDisponibles: 0,
@@ -12,32 +11,15 @@ const PuntosWidget = ({ userProfile, tenantInfo }) => {
   });
 
   useEffect(() => {
-    if (userProfile) {
-      loadProductosInfo();
-    }
-  }, [userProfile]);
-
-  const loadProductosInfo = async () => {
-    setLoadingProductos(true);
-    try {
+    const loadProductosInfo = async () => {
+      setLoadingProductos(true);
+      try {
       // Obtener todos los productos disponibles para calcular estadísticas
       const productos = await apiService.getAllProductosUbicacion();
       
-      console.log("Productos obtenidos:", productos?.length); // Debug log
       
       if (productos && productos.length > 0) {
         // Debug: examinar estructura de los primeros productos
-        console.log("Muestra del primer producto:", productos[0]);
-        console.log("Estructura del productoCanjeable:", productos[0]?.productoCanjeable);
-        
-        // Debug: verificar cada condición del filtro individualmente
-        const activosCount = productos.filter(pu => pu.activo).length;
-        const conStockCount = productos.filter(pu => pu.stockDisponible > 0).length;
-        const conCanjeableCount = productos.filter(pu => pu.productoCanjeable).length;
-        
-        console.log("Productos activos:", activosCount);
-        console.log("Productos con stock > 0:", conStockCount);
-        console.log("Productos con productoCanjeable:", conCanjeableCount);
         
         // Filtrar productos únicos y activos
         const productosUnicos = productos
@@ -45,16 +27,6 @@ const PuntosWidget = ({ userProfile, tenantInfo }) => {
             const cumpleActivo = pu.activo;
             const cumpleStock = pu.stockDisponible > 0;
             const cumpleCanjeable = pu.productoCanjeable;
-            
-            if (!cumpleActivo || !cumpleStock || !cumpleCanjeable) {
-              console.log("Producto filtrado:", {
-                id: pu.id,
-                activo: pu.activo,
-                stock: pu.stockDisponible,
-                tieneCanjeable: !!pu.productoCanjeable,
-                canjeable: pu.productoCanjeable
-              });
-            }
             
             return cumpleActivo && cumpleStock && cumpleCanjeable;
           })
@@ -66,17 +38,12 @@ const PuntosWidget = ({ userProfile, tenantInfo }) => {
             return acc;
           }, []);
   
-        console.log("Productos únicos filtrados:", productosUnicos?.length); // Debug log
-        setProductosCanjeables(productosUnicos);
-  
         // Calcular estadísticas
         if (productosUnicos.length > 0) {
           const productosConPuntos = productosUnicos
             .map(p => p.productoCanjeable)
             .filter(p => p && typeof p.costoEnPuntos === 'number' && p.costoEnPuntos > 0); // ← FIX: Filtrar productos con costoEnPuntos válido
   
-          console.log("Productos con puntos válidos:", productosConPuntos?.length); // Debug log
-          console.log("Puntos del usuario:", userProfile.puntos); // Debug log
   
           const puntosUsuario = userProfile.puntos || 0;
           
@@ -84,7 +51,6 @@ const PuntosWidget = ({ userProfile, tenantInfo }) => {
             p.costoEnPuntos <= puntosUsuario
           );
   
-          console.log("Productos canjeables con puntos:", productosCanjeablesConPuntos?.length); // Debug log
   
           // ← FIX: Verificar que hay productos válidos antes de calcular min/max
           const productoMasBarato = productosConPuntos.length > 0 
@@ -99,8 +65,6 @@ const PuntosWidget = ({ userProfile, tenantInfo }) => {
               )
             : null;
   
-          console.log("Producto más barato:", productoMasBarato); // Debug log
-          console.log("Producto más caro canjeable:", productoMasCaro); // Debug log
   
           setEstadisticas({
             productosDisponibles: productosCanjeablesConPuntos.length,
@@ -116,7 +80,6 @@ const PuntosWidget = ({ userProfile, tenantInfo }) => {
           });
         }
       } else {
-        console.log("No se obtuvieron productos"); // Debug log
         // ← FIX: Resetear estadísticas si no hay productos
         setEstadisticas({
           productosDisponibles: 0,
@@ -125,7 +88,6 @@ const PuntosWidget = ({ userProfile, tenantInfo }) => {
         });
       }
     } catch (error) {
-      console.error("Error al cargar información de productos:", error);
       // ← FIX: Resetear estadísticas en caso de error
       setEstadisticas({
         productosDisponibles: 0,
@@ -135,7 +97,12 @@ const PuntosWidget = ({ userProfile, tenantInfo }) => {
     } finally {
       setLoadingProductos(false);
     }
-  };
+    };
+
+    if (userProfile) {
+      loadProductosInfo();
+    }
+  }, [userProfile]);
 
   const formatPuntos = (puntos) => {
     if (!puntos) return "0";

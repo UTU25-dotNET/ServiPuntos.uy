@@ -2,16 +2,19 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using ServiPuntos.Core.Interfaces;
 
 public class JwtTokenService
 {
     private readonly IConfiguration _configuration;
+    private readonly IConfigPlataformaService _configService;
 
-    public JwtTokenService(IConfiguration configuration)
+    public JwtTokenService(IConfiguration configuration, IConfigPlataformaService configService)
     {
         _configuration = configuration;
+        _configService = configService;
     }
-    public string GenerateJwtToken(IEnumerable<Claim> claims)
+    public async Task<string> GenerateJwtTokenAsync(IEnumerable<Claim> claims)
     {
         var secretKey = _configuration["JwtSettings:SecretKey"];
 
@@ -31,10 +34,21 @@ public class JwtTokenService
 
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+        var config = await _configService.ObtenerConfiguracionAsync();
+        int expirationMinutes;
+        if (config != null && config.TiempoExpiracion > 0)
+        {
+            expirationMinutes = config.TiempoExpiracion;
+        }
+        else
+        {
+            expirationMinutes = (int)(Convert.ToDouble(_configuration["JwtSettings:ExpirationHours"]) * 60);
+        }
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddHours(Convert.ToDouble(_configuration["JwtSettings:ExpirationHours"])),
+            Expires = DateTime.UtcNow.AddMinutes(expirationMinutes),
             Issuer = _configuration["JwtSettings:Issuer"],
             Audience = _configuration["JwtSettings:Audience"],
             SigningCredentials = creds
