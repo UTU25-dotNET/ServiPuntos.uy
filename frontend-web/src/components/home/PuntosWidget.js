@@ -40,16 +40,6 @@ const PuntosWidget = ({ userProfile, tenantInfo }) => {
             const cumpleStock = pu.stockDisponible > 0;
             const cumpleCanjeable = pu.productoCanjeable;
             
-            if (!cumpleActivo || !cumpleStock || !cumpleCanjeable) {
-              console.log("Producto filtrado:", {  
-                id: pu.id,
-                activo: pu.activo,
-                stock: pu.stockDisponible,
-                tieneCanjeable: !!pu.productoCanjeable,
-                canjeable: pu.productoCanjeable
-              });
-            }
-            
             return cumpleActivo && cumpleStock && cumpleCanjeable;
           })
           .reduce((acc, current) => {
@@ -112,7 +102,6 @@ const PuntosWidget = ({ userProfile, tenantInfo }) => {
         });
       }
     } catch (error) {
-      console.error("Error al cargar información de productos:", error);
       // ← FIX: Resetear estadísticas en caso de error
       setEstadisticas({
         productosDisponibles: 0,

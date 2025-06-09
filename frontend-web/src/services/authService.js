@@ -112,23 +112,7 @@ register: async (name, email, password, ci, tenantId) => {
         localStorage.setItem('token', response.data.token);
         scheduleAutoLogout();
       }
-      // localStorage.setItem("token", token);
       return response.data;
-      // if (email === "admin@gmail.com" && password === "admin") {
-      //   token = tokenUtils.adminToken;
-      // } else if (email === "user@gmail.com" && password === "user") {
-      //   token = tokenUtils.userToken;
-      // } else {
-      //   throw { message: "Credenciales inválidas" };
-      // }
-
-      // Guardar el token
-      
-      // window.location.href = '/dashboard'; -> no es necesario xq esta en el componente del Login, handleSubmit.
-      // return {
-      //   token,
-      //   user: tokenUtils.getUserFromToken(token),
-      // };
 
       // // Descomentar cuando tengas el backend listo
       
@@ -226,26 +210,6 @@ register: async (name, email, password, ci, tenantId) => {
   // Decodificar un token JWT
   decodeToken: (token) => {
     return tokenUtils.decodeToken(token);
-  },
-
-  // Para desarrollo - hardcodear un token específico
-  setHardcodedToken: (tokenType) => {
-    switch (tokenType) {
-      case "user":
-        localStorage.setItem("token", tokenUtils.userToken);
-        scheduleAutoLogout();
-        return tokenUtils.userToken;
-      case "admin":
-        localStorage.setItem("token", tokenUtils.adminToken);
-        scheduleAutoLogout();
-        return tokenUtils.adminToken;
-      case "expired":
-        localStorage.setItem("token", tokenUtils.expiredToken);
-        scheduleAutoLogout();
-        return tokenUtils.expiredToken;
-      default:
-        return null;
-    }
   },
 
   scheduleAutoLogout,

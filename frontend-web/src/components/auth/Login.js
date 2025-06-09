@@ -146,17 +146,6 @@ const Login = () => {
         window.location.href = "https://localhost:5019/api/auth/google-login";
     };
 
-    const applyTestAccount = (type) => {
-        setError("");
-        setUrlError("");
-        setIsRegisterMode(false);
-        
-        if (type === "user") {
-            setCredentials({ email: "user@gmail.com", password: "user" });
-        } else if (type === "admin") {
-            setCredentials({ email: "admin@gmail.com", password: "admin" });
-        }
-    };
 
     const toggleMode = () => {
         setIsRegisterMode(!isRegisterMode);
@@ -343,15 +332,6 @@ const Login = () => {
                     )}
                 </form>
 
-                {!isRegisterMode && (
-                    <div className="test-accounts">
-                        <h4>Cuentas de prueba</h4>
-                        <div className="test-buttons">
-                            <button onClick={() => applyTestAccount("user")}>Usuario</button>
-                            <button onClick={() => applyTestAccount("admin")}>Admin</button>
-                        </div>
-                    </div>
-                )}
             </div>
         </div>
     );

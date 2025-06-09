@@ -220,10 +220,6 @@ updateUserProfile: async (profileData) => {
 
   } catch (error) {
     
-    // Mostrar detalles del error para debugging
-    if (error.response?.data) {
-    }
-    
     // Manejar errores específicos
     if (error.response?.status === 400) {
       const errorMessage = error.response.data?.message || 

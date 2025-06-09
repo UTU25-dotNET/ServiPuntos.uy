@@ -1,17 +1,6 @@
 import { jwtDecode } from "jwt-decode";
 
 const tokenUtils = {
-  // Token de usuario normal (válido por 24h desde ahora)
-  userToken:
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEiLCJ1c2VybmFtZSI6InVzdWFyaW9fbm9ybWFsIiwiZW1haWwiOiJ1c3VhcmlvQGVqZW1wbG8uY29tIiwicm9sZSI6InVzZXIiLCJwZXJtaXNzaW9ucyI6WyJyZWFkIl0sImlhdCI6MTYyMDEyMzQ1NiwiZXhwIjoxOTIwMTY2NjU2fQ.7AMp1fXBmLCFNQvkRGLXjP4_O_ZB2uiSRRjP-KnKpg0",
-
-  // Token de administrador (válido por 24h desde ahora)
-  adminToken:
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4OTAiLCJub21icmUiOiJKdWFuIiwiYXBlbGxpZG8iOiJQZXJleiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsInN0YXR1cyI6ImFjdGl2ZSJ9.wALQ_J6L_pYAAs6xqak2LIs6xzHQgjK-8AfRMgIuA7A",
-
-  // Token expirado (expiró en 2020)
-  expiredToken:
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjMiLCJ1c2VybmFtZSI6ImV4cGlyZWQiLCJlbWFpbCI6ImV4cGlyZWRAZWplbXBsby5jb20iLCJpYXQiOjE1MDAwMDAwMDAsImV4cCI6MTUwMDAwMDAwMX0.aRbKHS7NqWDRlvyNRGdWZrsgLUJlPvVZ5NeJfq-mGnI",
 
   // Función para decodificar un token
   decodeToken: (token) => {
