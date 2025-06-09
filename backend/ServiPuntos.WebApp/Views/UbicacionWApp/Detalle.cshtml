@@ -82,6 +82,49 @@
                 </div>
             </dd>
 
+            <dt class="col-sm-3">Precios de Servicios:</dt>
+            <dd class="col-sm-9">
+                <div class="row">
+                    @if (Model.Lavado == true)
+                    {
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center py-2">
+                                    <h6 class="card-title mb-1">Lavado</h6>
+                                    <p class="card-text h5 mb-0">$@(Model.PrecioLavado?.ToString("0.##") ?? "N/A")</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    @if (Model.CambioDeAceite == true)
+                    {
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center py-2">
+                                    <h6 class="card-title mb-1">Cambio de Aceite</h6>
+                                    <p class="card-text h5 mb-0">$@(Model.PrecioCambioAceite?.ToString("0.##") ?? "N/A")</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    @if (Model.CambioDeNeumaticos == true)
+                    {
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center py-2">
+                                    <h6 class="card-title mb-1">Cambio de Neumáticos</h6>
+                                    <p class="card-text h5 mb-0">$@(Model.PrecioCambioNeumaticos?.ToString("0.##") ?? "N/A")</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    @if (Model.Lavado != true && Model.CambioDeAceite != true && Model.CambioDeNeumaticos != true)
+                    {
+                        <span class="text-muted">No hay servicios adicionales configurados</span>
+                    }
+                </div>
+            </dd>
+
             <dt class="col-sm-3">Precios de Combustible:</dt>
             <dd class="col-sm-9">
                 <div class="row">
