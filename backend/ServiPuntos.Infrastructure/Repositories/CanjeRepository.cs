@@ -80,6 +80,16 @@ namespace ServiPuntos.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Canje>> GetPendientesByUbicacionIdAsync(Guid ubicacionId)
+        {
+            return await _context.Canjes
+                .Where(c => c.UbicacionId == ubicacionId && c.Estado == EstadoCanje.Generado && c.FechaExpiracion > DateTime.Now)
+                .Include(c => c.Usuario)
+                .Include(c => c.ProductoCanjeable)
+                .OrderByDescending(c => c.FechaGeneracion)
+                .ToListAsync();
+        }
+
         public async Task<Guid> AddAsync(Canje canje)
         {
             _context.Canjes.Add(canje);
