@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServiPuntos.Infrastructure.Data;
@@ -12,9 +13,11 @@ using ServiPuntos.Infrastructure.Data;
 namespace ServiPuntos.Infrastructure.Migrations
 {
     [DbContext(typeof(ServiPuntosDbContext))]
-    partial class ServiPuntosDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250608213027_Migracion5")]
+    partial class Migracion5
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -348,9 +351,6 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.Property<decimal>("MontoPayPal")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal>("MontoPayPal")
-                        .HasColumnType("numeric");
-
                     b.Property<string>("PagoPayPalId")
                         .IsRequired()
                         .HasColumnType("text");
@@ -429,6 +429,9 @@ namespace ServiPuntos.Infrastructure.Migrations
                         .HasColumnType("interval");
 
                     b.Property<bool>("Lavado")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("LavadoDeAuto")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Nombre")
