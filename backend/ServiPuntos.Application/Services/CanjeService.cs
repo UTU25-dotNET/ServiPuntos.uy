@@ -49,6 +49,11 @@ namespace ServiPuntos.Application.Services
             return await _canjeRepository.GetByTenantIdAsync(tenantId);
         }
 
+        public async Task<IEnumerable<Canje>> GetCanjesByUbicacionIdAsync(Guid ubicacionId)
+        {
+            return await _canjeRepository.GetByUbicacionIdAsync(ubicacionId);
+        }
+
         public async Task<IEnumerable<Canje>> GetCanjesPendientesByUsuarioIdAsync(Guid usuarioId)
         {
             return await _canjeRepository.GetPendientesByUsuarioIdAsync(usuarioId);
