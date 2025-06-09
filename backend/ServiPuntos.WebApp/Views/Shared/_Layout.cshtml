@@ -16,8 +16,9 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm border-bottom box-shadow mb-3" id="mainNavbar">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index" id="navbarBrand">
-                    <i class="fas fa-gas-pump me-2"></i>@(ViewBag.AppName ?? "ServiPuntos.WebApp")
+                <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index" id="navbarBrand">
+                    <img src="@(string.IsNullOrEmpty(ViewBag.TenantLogo as string) ? Url.Content("~/images/placeholder-logo.png") : ViewBag.TenantLogo)" alt="Logo" class="me-2" style="height:40px;">
+                    <span>@(ViewBag.AppName ?? "ServiPuntos.WebApp")</span>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
                     aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
