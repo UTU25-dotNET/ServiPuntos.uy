@@ -4,41 +4,85 @@ using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.WebApp.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace ServiPuntos.WebApp.Controllers
 {
-    //[Authorize(Roles = "AdminUbicacion")]
+    // [Authorize(Roles = "AdminTenant, AdminPlataforma, AdminUbicacion")]
     public class ProductoUbicacionWAppController : Controller
     {
         private readonly IProductoUbicacionService _productoUbicacionService;
         private readonly IProductoCanjeableService _productoCanjeableService;
         private readonly IUbicacionService _ubicacionService;
         private readonly ITenantContext _tenantContext;
+        private readonly IUsuarioService _usuarioService;
 
         public ProductoUbicacionWAppController(
             IProductoUbicacionService productoUbicacionService,
             IProductoCanjeableService productoCanjeableService,
             IUbicacionService ubicacionService,
-            ITenantContext tenantContext)
+            ITenantContext tenantContext,
+            IUsuarioService usuarioService)
         {
             _productoUbicacionService = productoUbicacionService;
             _productoCanjeableService = productoCanjeableService;
             _ubicacionService = ubicacionService;
             _tenantContext = tenantContext;
+            _usuarioService = usuarioService;
+        }
+
+        private async Task<Guid?> ObtenerUbicacionIdAsync()
+        {
+            var claim = User.Claims.FirstOrDefault(c => c.Type == "ubicacionId")?.Value;
+            if (!string.IsNullOrEmpty(claim) && Guid.TryParse(claim, out Guid ubicacionId))
+            {
+                return ubicacionId;
+            }
+
+            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (Guid.TryParse(userIdValue, out Guid userId))
+            {
+                var usuario = await _usuarioService.GetUsuarioAsync(userId);
+                return usuario?.UbicacionId;
+            }
+
+            return null;
         }
 
         // GET: ProductoUbicacion
         public async Task<IActionResult> Index()
         {
             var tenantId = _tenantContext.TenantId;
-            if (tenantId == null)
+            if (tenantId == Guid.Empty)
             {
+                Console.WriteLine("No se pudo obtener el tenantId.");
                 return Unauthorized();
             }
 
-            var ubicaciones = await _ubicacionService.GetAllUbicacionesAsync(tenantId);
-            var productosUbicacion = new List<ProductoUbicacion>();
+            List<Ubicacion> ubicaciones;
+            if (User.IsInRole("AdminUbicacion"))
+            {
+                var ubicacionId = await ObtenerUbicacionIdAsync();
+                if (ubicacionId == null)
+                {
+                    Console.WriteLine("No se pudo obtener la ubicación del usuario.");
+                    return Unauthorized();
+                }
 
+                var ubicacion = await _ubicacionService.GetUbicacionAsync(ubicacionId.Value);
+                if (ubicacion == null || ubicacion.TenantId != tenantId)
+                {
+                    Console.WriteLine("La ubicación no existe o no pertenece al tenant actual.");
+                    return Unauthorized();
+                }
+                ubicaciones = new List<Ubicacion> { ubicacion };
+            }
+            else
+            {
+                ubicaciones = (await _ubicacionService.GetAllUbicacionesAsync(tenantId)).ToList();
+            }
+
+            var productosUbicacion = new List<ProductoUbicacion>();
             foreach (var ubicacion in ubicaciones)
             {
                 var productos = await _productoUbicacionService.GetAllAsync(ubicacion.Id);
@@ -58,13 +102,32 @@ namespace ServiPuntos.WebApp.Controllers
         public async Task<IActionResult> AsignarProducto()
         {
             var tenantId = _tenantContext.TenantId;
-            if (tenantId == null)
+            if (tenantId == Guid.Empty)
             {
                 return Unauthorized();
             }
 
             var productos = await _productoCanjeableService.GetAllProductosAsync();
-            var ubicaciones = await _ubicacionService.GetAllUbicacionesAsync(tenantId);
+
+            List<Ubicacion> ubicaciones;
+            if (User.IsInRole("AdminUbicacion"))
+            {
+                var ubicacionId = await ObtenerUbicacionIdAsync();
+                if (ubicacionId == null)
+                {
+                    return Unauthorized();
+                }
+                var ubicacion = await _ubicacionService.GetUbicacionAsync(ubicacionId.Value);
+                if (ubicacion == null || ubicacion.TenantId != tenantId)
+                {
+                    return Unauthorized();
+                }
+                ubicaciones = new List<Ubicacion> { ubicacion };
+            }
+            else
+            {
+                ubicaciones = (await _ubicacionService.GetAllUbicacionesAsync(tenantId)).ToList();
+            }
 
             var viewModel = new AsignarProductoUbicacionViewModel
             {
@@ -96,6 +159,16 @@ namespace ServiPuntos.WebApp.Controllers
             {
                 var productosSeleccionados = model.Productos?.Where(p => p.Selected).ToList() ?? new List<ProductoSelectionViewModel>();
                 var ubicacionesSeleccionadas = model.Ubicaciones?.Where(u => u.Selected).ToList() ?? new List<UbicacionSelectionViewModel>();
+
+                if (User.IsInRole("AdminUbicacion"))
+                {
+                    var ubicacionClaim = User.Claims.FirstOrDefault(c => c.Type == "ubicacionId")?.Value;
+                    if (string.IsNullOrEmpty(ubicacionClaim) || !Guid.TryParse(ubicacionClaim, out Guid ubId))
+                    {
+                        return Unauthorized();
+                    }
+                    ubicacionesSeleccionadas = ubicacionesSeleccionadas.Where(u => u.Id == ubId).ToList();
+                }
 
                 if (!productosSeleccionados.Any() || !ubicacionesSeleccionadas.Any())
                 {
@@ -178,6 +251,15 @@ namespace ServiPuntos.WebApp.Controllers
                 return NotFound();
             }
 
+            if (User.IsInRole("AdminUbicacion"))
+            {
+                var ubicacionClaim = User.Claims.FirstOrDefault(c => c.Type == "ubicacionId")?.Value;
+                if (string.IsNullOrEmpty(ubicacionClaim) || !Guid.TryParse(ubicacionClaim, out Guid ubId) || ubId != ubicacionId)
+                {
+                    return Unauthorized();
+                }
+            }
+
             var productosUbicacion = await _productoUbicacionService.GetAllAsync(ubicacionId);
 
             var viewModel = new GestionarStockViewModel
@@ -208,6 +290,14 @@ namespace ServiPuntos.WebApp.Controllers
                 if (ubicacion?.TenantId != tenantId)
                 {
                     return Unauthorized();
+                }
+                if (User.IsInRole("AdminUbicacion"))
+                {
+                    var ubicacionClaim = User.Claims.FirstOrDefault(c => c.Type == "ubicacionId")?.Value;
+                    if (string.IsNullOrEmpty(ubicacionClaim) || !Guid.TryParse(ubicacionClaim, out Guid ubId) || ubId != productoUbicacion.UbicacionId)
+                    {
+                        return Unauthorized();
+                    }
                 }
             }
 
@@ -242,6 +332,14 @@ namespace ServiPuntos.WebApp.Controllers
                 if (ubicacion?.TenantId != tenantId)
                 {
                     return Unauthorized();
+                }
+                if (User.IsInRole("AdminUbicacion"))
+                {
+                    var ubicacionClaim = User.Claims.FirstOrDefault(c => c.Type == "ubicacionId")?.Value;
+                    if (string.IsNullOrEmpty(ubicacionClaim) || !Guid.TryParse(ubicacionClaim, out Guid ubId) || ubId != productoUbicacion.UbicacionId)
+                    {
+                        return Unauthorized();
+                    }
                 }
             }
 
@@ -285,6 +383,14 @@ namespace ServiPuntos.WebApp.Controllers
                     {
                         return Unauthorized();
                     }
+                    if (User.IsInRole("AdminUbicacion"))
+                    {
+                        var ubicacionClaim = User.Claims.FirstOrDefault(c => c.Type == "ubicacionId")?.Value;
+                        if (string.IsNullOrEmpty(ubicacionClaim) || !Guid.TryParse(ubicacionClaim, out Guid ubId) || ubId != productoUbicacion.UbicacionId)
+                        {
+                            return Unauthorized();
+                        }
+                    }
                 }
 
                 if (model.StockDisponible < 0)
@@ -324,6 +430,14 @@ namespace ServiPuntos.WebApp.Controllers
                 {
                     return Unauthorized();
                 }
+                if (User.IsInRole("AdminUbicacion"))
+                {
+                    var ubicacionClaim = User.Claims.FirstOrDefault(c => c.Type == "ubicacionId")?.Value;
+                    if (string.IsNullOrEmpty(ubicacionClaim) || !Guid.TryParse(ubicacionClaim, out Guid ubId) || ubId != productoUbicacion.UbicacionId)
+                    {
+                        return Unauthorized();
+                    }
+                }
             }
 
             productoUbicacion.Activo = false;
@@ -350,6 +464,14 @@ namespace ServiPuntos.WebApp.Controllers
                 {
                     return Unauthorized();
                 }
+                if (User.IsInRole("AdminUbicacion"))
+                {
+                    var ubicacionClaim = User.Claims.FirstOrDefault(c => c.Type == "ubicacionId")?.Value;
+                    if (string.IsNullOrEmpty(ubicacionClaim) || !Guid.TryParse(ubicacionClaim, out Guid ubId) || ubId != productoUbicacion.UbicacionId)
+                    {
+                        return Unauthorized();
+                    }
+                }
             }
 
             return View(productoUbicacion);
@@ -358,10 +480,30 @@ namespace ServiPuntos.WebApp.Controllers
         private async Task<IActionResult> RecargarDatosAsignacion(AsignarProductoUbicacionViewModel model)
         {
             var tenantId = _tenantContext.TenantId;
-            if (tenantId != null)
+            if (tenantId != Guid.Empty)
             {
                 var productos = await _productoCanjeableService.GetAllProductosAsync();
-                var ubicaciones = await _ubicacionService.GetAllUbicacionesAsync(tenantId);
+
+                List<Ubicacion> ubicaciones;
+                if (User.IsInRole("AdminUbicacion"))
+                {
+                    var ubicacionId = await ObtenerUbicacionIdAsync();
+                    if (ubicacionId == null)
+                    {
+                        return View(model);
+                    }
+
+                    var ubicacion = await _ubicacionService.GetUbicacionAsync(ubicacionId.Value);
+                    if (ubicacion == null || ubicacion.TenantId != tenantId)
+                    {
+                        return View(model);
+                    }
+                    ubicaciones = new List<Ubicacion> { ubicacion };
+                }
+                else
+                {
+                    ubicaciones = (await _ubicacionService.GetAllUbicacionesAsync(tenantId)).ToList();
+                }
 
                 model.Productos = productos.Select(p => new ProductoSelectionViewModel
                 {

@@ -65,23 +65,23 @@
             <dt class="col-sm-3">Precios:</dt>
             <dd class="col-sm-9">
                 <div class="small">
-                    <div><strong>Nafta Súper:</strong> $@Model.PrecioNaftaSuper</div>
-                    <div><strong>Nafta Premium:</strong> $@Model.PrecioNaftaPremium</div>
-                    <div><strong>Diesel:</strong> $@Model.PrecioDiesel</div>
+                    <div><strong>Nafta Súper:</strong> $@(Model.PrecioNaftaSuper?.ToString("0.##") ?? "N/A")</div>
+                    <div><strong>Nafta Premium:</strong> $@(Model.PrecioNaftaPremium?.ToString("0.##") ?? "N/A")</div>
+                    <div><strong>Diesel:</strong> $@(Model.PrecioDiesel?.ToString("0.##") ?? "N/A")</div>
                 </div>
             </dd>
 
             <dt class="col-sm-3">Servicios:</dt>
             <dd class="col-sm-9">
-                @if (Model.Lavado)
+                @if (Model.Lavado == true)
                 {
                     <span class="badge bg-success me-1">Lavado</span>
                 }
-                 @if (Model.CambioDeAceite)
+                 @if (Model.CambioDeAceite == true)
                 {
                     <span class="badge bg-primary me-1">Cambio de Aceite</span>
-                } 
-                @if (!Model.Lavado)
+                }
+                @if (Model.Lavado != true)
                 {
                     <span class="text-muted">Sin servicios adicionales</span>
                 }

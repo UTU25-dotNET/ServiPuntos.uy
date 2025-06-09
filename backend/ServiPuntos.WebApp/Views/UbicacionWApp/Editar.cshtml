@@ -112,26 +112,37 @@
             </h5>
         </div>
         <div class="card-body">
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" asp-for="Lavado" />
-                <label class="form-check-label" for="Lavado">
-                    <i class="fas fa-car me-1"></i>
-                    Servicio de Lavado
-                </label>
-            </div>
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" asp-for="CambioDeAceite" />
-                <label class="form-check-label" for="CambioDeAceite">
-                    <i class="fas fa-wrench me-1"></i>
-                    Cambio de Aceite
-                </label>
-            </div>
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" asp-for="CambioDeNeumaticos" />
-                <label class="form-check-label" for="CambioDeNeumaticos">
-                    <i class="fas fa-tools me-1"></i>
-                    Cambio de Neumáticos
-                </label>
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <div class="form-check mb-2">
+                        <input type="checkbox" class="form-check-input" asp-for="Lavado" />
+                        <label class="form-check-label" for="Lavado">Car Wash</label>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" step="0.01" class="form-control" asp-for="PrecioLavado" placeholder="Precio" />
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check mb-2">
+                        <input type="checkbox" class="form-check-input" asp-for="CambioDeAceite" />
+                        <label class="form-check-label" for="CambioDeAceite">Cambio de Aceite</label>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" step="0.01" class="form-control" asp-for="PrecioCambioAceite" placeholder="Precio" />
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check mb-2">
+                        <input type="checkbox" class="form-check-input" asp-for="CambioDeNeumaticos" />
+                        <label class="form-check-label" for="CambioDeNeumaticos">Cambio de Neumáticos</label>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" step="0.01" class="form-control" asp-for="PrecioCambioNeumaticos" placeholder="Precio" />
+                    </div>
+                </div>
             </div>
         </div>
     </div>

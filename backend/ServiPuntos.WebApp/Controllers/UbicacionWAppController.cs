@@ -242,5 +242,55 @@ namespace ServiPuntos.WebApp.Controllers
 
             return RedirectToAction("Index", new { tenantId = tenantId });
         }
+
+        [HttpGet]
+        [Authorize(Roles = "AdminUbicacion")]
+        public async Task<IActionResult> GestionarUbicacion()
+        {
+            var ubicacionIdClaim = User.Claims.FirstOrDefault(c => c.Type == "ubicacionId")?.Value;
+            if (string.IsNullOrEmpty(ubicacionIdClaim) || !Guid.TryParse(ubicacionIdClaim, out Guid ubicacionId))
+            {
+                return RedirectToAction("Index", "DashboardWApp");
+            }
+
+            var ubicacion = await _ubicacionRepository.GetAsync(ubicacionId);
+            if (ubicacion == null)
+            {
+                return RedirectToAction("Index", "DashboardWApp");
+            }
+
+            return View(ubicacion);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "AdminUbicacion")]
+        public async Task<IActionResult> GestionarUbicacion(Ubicacion model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+                        var ubicacion = await _ubicacionRepository.GetAsync(model.Id);
+            if (ubicacion == null)
+            {
+                return RedirectToAction("Index", "DashboardWApp");
+            }
+
+            // Actualizar solo los campos configurables desde la vista
+            ubicacion.HoraApertura = model.HoraApertura;
+            ubicacion.HoraCierre = model.HoraCierre;
+            ubicacion.Lavado = model.Lavado;
+            ubicacion.CambioDeAceite = model.CambioDeAceite;
+            ubicacion.CambioDeNeumaticos = model.CambioDeNeumaticos;
+            ubicacion.PrecioLavado = model.PrecioLavado;
+            ubicacion.PrecioCambioAceite = model.PrecioCambioAceite;
+            ubicacion.PrecioCambioNeumaticos = model.PrecioCambioNeumaticos;
+            ubicacion.FechaModificacion = DateTime.UtcNow;
+
+            await _ubicacionRepository.UpdateAsync(model.TenantId, ubicacion);
+            TempData["Success"] = "Ubicación actualizada.";
+            return RedirectToAction("Index", "DashboardWApp");
+        }
     }
 }

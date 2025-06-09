@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServiPuntos.Infrastructure.Data;
@@ -12,9 +13,11 @@ using ServiPuntos.Infrastructure.Data;
 namespace ServiPuntos.Infrastructure.Migrations
 {
     [DbContext(typeof(ServiPuntosDbContext))]
-    partial class ServiPuntosDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250609170902_MigracionPrecioServicios")]
+    partial class MigracionPrecioServicios
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -398,10 +401,10 @@ namespace ServiPuntos.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<bool>("CambioDeAceite")
+                    b.Property<bool?>("CambioDeAceite")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("CambioDeNeumaticos")
+                    b.Property<bool?>("CambioDeNeumaticos")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Ciudad")
@@ -425,10 +428,10 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.Property<TimeSpan>("HoraCierre")
                         .HasColumnType("interval");
 
-                    b.Property<bool>("Lavado")
+                    b.Property<bool?>("Lavado")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("LavadoDeAuto")
+                    b.Property<bool?>("LavadoDeAuto")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Nombre")
