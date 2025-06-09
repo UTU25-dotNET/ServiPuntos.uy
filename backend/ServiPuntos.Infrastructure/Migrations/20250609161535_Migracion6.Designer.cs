@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServiPuntos.Infrastructure.Data;
@@ -12,9 +13,11 @@ using ServiPuntos.Infrastructure.Data;
 namespace ServiPuntos.Infrastructure.Migrations
 {
     [DbContext(typeof(ServiPuntosDbContext))]
-    partial class ServiPuntosDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250609161535_Migracion6")]
+    partial class Migracion6
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -434,22 +437,13 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.Property<string>("Nombre")
                         .HasColumnType("text");
 
-                    b.Property<decimal?>("PrecioCambioAceite")
+                    b.Property<decimal>("PrecioDiesel")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal?>("PrecioCambioNeumaticos")
+                    b.Property<decimal>("PrecioNaftaPremium")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal?>("PrecioDiesel")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal?>("PrecioLavado")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal?>("PrecioNaftaPremium")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal?>("PrecioNaftaSuper")
+                    b.Property<decimal>("PrecioNaftaSuper")
                         .HasColumnType("numeric");
 
                     b.Property<string>("Telefono")

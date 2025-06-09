@@ -129,9 +129,9 @@
                                             </td>
                                             <td>
                                                 <div class="small">
-                                                    <div><strong>Súper:</strong> $@ubicacion.PrecioNaftaSuper</div>
-                                                    <div><strong>Premium:</strong> $@ubicacion.PrecioNaftaPremium</div>
-                                                    <div><strong>Diesel:</strong> $@ubicacion.PrecioDiesel</div>
+                                                    <div><strong>Súper:</strong> $@(ubicacion.PrecioNaftaSuper?.ToString("0.##") ?? "N/A")</div>
+                                                    <div><strong>Premium:</strong> $@(ubicacion.PrecioNaftaPremium?.ToString("0.##") ?? "N/A")</div>
+                                                    <div><strong>Diesel:</strong> $@(ubicacion.PrecioDiesel?.ToString("0.##") ?? "N/A")</div>
                                                 </div>
                                             </td>
                                             <td>

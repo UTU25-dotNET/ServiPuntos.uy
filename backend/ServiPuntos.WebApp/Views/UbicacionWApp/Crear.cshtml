@@ -181,6 +181,10 @@
                             <small class="text-muted">Lavado completo de vehículos</small>
                         </label>
                     </div>
+                    <div class="input-group mt-1">
+                        <span class="input-group-text">$</span>
+                        <input type="number" step="0.01" class="form-control" asp-for="PrecioLavado" placeholder="Precio" />
+                    </div>
                 </div>
                  <div class="col-md-6">
                     <div class="form-check">
@@ -191,6 +195,10 @@
                             <br>
                             <small class="text-muted">Servicio de cambio de aceite y filtros</small>
                         </label>
+                    </div>
+                    <div class="input-group mt-1">
+                        <span class="input-group-text">$</span>
+                        <input type="number" step="0.01" class="form-control" asp-for="PrecioCambioAceite" placeholder="Precio" />
                     </div>
                 </div>
             </div>
@@ -204,6 +212,10 @@
                             <br>
                             <small class="text-muted">Servicio de recambio de neumáticos</small>
                         </label>
+                    </div>
+                    <div class="input-group mt-1">
+                        <span class="input-group-text">$</span>
+                        <input type="number" step="0.01" class="form-control" asp-for="PrecioCambioNeumaticos" placeholder="Precio" />
                     </div>
                 </div>
             </div>
