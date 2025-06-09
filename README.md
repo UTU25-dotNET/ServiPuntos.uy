@@ -24,15 +24,7 @@ Este repositorio contiene varios subproyectos. Cada subproyecto tiene su propio 
 | /frontend-web/ | Frontend en React (Create React App) | ✅ |
 | /mobile/ | App Mobile en .NET MAUI | ✅ |
 
-> 📢 Importante: Antes de iniciar cualquier componente, revisá el README correspondiente para asegurarte de seguir los pasos específicos.
 
-## 💡 Consejos para desarrollo en VS Code
-
-Si usás Visual Studio Code y *no Visual Studio* como entorno de desarrollo, te recomendamos leer:
-
-👉 [`docs/dev/setup/macos/vscode-netcore.md`](docs/dev/setup/macos/vscode-netcore.md)
-
-Allí encontrarás tips sobre cómo configurar `tasks.json`, usar `dotnet test --watch`, habilitar hot-reload, depurar y más.
 
 ## 🚀 Cómo comenzar
 
@@ -40,9 +32,8 @@ Allí encontrarás tips sobre cómo configurar `tasks.json`, usar `dotnet test -
 
 - [.NET SDK 9.0.202](https://dotnet.microsoft.com/en-us/download)
 - Node.js 18+ y npm
-- Docker (dependiendo de tu SO, si tenés Windows de momento no hace falta.)
 - Visual Studio 2022+ o VS Code
-- (Opcional) MAUI workload para trabajar en la app mobile
+- MAUI workload para trabajar en la app mobile
 
 ### 2. Configurar la base de datos
 
@@ -57,6 +48,7 @@ Si preferís levantar PostgreSQL localmente podés utilizar Docker o tu gestor f
 cd backend
 dotnet build ServiPuntosUY.sln
 dotnet run --project ServiPuntos.API
+dotnet run --project ServiPuntos.WebApp
 ```
 
 ### 4. Levantar el frontend
