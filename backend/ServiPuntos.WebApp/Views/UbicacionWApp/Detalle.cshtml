@@ -57,25 +57,25 @@
             <dt class="col-sm-3">Servicios:</dt>
             <dd class="col-sm-9">
                 <div class="d-flex gap-2">
-                    @if (Model.Lavado)
+                    @if (Model.Lavado == true)
                     {
                         <span class="badge bg-success">
                             <i class="fas fa-car me-1"></i>Lavado
                         </span>
                     }
-                     @if (Model.CambioDeAceite)
+                     @if (Model.CambioDeAceite == true)
                     {
                         <span class="badge bg-primary">
                             <i class="fas fa-wrench me-1"></i>Cambio de Aceite
                         </span>
                     }
-                     @if (Model.CambioDeNeumaticos)
+                     @if (Model.CambioDeNeumaticos == true)
                     {
                         <span class="badge bg-warning text-dark">
                             <i class="fas fa-tools me-1"></i>Cambio de Neumáticos
                         </span>
                     }
-                    @if (!Model.Lavado && !Model.CambioDeAceite && !Model.CambioDeNeumaticos)
+                    @if (Model.Lavado != true && Model.CambioDeAceite != true && Model.CambioDeNeumaticos != true)
                     {
                         <span class="text-muted">No hay servicios adicionales configurados</span>
                     }
