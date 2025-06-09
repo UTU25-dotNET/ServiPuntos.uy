@@ -134,6 +134,18 @@ register: async (name, email, password, ci, tenantId) => {
     }
   },
 
+  verifyPassword: async (email, password) => {
+    try {
+      await axios.post(`${API_URL}verify-password`, { email, password });
+      return true;
+    } catch (err) {
+      const message =
+        err.response?.data?.message || err.message || "Error al verificar contraseña";
+      throw new Error(message);
+    }
+  },
+
+
   // Cerrar sesión
   logout: async () => {
     // Primero verificamos si el usuario se logueó con Google
