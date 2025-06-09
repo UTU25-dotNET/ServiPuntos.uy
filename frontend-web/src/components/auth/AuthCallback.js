@@ -13,8 +13,6 @@ const AuthCallback = () => {
       try {
         // Obtener parámetros de la URL
         const token = searchParams.get("token");
-        const state = searchParams.get("state");
-        const returnUrl = searchParams.get("returnUrl");
         const errorParam = searchParams.get("error");
 
         // Si hay un error en los parámetros

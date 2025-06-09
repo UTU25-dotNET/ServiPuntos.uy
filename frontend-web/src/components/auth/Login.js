@@ -55,7 +55,7 @@ const Login = () => {
         if (isRegisterMode && tenants.length === 0) {
             loadTenants();
         }
-    }, [isRegisterMode]);
+    }, [isRegisterMode, tenants.length]);
 
     // Ponemos esto para cargar los tenants en el registro
     const loadTenants = async () => {

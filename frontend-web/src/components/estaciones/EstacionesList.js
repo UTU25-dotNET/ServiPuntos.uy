@@ -10,7 +10,6 @@ const EstacionesList = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [userProfile, setUserProfile] = useState(null);
-  const [tenantInfo, setTenantInfo] = useState(null);
   
   // Estados para el modal de productos
   const [modalAbierto, setModalAbierto] = useState(false);
@@ -40,11 +39,7 @@ const EstacionesList = () => {
       const profile = await apiService.getUserProfile();
       setUserProfile(profile);
       
-      // Obtener información del tenant
-      const tenant = await apiService.getTenantInfo();
-      setTenantInfo(tenant);
-      
-      // Luego obtener las ubicaciones de su tenant
+      // Obtener las ubicaciones de su tenant
       const ubicacionesData = await apiService.getUbicacionesByUserTenant();
       setUbicaciones(ubicacionesData);
       
