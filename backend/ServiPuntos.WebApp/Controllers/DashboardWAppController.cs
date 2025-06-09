@@ -74,6 +74,30 @@ namespace ServiPuntos.Controllers
                     }
                 }
 
+                if (User.IsInRole("AdminUbicacion"))
+                {
+                    var ubicacionIdClaim = User.Claims.FirstOrDefault(c => c.Type == "ubicacionId")?.Value;
+                    if (!string.IsNullOrEmpty(ubicacionIdClaim) && Guid.TryParse(ubicacionIdClaim, out Guid ubicacionId))
+                    {
+                        var ubicacionActual = await _iUbicacionService.GetUbicacionAsync(ubicacionId);
+                        if (ubicacionActual != null)
+                        {
+                            ViewBag.MiUbicacion = ubicacionActual;
+
+                            var transacciones = await _iTransaccionService.GetTransaccionesByUbicacionIdAsync(ubicacionId);
+                            var canjes = await _iCanjeService.GetCanjesByUbicacionIdAsync(ubicacionId);
+
+                            ViewBag.ReporteUbicacion = new ServiPuntos.WebApp.Models.ReporteUbicacionViewModel
+                            {
+                                TotalTransacciones = transacciones.Count(),
+                                MontoTotalTransacciones = transacciones.Sum(t => t.Monto),
+                                TotalCanjes = canjes.Count(),
+                                CanjesCompletados = canjes.Count(c => c.Estado == ServiPuntos.Core.Enums.EstadoCanje.Canjeado)
+                            };
+                        }
+                    }
+                }
+
                 if (User.IsInRole("AdminPlataforma")|| User.IsInRole("AdminTenant"))
                 { //esto solo los carga si sos admin mi pc esta sufriendo y el chat dice q mejora el rendimiento
                     var datosUsuarios = await GetCantidadUsuariosPorTipoTodosInternal();
@@ -302,6 +326,52 @@ public async Task<IActionResult> ActualizarNombrePuntos(string nombrePuntos)
         Console.WriteLine($"❌ Error al actualizar políticas de acumulación: {ex.Message}");
         return Json(new { success = false, message = $"Error interno: {ex.Message}" });
     }
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "AdminUbicacion")]
+        public async Task<IActionResult> ActualizarPreciosCombustible(decimal precioSuper, decimal precioPremium, decimal precioDiesel)
+        {
+            try
+            {
+                var ubicacionIdClaim = User.Claims.FirstOrDefault(c => c.Type == "ubicacionId")?.Value;
+                if (string.IsNullOrEmpty(ubicacionIdClaim) || !Guid.TryParse(ubicacionIdClaim, out Guid ubicacionId))
+                {
+                    return Json(new { success = false, message = "No se pudo identificar su ubicación." });
+                }
+
+                var ubicacion = await _iUbicacionService.GetUbicacionAsync(ubicacionId);
+                if (ubicacion == null)
+                {
+                    return Json(new { success = false, message = "Ubicación no encontrada." });
+                }
+
+                if (precioSuper < 0 || precioPremium < 0 || precioDiesel < 0)
+                {
+                    return Json(new { success = false, message = "Los precios deben ser valores positivos." });
+                }
+
+                ubicacion.PrecioNaftaSuper = precioSuper;
+                ubicacion.PrecioNaftaPremium = precioPremium;
+                ubicacion.PrecioDiesel = precioDiesel;
+                ubicacion.FechaModificacion = DateTime.UtcNow;
+
+                await _iUbicacionService.UpdateUbicacionByTenantAsync(ubicacion.TenantId, ubicacion);
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Precios actualizados correctamente",
+                    precioSuper = precioSuper.ToString("F2"),
+                    precioPremium = precioPremium.ToString("F2"),
+                    precioDiesel = precioDiesel.ToString("F2")
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error al actualizar precios de combustible: {ex.Message}");
+                return Json(new { success = false, message = $"Error interno: {ex.Message}" });
+            }
         }
 
         [Authorize(Roles = "AdminTenant")]
