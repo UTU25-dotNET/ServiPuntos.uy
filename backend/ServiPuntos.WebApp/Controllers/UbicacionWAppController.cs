@@ -242,5 +242,39 @@ namespace ServiPuntos.WebApp.Controllers
 
             return RedirectToAction("Index", new { tenantId = tenantId });
         }
+
+        [HttpGet]
+        [Authorize(Roles = "AdminUbicacion")]
+        public async Task<IActionResult> GestionarUbicacion()
+        {
+            var ubicacionIdClaim = User.Claims.FirstOrDefault(c => c.Type == "ubicacionId")?.Value;
+            if (string.IsNullOrEmpty(ubicacionIdClaim) || !Guid.TryParse(ubicacionIdClaim, out Guid ubicacionId))
+            {
+                return RedirectToAction("Index", "DashboardWApp");
+            }
+
+            var ubicacion = await _ubicacionRepository.GetAsync(ubicacionId);
+            if (ubicacion == null)
+            {
+                return RedirectToAction("Index", "DashboardWApp");
+            }
+
+            return View(ubicacion);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "AdminUbicacion")]
+        public async Task<IActionResult> GestionarUbicacion(Ubicacion model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            model.FechaModificacion = DateTime.UtcNow;
+            await _ubicacionRepository.UpdateAsync(model.TenantId, model);
+            TempData["Success"] = "Ubicación actualizada.";
+            return RedirectToAction("Index", "DashboardWApp");
+        }
     }
 }

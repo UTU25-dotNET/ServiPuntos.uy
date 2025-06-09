@@ -27,6 +27,10 @@ namespace ServiPuntos.Core.Entities
         public bool? CambioDeAceite { get; set; } = false;
         public bool? CambioDeNeumaticos { get; set; } = false;
 
+        public decimal? PrecioLavado { get; set; }
+        public decimal? PrecioCambioAceite { get; set; }
+        public decimal? PrecioCambioNeumaticos { get; set; }
+
         public decimal? PrecioNaftaSuper { get; set; }
         public decimal? PrecioNaftaPremium { get; set; }
         public decimal? PrecioDiesel { get; set; }

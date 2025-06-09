@@ -1,0 +1,55 @@
+@model ServiPuntos.Core.Entities.Ubicacion
+@{
+    ViewData["Title"] = "Gestionar Ubicacion";
+}
+
+<h1 class="mb-4">Gestionar Ubicacion</h1>
+
+<form asp-action="GestionarUbicacion" method="post">
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="TenantId" />
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="HoraApertura" class="form-label">Hora Apertura</label>
+            <input type="time" class="form-control" asp-for="HoraApertura" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="HoraCierre" class="form-label">Hora Cierre</label>
+            <input type="time" class="form-control" asp-for="HoraCierre" />
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <strong>Servicios Disponibles</strong>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" asp-for="Lavado" />
+                        <label class="form-check-label" asp-for="Lavado">Car Wash</label>
+                    </div>
+                    <input type="number" step="0.01" class="form-control" asp-for="PrecioLavado" placeholder="Precio" />
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" asp-for="CambioDeAceite" />
+                        <label class="form-check-label" asp-for="CambioDeAceite">Cambio de Aceite</label>
+                    </div>
+                    <input type="number" step="0.01" class="form-control" asp-for="PrecioCambioAceite" placeholder="Precio" />
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" asp-for="CambioDeNeumaticos" />
+                        <label class="form-check-label" asp-for="CambioDeNeumaticos">Cambio de Neumaticos</label>
+                    </div>
+                    <input type="number" step="0.01" class="form-control" asp-for="PrecioCambioNeumaticos" placeholder="Precio" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a asp-controller="DashboardWApp" asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>
