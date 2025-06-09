@@ -10,11 +10,18 @@ public class UsuarioService : IUsuarioService
 
     private readonly ITenantContext _iTenantContext;
 
-    public UsuarioService(IUsuarioRepository usuarioRepository, ITenantResolver tenantResolver, ITenantContext tenantContext)
+    private readonly IConfigPlataformaService _configPlataformaService;
+
+    public UsuarioService(
+        IUsuarioRepository usuarioRepository,
+        ITenantResolver tenantResolver,
+        ITenantContext tenantContext,
+        IConfigPlataformaService configPlataformaService)
     {
         _iUsuarioRepository = usuarioRepository;
         _iTenantResolver = tenantResolver;
         _iTenantContext = tenantContext;
+        _configPlataformaService = configPlataformaService;
     }
 
     //GET
@@ -83,10 +90,33 @@ public class UsuarioService : IUsuarioService
     public async Task<Usuario?> ValidarCredencialesAsync(string email, string password)
     {
         var usuario = await _iUsuarioRepository.GetByEmailAsync(email);
-        if (usuario == null || !usuario.VerificarPassword(password))
+        if (usuario == null)
         {
             return null;
         }
+
+        var config = await _configPlataformaService.ObtenerConfiguracionAsync();
+        int maxIntentos = config?.MaximoIntentosLogin ?? 3;
+
+        if (usuario.Bloqueado)
+        {
+            return null;
+        }
+
+        if (!usuario.VerificarPassword(password))
+        {
+            usuario.IntentosFallidos++;
+            if (usuario.IntentosFallidos >= maxIntentos)
+            {
+                usuario.Bloqueado = true;
+            }
+            await _iUsuarioRepository.UpdateAsync(usuario);
+            return null;
+        }
+
+        usuario.IntentosFallidos = 0;
+        usuario.Bloqueado = false;
+        await _iUsuarioRepository.UpdateAsync(usuario);
         return usuario;
     }
 
