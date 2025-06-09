@@ -227,11 +227,11 @@
                                         <p class="text-muted mb-0">Valor actual por punto</p>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-flex gap-2 align-items-center">
-                                    <div class="input-group" style="max-width: 200px;">
-                                        <span class="input-group-text">$</span>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2 align-items-center">
+                                <div class="input-group" style="max-width: 200px;">
+                                    <span class="input-group-text">$</span>
                                         <input type="number" 
                                                class="form-control" 
                                                id="nuevoValorPuntos" 
@@ -243,10 +243,41 @@
                                                value="@(miTenant.ValorPunto.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))"
                                                title="Ingrese un valor entre $0.01 y $1000.00">
                                     </div>
-                                    <button type="button" 
-                                            class="btn btn-primary" 
+                                    <button type="button"
+                                            class="btn btn-primary"
                                             id="btnActualizarValor"
                                             onclick="actualizarValorPuntos()">
+                                        <i class="fas fa-save me-1"></i>
+                                        Actualizar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row align-items-center mt-4">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-info rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                        <i class="fas fa-tag text-white" style="font-size: 20px;"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="mb-1"><span id="nombrePuntosActual">@miTenant.NombrePuntos</span></h3>
+                                        <p class="text-muted mb-0">Nombre actual de los puntos</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex gap-2 align-items-center">
+                                    <input type="text"
+                                           class="form-control"
+                                           id="nuevoNombrePuntos"
+                                           style="max-width: 200px;"
+                                           value="@miTenant.NombrePuntos"
+                                           placeholder="Nombre de puntos">
+                                    <button type="button"
+                                            class="btn btn-primary"
+                                            id="btnActualizarNombre"
+                                            onclick="actualizarNombrePuntos()">
                                         <i class="fas fa-save me-1"></i>
                                         Actualizar
                                     </button>
@@ -416,6 +447,52 @@
             // Restaurar botón
             btnActualizar.disabled = false;
             btnActualizar.innerHTML = '<i class="fas fa-save me-1"></i>Actualizar';
+        });
+    }
+
+    function actualizarNombrePuntos() {
+        const inputNombre = document.getElementById('nuevoNombrePuntos').value.trim();
+        const btnNombre = document.getElementById('btnActualizarNombre');
+
+        if (!inputNombre) {
+            mostrarMensaje('El nombre de los puntos no puede estar vacío', 'danger');
+            return;
+        }
+
+        if (inputNombre.length > 50) {
+            mostrarMensaje('El nombre de los puntos es demasiado largo', 'danger');
+            return;
+        }
+
+        btnNombre.disabled = true;
+        btnNombre.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Actualizando...';
+
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+
+        fetch('@Url.Action("ActualizarNombrePuntos", "DashboardWApp")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': token
+            },
+            body: `nombrePuntos=${encodeURIComponent(inputNombre)}&__RequestVerificationToken=${encodeURIComponent(token)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('nombrePuntosActual').textContent = data.nuevoNombre;
+                mostrarMensaje(data.message, 'success');
+            } else {
+                mostrarMensaje(data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            mostrarMensaje('Error de conexión. Por favor, intente nuevamente.', 'danger');
+        })
+        .finally(() => {
+            btnNombre.disabled = false;
+            btnNombre.innerHTML = '<i class="fas fa-save me-1"></i>Actualizar';
         });
     }
 
