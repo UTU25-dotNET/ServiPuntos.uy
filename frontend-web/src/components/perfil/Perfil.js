@@ -215,7 +215,6 @@ const Perfil = () => {
           const updatedProfile = await apiService.getUserProfile();
           setReadOnlyData(updatedProfile);
         } catch (err) {
-          console.error("Error al recargar datos:", err);
         }
       }, 1000);
 

@@ -21,13 +21,9 @@ const DocumentVerification = () => {
 
     useEffect(() => {
         // L�gica existente...
-        console.log("Token recibido:", token);
-        console.log("Code:", code);
-        console.log("State:", state);
 
         // Si no hay token, redirigir al login
         if (!token) {
-            console.error("No se recibió token en los parámetros");
             setError("No se pudo obtener la información de autenticación. Inténtalo de nuevo.");
             setTimeout(() => navigate("/login"), 3000);
             return;
@@ -41,7 +37,6 @@ const DocumentVerification = () => {
             }
 
             const decoded = authService.decodeToken(token);
-            console.log("Token decodificado:", decoded);
 
             if (!decoded) {
                 throw new Error("No se pudo decodificar el token");
@@ -55,7 +50,6 @@ const DocumentVerification = () => {
             setDebugInfo(`Token recibido: ${token.substring(0, 20)}...`);
 
         } catch (err) {
-            console.error("Error al decodificar token:", err);
             // En lugar de redirigir inmediatamente, mostramos el error y permitimos continuar
             setError(`Error al procesar la información de usuario: ${err.message}`);
 
@@ -110,7 +104,6 @@ const DocumentVerification = () => {
             if (code) callbackUrl += `&code=${encodeURIComponent(code)}`;
             if (state) callbackUrl += `&state=${encodeURIComponent(state)}`;
 
-            console.log("Redirigiendo a:", callbackUrl);
 
             // Redirigir al callback de Google con la cédula
             window.location.href = callbackUrl;

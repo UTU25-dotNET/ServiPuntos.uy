@@ -29,7 +29,6 @@ const tokenUtils = {
 
       return decoded;
     } catch (error) {
-      console.error("Error al decodificar token:", error);
       return null;
     }
   },
@@ -40,7 +39,6 @@ const tokenUtils = {
       const decodedToken = jwtDecode(token);
       return decodedToken.exp * 1000 < Date.now();
     } catch (error) {
-      console.error("Error al verificar expiración del token:", error);
       return true; // Si hay error, consideramos que está expirado
     }
   },
@@ -50,7 +48,6 @@ const tokenUtils = {
     try {
       return jwtDecode(token);
     } catch (error) {
-      console.error("Error al obtener usuario desde token:", error);
       return null;
     }
   },

@@ -33,7 +33,6 @@ const Home = () => {
     setError("");
     
     try {
-      console.log("Cargando datos del usuario para dashboard...");
       
       // Cargar datos del usuario
       const profile = await apiService.getUserProfile();
@@ -47,10 +46,8 @@ const Home = () => {
       const ubicacionesData = await apiService.getUbicacionesByUserTenant();
       setUbicaciones(ubicacionesData);
       
-      console.log("Datos del dashboard cargados:", { profile, tenant, ubicaciones: ubicacionesData.length });
       
     } catch (err) {
-      console.error("Error al cargar datos del dashboard:", err);
       setError("Error al cargar la información del dashboard");
     } finally {
       setLoading(false);

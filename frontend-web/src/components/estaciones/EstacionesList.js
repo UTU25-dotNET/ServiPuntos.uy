@@ -35,7 +35,6 @@ const EstacionesList = () => {
     setError("");
     
     try {
-      console.log("Cargando ubicaciones del tenant del usuario...");
       
       // Primero obtener el perfil del usuario
       const profile = await apiService.getUserProfile();
@@ -49,11 +48,8 @@ const EstacionesList = () => {
       const ubicacionesData = await apiService.getUbicacionesByUserTenant();
       setUbicaciones(ubicacionesData);
       
-      console.log("Ubicaciones cargadas:", ubicacionesData);
-      console.log("Información del tenant:", tenant);
       
     } catch (err) {
-      console.error("Error al cargar ubicaciones:", err);
       setError(err.message);
       
       // Como fallback, mostrar mensaje sin ubicaciones

@@ -27,7 +27,6 @@ const scheduleAutoLogout = () => {
       authService.logout();
     }, expiresInMs);
   } catch (err) {
-    console.error("Error scheduling auto logout", err);
   }
 };
 
@@ -38,14 +37,11 @@ const authService = {
 
   getTenants: async () => {
     try {
-      console.log("Obteniendo lista de tenants...");
       
       const response = await axios.get(`${API_URL}tenants`);
-      console.log("Tenants obtenidos:", response.data);
       
       return response.data;
     } catch (err) {
-      console.error("Error al obtener tenants:", err);
       
       if (err.response) {
         const errorMessage = err.response.data?.message || 
@@ -63,7 +59,6 @@ const authService = {
 
 register: async (name, email, password, ci, tenantId) => {
   try {
-    console.log("Iniciando registro para:", { name, email, ci, tenantId });
 
     const response = await axios.post(`${API_URL}register`, {
       nombre: name,
@@ -73,7 +68,6 @@ register: async (name, email, password, ci, tenantId) => {
       tenantId: tenantId // **Enviar como string (Guid)**
     });
 
-    console.log("Respuesta del registro:", response.data);
     
     return {
       success: true,
@@ -82,7 +76,6 @@ register: async (name, email, password, ci, tenantId) => {
     };
 
   } catch (err) {
-    console.error("Error en el registro:", err);
     
     if (err.response) {
       const errorMessage = err.response.data?.message || 
@@ -101,7 +94,6 @@ register: async (name, email, password, ci, tenantId) => {
   login: async (email, password) => {
     try {
       // Para desarrollo, usamos tokens hardcodeados
-      console.log("Login simulado para:", { email, password });
 
       // Simulamos la lógica de login
       let token;
@@ -117,7 +109,6 @@ register: async (name, email, password, ci, tenantId) => {
         throw { message: "Credenciales inválidas" };
       } else {
         // Guardar el token en localStorage
-        console.log("Token recibido:", token);
         localStorage.setItem('token', response.data.token);
         scheduleAutoLogout();
       }
@@ -179,25 +170,19 @@ register: async (name, email, password, ci, tenantId) => {
           decodedToken &&
           (decodedToken.sub || decodedToken.email?.endsWith("@gmail.com"))
         ) {
-          console.log("Detectado login con Google, revocando sesión...");
 
           // Llamar al endpoint de logout del backend para revocar sesión de Google
           try {
-            console.log("Revocando sesión de Google...");
-            console.log("Token:", token);
             await axios.get(`${API_URL}logout`, {
               headers: {
                 Authorization: `Bearer ${token}`, // Enviamos el token para que el backend identifique la sesión
               },
             });
-            console.log("Sesión de Google revocada exitosamente");
           } catch (error) {
-            console.error("Error al revocar sesión de Google:", error);
             // Continuamos con el logout local aunque falle la revocación en Google
           }
         }
       } catch (error) {
-        console.error("Error al decodificar token durante logout:", error);
         // Continuamos con el proceso de logout local
       }
     }
