@@ -1,3 +1,9 @@
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using ServiPuntos.Mobile.Models;
+
 namespace ServiPuntos.Mobile.Services
 {
     public interface ICanjeService
@@ -17,8 +23,6 @@ namespace ServiPuntos.Mobile.Services
 
         public async Task<CanjeResponse> GenerarCanjeAsync(CanjeRequest body)
         {
-
-
             var response = await _httpClient.PostAsJsonAsync("generar-canje", body);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<CanjeResponse>();
@@ -26,10 +30,9 @@ namespace ServiPuntos.Mobile.Services
 
         public async Task<IEnumerable<CanjeHistorialItem>> GetHistorialAsync(string userId)
         {
-
             var response = await _httpClient.GetAsync($"historial/{userId}");
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<IEnumerable<CanjeHistorialItem>>();
+            return await response.Content.ReadFromJsonAsync<IEnumerable<CanjeHistorialItem>>() ?? new List<CanjeHistorialItem>();
         }
     }
 }
