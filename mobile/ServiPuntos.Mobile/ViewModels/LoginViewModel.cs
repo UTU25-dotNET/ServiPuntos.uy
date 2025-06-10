@@ -78,7 +78,8 @@ namespace ServiPuntos.Mobile.ViewModels
                 {
 
                     await Application.Current.MainPage.DisplayAlert("Éxito", "Login exitoso", "OK");
-                    await Shell.Current.GoToAsync("//main");
+                    await Shell.Current.GoToAsync("MainPage");
+
                 }
                 else
                 {

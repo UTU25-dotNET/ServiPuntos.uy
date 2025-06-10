@@ -3,10 +3,11 @@ using ServiPuntos.Mobile.Models;
 using ServiPuntos.Mobile.Services;
 using System.Windows.Input;
 using Microsoft.Maui.Controls;
+using System.Threading.Tasks;
 
 public class HistorialCanjeViewModel : BindableObject
 {
-    private readonly CanjeService _canjeService;
+    private readonly ICanjeService _canjeService;
     private readonly string _usuarioId;
 
     public ObservableCollection<CanjeHistorialItem> Historial { get; } = new();
@@ -20,7 +21,7 @@ public class HistorialCanjeViewModel : BindableObject
 
     public ICommand LoadCommand { get; }
 
-    public HistorialCanjeViewModel(CanjeService canjeService, string usuarioId)
+    public HistorialCanjeViewModel(ICanjeService canjeService, string usuarioId)
     {
         _canjeService = canjeService;
         _usuarioId = usuarioId;
@@ -35,7 +36,7 @@ public class HistorialCanjeViewModel : BindableObject
         try
         {
             Historial.Clear();
-            var items = await _canjeService.GetHistorialUsuarioAsync(_usuarioId);
+            var items = await _canjeService.GetHistorialAsync(_usuarioId);
             foreach (var item in items)
                 Historial.Add(item);
         }

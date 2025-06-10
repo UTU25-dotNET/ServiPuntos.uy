@@ -1,6 +1,8 @@
+
 using ServiPuntos.Mobile.Models;
 using ServiPuntos.Mobile.Services;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Microsoft.Maui.Controls;
 
@@ -8,9 +10,9 @@ namespace ServiPuntos.Mobile.ViewModels
 {
     public class HomeViewModel : BindableObject
     {
-        private readonly UserService _userService;
+        private readonly IUserService _userService;
 
-        public HomeViewModel(UserService userService)
+        public HomeViewModel(IUserService userService)
         {
             _userService = userService;
             Transactions = new ObservableCollection<TransactionSummary>();

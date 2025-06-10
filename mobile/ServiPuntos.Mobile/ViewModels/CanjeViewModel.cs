@@ -1,9 +1,12 @@
 using ServiPuntos.Mobile.Models;
 using ServiPuntos.Mobile.Services;
+using System.Windows.Input;
+using Microsoft.Maui.Controls;
+using System.Threading.Tasks;
 
 public class CanjeViewModel : BindableObject
 {
-    private readonly CanjeService _canjeService;
+    private readonly ICanjeService _canjeService;
     public ProductoCanjeable Producto { get; set; }
     public Ubicacion Ubicacion { get; set; }
     public string TenantId { get; set; }
@@ -23,17 +26,25 @@ public class CanjeViewModel : BindableObject
         set { _mensaje = value; OnPropertyChanged(); }
     }
 
-    public Command CanjearCommand { get; }
+    public ICommand CanjearCommand { get; }
 
-    public CanjeViewModel(CanjeService canjeService)
+    public CanjeViewModel(ICanjeService canjeService)
     {
         _canjeService = canjeService;
-        CanjearCommand = new Command(async () => await CanjearAsync());
+        CanjearCommand = new Command<ProductoCanjeable>(async (producto) => await CanjearAsync(producto));
     }
 
-    private async Task CanjearAsync()
+    private async Task CanjearAsync(ProductoCanjeable producto)
     {
-        var resp = await _canjeService.GenerarCanje(Producto.Id, Ubicacion.Id, TenantId, UsuarioId);
+        if (producto == null) return;
+
+        var req = new CanjeRequest
+        {
+            ProductoId = producto.Id,
+            Cantidad = 1
+        };
+
+        var resp = await _canjeService.GenerarCanjeAsync(req);
         QrBase64 = resp.CodigoQrBase64;
         Mensaje = resp.Mensaje;
     }

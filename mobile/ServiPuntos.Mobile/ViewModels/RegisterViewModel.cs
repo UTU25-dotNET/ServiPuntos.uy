@@ -2,6 +2,7 @@ using ServiPuntos.Mobile.Models;
 using ServiPuntos.Mobile.Services;
 using System.Windows.Input;
 using Microsoft.Maui.Controls;
+using System.Threading.Tasks;
 
 namespace ServiPuntos.Mobile.ViewModels
 {
@@ -32,11 +33,13 @@ namespace ServiPuntos.Mobile.ViewModels
                 Nombre = this.Nombre
             };
 
+
             var ok = await _authService.RegisterAsync(req);
+
             if (ok)
             {
                 await Application.Current.MainPage.DisplayAlert("¡Registro exitoso!", "Ahora puedes iniciar sesión.", "OK");
-                Application.Current.MainPage.Navigation.PopAsync();
+                await Application.Current.MainPage.Navigation.PopAsync();
             }
             else
             {

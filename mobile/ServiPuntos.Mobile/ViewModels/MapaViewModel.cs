@@ -4,6 +4,7 @@ using ServiPuntos.Mobile.Models;
 using ServiPuntos.Mobile.Services;
 using Microsoft.Maui.Controls;
 using System.Windows.Input;
+using System.Threading.Tasks;
 
 public class MapaViewModel : BindableObject
 {
@@ -78,7 +79,7 @@ public class MapaViewModel : BindableObject
 
         var filtradas = _todasLasUbicaciones
             .Where(u => string.IsNullOrEmpty(CiudadSeleccionada) || u.Ciudad == CiudadSeleccionada)
-            .Where(u => !FiltrarLavado || u.LavadoDeAuto || u.Lavado)
+            .Where(u => !FiltrarLavado || u.Lavado)
             .Where(u => !FiltrarCambioAceite || u.CambioDeAceite)
             .Where(u => u.PrecioNaftaSuper <= PrecioNaftaSuperMax)
             .ToList();
