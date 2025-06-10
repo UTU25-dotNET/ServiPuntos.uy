@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<resources>
+    <!-- Tema principal requerido para AppCompat -->
+    <style name="MainTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@android:color/white</item>
+        <!-- Puedes personalizar más colores si quieres -->
+    </style>
+    <!-- Opcional: el splash -->
+    <style name="Maui.SplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@drawable/maui_splash</item>
+    </style>
+</resources>
