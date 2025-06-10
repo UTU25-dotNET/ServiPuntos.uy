@@ -17,6 +17,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
   const [carritoError, setCarritoError] = useState("");
   const [compraLoading, setCompraLoading] = useState(false);
   const [compraError, setCompraError] = useState("");
+  const [tenantInfo, setTenantInfo] = useState(null);
 
   useEffect(() => {
     const loadProductos = async () => {
@@ -40,6 +41,22 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
       loadProductos();
     }
   }, [isOpen, ubicacion]);
+
+  // Cargar información del tenant cuando se abre el catálogo
+  useEffect(() => {
+    const loadTenantInfo = async () => {
+      try {
+        const tenant = await apiService.getTenantInfo();
+        setTenantInfo(tenant);
+      } catch (err) {
+        // Silenciar error para no interrumpir la experiencia del usuario
+      }
+    };
+
+    if (isOpen) {
+      loadTenantInfo();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -715,7 +732,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                               cursor: "pointer"
                             }}
                           >
-                            Canjear
+                            {`Canjear con ${tenantInfo?.nombrePuntos || "Puntos"}`}
                           </button>
                           <button
                             onClick={() => agregarAlCarrito(productoUbicacion)}
@@ -730,24 +747,13 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                               cursor: "pointer"
                             }}
                           >
-                            Agregar al carrito
+                            🛒 Agregar al carrito
                           </button>
                         </div>
                       )}
 
                       {/* Footer con información adicional */}
-                      <div
-                        style={{
-                          marginTop: "1rem",
-                          paddingTop: "1rem",
-                          borderTop: "1px solid #f8f9fa",
-                          fontSize: "0.8rem",
-                          color: "#6c757d",
-                          textAlign: "center"
-                        }}
-                      >
-                        ID: {productoUbicacion.id.slice(0, 8)}...
-                      </div>
+                      <div style={{ height: "1rem" }} />
                     </div>
                   );
                 })}
