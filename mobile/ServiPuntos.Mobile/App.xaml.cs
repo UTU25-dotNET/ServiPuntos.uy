@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Microsoft.Maui.Controls;
+using Microsoft.Maui.Storage;
+using System;
 using System.Linq;
-using Microsoft.Maui.Controls;
-using Microsoft.Maui.ApplicationModel;
 using static ServiPuntos.Mobile.Services.AppLogger;
 
 namespace ServiPuntos.Mobile
@@ -12,7 +12,8 @@ namespace ServiPuntos.Mobile
         {
             InitializeComponent();
             LogInfo("ServiPuntos Mobile iniciado");
-            MainPage = new AppShell();
+            MainPage = new NavigationPage(new AppShell());
+
         }
 
         protected override void OnAppLinkRequestReceived(Uri uri)
@@ -42,7 +43,8 @@ namespace ServiPuntos.Mobile
                 {
                     LogInfo($"Token recibido: {token[..Math.Min(20, token.Length)]}...");
                     await SecureStorage.SetAsync("auth_token", token);
-                    await MainPage.Navigation.PushAsync(new Views.TokenDisplayPage(token));
+                    await Shell.Current.GoToAsync($"TokenDisplayPage?token={token}");
+
                 }
                 else if (query.TryGetValue("error", out var error))
                 {
