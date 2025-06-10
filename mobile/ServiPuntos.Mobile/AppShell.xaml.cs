@@ -1,9 +1,15 @@
-﻿namespace ServiPuntos.Mobile;
+﻿using ServiPuntos.Mobile.Views;
 
-public partial class AppShell : Shell
+namespace ServiPuntos.Mobile
 {
-	public AppShell()
+	public partial class AppShell : Shell
 	{
-		InitializeComponent();
+		public AppShell()
+		{
+			InitializeComponent();
+
+
+			Routing.RegisterRoute(nameof(TokenDisplayPage), typeof(TokenDisplayPage));
+		}
 	}
 }
