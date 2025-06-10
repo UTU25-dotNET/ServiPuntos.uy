@@ -8,6 +8,9 @@ using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls;
 using ServiPuntos.Mobile.Views;
 using static ServiPuntos.Mobile.Services.AppLogger;
+using System.Net.Http.Json;
+using ServiPuntos.Mobile.Models;
+
 
 namespace ServiPuntos.Mobile.Services
 {
@@ -104,7 +107,8 @@ namespace ServiPuntos.Mobile.Services
         {
             try
             {
-                await SecureStorage.RemoveAsync(TOKEN_KEY);
+                SecureStorage.Remove(TOKEN_KEY);
+
                 _httpClient.DefaultRequestHeaders.Authorization = null;
                 LogInfo("[AuthService] Logout completado");
             }
@@ -137,6 +141,12 @@ namespace ServiPuntos.Mobile.Services
                 json,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
             );
+        }
+
+        public async Task<bool> RegisterAsync(RegisterRequest request)
+        {
+            var response = await _httpClient.PostAsJsonAsync("api/auth/register", request);
+            return response.IsSuccessStatusCode;
         }
     }
 }

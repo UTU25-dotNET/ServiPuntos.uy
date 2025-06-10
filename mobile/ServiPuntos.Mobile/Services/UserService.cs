@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ServiPuntos.Mobile.Services
 {
-    public class UserService
+    public class UserService : IUserService
     {
         private readonly HttpClient _httpClient;
         private const string BASE_URL = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/usuario";
@@ -16,17 +16,12 @@ namespace ServiPuntos.Mobile.Services
             _httpClient = httpClient;
         }
 
-        public async Task<Usuario?> GetPerfilByEmailAsync(string email)
-        {
-            return await _httpClient.GetFromJsonAsync<Usuario>($"{BASE_URL}/email/{email}");
-        }
 
+        public async Task<Usuario?> GetPerfilByEmailAsync(string email)
+            => await _httpClient.GetFromJsonAsync<Usuario>($"{BASE_URL}/email/{email}");
 
         public async Task<Usuario?> GetPerfilByIdAsync(string id)
-        {
-            return await _httpClient.GetFromJsonAsync<Usuario>($"{BASE_URL}/{id}");
-        }
-
+            => await _httpClient.GetFromJsonAsync<Usuario>($"{BASE_URL}/{id}");
 
         public async Task<bool> UpdatePerfilAsync(Usuario usuario)
         {
@@ -34,15 +29,10 @@ namespace ServiPuntos.Mobile.Services
             return resp.IsSuccessStatusCode;
         }
 
-
         public async Task<PointBalanceResponse?> GetBalanceAsync()
-        {
-            return await _httpClient.GetFromJsonAsync<PointBalanceResponse>($"{BASE_URL}/saldo");
-        }
+            => await _httpClient.GetFromJsonAsync<PointBalanceResponse>($"{BASE_URL}/saldo");
 
         public async Task<List<TransactionSummary>?> GetRecentTransactionsAsync()
-        {
-            return await _httpClient.GetFromJsonAsync<List<TransactionSummary>>($"{BASE_URL}/historial?limit=5");
-        }
+            => await _httpClient.GetFromJsonAsync<List<TransactionSummary>>($"{BASE_URL}/historial?limit=5");
     }
 }
