@@ -8,6 +8,18 @@ const NavBar = () => {
   const user = authService.getCurrentUser();
   const [tenantInfo, setTenantInfo] = useState(null);
 
+
+    // Calcular color de contraste para un fondo dado
+    const getContrastColor = (hex) => {
+      if (!hex) return "#ffffff";
+      const clean = hex.replace("#", "");
+      const r = parseInt(clean.substr(0, 2), 16);
+      const g = parseInt(clean.substr(2, 2), 16);
+      const b = parseInt(clean.substr(4, 2), 16);
+      const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      return luminance > 0.5 ? "#000000" : "#ffffff";
+    };
+  
   // Cargar información del tenant si el usuario está autenticado
   useEffect(() => {
     const loadTenantInfo = async () => {
@@ -24,6 +36,17 @@ const NavBar = () => {
     loadTenantInfo();
   }, [isAuthenticated]);
 
+  useEffect(() => {
+    if (tenantInfo?.nombre) {
+      document.title = `${tenantInfo.nombre} - Servipuntos`;
+    } else {
+      document.title = "Servipuntos";
+    }
+  }, [tenantInfo]);
+
+  const textColor = getContrastColor(tenantInfo?.color || "#343a40");
+
+
   return (
     <nav
       style={{
@@ -31,8 +54,8 @@ const NavBar = () => {
         justifyContent: "space-between",
         alignItems: "center",
         padding: "1rem 2rem",
-        backgroundColor: "#343a40",
-        color: "white",
+        backgroundColor: tenantInfo?.color || "#343a40",
+        color: textColor,
         boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
       }}
     >
@@ -41,7 +64,7 @@ const NavBar = () => {
         <Link
           to="/"
           style={{
-            color: "white",
+            color: textColor,
             textDecoration: "none",
             fontWeight: "bold",
             fontSize: "1.3rem",
@@ -50,7 +73,11 @@ const NavBar = () => {
             gap: "0.5rem"
           }}
         >
-          <span style={{ fontSize: "1.5rem" }}>⛽</span>
+          {tenantInfo?.logoUrl ? (
+            <img src={tenantInfo.logoUrl} alt="Logo" style={{ height: "40px" }} />
+          ) : (
+            <img src="/logo192.png" alt="Logo" style={{ height: "40px" }} />
+          )}
           {isAuthenticated && tenantInfo ? (
             <>
               {tenantInfo.nombre} 
@@ -95,7 +122,7 @@ const NavBar = () => {
             <Link 
               to="/estaciones" 
               style={{ 
-                color: 'white', 
+                color: textColor,
                 textDecoration: 'none',
                 padding: '0.5rem 1rem',
                 borderRadius: '6px',
@@ -122,7 +149,7 @@ const NavBar = () => {
             <Link 
               to="/perfil" 
               style={{ 
-                color: 'white', 
+                color: textColor,
                 textDecoration: 'none',
                 padding: '0.5rem 1rem',
                 borderRadius: '6px',
@@ -143,7 +170,7 @@ const NavBar = () => {
               to="/"
               onClick={() => authService.logout()}
               style={{
-                color: "white",
+                color: textColor,
                 textDecoration: "none",
                 padding: '0.5rem 1rem',
                 borderRadius: '6px',
@@ -166,7 +193,7 @@ const NavBar = () => {
             <Link 
               to="/login" 
               style={{ 
-                color: 'white', 
+                color: textColor,
                 textDecoration: 'none',
                 padding: '0.75rem 1.5rem',
                 borderRadius: '6px',
