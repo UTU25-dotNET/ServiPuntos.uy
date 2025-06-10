@@ -86,6 +86,7 @@ namespace ServiPuntos.Controllers
 
                             var transacciones = await _iTransaccionService.GetTransaccionesByUbicacionIdAsync(ubicacionId);
                             var canjes = await _iCanjeService.GetCanjesByUbicacionIdAsync(ubicacionId);
+                            var pendientes = await _iCanjeService.GetCanjesPendientesByUbicacionIdAsync(ubicacionId);
 
                             ViewBag.ReporteUbicacion = new ServiPuntos.WebApp.Models.ReporteUbicacionViewModel
                             {
@@ -94,6 +95,7 @@ namespace ServiPuntos.Controllers
                                 TotalCanjes = canjes.Count(),
                                 CanjesCompletados = canjes.Count(c => c.Estado == ServiPuntos.Core.Enums.EstadoCanje.Canjeado)
                             };
+                            ViewBag.CanjesPendientes = pendientes;
                         }
                     }
                 }
@@ -371,6 +373,21 @@ public async Task<IActionResult> ActualizarNombrePuntos(string nombrePuntos)
             {
                 Console.WriteLine($"❌ Error al actualizar precios de combustible: {ex.Message}");
                 return Json(new { success = false, message = $"Error interno: {ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "AdminUbicacion")]
+        public async Task<IActionResult> ConfirmarCanje(Guid canjeId)
+        {
+            try
+            {
+                await _iCanjeService.ConfirmarCanjeAsync(canjeId);
+                return Json(new { success = true, message = "Canje confirmado correctamente" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
             }
         }
 

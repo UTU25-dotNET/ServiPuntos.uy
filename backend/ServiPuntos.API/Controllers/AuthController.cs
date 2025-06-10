@@ -39,7 +39,7 @@ public class AuthController : ControllerBase
         _tenantService = tenantService;
         _configPlataformaService = configPlataformaService;
         _httpClientFactory = httpClientFactory;
-        _tenantService = tenantService;
+        _configuration = configuration;
 
     }
 

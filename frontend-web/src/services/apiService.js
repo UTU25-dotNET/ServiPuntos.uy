@@ -473,6 +473,66 @@ getProductosByUbicacion: async (ubicacionId) => {
     }
   },
 
+  // Procesa la compra de un producto utilizando PayPal
+  procesarTransaccion: async (productoUbicacion, ubicacionId) => {
+    try {
+      if (!productoUbicacion || !ubicacionId) {
+        throw new Error("Producto y ubicación son requeridos");
+      }
+
+      const user = await apiService.getUserProfile();
+
+      const linea = {
+        idProducto: productoUbicacion.productoCanjeable.id,
+        nombreProducto: productoUbicacion.productoCanjeable.nombre,
+        categoria: productoUbicacion.categoria || "general",
+        cantidad: 1,
+        precioUnitario: Math.round(productoUbicacion.precio),
+        subTotal: Math.round(productoUbicacion.precio)
+      };
+
+      const transaccion = {
+        IdentificadorUsuario: user.id,
+        fechaTransaccion: new Date().toISOString(),
+        tipoTransaccion: 2, // CompraMinimercado
+        monto: Math.round(productoUbicacion.precio),
+        metodoPago: 1, // PayPal
+        MontoPayPal: Math.round(productoUbicacion.precio),
+        productos: [linea],
+        puntosUtilizados: 0,
+        datosAdicionales: {}
+      };
+      console.log(transaccion.montoPayPal);
+      const mensaje = {
+        tipoMensaje: 1,
+        ubicacionId: ubicacionId,
+        tenantId: user.tenantId,
+        datos: { transaccion }
+      };
+
+      const response = await apiClient.post('nafta/transaccion', mensaje);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.mensaje || 'Error al procesar transacción');
+    }
+  },
+
+  // Confirma un pago de PayPal con los datos devueltos por la aprobación
+  confirmarPagoPaypal: async (paymentId, payerId) => {
+    try {
+      const mensaje = {
+        tipoMensaje: 1,
+        datos: { paymentId, payerId }
+      };
+
+      const response = await apiClient.post('nafta/confirmar-paypal', mensaje);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.mensaje || 'Error al confirmar pago');
+    }
+  },
+
+
   // Obtener historial de canjes del usuario
   getCanjesByUsuario: async (usuarioId) => {
     try {
