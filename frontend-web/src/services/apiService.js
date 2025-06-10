@@ -389,14 +389,15 @@ getProductosCanjeables: async () => {
 },
 
 // Obtener productos disponibles en una ubicación específica
-getProductosByUbicacion: async (ubicacionId) => {
+getProductosByUbicacion: async (ubicacionId, categoria) => {
   try {
     if (!ubicacionId) {
       throw new Error("ID de ubicación es requerido");
     }
 
     
-    const response = await apiClient.get(`ProductoUbicacion/ubicacion/${ubicacionId}`);
+    const url = categoria ? `ProductoUbicacion/ubicacion/${ubicacionId}?categoria=${encodeURIComponent(categoria)}` : `ProductoUbicacion/ubicacion/${ubicacionId}`;
+    const response = await apiClient.get(url);
     
     return response.data;
     
