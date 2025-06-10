@@ -15,14 +15,22 @@ namespace ServiPuntos.Mobile.Services
     public class ProductoService : IProductoService
     {
         private readonly HttpClient _httpClient;
-        public ProductoService(HttpClient httpClient) => _httpClient = httpClient;
 
+        public ProductoService(HttpClient httpClient)
+        {
+            _httpClient = httpClient;
+        }
 
-        public Task<List<ProductoCanjeable>> GetProductosCanjeablesAsync() =>
-            _httpClient.GetFromJsonAsync<List<ProductoCanjeable>>("");
+        public Task<List<ProductoCanjeable>> GetProductosCanjeablesAsync()
+        {
 
+            return _httpClient.GetFromJsonAsync<List<ProductoCanjeable>>("listar");
+        }
 
-        public Task<List<ProductoCanjeable>> GetProductosPorUbicacionAsync(string ubicacionId) =>
-            _httpClient.GetFromJsonAsync<List<ProductoCanjeable>>($"ubicacion/{ubicacionId}");
+        public Task<List<ProductoCanjeable>> GetProductosPorUbicacionAsync(string ubicacionId)
+        {
+
+            return _httpClient.GetFromJsonAsync<List<ProductoCanjeable>>($"ubicacion/{ubicacionId}");
+        }
     }
 }
