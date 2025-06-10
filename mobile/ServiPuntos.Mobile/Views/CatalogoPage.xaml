@@ -1,10 +1,18 @@
-<ContentPage ...
-        Title="Catálogo">
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewmodels="clr-namespace:ServiPuntos.Mobile.ViewModels"
+    x:Class="ServiPuntos.Mobile.Views.CatalogoPage"
+    x:Name="page"
+    Title="Catálogo">
+
     <StackLayout Padding="18">
         <Label Text="Selecciona estación:"/>
-        <Picker ItemsSource="{Binding Ubicaciones}"
-                ItemDisplayBinding="{Binding Nombre}"
-                SelectedItem="{Binding UbicacionSeleccionada}"/>
+        <Picker
+            ItemsSource="{Binding Ubicaciones}"
+            ItemDisplayBinding="{Binding Nombre}"
+            SelectedItem="{Binding UbicacionSeleccionada}"/>
         <CollectionView ItemsSource="{Binding Productos}">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
@@ -14,9 +22,10 @@
                                 FontAttributes="Bold"
                                 WidthRequest="140"/>
                         <Label Text="{Binding CostoEnPuntos, StringFormat='Puntos: {0}'}"/>
-                        <Button Text="Canjear"
-                                Command="{Binding Source={RelativeSource AncestorType={x:Type local:CatalogoViewModel}}, Path=CanjearCommand}"
-                                CommandParameter="{Binding .}"/>
+                        <Button
+                            Text="Canjear"
+                            Command="{Binding Source={x:Reference page}, Path=BindingContext.CanjearCommand}"
+                            CommandParameter="{Binding .}"/>
                     </StackLayout>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
