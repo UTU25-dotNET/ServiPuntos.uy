@@ -37,9 +37,6 @@
                                 @foreach (var producto in Model.Productos)
                                 {
                                     <tr>
-                                        <td>
-                                            <img src="@(string.IsNullOrEmpty(producto.FotoUrl) ? Url.Content("~/images/placeholder-logo.png") : producto.FotoUrl)" style="width:50px; height:50px; object-fit:cover;" class="rounded" />
-                                        </td>
                                         <td>@producto.Nombre</td>
                                         <td>@producto.Descripcion</td>
                                         <td>
@@ -86,6 +83,9 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                        </td>
+                                        <td>
+                                            <img src="@(string.IsNullOrEmpty(producto.FotoUrl) ? Url.Content("~/images/placeholder-logo.png") : producto.FotoUrl)" style="width:50px; height:50px; object-fit:cover;" class="rounded" />
                                         </td>
                                     </tr>
                                 }
