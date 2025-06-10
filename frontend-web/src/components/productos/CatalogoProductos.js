@@ -109,6 +109,28 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
     }
   };
 
+  const handleComprarCarrito = async () => {
+    setCompraLoading(true);
+    setCompraError("");
+    try {
+      const result = await apiService.procesarTransaccionMultiple(carrito, ubicacion.id);
+      if (result?.codigo === "PENDING_PAYMENT" && result.datos?.approvalUrl) {
+        window.location.href = result.datos.approvalUrl;
+      } else if (result?.codigo !== "OK") {
+        setCompraError(result?.mensaje || "Error en la compra");
+      } else {
+        setCarrito([]);
+      }
+    } catch (err) {
+      setCompraError(err.message);
+    } finally {
+      setCompraLoading(false);
+    }
+  };
+
+  const totalCarrito = carrito.reduce((sum, p) => sum + (p.precio || 0), 0);
+
+
   // Función para formatear el costo en puntos
   const formatCosto = (costo) => {
     if (!costo || costo === 0) return "Gratis";
@@ -160,7 +182,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
         style={{
           backgroundColor: "white",
           borderRadius: "16px",
-          maxWidth: "900px",
+          maxWidth: "1200px",
           width: "100%",
           maxHeight: "80vh",
           overflow: "hidden",
@@ -451,37 +473,44 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
               )}
 
               {carrito.length > 0 && (
-                <div
-                  style={{
-                    marginBottom: "1rem",
-                    padding: "1rem",
-                    backgroundColor: "#e8f5e9",
-                    borderRadius: "8px",
-                    border: "1px solid #c8e6c9"
-                  }}
-                >
-                  <h5 style={{ marginTop: 0 }}>Carrito ({carrito.length})</h5>
-                  <ul style={{ listStyle: "none", padding: 0 }}>
+                <div className="card mb-3">
+                <div className="card-body">
+                  <h5 className="card-title">Carrito ({carrito.length})</h5>
+                  <ul className="list-group list-group-flush">
                     {carrito.map((p) => (
-                      <li key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.25rem" }}>
+                      <li key={p.id} className="list-group-item d-flex justify-content-between align-items-center">
                         <span>{p.productoCanjeable.nombre}</span>
-                        <button onClick={() => quitarDelCarrito(p.id)} style={{ border: "none", background: "transparent", color: "#dc3545", cursor: "pointer" }}>✕</button>
+                        <button
+                          className="btn btn-sm btn-outline-danger"
+                          onClick={() => quitarDelCarrito(p.id)}
+                        >
+                          ✕
+                        </button>
                       </li>
                     ))}
                   </ul>
-                  <button onClick={handleCanjearCarrito} disabled={carritoLoading}
-                    style={{
-                      marginTop: "0.5rem",
-                      padding: "0.5rem 1rem",
-                      backgroundColor: "#28a745",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "6px",
-                      cursor: "pointer"
-                    }}>
-                    Canjear carrito
-                  </button>
-                  {carritoError && <p style={{ color: "#dc3545" }}>{carritoError}</p>}
+                  <div className="d-flex justify-content-between align-items-center mt-3">
+                    <strong>Total: {formatPrecio(totalCarrito)}</strong>
+                    <div className="d-flex gap-2">
+                      <button
+                        className="btn btn-warning"
+                        onClick={handleComprarCarrito}
+                        disabled={compraLoading}
+                      >
+                        Comprar carrito
+                      </button>
+                      <button
+                        className="btn btn-success"
+                        onClick={handleCanjearCarrito}
+                        disabled={carritoLoading}
+                      >
+                        Canjear carrito
+                      </button>
+                    </div>
+                  </div>
+                  {carritoError && <p className="text-danger mt-2">{carritoError}</p>}
+                  {compraError && <p className="text-danger mt-2">{compraError}</p>}
+                </div>
                 </div>
               )}
 

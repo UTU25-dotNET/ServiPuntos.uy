@@ -518,6 +518,53 @@ getProductosByUbicacion: async (ubicacionId, categoria) => {
     }
   },
 
+  // Procesa la compra de varios productos (carrito) utilizando PayPal
+  procesarTransaccionMultiple: async (productosUbicacion, ubicacionId) => {
+    try {
+      if (!Array.isArray(productosUbicacion) || productosUbicacion.length === 0 || !ubicacionId) {
+        throw new Error("Productos y ubicación son requeridos");
+      }
+
+      const user = await apiService.getUserProfile();
+
+      const lineas = productosUbicacion.map(p => ({
+        idProducto: p.productoCanjeable.id,
+        nombreProducto: p.productoCanjeable.nombre,
+        categoria: p.categoria || "general",
+        cantidad: 1,
+        precioUnitario: Math.round(p.precio),
+        subTotal: Math.round(p.precio)
+      }));
+
+      const total = lineas.reduce((sum, l) => sum + l.subTotal, 0);
+
+      const transaccion = {
+        IdentificadorUsuario: user.id,
+        fechaTransaccion: new Date().toISOString(),
+        tipoTransaccion: 2,
+        monto: total,
+        metodoPago: 1,
+        MontoPayPal: total,
+        productos: lineas,
+        puntosUtilizados: 0,
+        datosAdicionales: {}
+      };
+
+      const mensaje = {
+        tipoMensaje: 1,
+        ubicacionId: ubicacionId,
+        tenantId: user.tenantId,
+        datos: { transaccion }
+      };
+
+      const response = await apiClient.post('nafta/transaccion', mensaje);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.mensaje || 'Error al procesar transacción');
+    }
+  },
+
+
   // Confirma un pago de PayPal con los datos devueltos por la aprobación
   confirmarPagoPaypal: async (paymentId, payerId) => {
     try {
