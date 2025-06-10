@@ -432,10 +432,13 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
               </div>
 
               {categorias.length > 0 && (
-                <div style={{ marginBottom: "1rem", textAlign: "center" }}>
-                  <label htmlFor="categoriaFiltro" style={{ marginRight: "0.5rem" }}>Filtrar por categoría:</label>
+                <div className="mb-3 text-center">
+                  <label htmlFor="categoriaFiltro" className="form-label me-2">
+                    Filtrar por categoría:
+                  </label>
                   <select
                     id="categoriaFiltro"
+                    className="form-select d-inline-block w-auto"
                     value={categoriaSeleccionada}
                     onChange={(e) => setCategoriaSeleccionada(e.target.value)}
                   >
