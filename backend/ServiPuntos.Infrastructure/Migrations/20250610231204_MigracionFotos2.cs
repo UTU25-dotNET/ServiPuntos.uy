@@ -5,7 +5,7 @@
 namespace ServiPuntos.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class MigracionFotos : Migration
+    public partial class MigracionFotos2 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
