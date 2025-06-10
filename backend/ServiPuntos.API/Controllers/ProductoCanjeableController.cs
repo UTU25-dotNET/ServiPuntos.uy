@@ -52,7 +52,8 @@ namespace ServiPuntos.API.Controllers
                         id = p.Id,
                         nombre = p.Nombre,
                         descripcion = p.Descripcion,
-                        costoEnPuntos = p.CostoEnPuntos
+                        costoEnPuntos = p.CostoEnPuntos,
+                        fotoUrl = p.FotoUrl
                     }).ToList(),
                     ubicaciones = ubicaciones.Select(u => new
                     {
@@ -89,7 +90,8 @@ namespace ServiPuntos.API.Controllers
                     id = producto.Id,
                     nombre = producto.Nombre,
                     descripcion = producto.Descripcion,
-                    costoEnPuntos = producto.CostoEnPuntos
+                    costoEnPuntos = producto.CostoEnPuntos,
+                    fotoUrl = producto.FotoUrl
                 };
 
                 return Ok(response);
@@ -118,7 +120,10 @@ namespace ServiPuntos.API.Controllers
                     request.Nombre,
                     request.Descripcion,
                     (int)request.CostoEnPuntos
-                );
+                )
+                {
+                    FotoUrl = request.FotoUrl
+                };
 
                 await _productoCanjeableService.AddProductoAsync(producto);
 
@@ -127,7 +132,8 @@ namespace ServiPuntos.API.Controllers
                     id = producto.Id,
                     nombre = producto.Nombre,
                     descripcion = producto.Descripcion,
-                    costoEnPuntos = producto.CostoEnPuntos
+                    costoEnPuntos = producto.CostoEnPuntos,
+                    fotoUrl = producto.FotoUrl
                 };
 
                 return CreatedAtAction(nameof(GetProductoCanjeable), new { id = producto.Id }, response);
@@ -166,6 +172,7 @@ namespace ServiPuntos.API.Controllers
                 producto.Nombre = request.Nombre;
                 producto.Descripcion = request.Descripcion;
                 producto.CostoEnPuntos = (int)request.CostoEnPuntos;
+                producto.FotoUrl = request.FotoUrl;
 
                 await _productoCanjeableService.UpdateProductoAsync(producto);
 
@@ -174,7 +181,8 @@ namespace ServiPuntos.API.Controllers
                     id = producto.Id,
                     nombre = producto.Nombre,
                     descripcion = producto.Descripcion,
-                    costoEnPuntos = producto.CostoEnPuntos
+                    costoEnPuntos = producto.CostoEnPuntos,
+                    fotoUrl = producto.FotoUrl
                 };
 
                 return Ok(response);
@@ -341,6 +349,8 @@ namespace ServiPuntos.API.Controllers
         [Required(ErrorMessage = "El costo en puntos es requerido")]
         [Range(0.01, double.MaxValue, ErrorMessage = "El costo debe ser mayor a 0")]
         public decimal CostoEnPuntos { get; set; }
+
+        public string? FotoUrl { get; set; }
     }
 
     public class UpdateProductoRequest
@@ -358,6 +368,7 @@ namespace ServiPuntos.API.Controllers
         [Required(ErrorMessage = "El costo en puntos es requerido")]
         [Range(0.01, double.MaxValue, ErrorMessage = "El costo debe ser mayor a 0")]
         public decimal CostoEnPuntos { get; set; }
+        public string? FotoUrl { get; set; }
     }
 
     public class AsignarUbicacionesRequest

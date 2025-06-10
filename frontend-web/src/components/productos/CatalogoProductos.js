@@ -570,6 +570,13 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                         e.currentTarget.style.borderColor = "#e9ecef";
                       }}
                     >
+                      <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+                        <img
+                          src={producto.fotoUrl || "placeholder-product.png"}
+                          alt={producto.nombre}
+                          style={{ width: "100%", height: "150px", objectFit: "cover", borderRadius: "8px" }}
+                        />
+                      </div>
                       {/* Header del producto */}
                       <div style={{ marginBottom: "1rem" }}>
                         <h4

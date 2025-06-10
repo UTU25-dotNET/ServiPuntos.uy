@@ -42,7 +42,8 @@ namespace ServiPuntos.API.Controllers
                         id = pu.ProductoCanjeable.Id,
                         nombre = pu.ProductoCanjeable.Nombre,
                         descripcion = pu.ProductoCanjeable.Descripcion,
-                        costoEnPuntos = pu.ProductoCanjeable.CostoEnPuntos
+                        costoEnPuntos = pu.ProductoCanjeable.CostoEnPuntos,
+                        fotoUrl = pu.ProductoCanjeable.FotoUrl
                     } : null
                 }).ToList();
 
@@ -100,7 +101,8 @@ namespace ServiPuntos.API.Controllers
                             id = pu.ProductoCanjeable.Id,
                             nombre = pu.ProductoCanjeable.Nombre ?? "Sin nombre",
                             descripcion = pu.ProductoCanjeable.Descripcion ?? "Sin descripción",
-                            costoEnPuntos = pu.ProductoCanjeable.CostoEnPuntos
+                            costoEnPuntos = pu.ProductoCanjeable.CostoEnPuntos,
+                            fotoUrl = pu.ProductoCanjeable.FotoUrl
                         } : null
                     };
                     

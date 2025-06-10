@@ -18,6 +18,8 @@ namespace ServiPuntos.WebApp.Models
         [Required(ErrorMessage = "El costo en puntos es obligatorio")]
         [Range(1, int.MaxValue, ErrorMessage = "El costo en puntos debe ser mayor a 0")]
         public int CostoEnPuntos { get; set; }
+        [Url(ErrorMessage = "Debe ingresar una URL válida")]
+        public string? FotoUrl { get; set; }
     }
     public class EditProductoCanjeableViewModel
     {
@@ -30,6 +32,8 @@ namespace ServiPuntos.WebApp.Models
         [Required(ErrorMessage = "El costo en puntos es obligatorio")]
         [Range(1, int.MaxValue, ErrorMessage = "El costo en puntos debe ser mayor a 0")]
         public int CostoEnPuntos { get; set; }
+        [Url(ErrorMessage = "Debe ingresar una URL válida")]
+        public string? FotoUrl { get; set; }
     }
     
 }
