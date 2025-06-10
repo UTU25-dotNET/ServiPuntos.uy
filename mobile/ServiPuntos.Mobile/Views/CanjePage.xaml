@@ -1,14 +1,15 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ServiPuntos.Mobile.Views.CanjePage"
              Title="Canje realizado">
-    <StackLayout Padding="18"
-            Spacing="14">
-        <Label Text="Presenta este QR en la estación:"
-                FontSize="18"/>
-        <Image Source="{Binding QrBase64, Converter={StaticResource Base64ToImageSourceConverter}}"
-                HeightRequest="200"/>
-        <Label Text="{Binding Mensaje}"
-                TextColor="Green"
-                FontSize="16"/>
-    </StackLayout>
+        <StackLayout Padding="18"
+                        Spacing="14">
+                <Label Text="Presenta este QR en la estación:"
+                                FontSize="18"/>
+                <Image Source="{Binding QrBase64, Converter={StaticResource Base64ToImageSourceConverter}}"
+                                HeightRequest="200"/>
+                <Label Text="{Binding Mensaje}"
+                                TextColor="Green"
+                                FontSize="16"/>
+        </StackLayout>
 </ContentPage>
