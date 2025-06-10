@@ -56,12 +56,20 @@ namespace ServiPuntos.Mobile
 			});
 
 
+
+
 			builder.Services.AddHttpClient<ICanjeService, CanjeService>(client =>
 			{
 				client.BaseAddress = new Uri($"{apiBase}nafta/");
 				client.Timeout = TimeSpan.FromSeconds(60);
 				client.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
 			});
+
+			builder.Services.AddHttpClient<IUserService, UserService>(client =>
+			{
+				client.BaseAddress = new Uri($"{apiBase}usuario/");
+			});
+
 
 
 			builder.Services.AddTransient<LoginViewModel>();
