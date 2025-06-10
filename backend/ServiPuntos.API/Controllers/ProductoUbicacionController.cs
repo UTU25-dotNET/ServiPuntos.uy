@@ -29,10 +29,11 @@ namespace ServiPuntos.API.Controllers
             {
                 Console.WriteLine("[ProductoUbicacion] GetAll - Iniciando");
                 var productosUbicacion = await _productoUbicacionService.GetAllAsync();
-                
+
                 var productosDto = productosUbicacion.Select(pu => new {
                     id = pu.Id,
                     ubicacionId = pu.UbicacionId,
+                    categoria = pu.Categoria,
                     productoCanjeableId = pu.ProductoCanjeableId,
                     precio = pu.Precio,
                     stockDisponible = pu.StockDisponible,
@@ -62,7 +63,7 @@ namespace ServiPuntos.API.Controllers
         /// <param name="ubicacionId">ID de la ubicación</param>
         /// <returns>Lista de productos de la ubicación</returns>
         [HttpGet("ubicacion/{ubicacionId}")]
-        public async Task<ActionResult<IEnumerable<object>>> GetAllByUbicacion(Guid ubicacionId)
+        public async Task<ActionResult<IEnumerable<object>>> GetAllByUbicacion(Guid ubicacionId, [FromQuery] string? categoria)
         {
             try
             {
@@ -75,7 +76,9 @@ namespace ServiPuntos.API.Controllers
                 }
 
                 Console.WriteLine("[ProductoUbicacion] GetAllByUbicacion - Llamando al servicio");
-                var productosUbicacion = await _productoUbicacionService.GetAllAsync(ubicacionId);
+                var productosUbicacion = string.IsNullOrEmpty(categoria)
+                    ? await _productoUbicacionService.GetAllAsync(ubicacionId)
+                    : await _productoUbicacionService.GetAllAsync(ubicacionId, categoria);
                 
                 Console.WriteLine("[ProductoUbicacion] GetAllByUbicacion - Servicio completado, procesando datos");
                 var productos = productosUbicacion.ToList();
@@ -88,6 +91,7 @@ namespace ServiPuntos.API.Controllers
                     var dto = new {
                         id = pu.Id,
                         ubicacionId = pu.UbicacionId,
+                        categoria = pu.Categoria,
                         productoCanjeableId = pu.ProductoCanjeableId,
                         precio = pu.Precio,
                         stockDisponible = pu.StockDisponible,

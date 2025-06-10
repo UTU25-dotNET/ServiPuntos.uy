@@ -4,6 +4,8 @@ import apiService from "../../services/apiService";
 
 const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
   const [productos, setProductos] = useState([]);
+  const [categorias, setCategorias] = useState([]);
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [canjeQR, setCanjeQR] = useState(null);
@@ -24,6 +26,8 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
       try {
         const productosData = await apiService.getProductosByUbicacion(ubicacion.id);
         setProductos(productosData);
+        const cats = [...new Set(productosData.map(p => p.categoria))];
+        setCategorias(cats);
       } catch (err) {
         setError(err.message);
         setProductos([]);
@@ -427,6 +431,22 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                 </p>
               </div>
 
+              {categorias.length > 0 && (
+                <div style={{ marginBottom: "1rem", textAlign: "center" }}>
+                  <label htmlFor="categoriaFiltro" style={{ marginRight: "0.5rem" }}>Filtrar por categoría:</label>
+                  <select
+                    id="categoriaFiltro"
+                    value={categoriaSeleccionada}
+                    onChange={(e) => setCategoriaSeleccionada(e.target.value)}
+                  >
+                    <option value="">Todas</option>
+                    {categorias.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               {carrito.length > 0 && (
                 <div
                   style={{
@@ -470,7 +490,9 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                   gap: "1.5rem"
                 }}
               >
-                {productos.map((productoUbicacion) => {
+                {productos
+                  .filter((p) => !categoriaSeleccionada || p.categoria === categoriaSeleccionada)
+                  .map((productoUbicacion) => {
                   const producto = productoUbicacion.productoCanjeable;
                   if (!producto) return null;
 
