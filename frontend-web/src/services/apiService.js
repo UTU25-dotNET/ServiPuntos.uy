@@ -591,6 +591,16 @@ getProductosByUbicacion: async (ubicacionId, categoria) => {
     }
   },
 
+  getTransaccionesByUsuario: async () => {
+    try {
+      const response = await apiClient.get(`usuario/historial-transacciones`);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error al obtener el historial de transacciones');
+    }
+  },
+
+
   generarCanjes: async (productoIds, ubicacionId) => {
     try {
       if (!Array.isArray(productoIds) || productoIds.length === 0 || !ubicacionId) {
