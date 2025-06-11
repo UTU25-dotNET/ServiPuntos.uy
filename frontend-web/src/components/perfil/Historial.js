@@ -8,6 +8,17 @@ const Historial = ({ usuarioId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const estadoLabel = (estado) => {
+    switch (estado) {
+      case "Generado":
+        return "Pendiente";
+      case "Canjeado":
+        return "Confirmado";
+      default:
+        return estado;
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -61,6 +72,7 @@ const Historial = ({ usuarioId }) => {
               <th>Ubicación</th>
               <th>Fecha</th>
               <th>Puntos</th>
+              <th>Estado</th>
             </tr>
           ) : (
             <tr>
@@ -79,13 +91,14 @@ const Historial = ({ usuarioId }) => {
                 <tr key={c.id}>
                   <td>{c.producto || "-"}</td>
                   <td>{c.ubicacion || "-"}</td>
-                  <td>{new Date(c.fechaCanje || c.fechaGeneracion).toLocaleDateString()}</td>
+                  <td>{new Date(c.fechaCanje || c.fechaGeneracion).toLocaleDateString('es-ES')}</td>
                   <td>{c.puntos}</td>
+                  <td>{estadoLabel(c.estado)}</td>
                 </tr>
               ))
             : transacciones.map(t => (
                 <tr key={t.id}>
-                  <td>{new Date(t.fecha).toLocaleDateString()}</td>
+                  <td>{new Date(t.fecha || t.fechaGeneracion).toLocaleDateString('es-ES')}</td>
                   <td>{t.ubicacion || "-"}</td>
                   <td>${t.monto}</td>
                   <td>{t.tipo}</td>
