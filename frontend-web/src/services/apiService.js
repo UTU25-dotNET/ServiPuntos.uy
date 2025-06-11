@@ -475,7 +475,12 @@ getProductosByUbicacion: async (ubicacionId, categoria) => {
   },
 
   // Procesa la compra de un producto utilizando PayPal
-  procesarTransaccion: async (productoUbicacion, ubicacionId) => {
+  procesarTransaccion: async (
+    productoUbicacion,
+    ubicacionId,
+    puntosUtilizados = 0,
+    valorPunto = 0
+  ) => {
     try {
       if (!productoUbicacion || !ubicacionId) {
         throw new Error("Producto y ubicación son requeridos");
@@ -492,18 +497,23 @@ getProductosByUbicacion: async (ubicacionId, categoria) => {
         subTotal: Math.round(productoUbicacion.precio)
       };
 
+      const total = Math.round(productoUbicacion.precio);
+      const montoPayPal = Math.max(
+        0,
+        Math.round(total - puntosUtilizados * valorPunto)
+      );
       const transaccion = {
         IdentificadorUsuario: user.id,
         fechaTransaccion: new Date().toISOString(),
-        tipoTransaccion: 2, // CompraMinimercado
-        monto: Math.round(productoUbicacion.precio),
-        metodoPago: 1, // PayPal
-        MontoPayPal: Math.round(productoUbicacion.precio),
+        tipoTransaccion: 2,
+        monto: total,
+        metodoPago: 1,
+        MontoPayPal: montoPayPal,
         productos: [linea],
-        puntosUtilizados: 0,
+        puntosUtilizados,
         datosAdicionales: {}
       };
-      console.log(transaccion.montoPayPal);
+      console.log(transaccion.MontoPayPal);
       const mensaje = {
         tipoMensaje: 1,
         ubicacionId: ubicacionId,

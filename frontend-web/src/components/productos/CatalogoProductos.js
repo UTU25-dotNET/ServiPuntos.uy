@@ -86,11 +86,16 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
     }
   };
 
-  const handleComprar = async (productoUbicacion) => {
+  const handleComprar = async (productoUbicacion, puntos = 0) => {
     setCompraLoading(true);
     setCompraError("");
     try {
-      const result = await apiService.procesarTransaccion(productoUbicacion, ubicacion.id);
+      const result = await apiService.procesarTransaccion(
+        productoUbicacion,
+        ubicacion.id,
+        puntos,
+        tenantInfo?.valorPunto || 0
+      );
       if (result?.codigo === "PENDING_PAYMENT" && result.datos?.approvalUrl) {
         window.location.href = result.datos.approvalUrl;
       } else if (result?.codigo !== "OK") {
@@ -101,6 +106,25 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
     } finally {
       setCompraLoading(false);
     }
+  };
+
+  const handleComprarMixto = async (productoUbicacion) => {
+    if (!tenantInfo || !userProfile) return;
+    const valorPunto = tenantInfo.valorPunto || 0;
+    const puntosUsuario = userProfile.puntos || 0;
+    const maxPuntos = Math.min(
+      puntosUsuario,
+      Math.floor(productoUbicacion.precio / valorPunto)
+    );
+    if (maxPuntos <= 0) {
+      return handleComprar(productoUbicacion);
+    }
+    const input = prompt(
+      `¿Cuántos ${tenantInfo.nombrePuntos || 'puntos'} deseas usar? (Máx ${maxPuntos})`
+    );
+    const puntos = Math.min(parseInt(input, 10) || 0, maxPuntos);
+    if (puntos <= 0) return;
+    await handleComprar(productoUbicacion, puntos);
   };
 
   const agregarAlCarrito = (producto) => {
@@ -725,6 +749,21 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                             }}
                           >
                             Comprar
+                          </button>
+                          <button
+                            onClick={() => handleComprarMixto(productoUbicacion)}
+                            disabled={compraLoading || !tenantInfo}
+                            style={{
+                              width: "100%",
+                              padding: "0.5rem",
+                              backgroundColor: "#17a2b8",
+                              color: "white",
+                              border: "none",
+                              borderRadius: "6px",
+                              cursor: "pointer"
+                            }}
+                          >
+                            {`Comprar con Dinero + ${tenantInfo?.nombrePuntos || "Puntos"}`}
                           </button>
                           <button
                             onClick={() => handleCanjear(producto.id)}
