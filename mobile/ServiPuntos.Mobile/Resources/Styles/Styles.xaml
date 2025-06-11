@@ -1,16 +1,52 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
-<resources>
-    <!-- ESTE es el tema principal que se debe referenciar en MainActivity -->
-    <style name="MainTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- Personaliza tu tema aquí -->
-        <item name="android:windowBackground">@color/white</item>
-        <item name="android:colorPrimary">@color/primary</item>
-        <item name="android:colorAccent">@color/accent</item>
-        <!-- Más personalizaciones si necesitas -->
-    </style>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<?xaml-comp compile="true" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
-    <!-- El tema de splash también puede estar, pero MainTheme es el que debes usar -->
-    <style name="Maui.SplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="android:windowBackground">@drawable/maui_splash</item>
-    </style>
-</resources>
+
+    <Style x:Key="BaseLabelStyle"
+           TargetType="Label">
+        <Setter Property="FontSize"
+                Value="14"/>
+        <Setter Property="TextColor"
+                Value="{StaticResource Gray900}"/>
+    </Style>
+
+
+    <Style x:Key="TitleLabelStyle"
+           TargetType="Label"
+           BasedOn="{StaticResource BaseLabelStyle}">
+        <Setter Property="FontSize"
+                Value="24"/>
+        <Setter Property="FontAttributes"
+                Value="Bold"/>
+        <Setter Property="TextColor"
+                Value="{StaticResource Primary}"/>
+    </Style>
+
+
+    <Style TargetType="Button">
+        <Setter Property="TextColor"
+                Value="White"/>
+        <Setter Property="BackgroundColor"
+                Value="{StaticResource Primary}"/>
+        <Setter Property="CornerRadius"
+                Value="8"/>
+        <Setter Property="Padding"
+                Value="12,6"/>
+    </Style>
+
+
+    <Style TargetType="Entry">
+        <Setter Property="TextColor"
+                Value="{StaticResource Gray900}"/>
+        <Setter Property="BackgroundColor"
+                Value="{StaticResource Gray100}"/>
+        <Setter Property="PlaceholderColor"
+                Value="{StaticResource Gray400}"/>
+        <Setter Property="HeightRequest"
+                Value="40"/>
+    </Style>
+
+</ResourceDictionary>
