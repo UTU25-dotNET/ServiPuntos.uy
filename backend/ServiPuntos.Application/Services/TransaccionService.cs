@@ -119,7 +119,45 @@ namespace ServiPuntos.Application.Services
 
         public async Task<Guid> RegistrarTransaccionAsync(Transaccion transaccion)
         {
-            return await _transaccionRepository.AddAsync(transaccion);
-        }
+            // Calcular los puntos a otorgar en base al monto y reglas del tenant
+            var productos = new List<LineaTransaccionNAFTA>();
+            if (!string.IsNullOrWhiteSpace(transaccion.Detalles))
+            {
+                try
+                {
+                    var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var detalles = JsonSerializer.Deserialize<DetallesTransaccion>(transaccion.Detalles, opts);
+                    if (detalles?.Productos != null)
+                    {
+                        productos = detalles.Productos;
+                    }
+                }
+                catch { /* Si el JSON no es válido, ignorar */ }
+            }
+
+            var transaccionNafta = new TransaccionNAFTA
+            {
+                Monto = (int)transaccion.Monto,
+                TipoTransaccion = transaccion.TipoTransaccion,
+                Productos = productos
+            };
+
+            int puntos = await _pointsRuleEngine.CalcularPuntosAsync(transaccionNafta, transaccion.TenantId);
+            transaccion.PuntosOtorgados = puntos;
+
+            var id = await _transaccionRepository.AddAsync(transaccion);
+
+            if (puntos > 0)
+            {
+                await _puntosService.ActualizarSaldoAsync(transaccion.UsuarioId, puntos);
+            }
+
+            return id;
+        
+    }
+}
+internal class DetallesTransaccion
+    {
+        public List<LineaTransaccionNAFTA> Productos { get; set; } = new();
     }
 }

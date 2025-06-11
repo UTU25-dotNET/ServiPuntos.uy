@@ -5,6 +5,8 @@ using ServiPuntos.Core.DTOs;
 using ServiPuntos.Core.Enums;
 using System;
 using System.Text.Json;
+using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ServiPuntos.Application.Services
@@ -19,6 +21,8 @@ namespace ServiPuntos.Application.Services
         private readonly IPayPalService _payPalService;
         private readonly ITransaccionRepository _transaccionRepository;
 
+        private readonly IProductoUbicacionService _productoUbicacionService;
+
         public NAFTAService(
             ICanjeService canjeService,
             IPuntosService puntosService,
@@ -26,7 +30,8 @@ namespace ServiPuntos.Application.Services
             ITenantService tenantService,
             IUbicacionService ubicacionService,
             IPayPalService payPalService,
-            ITransaccionRepository transaccionRepository)
+            ITransaccionRepository transaccionRepository,
+            IProductoUbicacionService productoUbicacionService)
         {
             _canjeService = canjeService;
             _puntosService = puntosService;
@@ -35,6 +40,7 @@ namespace ServiPuntos.Application.Services
             _ubicacionService = ubicacionService;
             _payPalService = payPalService;
             _transaccionRepository = transaccionRepository;
+            _productoUbicacionService = productoUbicacionService;
         }
 
         /// <summary>
@@ -205,7 +211,11 @@ namespace ServiPuntos.Application.Services
                     {
                         await _puntosService.ActualizarSaldoAsync(transaccion.UsuarioId, puntosGanados);
                     }
+
+                    await ActualizarStockAsync(transaccion.UbicacionId, transaccion.Detalles);
                 }
+
+
 
                 await _transaccionRepository.UpdateAsync(transaccion);
 
@@ -270,7 +280,7 @@ namespace ServiPuntos.Application.Services
             {
                 await _puntosService.ActualizarSaldoAsync(transaccion.UsuarioId, puntosGanados);
             }
-
+            await ActualizarStockAsync(transaccion.UbicacionId, transaccion.Detalles);
             await _transaccionRepository.UpdateAsync(transaccion);
 
             var saldoFinal = await _puntosService.GetSaldoByUsuarioIdAsync(transaccion.UsuarioId);
@@ -516,7 +526,7 @@ namespace ServiPuntos.Application.Services
             }
         }
 
-       
+
         private async Task<int> CalcularPuntosGanadosAsync(decimal monto, TipoTransaccion tipo, Guid tenantId)
         {
             var tenant = await _tenantService.GetByIdAsync(tenantId);
@@ -544,6 +554,40 @@ namespace ServiPuntos.Application.Services
                 Codigo = "ERROR",
                 Mensaje = mensajeError
             };
+        }
+        
+        private async Task ActualizarStockAsync(Guid ubicacionId, string detallesJson)
+        {
+            if (string.IsNullOrWhiteSpace(detallesJson))
+                return;
+
+            try
+            {
+                var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var detalles = JsonSerializer.Deserialize<DetallesTransaccion>(detallesJson, opts);
+                if (detalles?.Productos == null || detalles.Productos.Count == 0)
+                    return;
+
+                var productosUbicacion = await _productoUbicacionService.GetAllAsync(ubicacionId);
+                foreach (var linea in detalles.Productos)
+                {
+                    var prod = productosUbicacion.FirstOrDefault(p => p.ProductoCanjeableId == linea.IdProducto);
+                    if (prod != null)
+                    {
+                        prod.StockDisponible = Math.Max(0, prod.StockDisponible - linea.Cantidad);
+                        await _productoUbicacionService.UpdateAsync(prod);
+                    }
+                }
+            }
+            catch
+            {
+                // Ignorar errores de actualización de stock
+            }
+        }
+
+        private class DetallesTransaccion
+        {
+            public List<LineaTransaccionNAFTA> Productos { get; set; } = new();
         }
     }
 }

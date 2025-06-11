@@ -167,7 +167,14 @@ namespace ServiPuntos.Application.Services
             // Actualizar el estado del canje
             canje.Estado = EstadoCanje.Canjeado;
             canje.FechaCanje = DateTime.UtcNow;
-
+            // Descontar stock del producto en la ubicación
+            var productos = await _productoUbicacionService.GetAllAsync(canje.UbicacionId);
+            var prodUbic = productos.FirstOrDefault(p => p.ProductoCanjeableId == canje.ProductoCanjeableId);
+            if (prodUbic != null && prodUbic.StockDisponible > 0)
+            {
+                prodUbic.StockDisponible -= 1;
+                await _productoUbicacionService.UpdateAsync(prodUbic);
+            }
             // Guardar cambios
             await _canjeRepository.UpdateAsync(canje);
 
