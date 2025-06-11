@@ -5,6 +5,7 @@ const Historial = ({ usuarioId }) => {
   const [tipo, setTipo] = useState("canjes");
   const [canjes, setCanjes] = useState([]);
   const [transacciones, setTransacciones] = useState([]);
+  const [expandedRows, setExpandedRows] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -36,6 +37,10 @@ const Historial = ({ usuarioId }) => {
     };
     fetchData();
   }, [usuarioId]);
+
+  const toggleRow = id => {
+    setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   if (loading) return <p>Cargando historial...</p>;
   if (error) return <p>{error}</p>;
@@ -96,16 +101,46 @@ const Historial = ({ usuarioId }) => {
                   <td>{estadoLabel(c.estado)}</td>
                 </tr>
               ))
-            : transacciones.map(t => (
-                <tr key={t.id}>
-                  <td>{new Date(t.fecha || t.fechaGeneracion).toLocaleDateString('es-ES')}</td>
-                  <td>{t.ubicacion || "-"}</td>
-                  <td>${t.monto}</td>
-                  <td>{t.tipo}</td>
-                  <td>{t.puntosOtorgados}</td>
-                  <td>{t.puntosUtilizados}</td>
-                </tr>
-              ))}
+              : transacciones.map(t => {
+                let productos = [];
+                if (t.detalles) {
+                  try {
+                    const parsed = JSON.parse(t.detalles);
+                    productos = parsed.Productos || [];
+                  } catch {}
+                }
+                return (
+                  <React.Fragment key={t.id}>
+                    <tr>
+                      <td>
+                        <button
+                          className="btn btn-sm btn-link p-0 me-2"
+                          onClick={() => toggleRow(t.id)}
+                        >
+                          {expandedRows[t.id] ? '-' : '+'}
+                        </button>
+                        {new Date(t.fecha || t.fechaGeneracion).toLocaleDateString('es-ES')}
+                      </td>
+                      <td>{t.ubicacion || "-"}</td>
+                      <td>${t.monto}</td>
+                      <td>{t.tipo}</td>
+                      <td>{t.puntosOtorgados}</td>
+                      <td>{t.puntosUtilizados}</td>
+                    </tr>
+                    {expandedRows[t.id] && (
+                      <tr>
+                        <td colSpan="6">
+                          <ul className="mb-0">
+                            {productos.map((p, idx) => (
+                              <li key={idx}>{p.NombreProducto} x{p.Cantidad} - ${p.SubTotal}</li>
+                            ))}
+                          </ul>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
         </tbody>
       </table>
     </div>
