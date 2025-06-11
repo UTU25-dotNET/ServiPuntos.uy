@@ -53,6 +53,8 @@ namespace ServiPuntos.WebApp.Models
         [Range(0, int.MaxValue, ErrorMessage = "El stock no puede ser negativo")]
         public int StockDisponible { get; set; }
 
+        [Range(0, double.MaxValue, ErrorMessage = "El precio no puede ser negativo")]
+        public double Precio { get; set; }
         public bool Activo { get; set; }
         public string UbicacionNombre { get; set; } = string.Empty;
         public string ProductoNombre { get; set; } = string.Empty;
