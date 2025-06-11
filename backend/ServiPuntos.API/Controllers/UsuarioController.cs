@@ -261,7 +261,8 @@ namespace ServiPuntos.API.Controllers
                     tipo = t.TipoTransaccion.ToString(),
                     ubicacion = t.Ubicacion?.Nombre,
                     puntosOtorgados = t.PuntosOtorgados,
-                    puntosUtilizados = t.PuntosUtilizados
+                    puntosUtilizados = t.PuntosUtilizados,
+                    detalles = t.Detalles
                 });
 
                 return Ok(response);
