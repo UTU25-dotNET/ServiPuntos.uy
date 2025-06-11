@@ -240,7 +240,7 @@ const Home = () => {
               margin: "0",
               lineHeight: "1.5"
             }}>
-              Bienvenido a tu dashboard de {tenantInfo.nombre}
+              Bienvenido a {tenantInfo.nombre}
             </p>
           </div>
 

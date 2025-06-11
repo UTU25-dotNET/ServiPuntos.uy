@@ -4,6 +4,8 @@ import apiService from "../../services/apiService";
 
 const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
   const [productos, setProductos] = useState([]);
+  const [categorias, setCategorias] = useState([]);
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [canjeQR, setCanjeQR] = useState(null);
@@ -15,6 +17,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
   const [carritoError, setCarritoError] = useState("");
   const [compraLoading, setCompraLoading] = useState(false);
   const [compraError, setCompraError] = useState("");
+  const [tenantInfo, setTenantInfo] = useState(null);
 
   useEffect(() => {
     const loadProductos = async () => {
@@ -24,6 +27,8 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
       try {
         const productosData = await apiService.getProductosByUbicacion(ubicacion.id);
         setProductos(productosData);
+        const cats = [...new Set(productosData.map(p => p.categoria))];
+        setCategorias(cats);
       } catch (err) {
         setError(err.message);
         setProductos([]);
@@ -36,6 +41,22 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
       loadProductos();
     }
   }, [isOpen, ubicacion]);
+
+  // Cargar información del tenant cuando se abre el catálogo
+  useEffect(() => {
+    const loadTenantInfo = async () => {
+      try {
+        const tenant = await apiService.getTenantInfo();
+        setTenantInfo(tenant);
+      } catch (err) {
+        // Silenciar error para no interrumpir la experiencia del usuario
+      }
+    };
+
+    if (isOpen) {
+      loadTenantInfo();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -105,6 +126,28 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
     }
   };
 
+  const handleComprarCarrito = async () => {
+    setCompraLoading(true);
+    setCompraError("");
+    try {
+      const result = await apiService.procesarTransaccionMultiple(carrito, ubicacion.id);
+      if (result?.codigo === "PENDING_PAYMENT" && result.datos?.approvalUrl) {
+        window.location.href = result.datos.approvalUrl;
+      } else if (result?.codigo !== "OK") {
+        setCompraError(result?.mensaje || "Error en la compra");
+      } else {
+        setCarrito([]);
+      }
+    } catch (err) {
+      setCompraError(err.message);
+    } finally {
+      setCompraLoading(false);
+    }
+  };
+
+  const totalCarrito = carrito.reduce((sum, p) => sum + (p.precio || 0), 0);
+
+
   // Función para formatear el costo en puntos
   const formatCosto = (costo) => {
     if (!costo || costo === 0) return "Gratis";
@@ -156,7 +199,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
         style={{
           backgroundColor: "white",
           borderRadius: "16px",
-          maxWidth: "900px",
+          maxWidth: "1200px",
           width: "100%",
           maxHeight: "80vh",
           overflow: "hidden",
@@ -427,38 +470,64 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                 </p>
               </div>
 
+              {categorias.length > 0 && (
+                <div className="mb-3 text-center">
+                  <label htmlFor="categoriaFiltro" className="form-label me-2">
+                    Filtrar por categoría:
+                  </label>
+                  <select
+                    id="categoriaFiltro"
+                    className="form-select d-inline-block w-auto"
+                    value={categoriaSeleccionada}
+                    onChange={(e) => setCategoriaSeleccionada(e.target.value)}
+                  >
+                    <option value="">Todas</option>
+                    {categorias.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               {carrito.length > 0 && (
-                <div
-                  style={{
-                    marginBottom: "1rem",
-                    padding: "1rem",
-                    backgroundColor: "#e8f5e9",
-                    borderRadius: "8px",
-                    border: "1px solid #c8e6c9"
-                  }}
-                >
-                  <h5 style={{ marginTop: 0 }}>Carrito ({carrito.length})</h5>
-                  <ul style={{ listStyle: "none", padding: 0 }}>
+                <div className="card mb-3">
+                <div className="card-body">
+                  <h5 className="card-title">Carrito ({carrito.length})</h5>
+                  <ul className="list-group list-group-flush">
                     {carrito.map((p) => (
-                      <li key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.25rem" }}>
+                      <li key={p.id} className="list-group-item d-flex justify-content-between align-items-center">
                         <span>{p.productoCanjeable.nombre}</span>
-                        <button onClick={() => quitarDelCarrito(p.id)} style={{ border: "none", background: "transparent", color: "#dc3545", cursor: "pointer" }}>✕</button>
+                        <button
+                          className="btn btn-sm btn-outline-danger"
+                          onClick={() => quitarDelCarrito(p.id)}
+                        >
+                          ✕
+                        </button>
                       </li>
                     ))}
                   </ul>
-                  <button onClick={handleCanjearCarrito} disabled={carritoLoading}
-                    style={{
-                      marginTop: "0.5rem",
-                      padding: "0.5rem 1rem",
-                      backgroundColor: "#28a745",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "6px",
-                      cursor: "pointer"
-                    }}>
-                    Canjear carrito
-                  </button>
-                  {carritoError && <p style={{ color: "#dc3545" }}>{carritoError}</p>}
+                  <div className="d-flex justify-content-between align-items-center mt-3">
+                    <strong>Total: {formatPrecio(totalCarrito)}</strong>
+                    <div className="d-flex gap-2">
+                      <button
+                        className="btn btn-warning"
+                        onClick={handleComprarCarrito}
+                        disabled={compraLoading}
+                      >
+                        Comprar carrito
+                      </button>
+                      <button
+                        className="btn btn-success"
+                        onClick={handleCanjearCarrito}
+                        disabled={carritoLoading}
+                      >
+                        Canjear carrito
+                      </button>
+                    </div>
+                  </div>
+                  {carritoError && <p className="text-danger mt-2">{carritoError}</p>}
+                  {compraError && <p className="text-danger mt-2">{compraError}</p>}
+                </div>
                 </div>
               )}
 
@@ -470,7 +539,9 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                   gap: "1.5rem"
                 }}
               >
-                {productos.map((productoUbicacion) => {
+                {productos
+                  .filter((p) => !categoriaSeleccionada || p.categoria === categoriaSeleccionada)
+                  .map((productoUbicacion) => {
                   const producto = productoUbicacion.productoCanjeable;
                   if (!producto) return null;
 
@@ -499,6 +570,13 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                         e.currentTarget.style.borderColor = "#e9ecef";
                       }}
                     >
+                      <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+                        <img
+                          src={producto.fotoUrl || "placeholder-product.png"}
+                          alt={producto.nombre}
+                          style={{ width: "100%", height: "150px", objectFit: "cover", borderRadius: "8px" }}
+                        />
+                      </div>
                       {/* Header del producto */}
                       <div style={{ marginBottom: "1rem" }}>
                         <h4
@@ -661,7 +739,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                               cursor: "pointer"
                             }}
                           >
-                            Canjear
+                            {`Canjear con ${tenantInfo?.nombrePuntos || "Puntos"}`}
                           </button>
                           <button
                             onClick={() => agregarAlCarrito(productoUbicacion)}
@@ -676,24 +754,13 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                               cursor: "pointer"
                             }}
                           >
-                            Agregar al carrito
+                            🛒 Agregar al carrito
                           </button>
                         </div>
                       )}
 
                       {/* Footer con información adicional */}
-                      <div
-                        style={{
-                          marginTop: "1rem",
-                          paddingTop: "1rem",
-                          borderTop: "1px solid #f8f9fa",
-                          fontSize: "0.8rem",
-                          color: "#6c757d",
-                          textAlign: "center"
-                        }}
-                      >
-                        ID: {productoUbicacion.id.slice(0, 8)}...
-                      </div>
+                      <div style={{ height: "1rem" }} />
                     </div>
                   );
                 })}

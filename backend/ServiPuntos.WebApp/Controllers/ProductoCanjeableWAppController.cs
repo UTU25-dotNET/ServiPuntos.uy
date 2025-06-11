@@ -69,7 +69,10 @@ namespace ServiPuntos.WebApp.Controllers
                     model.Nombre,
                     model.Descripcion,
                     model.CostoEnPuntos
-                );
+                )
+                {
+                    FotoUrl = model.FotoUrl
+                };
 
                 await _productoCanjeableService.AddProductoAsync(producto);
 
@@ -94,7 +97,8 @@ namespace ServiPuntos.WebApp.Controllers
                 Id = producto.Id,
                 Nombre = producto.Nombre,
                 Descripcion = producto.Descripcion,
-                CostoEnPuntos = producto.CostoEnPuntos
+                CostoEnPuntos = producto.CostoEnPuntos,
+                FotoUrl = producto.FotoUrl
             };
 
             return View(viewModel);
@@ -122,6 +126,7 @@ namespace ServiPuntos.WebApp.Controllers
                 producto.Descripcion = model.Descripcion;
                 producto.CostoEnPuntos = model.CostoEnPuntos;
 
+                producto.FotoUrl = model.FotoUrl;
                 await _productoCanjeableService.UpdateProductoAsync(producto);
 
                 TempData["Success"] = "Producto canjeable actualizado exitosamente.";
