@@ -180,12 +180,24 @@ namespace ServiPuntos.Application.Services
             try
             {
                 var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var detalles = JsonSerializer.Deserialize<DetallesTransaccion>(detallesJson, opts);
-                if (detalles?.Productos == null || detalles.Productos.Count == 0)
+                 List<LineaTransaccionNAFTA>? productos = null;
+
+                if (detallesJson.TrimStart().StartsWith("["))
+                {
+                    // Formato antiguo: solo array de productos
+                    productos = JsonSerializer.Deserialize<List<LineaTransaccionNAFTA>>(detallesJson, opts);
+                }
+                else
+                {
+                    var detalles = JsonSerializer.Deserialize<DetallesTransaccion>(detallesJson, opts);
+                    productos = detalles?.Productos;
+                }
+
+                if (productos == null || productos.Count == 0)
                     return;
 
                 var productosUbicacion = await _productoUbicacionService.GetAllAsync(ubicacionId);
-                foreach (var linea in detalles.Productos)
+                foreach (var linea in productos)
                 {
                     var prod = productosUbicacion.FirstOrDefault(p => p.ProductoCanjeableId == linea.IdProducto);
                     if (prod != null)
