@@ -355,7 +355,7 @@ const PuntosWidget = ({ userProfile, tenantInfo }) => {
           textAlign: "center"
         }}
       >
-        💡 Los puntos no tienen fecha de vencimiento
+        💡 Los puntos expiran luego de {tenantInfo?.diasCaducidadPuntos ?? 365} días
       </div>
     </div>
   );

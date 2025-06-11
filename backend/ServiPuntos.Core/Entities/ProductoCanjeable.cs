@@ -14,6 +14,8 @@ namespace ServiPuntos.Core.Entities
         public string? Descripcion { get; set; }
         public int CostoEnPuntos { get; set; }
 
+        public string? FotoUrl { get; set; }
+
         // Puede estar disponible globalmente o por ubicación
         public List<ProductoUbicacion>? DisponibilidadesPorUbicacion { get; set; }
 
