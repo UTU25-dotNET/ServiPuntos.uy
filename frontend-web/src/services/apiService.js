@@ -100,8 +100,10 @@ const apiService = {
       } catch (endpointError) {
         
         // Fallback: Obtener todos los usuarios y filtrar por email
-        const allUsers = await apiClient.get('usuario');
-        const currentUser = allUsers.find(u => u.email.toLowerCase() === user.email.toLowerCase());
+        const allUsersResponse = await apiClient.get('usuario');
+        const currentUser = allUsersResponse.data.find(
+          (u) => u.email.toLowerCase() === user.email.toLowerCase()
+        );
         
         if (!currentUser) {
           throw new Error("Usuario no encontrado en la base de datos");
@@ -479,7 +481,8 @@ getProductosByUbicacion: async (ubicacionId, categoria) => {
     productoUbicacion,
     ubicacionId,
     puntosUtilizados = 0,
-    valorPunto = 0
+    valorPunto = 0,
+    tipoTransaccion = 2
   ) => {
     try {
       if (!productoUbicacion || !ubicacionId) {
@@ -505,7 +508,7 @@ getProductosByUbicacion: async (ubicacionId, categoria) => {
       const transaccion = {
         IdentificadorUsuario: user.id,
         fechaTransaccion: new Date().toISOString(),
-        tipoTransaccion: 2,
+        tipoTransaccion,
         monto: total,
         metodoPago: 1,
         MontoPayPal: montoPayPal,
