@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import apiService from "../../services/apiService";
+import SeleccionarPuntosModal from "./SeleccionarPuntosModal";
 
 const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
   const [productos, setProductos] = useState([]);
@@ -18,6 +19,9 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
   const [compraLoading, setCompraLoading] = useState(false);
   const [compraError, setCompraError] = useState("");
   const [tenantInfo, setTenantInfo] = useState(null);
+  const [mostrarPuntosModal, setMostrarPuntosModal] = useState(false);
+  const [productoMixto, setProductoMixto] = useState(null);
+  const [maxPuntosMixto, setMaxPuntosMixto] = useState(0);
 
   useEffect(() => {
     const loadProductos = async () => {
@@ -108,7 +112,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
     }
   };
 
-  const handleComprarMixto = async (productoUbicacion) => {
+  const handleComprarMixto = (productoUbicacion) => {
     if (!tenantInfo || !userProfile) return;
     const valorPunto = tenantInfo.valorPunto || 0;
     const puntosUsuario = userProfile.puntos || 0;
@@ -119,12 +123,16 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
     if (maxPuntos <= 0) {
       return handleComprar(productoUbicacion);
     }
-    const input = prompt(
-      `¿Cuántos ${tenantInfo.nombrePuntos || 'puntos'} deseas usar? (Máx ${maxPuntos})`
-    );
-    const puntos = Math.min(parseInt(input, 10) || 0, maxPuntos);
-    if (puntos <= 0) return;
-    await handleComprar(productoUbicacion, puntos);
+    setProductoMixto(productoUbicacion);
+    setMaxPuntosMixto(maxPuntos);
+    setMostrarPuntosModal(true);
+  };
+
+  const confirmarCompraMixta = async (puntos) => {
+    setMostrarPuntosModal(false);
+    if (!productoMixto) return;
+    await handleComprar(productoMixto, puntos);
+    setProductoMixto(null);
   };
 
   const agregarAlCarrito = (producto) => {
@@ -203,7 +211,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
   if (!isOpen) return null;
 
   return (
-    <div
+    <><div
       style={{
         position: "fixed",
         top: 0,
@@ -290,11 +298,11 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
               onMouseEnter={(e) => {
                 e.target.style.backgroundColor = "#f8f9fa";
                 e.target.style.color = "#212529";
-              }}
+              } }
               onMouseLeave={(e) => {
                 e.target.style.backgroundColor = "transparent";
                 e.target.style.color = "#6c757d";
-              }}
+              } }
             >
               ×
             </button>
@@ -419,8 +427,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                   height: "50px",
                   animation: "spin 1s linear infinite",
                   margin: "0 auto 1rem"
-                }}
-              />
+                }} />
               <p style={{ color: "#007bff", fontSize: "1.1rem" }}>Cargando catálogo...</p>
 
               <style>{`
@@ -490,7 +497,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                     fontSize: "1.1rem"
                   }}
                 >
-                 🏅 {productos.length} producto{productos.length !== 1 ? "s" : ""} disponible{productos.length !== 1 ? "s" : ""} para canje
+                  🏅 {productos.length} producto{productos.length !== 1 ? "s" : ""} disponible{productos.length !== 1 ? "s" : ""} para canje
                 </p>
               </div>
 
@@ -515,43 +522,43 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
 
               {carrito.length > 0 && (
                 <div className="card mb-3">
-                <div className="card-body">
-                  <h5 className="card-title">Carrito ({carrito.length})</h5>
-                  <ul className="list-group list-group-flush">
-                    {carrito.map((p) => (
-                      <li key={p.id} className="list-group-item d-flex justify-content-between align-items-center">
-                        <span>{p.productoCanjeable.nombre}</span>
+                  <div className="card-body">
+                    <h5 className="card-title">Carrito ({carrito.length})</h5>
+                    <ul className="list-group list-group-flush">
+                      {carrito.map((p) => (
+                        <li key={p.id} className="list-group-item d-flex justify-content-between align-items-center">
+                          <span>{p.productoCanjeable.nombre}</span>
+                          <button
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => quitarDelCarrito(p.id)}
+                          >
+                            ✕
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="d-flex justify-content-between align-items-center mt-3">
+                      <strong>Total: {formatPrecio(totalCarrito)}</strong>
+                      <div className="d-flex gap-2">
                         <button
-                          className="btn btn-sm btn-outline-danger"
-                          onClick={() => quitarDelCarrito(p.id)}
+                          className="btn btn-warning"
+                          onClick={handleComprarCarrito}
+                          disabled={compraLoading}
                         >
-                          ✕
+                          Comprar carrito
                         </button>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="d-flex justify-content-between align-items-center mt-3">
-                    <strong>Total: {formatPrecio(totalCarrito)}</strong>
-                    <div className="d-flex gap-2">
-                      <button
-                        className="btn btn-warning"
-                        onClick={handleComprarCarrito}
-                        disabled={compraLoading}
-                      >
-                        Comprar carrito
-                      </button>
-                      <button
-                        className="btn btn-success"
-                        onClick={handleCanjearCarrito}
-                        disabled={carritoLoading}
-                      >
-                        Canjear carrito
-                      </button>
+                        <button
+                          className="btn btn-success"
+                          onClick={handleCanjearCarrito}
+                          disabled={carritoLoading}
+                        >
+                          Canjear carrito
+                        </button>
+                      </div>
                     </div>
+                    {carritoError && <p className="text-danger mt-2">{carritoError}</p>}
+                    {compraError && <p className="text-danger mt-2">{compraError}</p>}
                   </div>
-                  {carritoError && <p className="text-danger mt-2">{carritoError}</p>}
-                  {compraError && <p className="text-danger mt-2">{compraError}</p>}
-                </div>
                 </div>
               )}
 
@@ -566,247 +573,246 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                 {productos
                   .filter((p) => !categoriaSeleccionada || p.categoria === categoriaSeleccionada)
                   .map((productoUbicacion) => {
-                  const producto = productoUbicacion.productoCanjeable;
-                  if (!producto) return null;
+                    const producto = productoUbicacion.productoCanjeable;
+                    if (!producto) return null;
 
-                  return (
-                    <div
-                      key={productoUbicacion.id}
-                      style={{
-                        backgroundColor: "white",
-                        border: "2px solid #e9ecef",
-                        borderRadius: "12px",
-                        padding: "1.5rem",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                        transition: "all 0.3s ease",
-                        opacity: productoUbicacion.activo ? 1 : 0.6
-                      }}
-                      onMouseEnter={(e) => {
-                        if (productoUbicacion.activo) {
-                          e.currentTarget.style.transform = "translateY(-2px)";
-                          e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.15)";
-                          e.currentTarget.style.borderColor = "#007bff";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = "translateY(0)";
-                        e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
-                        e.currentTarget.style.borderColor = "#e9ecef";
-                      }}
-                    >
-                      <div style={{ textAlign: "center", marginBottom: "1rem" }}>
-                        <img
-                          src={producto.fotoUrl || "placeholder-product.png"}
-                          alt={producto.nombre}
-                          style={{ width: "100%", height: "150px", objectFit: "cover", borderRadius: "8px" }}
-                        />
-                      </div>
-                      {/* Header del producto */}
-                      <div style={{ marginBottom: "1rem" }}>
-                        <h4
-                          style={{
-                            margin: "0 0 0.5rem 0",
-                            color: "#212529",
-                            fontSize: "1.2rem",
-                            fontWeight: "600",
-                            lineHeight: "1.3"
-                          }}
-                        >
-                          {producto.nombre}
-                        </h4>
-
-                        {producto.descripcion && (
-                          <p
+                    return (
+                      <div
+                        key={productoUbicacion.id}
+                        style={{
+                          backgroundColor: "white",
+                          border: "2px solid #e9ecef",
+                          borderRadius: "12px",
+                          padding: "1.5rem",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                          transition: "all 0.3s ease",
+                          opacity: productoUbicacion.activo ? 1 : 0.6
+                        }}
+                        onMouseEnter={(e) => {
+                          if (productoUbicacion.activo) {
+                            e.currentTarget.style.transform = "translateY(-2px)";
+                            e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.15)";
+                            e.currentTarget.style.borderColor = "#007bff";
+                          }
+                        } }
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = "translateY(0)";
+                          e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
+                          e.currentTarget.style.borderColor = "#e9ecef";
+                        } }
+                      >
+                        <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+                          <img
+                            src={producto.fotoUrl || "placeholder-product.png"}
+                            alt={producto.nombre}
+                            style={{ width: "100%", height: "150px", objectFit: "cover", borderRadius: "8px" }} />
+                        </div>
+                        {/* Header del producto */}
+                        <div style={{ marginBottom: "1rem" }}>
+                          <h4
                             style={{
-                              margin: "0",
-                              color: "#6c757d",
-                              fontSize: "0.9rem",
-                              lineHeight: "1.4"
+                              margin: "0 0 0.5rem 0",
+                              color: "#212529",
+                              fontSize: "1.2rem",
+                              fontWeight: "600",
+                              lineHeight: "1.3"
                             }}
                           >
-                            {producto.descripcion}
-                          </p>
-                        )}
-                      </div>
+                            {producto.nombre}
+                          </h4>
 
-                      {/* Costo en puntos */}
-                      <div
-                        style={{
-                          marginBottom: "1rem",
-                          padding: "0.75rem",
-                          backgroundColor: "#fff3cd",
-                          borderRadius: "8px",
-                          border: "1px solid #ffeaa7",
-                          textAlign: "center"
-                        }}
-                      >
+                          {producto.descripcion && (
+                            <p
+                              style={{
+                                margin: "0",
+                                color: "#6c757d",
+                                fontSize: "0.9rem",
+                                lineHeight: "1.4"
+                              }}
+                            >
+                              {producto.descripcion}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Costo en puntos */}
                         <div
                           style={{
-                            fontSize: "1.5rem",
-                            fontWeight: "bold",
-                            color: "#856404",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: "0.5rem",
-                            marginBottom: "0.25rem"
+                            marginBottom: "1rem",
+                            padding: "0.75rem",
+                            backgroundColor: "#fff3cd",
+                            borderRadius: "8px",
+                            border: "1px solid #ffeaa7",
+                            textAlign: "center"
                           }}
                         >
-                          💵 {formatPrecio(productoUbicacion.precio)}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "1.2rem",
-                            fontWeight: "bold",
-                            color: "#856404",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: "0.5rem"
-                          }}
-                        >
-                          🏅 {formatCosto(producto.costoEnPuntos)}
-                        </div>
-                      </div>
-
-                      {/* Estado del stock */}
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          padding: "0.75rem",
-                          backgroundColor: "#f8f9fa",
-                          borderRadius: "8px",
-                          marginBottom: "1rem"
-                        }}
-                      >
-                        <div style={{ display: "flex", flexDirection: "column" }}>
-                          <span
+                          <div
                             style={{
+                              fontSize: "1.5rem",
+                              fontWeight: "bold",
+                              color: "#856404",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: "0.5rem",
+                              marginBottom: "0.25rem"
+                            }}
+                          >
+                            💵 {formatPrecio(productoUbicacion.precio)}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "1.2rem",
+                              fontWeight: "bold",
+                              color: "#856404",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: "0.5rem"
+                            }}
+                          >
+                            🏅 {formatCosto(producto.costoEnPuntos)}
+                          </div>
+                        </div>
+
+                        {/* Estado del stock */}
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            padding: "0.75rem",
+                            backgroundColor: "#f8f9fa",
+                            borderRadius: "8px",
+                            marginBottom: "1rem"
+                          }}
+                        >
+                          <div style={{ display: "flex", flexDirection: "column" }}>
+                            <span
+                              style={{
+                                fontSize: "0.8rem",
+                                color: "#6c757d",
+                                fontWeight: "500"
+                              }}
+                            >
+                              Stock disponible:
+                            </span>
+                            <span
+                              style={{
+                                fontSize: "1.1rem",
+                                fontWeight: "bold",
+                                color: getStockColor(productoUbicacion.stockDisponible)
+                              }}
+                            >
+                              {productoUbicacion.stockDisponible} unidades
+                            </span>
+                          </div>
+                          <div
+                            style={{
+                              padding: "0.25rem 0.75rem",
+                              borderRadius: "12px",
                               fontSize: "0.8rem",
-                              color: "#6c757d",
+                              fontWeight: "600",
+                              color: "white",
+                              backgroundColor: getStockColor(productoUbicacion.stockDisponible)
+                            }}
+                          >
+                            {getStockText(productoUbicacion.stockDisponible)}
+                          </div>
+                        </div>
+
+                        {/* Estado activo/inactivo */}
+                        {!productoUbicacion.activo && (
+                          <div
+                            style={{
+                              padding: "0.5rem",
+                              backgroundColor: "#f8d7da",
+                              borderRadius: "6px",
+                              border: "1px solid #f5c6cb",
+                              textAlign: "center",
+                              fontSize: "0.9rem",
+                              color: "#721c24",
                               fontWeight: "500"
                             }}
                           >
-                            Stock disponible:
-                          </span>
-                          <span
-                            style={{
-                              fontSize: "1.1rem",
-                              fontWeight: "bold",
-                              color: getStockColor(productoUbicacion.stockDisponible)
-                            }}
-                          >
-                            {productoUbicacion.stockDisponible} unidades
-                          </span>
-                        </div>
-                        <div
-                          style={{
-                            padding: "0.25rem 0.75rem",
-                            borderRadius: "12px",
-                            fontSize: "0.8rem",
-                            fontWeight: "600",
-                            color: "white",
-                            backgroundColor: getStockColor(productoUbicacion.stockDisponible)
-                          }}
-                        >
-                          {getStockText(productoUbicacion.stockDisponible)}
-                        </div>
+                            ⚠️ Producto temporalmente no disponible
+                          </div>
+                        )}
+
+                        {productoUbicacion.activo && productoUbicacion.stockDisponible > 0 && (
+                          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                            <button
+                              onClick={() => handleComprar(productoUbicacion)}
+                              disabled={compraLoading}
+                              style={{
+                                width: "100%",
+                                padding: "0.5rem",
+                                backgroundColor: "#ffc107",
+                                color: "#212529",
+                                border: "none",
+                                borderRadius: "6px",
+                                cursor: "pointer"
+                              }}
+                            >
+                              Comprar
+                            </button>
+                            <button
+                              onClick={() => handleComprarMixto(productoUbicacion)}
+                              disabled={compraLoading || !tenantInfo}
+                              style={{
+                                width: "100%",
+                                padding: "0.5rem",
+                                backgroundColor: "#17a2b8",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "6px",
+                                cursor: "pointer"
+                              }}
+                            >
+                              {`Comprar con Dinero + ${tenantInfo?.nombrePuntos || "Puntos"}`}
+                            </button>
+                            <button
+                              onClick={() => handleCanjear(producto.id)}
+                              disabled={!userProfile || (userProfile.puntos || 0) < producto.costoEnPuntos || canjeLoading}
+                              style={{
+                                width: "100%",
+                                padding: "0.5rem",
+                                backgroundColor: "#007bff",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "6px",
+                                cursor: "pointer"
+                              }}
+                            >
+                              {`Canjear con ${tenantInfo?.nombrePuntos || "Puntos"}`}
+                            </button>
+                            <button
+                              onClick={() => agregarAlCarrito(productoUbicacion)}
+                              disabled={carritoLoading}
+                              style={{
+                                width: "100%",
+                                padding: "0.5rem",
+                                backgroundColor: "#28a745",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "6px",
+                                cursor: "pointer"
+                              }}
+                            >
+                              🛒 Agregar al carrito
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Footer con información adicional */}
+                        <div style={{ height: "1rem" }} />
                       </div>
-
-                      {/* Estado activo/inactivo */}
-                      {!productoUbicacion.activo && (
-                        <div
-                          style={{
-                            padding: "0.5rem",
-                            backgroundColor: "#f8d7da",
-                            borderRadius: "6px",
-                            border: "1px solid #f5c6cb",
-                            textAlign: "center",
-                            fontSize: "0.9rem",
-                            color: "#721c24",
-                            fontWeight: "500"
-                          }}
-                        >
-                          ⚠️ Producto temporalmente no disponible
-                        </div>
-                      )}
-
-                      {productoUbicacion.activo && productoUbicacion.stockDisponible > 0 && (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                          <button
-                            onClick={() => handleComprar(productoUbicacion)}
-                            disabled={compraLoading}
-                            style={{
-                              width: "100%",
-                              padding: "0.5rem",
-                              backgroundColor: "#ffc107",
-                              color: "#212529",
-                              border: "none",
-                              borderRadius: "6px",
-                              cursor: "pointer"
-                            }}
-                          >
-                            Comprar
-                          </button>
-                          <button
-                            onClick={() => handleComprarMixto(productoUbicacion)}
-                            disabled={compraLoading || !tenantInfo}
-                            style={{
-                              width: "100%",
-                              padding: "0.5rem",
-                              backgroundColor: "#17a2b8",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "6px",
-                              cursor: "pointer"
-                            }}
-                          >
-                            {`Comprar con Dinero + ${tenantInfo?.nombrePuntos || "Puntos"}`}
-                          </button>
-                          <button
-                            onClick={() => handleCanjear(producto.id)}
-                            disabled={!userProfile || (userProfile.puntos || 0) < producto.costoEnPuntos || canjeLoading}
-                            style={{
-                              width: "100%",
-                              padding: "0.5rem",
-                              backgroundColor: "#007bff",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "6px",
-                              cursor: "pointer"
-                            }}
-                          >
-                            {`Canjear con ${tenantInfo?.nombrePuntos || "Puntos"}`}
-                          </button>
-                          <button
-                            onClick={() => agregarAlCarrito(productoUbicacion)}
-                            disabled={carritoLoading}
-                            style={{
-                              width: "100%",
-                              padding: "0.5rem",
-                              backgroundColor: "#28a745",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "6px",
-                              cursor: "pointer"
-                            }}
-                          >
-                            🛒 Agregar al carrito
-                          </button>
-                        </div>
-                      )}
-
-                      {/* Footer con información adicional */}
-                      <div style={{ height: "1rem" }} />
-                    </div>
-                  );
-                })}
+                    );
+                  })}
               </div>
-            {compraError && (
-              <p style={{ color: "#dc3545", marginTop: "1rem" }}>{compraError}</p>
-            )}
+              {compraError && (
+                <p style={{ color: "#dc3545", marginTop: "1rem" }}>{compraError}</p>
+              )}
             </>
           )}
         </div>
@@ -841,7 +847,14 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
           </button>
         </div>
       </div>
-    </div>
+    </div><SeleccionarPuntosModal
+        isOpen={mostrarPuntosModal}
+        onClose={() => setMostrarPuntosModal(false)}
+        maxPuntos={maxPuntosMixto}
+        valorPunto={tenantInfo?.valorPunto || 0}
+        precio={productoMixto?.precio || 0}
+        nombrePuntos={tenantInfo?.nombrePuntos}
+        onConfirm={confirmarCompraMixta} /></>
   );
 };
 
