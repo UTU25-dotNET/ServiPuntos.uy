@@ -63,8 +63,14 @@ namespace ServiPuntos.Application.Services
                 TransaccionNAFTA transaccionNAFTA;
                 try
                 {
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    };
+
                     transaccionNAFTA = JsonSerializer.Deserialize<TransaccionNAFTA>(
-                        JsonSerializer.Serialize(mensaje.Datos["transaccion"]));
+                        JsonSerializer.Serialize(mensaje.Datos["transaccion"]),
+                        options);
                 }
                 catch (Exception ex)
                 {
