@@ -330,18 +330,20 @@ public class AuthController : ControllerBase
             Console.WriteLine("[GoogleCallback] Usuario autenticado con cookies");
 
             // Retornar el token JWT generado
-            var tempToken = _jwtTokenService.GenerateJwtToken(claims);
+            var token = await _jwtTokenService.GenerateJwtTokenAsync(claims);
+
             if (isMobileRequest)
             {
                 Console.WriteLine("[GoogleCallback] Redirigiendo a app móvil...");
                 // Redirigir al esquema personalizado de la app móvil
-                return Redirect($"servipuntos://auth-callback?token={Uri.EscapeDataString(tempToken)}&state={Uri.EscapeDataString(state)}");
+                return Redirect($"servipuntos://auth-callback?token={Uri.EscapeDataString(token
+                )}&state={Uri.EscapeDataString(state)}");
             }
             else
             {
                 Console.WriteLine("[GoogleCallback] Redirigiendo a web app...");
                 // Redirigir a la web app como antes
-                return Redirect($"http://localhost:3000/auth-callback?token={Uri.EscapeDataString(tempToken)}&state={Uri.EscapeDataString(state)}&returnUrl=/auth-callback");
+                return Redirect($"http://localhost:3000/auth-callback?token={Uri.EscapeDataString(token)}&state={Uri.EscapeDataString(state)}&returnUrl=/auth-callback");
             }
         }
         catch (Exception ex)
@@ -488,7 +490,8 @@ public class AuthController : ControllerBase
             Console.WriteLine("[SignIn] Generando token JWT...");
 
             // Generar el token JWT (tanto para web como para móvil)
-            var token = _jwtTokenService.GenerateJwtToken(claims);
+            var token = await _jwtTokenService.GenerateJwtTokenAsync(claims);
+
 
             Console.WriteLine($"[SignIn] Token generado: {token.Substring(0, Math.Min(20, token.Length))}...");
 
