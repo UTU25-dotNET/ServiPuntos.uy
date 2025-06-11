@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import authService from "../../services/authService";
 import apiService from "../../services/apiService";
-import HistorialCanjes from "./HistorialCanjes";
+import Historial from "./Historial";
 import CambiarPasswordModal from "./CambiarPasswordModal";
 
 const Perfil = () => {
@@ -829,12 +829,12 @@ if (loading) {
                 cursor: "pointer"
               }}
             >
-              {showHistorial ? "Ocultar historial" : "Ver historial de canjes"}
+              {showHistorial ? "Ocultar historial" : "Ver historial"}
             </button>
           </div>
 
           {showHistorial && (
-            <HistorialCanjes usuarioId={readOnlyData.id} onClose={() => setShowHistorial(false)} />
+            <Historial usuarioId={readOnlyData.id} />
           )}
         </div>
       )}
