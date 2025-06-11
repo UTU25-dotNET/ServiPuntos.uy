@@ -4,6 +4,7 @@ using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Core.NAFTA;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -15,17 +16,20 @@ namespace ServiPuntos.Application.Services
         private readonly IPuntosService _puntosService;
         private readonly IPointsRuleEngine _pointsRuleEngine;
         private readonly IUsuarioService _usuarioService;
+        private readonly IProductoUbicacionService _productoUbicacionService;
 
         public TransaccionService(
             ITransaccionRepository transaccionRepository,
             IPuntosService puntosService,
             IPointsRuleEngine pointsRuleEngine,
-            IUsuarioService usuarioService)
+            IUsuarioService usuarioService,
+            IProductoUbicacionService productoUbicacionService)
         {
             _transaccionRepository = transaccionRepository;
             _puntosService = puntosService;
             _pointsRuleEngine = pointsRuleEngine;
             _usuarioService = usuarioService;
+            _productoUbicacionService = productoUbicacionService;
         }
 
         public async Task<Transaccion> GetTransaccionByIdAsync(Guid id)
@@ -104,6 +108,9 @@ namespace ServiPuntos.Application.Services
             // Actualizar el saldo de puntos del usuario
             await _puntosService.ActualizarSaldoAsync(usuario.Id, puntosOtorgados);
 
+            // Descontar stock de los productos involucrados
+            await ActualizarStockAsync(ubicacionId, transaccion.Detalles);
+
             // Obtener saldo actualizado
             int saldoActual = await _puntosService.GetSaldoByUsuarioIdAsync(usuario.Id);
 
@@ -152,12 +159,47 @@ namespace ServiPuntos.Application.Services
                 await _puntosService.ActualizarSaldoAsync(transaccion.UsuarioId, puntos);
             }
 
+             // Ajustar stock de la ubicación por los productos comprados
+            await ActualizarStockAsync(transaccion.UbicacionId, transaccion.Detalles);
+
             return id;
         
+            }
+
+        private async Task ActualizarStockAsync(Guid ubicacionId, string detallesJson)
+        {
+            if (string.IsNullOrWhiteSpace(detallesJson))
+            {
+                Console.WriteLine("No hay detalles para actualizar el stock.");
+                return;
+            }
+            try
+            {
+                var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var detalles = JsonSerializer.Deserialize<DetallesTransaccion>(detallesJson, opts);
+                if (detalles?.Productos == null || detalles.Productos.Count == 0)
+                    return;
+
+                var productosUbicacion = await _productoUbicacionService.GetAllAsync(ubicacionId);
+                foreach (var linea in detalles.Productos)
+                {
+                    var prod = productosUbicacion.FirstOrDefault(p => p.ProductoCanjeableId == linea.IdProducto);
+                    if (prod != null)
+                    {
+                        prod.StockDisponible = Math.Max(0, prod.StockDisponible - linea.Cantidad);
+                        await _productoUbicacionService.UpdateAsync(prod);
+                    }
+                }
+            }
+            catch
+            {
+                Console.WriteLine("Error al actualizar el stock.");
+                // Ignorar errores de actualización de stock
+            }
+        }
     }
 }
 internal class DetallesTransaccion
     {
         public List<LineaTransaccionNAFTA> Productos { get; set; } = new();
     }
-}
