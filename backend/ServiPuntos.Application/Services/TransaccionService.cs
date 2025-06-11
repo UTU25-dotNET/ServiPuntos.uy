@@ -99,7 +99,11 @@ namespace ServiPuntos.Application.Services
                 TipoTransaccion = tipoTransaccion,
                 Monto = transaccionNAFTA.Monto,
                 PuntosOtorgados = puntosOtorgados,
-                Detalles = JsonSerializer.Serialize(transaccionNAFTA.Productos)
+                 Detalles = JsonSerializer.Serialize(new
+                {
+                    Productos = transaccionNAFTA.Productos,
+                    DatosAdicionales = transaccionNAFTA.DatosAdicionales
+                })
             };
 
             // Registrar la transacción
