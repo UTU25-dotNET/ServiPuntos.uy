@@ -23,7 +23,7 @@ public class AuthController : ControllerBase
     private readonly IConfiguration _configuration;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ServiPuntosDbContext _context;
-    
+
     private readonly ITenantService _tenantService;
 
     /// <summary>
@@ -46,10 +46,10 @@ public class AuthController : ControllerBase
         try
         {
             Console.WriteLine("[GetTenants] Obteniendo lista de tenants...");
-            
+
             // **USAR ITenantService en lugar del contexto directo**
             var allTenants = await _tenantService.GetAllAsync();
-            
+
             // Filtrar solo los activos y mapear a la respuesta
             var tenants = allTenants // Solo tenants activos
                 .Select(t => new
@@ -76,80 +76,80 @@ public class AuthController : ControllerBase
         return Ok(new { message = "Pong" });
     }
 
-[HttpGet("google-login")]
-public IActionResult GoogleLogin()
-{
-    // Generar un estado aleatorio
-    var state = Guid.NewGuid().ToString();
-
-    var userAgent = Request.Headers["User-Agent"].ToString();
-    var isMobileRequest = userAgent.Contains("ServiPuntos.Mobile") || userAgent.Contains("Mobile");
-    
-    Console.WriteLine($"[GoogleAuth] Request móvil detectada: {isMobileRequest}");
-
-    // Guardar el estado en una variable de sesión en lugar de una cookie
-    try
+    [HttpGet("google-login")]
+    public IActionResult GoogleLogin()
     {
-        // Intentar usar la sesión
-        HttpContext.Session.SetString("GoogleOAuthState", state);
-        // **NUEVO: Guardar también si es móvil**
-        HttpContext.Session.SetString("IsMobileRequest", isMobileRequest.ToString());
-        Console.WriteLine($"[GoogleAuth] Estado guardado en sesión: {state}");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"[GoogleAuth] Error al usar sesión: {ex.Message}");
+        // Generar un estado aleatorio
+        var state = Guid.NewGuid().ToString();
 
-        // Alternativa: usar una cookie
-        var cookieOptions = new CookieOptions
+        var userAgent = Request.Headers["User-Agent"].ToString();
+        var isMobileRequest = userAgent.Contains("ServiPuntos.Mobile") || userAgent.Contains("Mobile");
+
+        Console.WriteLine($"[GoogleAuth] Request móvil detectada: {isMobileRequest}");
+
+        // Guardar el estado en una variable de sesión en lugar de una cookie
+        try
         {
-            HttpOnly = true,
-            Secure = true,
-            Path = "/",
-            SameSite = SameSiteMode.Lax,
-            MaxAge = TimeSpan.FromMinutes(15)
-        };
-        Response.Cookies.Append("GoogleAuthState", state, cookieOptions);
-        Response.Cookies.Append("IsMobileRequest", isMobileRequest.ToString(), cookieOptions);
-    }
+            // Intentar usar la sesión
+            HttpContext.Session.SetString("GoogleOAuthState", state);
+            // **NUEVO: Guardar también si es móvil**
+            HttpContext.Session.SetString("IsMobileRequest", isMobileRequest.ToString());
+            Console.WriteLine($"[GoogleAuth] Estado guardado en sesión: {state}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GoogleAuth] Error al usar sesión: {ex.Message}");
 
-    // **RESTO DEL CÓDIGO EXISTENTE...**
-    var clientId = _configuration["Authentication:Google:ClientId"];
-    if (string.IsNullOrEmpty(clientId))
-    {
-        throw new InvalidOperationException("Google ClientId is not configured.");
-    }
+            // Alternativa: usar una cookie
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                Path = "/",
+                SameSite = SameSiteMode.Lax,
+                MaxAge = TimeSpan.FromMinutes(15)
+            };
+            Response.Cookies.Append("GoogleAuthState", state, cookieOptions);
+            Response.Cookies.Append("IsMobileRequest", isMobileRequest.ToString(), cookieOptions);
+        }
+
+        // **RESTO DEL CÓDIGO EXISTENTE...**
+        var clientId = _configuration["Authentication:Google:ClientId"];
+        if (string.IsNullOrEmpty(clientId))
+        {
+            throw new InvalidOperationException("Google ClientId is not configured.");
+        }
         // var redirectUri = "https://localhost:5019/api/auth/google-callback";
         //var redirectUri = "https://servipuntos-api.duckdns.org/api/auth/google-callback";
         var redirectUri = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth/google-callback";
 
-    var scope = "email profile openid";
+        var scope = "email profile openid";
 
-    var pkceValues = PKCE.Create(64, "S256");
-    string[] parts = pkceValues.Split(',');
-    string code_verifier = parts[0];
-    string code_challenge = parts[1];
+        var pkceValues = PKCE.Create(64, "S256");
+        string[] parts = pkceValues.Split(',');
+        string code_verifier = parts[0];
+        string code_challenge = parts[1];
 
-    HttpContext.Session.SetString("CodeVerifier", code_verifier);
-    Console.WriteLine($"[GoogleAuth] Code Verifier guardado en sesión: {code_verifier}");
+        HttpContext.Session.SetString("CodeVerifier", code_verifier);
+        Console.WriteLine($"[GoogleAuth] Code Verifier guardado en sesión: {code_verifier}");
 
-    // Construir la URL de autorización de Google
-    var googleAuthUrl =
-        "https://accounts.google.com/o/oauth2/v2/auth" +
-        $"?client_id={Uri.EscapeDataString(clientId)}" +
-        $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
-        $"&response_type=code" +
-        $"&scope={Uri.EscapeDataString(scope)}" +
-        $"&code_challenge_method=S256" +
-        $"&code_challenge={Uri.EscapeDataString(code_challenge)}" +
-        $"&state={Uri.EscapeDataString(state)}" +
-        $"&include_granted_scopes=true";
+        // Construir la URL de autorización de Google
+        var googleAuthUrl =
+            "https://accounts.google.com/o/oauth2/v2/auth" +
+            $"?client_id={Uri.EscapeDataString(clientId)}" +
+            $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
+            $"&response_type=code" +
+            $"&scope={Uri.EscapeDataString(scope)}" +
+            $"&code_challenge_method=S256" +
+            $"&code_challenge={Uri.EscapeDataString(code_challenge)}" +
+            $"&state={Uri.EscapeDataString(state)}" +
+            $"&include_granted_scopes=true";
 
-    Console.WriteLine($"[GoogleAuth] Estado generado: {state}");
-    Console.WriteLine($"[GoogleAuth] URL de redirección: {redirectUri}");
+        Console.WriteLine($"[GoogleAuth] Estado generado: {state}");
+        Console.WriteLine($"[GoogleAuth] URL de redirección: {redirectUri}");
 
-    return Redirect(googleAuthUrl);
-}
+        return Redirect(googleAuthUrl);
+    }
 
     [HttpGet("google-callback")]
     public async Task<IActionResult> GoogleCallback([FromQuery(Name = "code")] string? code, [FromQuery] string state, [FromQuery] string? error, [FromQuery] string? cedula)
@@ -358,9 +358,9 @@ public IActionResult GoogleLogin()
     }
 
     /// <summary>
-        /// Obtiene la información del usuario autenticado mediante cookies de sesión
-        /// </summary>
-        [HttpGet("session-userinfo")]
+    /// Obtiene la información del usuario autenticado mediante cookies de sesión
+    /// </summary>
+    [HttpGet("session-userinfo")]
     public async Task<IActionResult> GetSessionUserInfo()
     {
         var authenticateResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
@@ -379,139 +379,140 @@ public IActionResult GoogleLogin()
         return Ok(userClaims);
     }
 
-[HttpPost("signin")]
-public async Task<IActionResult> SignIn([FromBody] SignInRequest request)
-{
-    Console.WriteLine($"[SignIn] === NUEVA REQUEST RECIBIDA ===");
-    Console.WriteLine($"[SignIn] Timestamp: {DateTime.Now}");
-    Console.WriteLine($"[SignIn] Method: {Request.Method}");
-    Console.WriteLine($"[SignIn] Path: {Request.Path}");
-    Console.WriteLine($"[SignIn] Content-Type: {Request.ContentType}");
-    Console.WriteLine($"[SignIn] Content-Length: {Request.ContentLength}");
-    
-    var claims = new List<Claim>(); 
-    try
+    [HttpPost("signin")]
+    public async Task<IActionResult> SignIn([FromBody] SignInRequest request)
     {
-        // Leer el body raw para debugging
-        string bodyContent = "";
+        Console.WriteLine($"[SignIn] === NUEVA REQUEST RECIBIDA ===");
+        Console.WriteLine($"[SignIn] Timestamp: {DateTime.Now}");
+        Console.WriteLine($"[SignIn] Method: {Request.Method}");
+        Console.WriteLine($"[SignIn] Path: {Request.Path}");
+        Console.WriteLine($"[SignIn] Content-Type: {Request.ContentType}");
+        Console.WriteLine($"[SignIn] Content-Length: {Request.ContentLength}");
+
+        var claims = new List<Claim>();
         try
         {
-            Request.Body.Position = 0;
-            using (var reader = new StreamReader(Request.Body, Encoding.UTF8, leaveOpen: true))
+            // Leer el body raw para debugging
+            string bodyContent = "";
+            try
             {
-                bodyContent = await reader.ReadToEndAsync();
                 Request.Body.Position = 0;
+                using (var reader = new StreamReader(Request.Body, Encoding.UTF8, leaveOpen: true))
+                {
+                    bodyContent = await reader.ReadToEndAsync();
+                    Request.Body.Position = 0;
+                }
+                Console.WriteLine($"[SignIn] Body raw: {bodyContent}");
             }
-            Console.WriteLine($"[SignIn] Body raw: {bodyContent}");
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SignIn] Error leyendo body: {ex.Message}");
+            }
+
+            // **NUEVO: Detectar si es una request móvil**
+            var userAgent = Request.Headers["User-Agent"].ToString();
+            var isMobileRequest = userAgent.Contains("ServiPuntos.Mobile") || userAgent.Contains("Mobile");
+            Console.WriteLine($"[SignIn] User-Agent: {userAgent}");
+            Console.WriteLine($"[SignIn] Request móvil detectada: {isMobileRequest}");
+
+            Console.WriteLine($"[SignIn] Request object: {request?.GetType().Name ?? "null"}");
+            Console.WriteLine($"[SignIn] Email: {request?.Email ?? "null"}");
+            Console.WriteLine($"[SignIn] Password present: {!string.IsNullOrEmpty(request?.Password)}");
+
+            if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+            {
+                Console.WriteLine("[SignIn] ERROR: Email y contraseña son requeridos");
+                return BadRequest(new { message = "Email y contraseña son requeridos" });
+            }
+
+            Console.WriteLine($"[SignIn] Buscando usuario en BD: {request.Email}");
+
+            // Buscar el usuario en la base de datos
+            var usuario = await _context.Usuarios
+                .FirstOrDefaultAsync(u => u.Email == request.Email);
+
+            Console.WriteLine($"[SignIn] Usuario encontrado: {usuario != null}");
+
+            // Verificar si el usuario existe
+            if (usuario == null)
+            {
+                Console.WriteLine("[SignIn] ERROR: Usuario no encontrado");
+                return Unauthorized(new { message = "Email o contraseña incorrectos" });
+            }
+
+            Console.WriteLine("[SignIn] Verificando contraseña...");
+
+            // Verificar la contraseña
+            bool passwordValid = VerifyPassword(request.Password, usuario.Password);
+            Console.WriteLine($"[SignIn] Contraseña válida: {passwordValid}");
+
+            if (!passwordValid)
+            {
+                Console.WriteLine("[SignIn] ERROR: Contraseña incorrecta");
+                return Unauthorized(new { message = "Email o contraseña incorrectos" });
+            }
+
+            Console.WriteLine("[SignIn] Creando claims...");
+
+            // Si tenemos cédula, verificamos la edad
+            bool isAdult = false;
+
+            claims.Add(new Claim(ClaimTypes.Name, usuario.Nombre ?? string.Empty));
+            claims.Add(new Claim(ClaimTypes.Email, usuario.Email ?? string.Empty));
+            claims.Add(new Claim("is_adult", isAdult.ToString().ToLower()));
+            claims.Add(new Claim("role", usuario.Rol.ToString()));
+            claims.Add(new Claim("TenantId", usuario.TenantId.ToString() ?? string.Empty));
+
+            Console.WriteLine($"[SignIn] Claims creados: {claims.Count}");
+
+            // **NUEVO: Para requests web, crear cookies de autenticación**
+            if (!isMobileRequest)
+            {
+                Console.WriteLine("[SignIn] Generando cookies de autenticación para web...");
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+
+                var authProperties = new AuthenticationProperties
+                {
+                    IsPersistent = true,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddHours(24)
+                };
+
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal, authProperties);
+                Console.WriteLine("[SignIn] Usuario autenticado con cookies para web");
+            }
+
+            Console.WriteLine("[SignIn] Generando token JWT...");
+
+            // Generar el token JWT (tanto para web como para móvil)
+            var token = _jwtTokenService.GenerateJwtToken(claims);
+
+            Console.WriteLine($"[SignIn] Token generado: {token.Substring(0, Math.Min(20, token.Length))}...");
+
+            // **MODIFICADO: Respuesta diferenciada según el tipo de cliente**
+            var response = new
+            {
+                token,
+                userId = usuario!.Id,
+                username = usuario.Nombre,
+                email = usuario.Email,
+                role = usuario.Rol,
+                tenantId = usuario.TenantId,
+            };
+
+            Console.WriteLine($"[SignIn] Login exitoso para {usuario.Email} - Tipo: {(isMobileRequest ? "Mobile" : "Web")}");
+            Console.WriteLine("[SignIn] === RESPUESTA EXITOSA ===");
+
+            return Ok(response);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[SignIn] Error leyendo body: {ex.Message}");
+            Console.WriteLine($"[SignIn] EXCEPCIÓN: {ex.Message}");
+            Console.WriteLine($"[SignIn] Stack trace: {ex.StackTrace}");
+            return StatusCode(500, new { message = "Error interno del servidor" });
         }
-
-        // **NUEVO: Detectar si es una request móvil**
-        var userAgent = Request.Headers["User-Agent"].ToString();
-        var isMobileRequest = userAgent.Contains("ServiPuntos.Mobile") || userAgent.Contains("Mobile");
-        Console.WriteLine($"[SignIn] User-Agent: {userAgent}");
-        Console.WriteLine($"[SignIn] Request móvil detectada: {isMobileRequest}");
-
-        Console.WriteLine($"[SignIn] Request object: {request?.GetType().Name ?? "null"}");
-        Console.WriteLine($"[SignIn] Email: {request?.Email ?? "null"}");
-        Console.WriteLine($"[SignIn] Password present: {!string.IsNullOrEmpty(request?.Password)}");
-
-        if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
-        {
-            Console.WriteLine("[SignIn] ERROR: Email y contraseña son requeridos");
-            return BadRequest(new { message = "Email y contraseña son requeridos" });
-        }
-
-        Console.WriteLine($"[SignIn] Buscando usuario en BD: {request.Email}");
-
-        // Buscar el usuario en la base de datos
-        var usuario = await _context.Usuarios
-            .FirstOrDefaultAsync(u => u.Email == request.Email);
-
-        Console.WriteLine($"[SignIn] Usuario encontrado: {usuario != null}");
-
-        // Verificar si el usuario existe
-        if (usuario == null)
-        {
-            Console.WriteLine("[SignIn] ERROR: Usuario no encontrado");
-            return Unauthorized(new { message = "Email o contraseña incorrectos" });
-        }
-
-        Console.WriteLine("[SignIn] Verificando contraseña...");
-
-        // Verificar la contraseña
-        bool passwordValid = VerifyPassword(request.Password, usuario.Password);
-        Console.WriteLine($"[SignIn] Contraseña válida: {passwordValid}");
-        
-        if (!passwordValid)
-        {
-            Console.WriteLine("[SignIn] ERROR: Contraseña incorrecta");
-            return Unauthorized(new { message = "Email o contraseña incorrectos" });
-        }
-
-        Console.WriteLine("[SignIn] Creando claims...");
-
-        // Si tenemos cédula, verificamos la edad
-        bool isAdult = false;
-
-        claims.Add(new Claim(ClaimTypes.Name, usuario.Nombre ?? string.Empty));
-        claims.Add(new Claim(ClaimTypes.Email, usuario.Email ?? string.Empty));
-        claims.Add(new Claim("is_adult", isAdult.ToString().ToLower()));
-        claims.Add(new Claim("role", usuario.Rol.ToString()));
-        claims.Add(new Claim("TenantId", usuario.TenantId.ToString() ?? string.Empty));
-
-        Console.WriteLine($"[SignIn] Claims creados: {claims.Count}");
-
-        // **NUEVO: Para requests web, crear cookies de autenticación**
-        if (!isMobileRequest)
-        {
-            Console.WriteLine("[SignIn] Generando cookies de autenticación para web...");
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-
-            var authProperties = new AuthenticationProperties
-            {
-                IsPersistent = true,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddHours(24)
-            };
-
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal, authProperties);
-            Console.WriteLine("[SignIn] Usuario autenticado con cookies para web");
-        }
-
-        Console.WriteLine("[SignIn] Generando token JWT...");
-
-        // Generar el token JWT (tanto para web como para móvil)
-        var token = _jwtTokenService.GenerateJwtToken(claims);
-
-        Console.WriteLine($"[SignIn] Token generado: {token.Substring(0, Math.Min(20, token.Length))}...");
-
-        // **MODIFICADO: Respuesta diferenciada según el tipo de cliente**
-        var response = new
-        {
-            token,
-            userId = usuario!.Id,
-            username = usuario.Nombre,
-            email = usuario.Email,
-            role = usuario.Rol,
-            tenantId = usuario.TenantId,
-        };
-
-        Console.WriteLine($"[SignIn] Login exitoso para {usuario.Email} - Tipo: {(isMobileRequest ? "Mobile" : "Web")}");
-        Console.WriteLine("[SignIn] === RESPUESTA EXITOSA ===");
-        
-        return Ok(response);
     }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"[SignIn] EXCEPCIÓN: {ex.Message}");
-        Console.WriteLine($"[SignIn] Stack trace: {ex.StackTrace}");
-        return StatusCode(500, new { message = "Error interno del servidor" });
-    }
-}
+
     
     // Método auxiliar para verificar la contraseña
     private bool VerifyPassword(string providedPassword, string storedPassword)
