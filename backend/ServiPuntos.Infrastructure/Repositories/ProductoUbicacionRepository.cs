@@ -15,6 +15,8 @@ namespace ServiPuntos.Infrastructure.Repositories
         }
         public Task<ProductoUbicacion?> GetAsync(Guid id)
             => _dbContext.ProductoUbicaciones
+                .Include(p => p.ProductoCanjeable)
+                .Include(p => p.Ubicacion)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
         // En ProductoUbicacionRepository.cs  
