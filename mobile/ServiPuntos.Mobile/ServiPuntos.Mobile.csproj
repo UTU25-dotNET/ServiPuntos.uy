@@ -16,6 +16,8 @@
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">11.0</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">13.1</SupportedOSPlatformVersion>
+    <AndroidFastDeployment>false</AndroidFastDeployment>
+
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,6 +36,10 @@
     <PackageReference Include="Microsoft.Maui.Controls.Maps" Version="9.0.70" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.1.2" />
     <PackageReference Include="System.Net.Http.Json" Version="9.0.5" />
+    <PackageReference Include="ZXing.Net.MAUI" Version="0.4.0" />
+    <PackageReference Include="ZXing.Net.MAUI.Controls" Version="0.4.0" />
+
+
   </ItemGroup>
 
 </Project>
