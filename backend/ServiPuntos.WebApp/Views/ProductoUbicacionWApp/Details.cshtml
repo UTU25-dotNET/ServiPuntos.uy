@@ -11,46 +11,34 @@
                     <h3 class="card-title mb-0">@ViewData["Title"]</h3>
                 </div>
                 <div class="card-body">
-                    <div class="row mb-2">
-                        <div class="col-md-4"><strong>Ubicación:</strong></div>
-                        <div class="col-md-8">@Model.Ubicacion?.Nombre</div>
-                    </div>
-                    <hr />
-                    <div class="row mb-2">
-                        <div class="col-md-4"><strong>Producto:</strong></div>
-                        <div class="col-md-8">@Model.ProductoCanjeable?.Nombre</div>
-                    </div>
-                    <hr />
-                    <div class="row mb-2">
-                        <div class="col-md-4"><strong>Costo en Puntos:</strong></div>
-                        <div class="col-md-8">
+                    <dl class="row">
+                        <dt class="col-sm-4">Ubicación:</dt>
+                        <dd class="col-sm-8">@Model.Ubicacion?.Nombre</dd>
+
+                        <dt class="col-sm-4">Producto:</dt>
+                        <dd class="col-sm-8">@Model.ProductoCanjeable?.Nombre</dd>
+
+                        <dt class="col-sm-4">Costo en Puntos:</dt>
+                        <dd class="col-sm-8">
                             <span class="badge bg-info">@Model.ProductoCanjeable?.CostoEnPuntos puntos</span>
-                        </div>
-                    </div>
-                    <hr />
-                    <div class="row mb-2"></div>
-                        <div class="col-md-4"><strong>Precio:</strong></div>
-                        <div class="col-md-8">$@Model.Precio.ToString("F2")</div>
-                    </div>
-                    <hr />
-                    <div class="row mb-2">
-                        <div class="col-md-4"><strong>Stock Disponible:</strong></div>
-                        <div class="col-md-8">@Model.StockDisponible</div>
-                    </div>
-                    <hr />
-                    <div class="row mb-2">
-                        <div class="col-md-4"><strong>Estado:</strong></div>
-                        <div class="col-md-8">
+                        </dd>
+
+                        <dt class="col-sm-4">Precio:</dt>
+                        <dd class="col-sm-8">$@Model.Precio.ToString("F2")</dd>
+
+                        <dt class="col-sm-4">Stock Disponible:</dt>
+                        <dd class="col-sm-8">@Model.StockDisponible</dd>
+
+                        <dt class="col-sm-4">Estado:</dt>
+                        <dd class="col-sm-8">
                             <span class="badge @(Model.Activo ? "bg-success" : "bg-secondary")">
                                 @(Model.Activo ? "Activo" : "Inactivo")
                             </span>
-                        </div>
-                    </div>
-                    <hr />
-                    <div class="row mb-2">
-                        <div class="col-md-4"><strong>ID:</strong></div>
-                        <div class="col-md-8"><code>@Model.Id</code></div>
-                    </div>
+                         </dd>
+
+                        <dt class="col-sm-4">ID:</dt>
+                        <dd class="col-sm-8"><code>@Model.Id</code></dd>
+                    </dl>
                 </div>
                 <div class="card-footer d-flex justify-content-between">
                     <a asp-action="Index" class="btn btn-secondary">
