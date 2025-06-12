@@ -13,7 +13,6 @@ namespace ServiPuntos.Mobile.ViewModels
         private readonly IProductoService _productoService;
         private readonly IUbicacionService _ubicacionService;
 
-
         public ObservableCollection<Ubicacion> Ubicaciones { get; }
             = new ObservableCollection<Ubicacion>();
 
@@ -30,8 +29,9 @@ namespace ServiPuntos.Mobile.ViewModels
             }
         }
 
-        public ObservableCollection<ProductoCanjeableDto> Productos { get; }
-            = new ObservableCollection<ProductoCanjeableDto>();
+        // Ahora productos de tipo ProductoUbicacionDto
+        public ObservableCollection<ProductoUbicacionDto> Productos { get; }
+            = new ObservableCollection<ProductoUbicacionDto>();
 
         public ICommand RefreshCommand { get; }
 
@@ -60,18 +60,17 @@ namespace ServiPuntos.Mobile.ViewModels
         {
             if (_ubicacionSeleccionada == null) return;
 
-
             var ubicId = _ubicacionSeleccionada.Id;
 
-
+            // Obtiene lista de ProductoUbicacionDto
             var list = await _productoService.GetProductosPorUbicacionAsync(ubicId);
             Productos.Clear();
 
             foreach (var dto in list)
             {
-
+                // Usamos ProductoCanjeableId para solicitar stock
                 dto.StockDisponible = await _productoService
-                    .GetStockAsync(ubicId, dto.Id.ToString());
+                    .GetStockAsync(ubicId, dto.ProductoCanjeableId.ToString());
 
                 Productos.Add(dto);
             }
