@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.companyname.servipuntos.mobile">
 
+  <!-- Permisos necesarios -->
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
   <uses-permission android:name="android.permission.INTERNET" />
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -16,12 +17,12 @@
       android:supportsRtl="true"
       android:theme="@style/MainTheme">
 
+    <!-- Callback OAuth -->
     <activity
         android:name="crc64c92ef867456ec045.MainActivity"
         android:exported="true"
         android:theme="@style/Maui.SplashTheme">
 
-      <!-- Callback OAuth -->
       <intent-filter android:autoVerify="true">
         <action android:name="android.intent.action.VIEW" />
         <category android:name="android.intent.category.DEFAULT" />
@@ -29,7 +30,7 @@
         <data android:scheme="servipuntos" android:host="auth-callback" />
       </intent-filter>
 
-      <!-- Lanzamiento normal -->
+      <!-- Pantalla de inicio -->
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.LAUNCHER" />
