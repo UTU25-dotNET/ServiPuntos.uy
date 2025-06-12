@@ -1,6 +1,7 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.Controls;
-using ServiPuntos.Mobile.ViewModels;
 using ServiPuntos.Mobile.Services;
+using ServiPuntos.Mobile.ViewModels;
 
 namespace ServiPuntos.Mobile.Views
 {
@@ -11,13 +12,11 @@ namespace ServiPuntos.Mobile.Views
             InitializeComponent();
 
 
-            var productoService = Application.Current?.Handler?.MauiContext?.Services?.GetService<ProductoService>();
-            var ubicacionService = Application.Current?.Handler?.MauiContext?.Services?.GetService<UbicacionService>();
+            var services = Application.Current.Handler.MauiContext.Services;
+            var productoService = services.GetService<IProductoService>()!;
+            var ubicacionService = services.GetService<IUbicacionService>()!;
 
-
-            string tenantId = "MI_TENANT_ID";
-
-            this.BindingContext = new CatalogoViewModel(productoService, ubicacionService, tenantId);
+            BindingContext = new CatalogoViewModel(productoService, ubicacionService);
         }
     }
 }

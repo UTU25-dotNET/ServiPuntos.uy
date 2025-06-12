@@ -1,45 +1,55 @@
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:maps="clr-namespace:Microsoft.Maui.Controls.Maps;assembly=Microsoft.Maui.Controls.Maps"
-             x:Class="ServiPuntos.Mobile.Views.MapaPage"
-             Title="Mapa de Estaciones">
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+        xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+        xmlns:maps="clr-namespace:Microsoft.Maui.Controls.Maps;assembly=Microsoft.Maui.Controls.Maps"
+        x:Class="ServiPuntos.Mobile.Views.MapaPage"
+        Title="Mapa de Estaciones">
 
         <StackLayout Padding="12"
-                     Spacing="10">
+                        Spacing="10">
                 <Label Text="Filtrar por ciudad:"/>
-                <Picker ItemsSource="{Binding Ciudades}"
+                <Picker
+                        ItemsSource="{Binding Ciudades}"
                         SelectedItem="{Binding CiudadSeleccionada}"
                         Title="Selecciona ciudad"/>
 
                 <StackLayout Orientation="Horizontal"
-                             Spacing="16">
+                                Spacing="16">
                         <StackLayout Orientation="Horizontal"
-                                     Spacing="4">
+                                        Spacing="4">
                                 <Label Text="Lavadero"/>
                                 <Switch IsToggled="{Binding FiltrarLavado}"/>
                         </StackLayout>
                         <StackLayout Orientation="Horizontal"
-                                     Spacing="4">
+                                        Spacing="4">
                                 <Label Text="Cambio de Aceite"/>
                                 <Switch IsToggled="{Binding FiltrarCambioAceite}"/>
                         </StackLayout>
                 </StackLayout>
 
-
                 <StackLayout Orientation="Horizontal"
-                             Spacing="8"
-                             VerticalOptions="Center">
+                                Spacing="8"
+                                VerticalOptions="Center">
                         <Label Text="Nafta Súper máx: $"
-                               VerticalOptions="Center"/>
-                        <Slider Minimum="0"
+                                        VerticalOptions="Center"/>
+                        <Slider
+                                Minimum="0"
                                 Maximum="200"
                                 Value="{Binding PrecioNaftaSuperMax}"
                                 WidthRequest="120"/>
-                        <Label Text="{Binding PrecioNaftaSuperMax, StringFormat='{0:F0}'}"
-                               VerticalOptions="Center"/>
+                        <Label
+                                Text="{Binding PrecioNaftaSuperMax, StringFormat='{0:F0}'}"
+                                VerticalOptions="Center"/>
                 </StackLayout>
 
-                <maps:Map x:Name="Mapa"
-                          HeightRequest="350"/>
+                <Button
+                        Text="Buscar estaciones"
+                        Command="{Binding LoadCommand}"/>
+
+                <maps:Map
+                        x:Name="Mapa"
+                        IsShowingUser="True"
+                        HeightRequest="350"/>
         </StackLayout>
 </ContentPage>

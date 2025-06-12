@@ -1,61 +1,42 @@
-using ServiPuntos.Mobile.ViewModels;
-using ServiPuntos.Mobile.Services;
-using Microsoft.Maui.Controls.Maps;
-using Microsoft.Maui.Maps;
 using System.Linq;
 using System.Collections.Specialized;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.Controls.Maps;
+using Microsoft.Maui.Maps;
+using ServiPuntos.Mobile.Models;
+using ServiPuntos.Mobile.ViewModels;
 
 namespace ServiPuntos.Mobile.Views
 {
     public partial class MapaPage : ContentPage
     {
-        public MapaPage()
+        public MapaPage(MapaViewModel viewModel)
         {
             InitializeComponent();
-            InicializarViewModelAsync();
-        }
-
-        private async void InicializarViewModelAsync()
-        {
-
-            var authService = Application.Current?.Handler?.MauiContext?.Services?.GetService<IAuthService>()
-                             ?? new AuthService(new HttpClient());
-            var userInfo = await authService.GetUserInfoAsync();
-            var tenantId = userInfo?.TenantId;
-
-            if (string.IsNullOrEmpty(tenantId))
-            {
-                await DisplayAlert("Error", "No se pudo obtener el TenantId. Reintenta iniciar sesión.", "OK");
-                return;
-            }
-
-            var ubicacionService = Application.Current?.Handler?.MauiContext?.Services?.GetService<UbicacionService>()
-                                   ?? new UbicacionService(new HttpClient());
-            var viewModel = new MapaViewModel(ubicacionService, tenantId);
             BindingContext = viewModel;
-
-            viewModel.Ubicaciones.CollectionChanged += Ubicaciones_CollectionChanged;
+            viewModel.Estaciones.CollectionChanged += OnEstacionesChanged;
         }
 
-        private void Ubicaciones_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        void OnEstacionesChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            var ubicaciones = ((System.Collections.ObjectModel.ObservableCollection<ServiPuntos.Mobile.Models.Ubicacion>)sender).ToList();
+            var estaciones = ((System.Collections.ObjectModel.ObservableCollection<UbicacionDto>)sender).ToList();
+
             Mapa.Pins.Clear();
-            foreach (var u in ubicaciones)
+            foreach (var u in estaciones)
             {
-                var pin = new Pin
+                Mapa.Pins.Add(new Pin
                 {
                     Label = $"{u.Nombre} (${u.PrecioNaftaSuper:F2})",
                     Address = u.Direccion,
-                    Location = new Location(u.Latitud, u.Longitud)
-                };
-                Mapa.Pins.Add(pin);
+                    Location = new Location((double)u.Latitud, (double)u.Longitud)
+                });
             }
-            if (ubicaciones.Any())
+
+            if (estaciones.Any())
             {
-                var first = ubicaciones.First();
+                var first = estaciones.First();
                 Mapa.MoveToRegion(MapSpan.FromCenterAndRadius(
-                    new Location(first.Latitud, first.Longitud),
+                    new Location((double)first.Latitud, (double)first.Longitud),
                     Distance.FromKilometers(3)));
             }
         }
