@@ -13,6 +13,9 @@ namespace ServiPuntos.Mobile.Services
         Task<UserInfo?> GetUserInfoAsync();
         Task SaveTokenAsync(string token);
         Task<bool> RegisterAsync(RegisterRequest request);
+
+        Task<bool> RefreshTokenAsync();
+
     }
     public class SignInRequest
     {
@@ -29,6 +32,8 @@ namespace ServiPuntos.Mobile.Services
         public string Role { get; set; } = string.Empty;
         public string TenantId { get; set; } = string.Empty;
         public bool IsMobile { get; set; }
+
+        public string? RefreshToken { get; set; }
     }
 
     public class UserInfo

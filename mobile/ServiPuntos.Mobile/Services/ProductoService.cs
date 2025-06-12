@@ -1,17 +1,12 @@
+using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using ServiPuntos.Mobile.Models;
 
 namespace ServiPuntos.Mobile.Services
 {
-    public interface IProductoService
-    {
-        Task<List<ProductoCanjeable>> GetProductosCanjeablesAsync();
-        Task<List<ProductoCanjeable>> GetProductosPorUbicacionAsync(string ubicacionId);
-    }
-
     public class ProductoService : IProductoService
     {
         private readonly HttpClient _httpClient;
@@ -21,16 +16,26 @@ namespace ServiPuntos.Mobile.Services
             _httpClient = httpClient;
         }
 
-        public Task<List<ProductoCanjeable>> GetProductosCanjeablesAsync()
+        public async Task<List<ProductoCanjeableDto>> GetProductosPorUbicacionAsync(string ubicacionId)
         {
 
-            return _httpClient.GetFromJsonAsync<List<ProductoCanjeable>>("listar");
+            var list = await _httpClient.GetFromJsonAsync<List<ProductoCanjeableDto>>(
+                $"ubicacion/{ubicacionId}/productos");
+
+
+            return list ?? new List<ProductoCanjeableDto>();
         }
 
-        public Task<List<ProductoCanjeable>> GetProductosPorUbicacionAsync(string ubicacionId)
+        public async Task<int> GetStockAsync(string ubicacionId, string productoId)
         {
 
-            return _httpClient.GetFromJsonAsync<List<ProductoCanjeable>>($"ubicacion/{ubicacionId}");
+            var resp = await _httpClient.GetAsync(
+                $"ubicacion/{ubicacionId}/stock/{productoId}");
+            resp.EnsureSuccessStatusCode();
+
+
+            var stock = await resp.Content.ReadFromJsonAsync<int?>();
+            return stock.GetValueOrDefault();
         }
     }
 }

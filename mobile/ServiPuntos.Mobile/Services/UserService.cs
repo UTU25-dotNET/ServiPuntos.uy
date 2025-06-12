@@ -29,10 +29,18 @@ namespace ServiPuntos.Mobile.Services
             return resp.IsSuccessStatusCode;
         }
 
-        public async Task<PointBalanceResponse?> GetBalanceAsync()
-            => await _httpClient.GetFromJsonAsync<PointBalanceResponse>($"{BASE_URL}/saldo");
+
 
         public async Task<List<TransactionSummary>?> GetRecentTransactionsAsync()
             => await _httpClient.GetFromJsonAsync<List<TransactionSummary>>($"{BASE_URL}/historial?limit=5");
+
+        public async Task<int> GetBalanceAsync()
+        {
+            var resp = await _httpClient.GetAsync("balance");
+            resp.EnsureSuccessStatusCode();
+            return await resp.Content.ReadFromJsonAsync<int>();
+        }
+
+
     }
 }

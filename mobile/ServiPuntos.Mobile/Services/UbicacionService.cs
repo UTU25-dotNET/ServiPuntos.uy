@@ -10,6 +10,10 @@ namespace ServiPuntos.Mobile.Services
     public interface IUbicacionService
     {
         Task<List<Ubicacion>> GetUbicacionesTenantAsync(string tenantId);
+        Task<IEnumerable<UbicacionDto>> GetNearbyAsync(double lat, double lng, double radiusKm);
+
+        Task<List<Ubicacion>> GetAllAsync();
+
     }
 
     public class UbicacionService : IUbicacionService
@@ -20,5 +24,19 @@ namespace ServiPuntos.Mobile.Services
 
         public Task<List<Ubicacion>> GetUbicacionesTenantAsync(string tenantId) =>
             _httpClient.GetFromJsonAsync<List<Ubicacion>>($"{tenantId}");
+
+        public async Task<IEnumerable<UbicacionDto>> GetNearbyAsync(double lat, double lng, double radiusKm)
+        {
+            var url = $"nearby?lat={lat}&lng={lng}&radius={radiusKm}";
+            var resp = await _httpClient.GetAsync(url);
+            resp.EnsureSuccessStatusCode();
+            return await resp.Content.ReadFromJsonAsync<IEnumerable<UbicacionDto>>()
+                   ?? Array.Empty<UbicacionDto>();
+        }
+
+        public Task<List<Ubicacion>> GetAllAsync() =>
+            _httpClient.GetFromJsonAsync<List<Ubicacion>>("");
+
+
     }
 }

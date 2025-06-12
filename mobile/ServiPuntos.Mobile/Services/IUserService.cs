@@ -9,7 +9,9 @@ namespace ServiPuntos.Mobile.Services
         Task<Usuario?> GetPerfilByEmailAsync(string email);
         Task<Usuario?> GetPerfilByIdAsync(string id);
         Task<bool> UpdatePerfilAsync(Usuario usuario);
-        Task<PointBalanceResponse?> GetBalanceAsync();
         Task<List<TransactionSummary>?> GetRecentTransactionsAsync();
+
+        Task<int> GetBalanceAsync();
+
     }
 }
