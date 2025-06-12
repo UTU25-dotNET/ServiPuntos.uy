@@ -1,16 +1,14 @@
+using Microsoft.Maui.Controls;
 using ServiPuntos.Mobile.ViewModels;
-using ServiPuntos.Mobile.Services;
 
 namespace ServiPuntos.Mobile.Views
 {
     public partial class HomePage : ContentPage
     {
-        public HomePage()
+        public HomePage(HomeViewModel viewModel)
         {
             InitializeComponent();
-            var userService = Application.Current?.Handler?.MauiContext?.Services?.GetService<UserService>()
-                              ?? new UserService(new HttpClient());
-            BindingContext = new HomeViewModel(userService);
+            BindingContext = viewModel;
         }
     }
 }

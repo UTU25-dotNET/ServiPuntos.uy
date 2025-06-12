@@ -1,13 +1,14 @@
+using Microsoft.Maui.Controls;
 using ServiPuntos.Mobile.ViewModels;
 
 namespace ServiPuntos.Mobile.Views
 {
     public partial class RegisterPage : ContentPage
     {
-        public RegisterPage()
+        public RegisterPage(RegisterViewModel viewModel)
         {
             InitializeComponent();
-            BindingContext = new RegisterViewModel(new Services.AuthService(new HttpClient()));
+            BindingContext = viewModel;
         }
     }
 }
