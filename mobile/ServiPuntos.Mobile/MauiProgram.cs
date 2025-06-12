@@ -1,8 +1,12 @@
+using Refit;
+using Microsoft.Extensions.DependencyInjection;
+
 using System;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Controls.Hosting;
 using Microsoft.Maui.Hosting;
 using Microsoft.Maui.Controls.Maps;
+
 using ServiPuntos.Mobile.Services;
 using ServiPuntos.Mobile.ViewModels;
 using ServiPuntos.Mobile.Views;
@@ -10,123 +14,123 @@ using static ServiPuntos.Mobile.Services.AppLogger;
 
 namespace ServiPuntos.Mobile
 {
-	public static class MauiProgram
-	{
-		public static MauiApp CreateMauiApp()
-		{
-			var builder = MauiApp.CreateBuilder();
+    public static class MauiProgram
+    {
+        public static MauiApp CreateMauiApp()
+        {
+            var builder = MauiApp.CreateBuilder();
 
-			builder
-				.UseMauiApp<App>()
-				.UseMauiMaps()
-				.ConfigureFonts(fonts =>
-				{
-					fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-					fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-				});
+            builder
+                .UseMauiApp<App>()
+                .UseMauiMaps()
+                .ConfigureFonts(fonts =>
+                {
+                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                });
 
-#if true
+            var apiBase = "https://10.0.2.2:5019/api/";
 
-			var apiBase = "http://10.0.2.2:5019/api/";
-#else
-			
-			var apiBase = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/";
-#endif
+            // Handler para refrescar token
+            builder.Services.AddTransient<RefreshTokenHandler>();
 
+            // --- Auth ---
+            builder.Services
+                .AddRefitClient<IAuthApi, AuthService>()
+                .ConfigureHttpClient(c =>
+                {
+                    c.BaseAddress = new Uri($"{apiBase}auth/");
+                    c.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
+                })
+                .AddHttpMessageHandler<RefreshTokenHandler>();
 
-			builder.Services.AddTransient<RefreshTokenHandler>();
+            // --- Usuario ---
+            builder.Services
+                .AddRefitClient<IUsuarioApi, UserService>()
+                .ConfigureHttpClient(c =>
+                {
+                    c.BaseAddress = new Uri($"{apiBase}usuario/");
+                    c.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
+                })
+                .AddHttpMessageHandler<RefreshTokenHandler>();
 
+            // --- VEAI ---
+            builder.Services
+                .AddRefitClient<IVeaiApi, VeaiService>()
+                .ConfigureHttpClient(c =>
+                {
+                    c.BaseAddress = new Uri($"{apiBase}verify/");
+                    c.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
+                })
+                .AddHttpMessageHandler<RefreshTokenHandler>();
 
-			builder.Services
-				.AddHttpClient<IAuthService, AuthService>(client =>
-				{
-					client.BaseAddress = new Uri($"{apiBase}auth/");
-					client.Timeout = TimeSpan.FromSeconds(60);
-					client.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
-				});
+            // --- Ubicaciones ---
+            builder.Services
+                .AddRefitClient<IUbicacionApi, UbicacionService>()
+                .ConfigureHttpClient(c =>
+                {
+                    c.BaseAddress = new Uri($"{apiBase}ubicacion/");
+                    c.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
+                })
+                .AddHttpMessageHandler<RefreshTokenHandler>();
 
+            // --- Productos ---
+            builder.Services
+                .AddRefitClient<IProductoApi, ProductoService>()
+                .ConfigureHttpClient(c =>
+                {
+                    c.BaseAddress = new Uri($"{apiBase}productoUbicacion/");
+                    c.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
+                })
+                .AddHttpMessageHandler<RefreshTokenHandler>();
 
-			builder.Services
-				.AddHttpClient<IUserService, UserService>(client =>
-				{
-					client.BaseAddress = new Uri($"{apiBase}usuario/");
-					client.Timeout = TimeSpan.FromSeconds(60);
-					client.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
-				})
-				.AddHttpMessageHandler<RefreshTokenHandler>();
+            // --- Canjes ---
+            builder.Services
+                .AddRefitClient<ICanjeApi, CanjeService>()
+                .ConfigureHttpClient(c =>
+                {
+                    c.BaseAddress = new Uri($"{apiBase}nafta/");
+                    c.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
+                })
+                .AddHttpMessageHandler<RefreshTokenHandler>();
 
-			builder.Services
-				.AddHttpClient<IVeaiService, VeaiService>(client =>
-				{
-					client.BaseAddress = new Uri($"{apiBase}verify/");
-					client.Timeout = TimeSpan.FromSeconds(60);
-					client.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
-				})
-				.AddHttpMessageHandler<RefreshTokenHandler>();
+            // --- Transacciones ---
+            builder.Services
+                .AddRefitClient<ITransactionApi, TransactionService>()
+                .ConfigureHttpClient(c =>
+                {
+                    c.BaseAddress = new Uri($"{apiBase}usuario/");
+                    c.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
+                })
+                .AddHttpMessageHandler<RefreshTokenHandler>();
 
-			builder.Services
-				.AddHttpClient<IUbicacionService, UbicacionService>(client =>
-				{
-					client.BaseAddress = new Uri($"{apiBase}ubicacion/");
-					client.Timeout = TimeSpan.FromSeconds(60);
-					client.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
-				})
-				.AddHttpMessageHandler<RefreshTokenHandler>();
+            // ViewModels
+            builder.Services.AddTransient<LoginViewModel>();
+            builder.Services.AddTransient<HomeViewModel>();
+            builder.Services.AddTransient<CanjeViewModel>();
+            builder.Services.AddTransient<MapaViewModel>();
+            builder.Services.AddTransient<PerfilViewModel>();
 
-			builder.Services
-				.AddHttpClient<IProductoService, ProductoService>(client =>
-				{
-					client.BaseAddress = new Uri($"{apiBase}productoCanjeable/");
-					client.Timeout = TimeSpan.FromSeconds(60);
-					client.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
-				})
-				.AddHttpMessageHandler<RefreshTokenHandler>();
+            // Pages
+            builder.Services.AddTransient<LoginPage>();
+            builder.Services.AddTransient<HomePage>();
+            builder.Services.AddTransient<CanjePage>();
+            builder.Services.AddTransient<MapaPage>();
+            builder.Services.AddTransient<PerfilPage>();
 
-			builder.Services
-				.AddHttpClient<ICanjeService, CanjeService>(client =>
-				{
-					client.BaseAddress = new Uri($"{apiBase}nafta/");
-					client.Timeout = TimeSpan.FromSeconds(60);
-					client.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
-				})
-				.AddHttpMessageHandler<RefreshTokenHandler>();
+            // Logging
+            builder.Logging.AddDebug();
+            builder.Logging.SetMinimumLevel(LogLevel.Information);
 
-			builder.Services
-				.AddHttpClient<ITransactionService, TransactionService>(client =>
-				{
-					client.BaseAddress = new Uri($"{apiBase}transacciones/");
-					client.Timeout = TimeSpan.FromSeconds(60);
-					client.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
-				})
-				.AddHttpMessageHandler<RefreshTokenHandler>();
+            var app = builder.Build();
 
+            // Inicializa logger estático
+            var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
+            Initialize(loggerFactory.CreateLogger("ServiPuntos"));
+            LogInfo("🚀 ServiPuntos Mobile - Logger inicializado");
+            LogDebug("🔧 Modo DEBUG activo");
 
-			builder.Services.AddTransient<LoginViewModel>();
-			builder.Services.AddTransient<HomeViewModel>();
-			builder.Services.AddTransient<CanjeViewModel>();
-			builder.Services.AddTransient<MapaViewModel>();
-			builder.Services.AddTransient<PerfilViewModel>();
-
-
-			builder.Services.AddTransient<LoginPage>();
-			builder.Services.AddTransient<HomePage>();
-			builder.Services.AddTransient<CanjePage>();
-			builder.Services.AddTransient<MapaPage>();
-			builder.Services.AddTransient<PerfilPage>();
-
-
-			builder.Logging.AddDebug();
-			builder.Logging.SetMinimumLevel(LogLevel.Information);
-
-
-			var app = builder.Build();
-
-			var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
-			Initialize(loggerFactory.CreateLogger("ServiPuntos"));
-			LogInfo("🚀 ServiPuntos Mobile - Logger inicializado");
-			LogDebug("🔧 Modo DEBUG activo");
-
-			return app;
-		}
-	}
+            return app;
+        }
+    }
 }
