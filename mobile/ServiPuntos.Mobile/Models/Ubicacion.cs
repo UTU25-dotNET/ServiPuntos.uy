@@ -29,10 +29,10 @@ namespace ServiPuntos.Mobile.Models
         [JsonPropertyName("cambioDeNeumaticos")]
         public bool CambioDeNeumaticos { get; set; }
 
-        [JsonPropertyName("latitud")]
+        [JsonPropertyName("latitude")]
         public double Latitud { get; set; }
 
-        [JsonPropertyName("longitud")]
+        [JsonPropertyName("longitude")]
         public double Longitud { get; set; }
 
         [JsonPropertyName("precioNaftaSuper")]
