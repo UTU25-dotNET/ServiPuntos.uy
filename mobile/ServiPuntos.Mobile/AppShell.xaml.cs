@@ -10,6 +10,8 @@ namespace ServiPuntos.Mobile
 
 
 			Routing.RegisterRoute(nameof(TokenDisplayPage), typeof(TokenDisplayPage));
+
+			Routing.RegisterRoute("canje/detalle", typeof(CanjeDetallePage));
 		}
 	}
 }

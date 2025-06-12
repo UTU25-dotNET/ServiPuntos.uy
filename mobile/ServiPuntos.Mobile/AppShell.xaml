@@ -4,12 +4,47 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:ServiPuntos.Mobile.Views"
-    Title="ServiPuntos.Mobile">
+    Title="ServiPuntos">
 
-    <!-- ASEGÚRATE DE QUE ESTO DIGA LoginPage, NO TenantSelectorPage -->
+
     <ShellContent
         Title="Login"
         ContentTemplate="{DataTemplate local:LoginPage}"
-        Route="MainPage" />
+        Route="login"/>
+
+
+    <TabBar>
+        <ShellContent
+            Title="Inicio"
+            Icon="home.png"
+            ContentTemplate="{DataTemplate local:HomePage}"
+            Route="home"/>
+
+        <ShellContent
+            Title="Catálogo"
+            Icon="catalog.png"
+            ContentTemplate="{DataTemplate local:CatalogoPage}"
+            Route="catalogo"/>
+
+        <ShellContent
+            Title="Canje"
+            Icon="ticket.png"
+            ContentTemplate="{DataTemplate local:CanjePage}"
+            Route="canje"/>
+
+        <ShellContent
+            Title="Mapa"
+            Icon="map.png"
+            ContentTemplate="{DataTemplate local:MapaPage}"
+            Route="mapa"/>
+
+        <ShellContent
+            Title="Perfil"
+            Icon="profile.png"
+            ContentTemplate="{DataTemplate local:PerfilPage}"
+            Route="perfil"/>
+    </TabBar>
+
+
 
 </Shell>
