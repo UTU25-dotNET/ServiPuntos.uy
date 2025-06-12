@@ -8,6 +8,10 @@ namespace ServiPuntos.Core.Entities
         public required Guid TenantId { get; set; }
         public Tenant? Tenant { get; set; }
 
+        // Ubicación asociada (solo para AdminUbicacion)
+        public Guid? UbicacionId { get; set; }
+        public Ubicacion? Ubicacion { get; set; }
+
         public string? Nombre { get; set; }
         public string? Apellido { get; set; }
         public required string Email { get; set; }
@@ -55,7 +59,7 @@ namespace ServiPuntos.Core.Entities
         public Usuario() { }
 
         [SetsRequiredMembers]
-        public Usuario(string nombre, string email, string password, int ci, Guid tenantId, RolUsuario rol)
+        public Usuario(string nombre, string email, string password, int ci, Guid tenantId, RolUsuario rol, Guid? ubicacionId = null)
         {
             Nombre = nombre;
             Email = email;
@@ -66,6 +70,7 @@ namespace ServiPuntos.Core.Entities
             FechaModificacion = DateTime.UtcNow;
             TenantId = tenantId;
             Rol = rol;
+            UbicacionId = ubicacionId;
         }
 
         public bool VerificarPassword(string passwordPlano)

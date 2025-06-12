@@ -29,18 +29,33 @@ namespace ServiPuntos.API.Controllers
             {
                 Console.WriteLine("[ProductoUbicacion] GetAll - Iniciando");
                 var productosUbicacion = await _productoUbicacionService.GetAllAsync();
+<<<<<<< HEAD
                 
                 var productosDto = productosUbicacion.Select(pu => new {
                     id = pu.Id,
                     ubicacionId = pu.UbicacionId,
                     productoCanjeableId = pu.ProductoCanjeableId,
+=======
+
+                var productosDto = productosUbicacion.Select(pu => new {
+                    id = pu.Id,
+                    ubicacionId = pu.UbicacionId,
+                    categoria = pu.Categoria,
+                    productoCanjeableId = pu.ProductoCanjeableId,
+                    precio = pu.Precio,
+>>>>>>> origin/dev
                     stockDisponible = pu.StockDisponible,
                     activo = pu.Activo,
                     productoCanjeable = pu.ProductoCanjeable != null ? new {
                         id = pu.ProductoCanjeable.Id,
                         nombre = pu.ProductoCanjeable.Nombre,
                         descripcion = pu.ProductoCanjeable.Descripcion,
+<<<<<<< HEAD
                         costoEnPuntos = pu.ProductoCanjeable.CostoEnPuntos
+=======
+                        costoEnPuntos = pu.ProductoCanjeable.CostoEnPuntos,
+                        fotoUrl = pu.ProductoCanjeable.FotoUrl
+>>>>>>> origin/dev
                     } : null
                 }).ToList();
 
@@ -61,7 +76,11 @@ namespace ServiPuntos.API.Controllers
         /// <param name="ubicacionId">ID de la ubicación</param>
         /// <returns>Lista de productos de la ubicación</returns>
         [HttpGet("ubicacion/{ubicacionId}")]
+<<<<<<< HEAD
         public async Task<ActionResult<IEnumerable<object>>> GetAllByUbicacion(Guid ubicacionId)
+=======
+        public async Task<ActionResult<IEnumerable<object>>> GetAllByUbicacion(Guid ubicacionId, [FromQuery] string? categoria)
+>>>>>>> origin/dev
         {
             try
             {
@@ -74,7 +93,13 @@ namespace ServiPuntos.API.Controllers
                 }
 
                 Console.WriteLine("[ProductoUbicacion] GetAllByUbicacion - Llamando al servicio");
+<<<<<<< HEAD
                 var productosUbicacion = await _productoUbicacionService.GetAllAsync(ubicacionId);
+=======
+                var productosUbicacion = string.IsNullOrEmpty(categoria)
+                    ? await _productoUbicacionService.GetAllAsync(ubicacionId)
+                    : await _productoUbicacionService.GetAllAsync(ubicacionId, categoria);
+>>>>>>> origin/dev
                 
                 Console.WriteLine("[ProductoUbicacion] GetAllByUbicacion - Servicio completado, procesando datos");
                 var productos = productosUbicacion.ToList();
@@ -87,14 +112,25 @@ namespace ServiPuntos.API.Controllers
                     var dto = new {
                         id = pu.Id,
                         ubicacionId = pu.UbicacionId,
+<<<<<<< HEAD
                         productoCanjeableId = pu.ProductoCanjeableId,
+=======
+                        categoria = pu.Categoria,
+                        productoCanjeableId = pu.ProductoCanjeableId,
+                        precio = pu.Precio,
+>>>>>>> origin/dev
                         stockDisponible = pu.StockDisponible,
                         activo = pu.Activo,
                         productoCanjeable = pu.ProductoCanjeable != null ? new {
                             id = pu.ProductoCanjeable.Id,
                             nombre = pu.ProductoCanjeable.Nombre ?? "Sin nombre",
                             descripcion = pu.ProductoCanjeable.Descripcion ?? "Sin descripción",
+<<<<<<< HEAD
                             costoEnPuntos = pu.ProductoCanjeable.CostoEnPuntos
+=======
+                            costoEnPuntos = pu.ProductoCanjeable.CostoEnPuntos,
+                            fotoUrl = pu.ProductoCanjeable.FotoUrl
+>>>>>>> origin/dev
                         } : null
                     };
                     

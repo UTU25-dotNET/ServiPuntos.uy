@@ -13,6 +13,7 @@ const AuthCallback = () => {
       try {
         // Obtener parámetros de la URL
         const token = searchParams.get("token");
+<<<<<<< HEAD
         const state = searchParams.get("state");
         const returnUrl = searchParams.get("returnUrl");
         const errorParam = searchParams.get("error");
@@ -24,6 +25,10 @@ const AuthCallback = () => {
           error: errorParam
         });
 
+=======
+        const errorParam = searchParams.get("error");
+
+>>>>>>> origin/dev
         // Si hay un error en los parámetros
         if (errorParam) {
           setError(decodeURIComponent(errorParam));
@@ -33,27 +38,42 @@ const AuthCallback = () => {
 
         // Si no hay token, redirigir al login
         if (!token) {
+<<<<<<< HEAD
           console.error("No se recibió token en el callback");
+=======
+>>>>>>> origin/dev
           setError("No se pudo completar la autenticación. Falta el token.");
           setTimeout(() => navigate("/login"), 3000);
           return;
         }
 
+<<<<<<< HEAD
         // Guardar el token en localStorage
         localStorage.setItem("token", token);
+=======
+        // Guardar el token en localStorage y programar cierre automático
+        localStorage.setItem("token", token);
+        authService.scheduleAutoLogout();
+>>>>>>> origin/dev
 
         // Verificar que el token sea válido
         if (!authService.isAuthenticated()) {
           throw new Error("El token recibido no es válido");
         }
 
+<<<<<<< HEAD
         console.log("Token guardado exitosamente, redirigiendo al dashboard");
+=======
+>>>>>>> origin/dev
 
         // Redirigir al dashboard
         window.location.href = "/";
 
       } catch (err) {
+<<<<<<< HEAD
         console.error("Error en AuthCallback:", err);
+=======
+>>>>>>> origin/dev
         setError(err.message || "Error al procesar la autenticación");
         setLoading(false);
       }

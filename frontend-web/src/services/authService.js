@@ -1,6 +1,35 @@
 import axios from "axios";
 import tokenUtils from "../utils/tokenUtils";
 
+let logoutTimer = null;
+
+const scheduleAutoLogout = () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    return;
+  }
+
+  try {
+    const decoded = tokenUtils.getUserFromToken(token);
+    if (!decoded || !decoded.exp) return;
+
+    const expiresInMs = decoded.exp * 1000 - Date.now();
+    if (expiresInMs <= 0) {
+      authService.logout();
+      return;
+    }
+
+    if (logoutTimer) {
+      clearTimeout(logoutTimer);
+    }
+
+    logoutTimer = setTimeout(() => {
+      authService.logout();
+    }, expiresInMs);
+  } catch (err) {
+  }
+};
+
 const API_URL = "https://localhost:5019/api/auth/";
 
 const authService = {
@@ -8,6 +37,7 @@ const authService = {
 
   getTenants: async () => {
     try {
+<<<<<<< HEAD
       console.log("Obteniendo lista de tenants...");
       
       const response = await axios.get(`${API_URL}tenants`);
@@ -16,16 +46,31 @@ const authService = {
       return response.data;
     } catch (err) {
       console.error("Error al obtener tenants:", err);
+=======
+      
+      const response = await axios.get(`${API_URL}tenants`);
+      
+      return response.data;
+    } catch (err) {
+>>>>>>> origin/dev
       
       if (err.response) {
         const errorMessage = err.response.data?.message || 
                             err.response.data?.error || 
                             `Error del servidor: ${err.response.status}`;
+<<<<<<< HEAD
         throw { message: errorMessage };
       } else if (err.request) {
         throw { message: "Error de conexión. Verifica tu conexión a internet." };
       } else {
         throw { message: err.message || "Error desconocido al obtener tenants" };
+=======
+        throw new Error(errorMessage);
+      } else if (err.request) {
+        throw new Error("Error de conexión. Verifica tu conexión a internet.");
+      } else {
+        throw new Error(err.message || "Error desconocido al obtener tenants");
+>>>>>>> origin/dev
       }
     }
   },
@@ -33,7 +78,10 @@ const authService = {
 
 register: async (name, email, password, ci, tenantId) => {
   try {
+<<<<<<< HEAD
     console.log("Iniciando registro para:", { name, email, ci, tenantId });
+=======
+>>>>>>> origin/dev
 
     const response = await axios.post(`${API_URL}register`, {
       nombre: name,
@@ -43,7 +91,10 @@ register: async (name, email, password, ci, tenantId) => {
       tenantId: tenantId // **Enviar como string (Guid)**
     });
 
+<<<<<<< HEAD
     console.log("Respuesta del registro:", response.data);
+=======
+>>>>>>> origin/dev
     
     return {
       success: true,
@@ -52,17 +103,28 @@ register: async (name, email, password, ci, tenantId) => {
     };
 
   } catch (err) {
+<<<<<<< HEAD
     console.error("Error en el registro:", err);
+=======
+>>>>>>> origin/dev
     
     if (err.response) {
       const errorMessage = err.response.data?.message || 
                            err.response.data?.error || 
                           `Error del servidor: ${err.response.status}`;
+<<<<<<< HEAD
       throw { message: errorMessage };
     } else if (err.request) {
       throw { message : "Error de conexión. Verifica tu conexión a internet." };
     } else {
       throw { message: err.message || "Error desconocido en el registro" };
+=======
+      throw new Error(errorMessage);
+    } else if (err.request) {
+      throw new Error("Error de conexión. Verifica tu conexión a internet.");
+    } else {
+      throw new Error(err.message || "Error desconocido en el registro");
+>>>>>>> origin/dev
     }
   }
 },
@@ -71,7 +133,10 @@ register: async (name, email, password, ci, tenantId) => {
   login: async (email, password) => {
     try {
       // Para desarrollo, usamos tokens hardcodeados
+<<<<<<< HEAD
       console.log("Login simulado para:", { email, password });
+=======
+>>>>>>> origin/dev
 
       // Simulamos la lógica de login
       let token;
@@ -84,6 +149,7 @@ register: async (name, email, password, ci, tenantId) => {
       token = response.data.token;
 
       if (!token) {
+<<<<<<< HEAD
         throw { message: "Credenciales inválidas" };
       } else {
         // Guardar el token en localStorage
@@ -107,6 +173,15 @@ register: async (name, email, password, ci, tenantId) => {
       //   token,
       //   user: tokenUtils.getUserFromToken(token),
       // };
+=======
+        throw new Error("Credenciales inválidas");
+      } else {
+        // Guardar el token en localStorage
+        localStorage.setItem('token', response.data.token);
+        scheduleAutoLogout();
+      }
+      return response.data;
+>>>>>>> origin/dev
 
       // // Descomentar cuando tengas el backend listo
       
@@ -122,6 +197,7 @@ register: async (name, email, password, ci, tenantId) => {
       //       return response.data;
             
     } catch (error) {
+<<<<<<< HEAD
       throw (
         error.response?.data ||
         error || { message: "Error en el inicio de sesión" }
@@ -129,10 +205,37 @@ register: async (name, email, password, ci, tenantId) => {
     }
   },
 
+=======
+      const message =
+        error.response?.data?.message || error.message || "Error en el inicio de sesión";
+      throw new Error(message);
+    }
+  },
+
+  verifyPassword: async (email, password) => {
+    try {
+      await axios.post(`${API_URL}verify-password`, { email, password });
+      return true;
+    } catch (err) {
+      const message =
+        err.response?.data?.message || err.message || "Error al verificar contraseña";
+      throw new Error(message);
+    }
+  },
+
+
+>>>>>>> origin/dev
   // Cerrar sesión
   logout: async () => {
     // Primero verificamos si el usuario se logueó con Google
     const token = localStorage.getItem("token");
+<<<<<<< HEAD
+=======
+    if (logoutTimer) {
+      clearTimeout(logoutTimer);
+      logoutTimer = null;
+    }
+>>>>>>> origin/dev
     if (token) {
       try {
         const decodedToken = tokenUtils.getUserFromToken(token);
@@ -144,25 +247,38 @@ register: async (name, email, password, ci, tenantId) => {
           decodedToken &&
           (decodedToken.sub || decodedToken.email?.endsWith("@gmail.com"))
         ) {
+<<<<<<< HEAD
           console.log("Detectado login con Google, revocando sesión...");
 
           // Llamar al endpoint de logout del backend para revocar sesión de Google
           try {
             console.log("Revocando sesión de Google...");
             console.log("Token:", token);
+=======
+
+          // Llamar al endpoint de logout del backend para revocar sesión de Google
+          try {
+>>>>>>> origin/dev
             await axios.get(`${API_URL}logout`, {
               headers: {
                 Authorization: `Bearer ${token}`, // Enviamos el token para que el backend identifique la sesión
               },
             });
+<<<<<<< HEAD
             console.log("Sesión de Google revocada exitosamente");
           } catch (error) {
             console.error("Error al revocar sesión de Google:", error);
+=======
+          } catch (error) {
+>>>>>>> origin/dev
             // Continuamos con el logout local aunque falle la revocación en Google
           }
         }
       } catch (error) {
+<<<<<<< HEAD
         console.error("Error al decodificar token durante logout:", error);
+=======
+>>>>>>> origin/dev
         // Continuamos con el proceso de logout local
       }
     }
@@ -208,6 +324,7 @@ register: async (name, email, password, ci, tenantId) => {
     return tokenUtils.decodeToken(token);
   },
 
+<<<<<<< HEAD
   // Para desarrollo - hardcodear un token específico
   setHardcodedToken: (tokenType) => {
     switch (tokenType) {
@@ -227,3 +344,12 @@ register: async (name, email, password, ci, tenantId) => {
 };
 
 export default authService;
+=======
+  scheduleAutoLogout,
+};
+
+export default authService;
+
+// Al cargar el servicio, programar cierre automático si existe un token
+scheduleAutoLogout();
+>>>>>>> origin/dev

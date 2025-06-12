@@ -27,11 +27,19 @@ namespace ServiPuntos.Application.Services
 
             // Estos valores deberían venir de la configuración del tenant
             // Aquí simplificamos con valores predeterminados
+<<<<<<< HEAD
             int tasaConversionCombustible = 1;  // 1 punto por cada 1 pesos
             int tasaConversionMinimercado = 2;  // 2 puntos por cada 1 pesos
             int tasaConversionServicios = 3;   // 3 puntos por cada 1 pesos
 
             int puntosCalculados = 0;
+=======
+            decimal tasaConversionCombustible = tenant.TasaCombustible;
+            decimal tasaConversionMinimercado = tenant.TasaMinimercado;
+            decimal tasaConversionServicios = tenant.TasaServicios;   // 3 puntos por cada 1 pesos
+
+            decimal puntosCalculados = 0m;
+>>>>>>> origin/dev
 
             // Aplicar reglas según el tipo de transacción
             switch (transaccion.TipoTransaccion)
@@ -66,7 +74,11 @@ namespace ServiPuntos.Application.Services
             }
 
             // Redondear puntos a 2 decimales
+<<<<<<< HEAD
             return puntosCalculados;
+=======
+            return (int)Math.Round(puntosCalculados);
+>>>>>>> origin/dev
         }
     }
 }

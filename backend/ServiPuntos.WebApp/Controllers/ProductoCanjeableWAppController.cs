@@ -3,6 +3,10 @@ using Microsoft.AspNetCore.Authorization;
 using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.WebApp.Models;
+<<<<<<< HEAD
+=======
+using System.Linq;
+>>>>>>> origin/dev
 
 namespace ServiPuntos.WebApp.Controllers
 {
@@ -68,7 +72,14 @@ namespace ServiPuntos.WebApp.Controllers
                     model.Nombre,
                     model.Descripcion,
                     model.CostoEnPuntos
+<<<<<<< HEAD
                 );
+=======
+                )
+                {
+                    FotoUrl = model.FotoUrl
+                };
+>>>>>>> origin/dev
 
                 await _productoCanjeableService.AddProductoAsync(producto);
 
@@ -93,7 +104,12 @@ namespace ServiPuntos.WebApp.Controllers
                 Id = producto.Id,
                 Nombre = producto.Nombre,
                 Descripcion = producto.Descripcion,
+<<<<<<< HEAD
                 CostoEnPuntos = producto.CostoEnPuntos
+=======
+                CostoEnPuntos = producto.CostoEnPuntos,
+                FotoUrl = producto.FotoUrl
+>>>>>>> origin/dev
             };
 
             return View(viewModel);
@@ -121,6 +137,10 @@ namespace ServiPuntos.WebApp.Controllers
                 producto.Descripcion = model.Descripcion;
                 producto.CostoEnPuntos = model.CostoEnPuntos;
 
+<<<<<<< HEAD
+=======
+                producto.FotoUrl = model.FotoUrl;
+>>>>>>> origin/dev
                 await _productoCanjeableService.UpdateProductoAsync(producto);
 
                 TempData["Success"] = "Producto canjeable actualizado exitosamente.";
@@ -151,5 +171,103 @@ namespace ServiPuntos.WebApp.Controllers
             TempData["Success"] = "Producto canjeable eliminado exitosamente.";
             return RedirectToAction(nameof(Index));
         }
+<<<<<<< HEAD
+=======
+
+        // GET: ProductoCanjeable/AsignarUbicacion/{id}
+        public async Task<IActionResult> AsignarUbicacion(Guid id)
+        {
+            var tenantId = _tenantContext.TenantId;
+            if (tenantId == null)
+            {
+                return Unauthorized();
+            }
+
+            var producto = await _productoCanjeableService.GetProductoAsync(id);
+            if (producto == null)
+            {
+                return NotFound();
+            }
+
+            var ubicaciones = await _ubicacionService.GetAllUbicacionesAsync(tenantId);
+
+            var viewModel = new AsignarUbicacionesProductoViewModel
+            {
+                ProductoId = producto.Id,
+                ProductoNombre = producto.Nombre,
+                CostoEnPuntos = producto.CostoEnPuntos,
+                Ubicaciones = ubicaciones.Select(u => new UbicacionSelectionViewModel
+                {
+                    Id = u.Id,
+                    Nombre = u.Nombre ?? string.Empty,
+                    Selected = false
+                }).ToList(),
+                StockInicial = 10
+            };
+
+            return View(viewModel);
+        }
+
+        // POST: ProductoCanjeable/AsignarUbicacion/{id}
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AsignarUbicacion(Guid id, AsignarUbicacionesProductoViewModel model)
+        {
+            if (id != model.ProductoId)
+            {
+                return NotFound();
+            }
+
+            var tenantId = _tenantContext.TenantId;
+            if (tenantId == null)
+            {
+                return Unauthorized();
+            }
+
+            var producto = await _productoCanjeableService.GetProductoAsync(id);
+            if (producto == null)
+            {
+                return NotFound();
+            }
+
+            var ubicacionesSeleccionadas = model.Ubicaciones.Where(u => u.Selected).ToList();
+            if (!ubicacionesSeleccionadas.Any())
+            {
+                ModelState.AddModelError(string.Empty, "Debe seleccionar al menos una ubicación.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var ubicaciones = await _ubicacionService.GetAllUbicacionesAsync(tenantId);
+                model.Ubicaciones = ubicaciones.Select(u => new UbicacionSelectionViewModel
+                {
+                    Id = u.Id,
+                    Nombre = u.Nombre ?? string.Empty,
+                    Selected = model.Ubicaciones.Any(s => s.Id == u.Id && s.Selected)
+                }).ToList();
+                model.ProductoNombre = producto.Nombre;
+                model.CostoEnPuntos = producto.CostoEnPuntos;
+                return View(model);
+            }
+
+            int asignadas = 0;
+            foreach (var ubicacion in ubicacionesSeleccionadas)
+            {
+                var existentes = await _productoUbicacionService.GetAllAsync(ubicacion.Id);
+                if (!existentes.Any(pu => pu.ProductoCanjeableId == id))
+                {
+                    var productoUbicacion = new ProductoUbicacion(ubicacion.Id, id, model.StockInicial)
+                    {
+                        Activo = true
+                    };
+                    await _productoUbicacionService.AddAsync(productoUbicacion);
+                    asignadas++;
+                }
+            }
+
+            TempData["Success"] = $"Se asignó el producto a {asignadas} ubicaciones.";
+            return RedirectToAction(nameof(Index));
+        }
+>>>>>>> origin/dev
     }
 }

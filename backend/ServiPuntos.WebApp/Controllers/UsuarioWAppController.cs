@@ -11,12 +11,14 @@ namespace ServiPuntos.WebApp.Controllers
         private readonly IUsuarioService _iUsuarioService;
         private readonly ITenantContext _iTenantContext;
         private readonly ITenantService _iTenantService;
+        private readonly IUbicacionService _iUbicacionService;
 
-        public UsuarioWAppController(IUsuarioService usuarioService, ITenantContext tenantContext, ITenantService iTenantService)
+        public UsuarioWAppController(IUsuarioService usuarioService, ITenantContext tenantContext, ITenantService iTenantService, IUbicacionService ubicacionService)
         {
             _iUsuarioService = usuarioService;
             _iTenantContext = tenantContext;
             _iTenantService = iTenantService;
+            _iUbicacionService = ubicacionService;
         }
 
         [HttpGet]
@@ -132,21 +134,23 @@ namespace ServiPuntos.WebApp.Controllers
         public async Task<IActionResult> Crear()
         {
             ViewBag.Tenants = await _iTenantService.GetAllAsync();
+            ViewBag.Ubicaciones = await _iUbicacionService.GetAllUbicacionesAsync();
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Crear(string nombre, string email, string password, int ci, Guid tenantId, RolUsuario rol)
+        public async Task<IActionResult> Crear(string nombre, string email, string password, int ci, Guid tenantId, RolUsuario rol, Guid? ubicacionId)
         {
-            if (ModelState.IsValid) {          
-                
-                var usuario = new Usuario(nombre, email, password, ci, tenantId, rol);
+            if (ModelState.IsValid) {
+
+                var usuario = new Usuario(nombre, email, password, ci, tenantId, rol, ubicacionId);
 
                 await _iUsuarioService.AddUsuarioAsync(usuario);
                 // Redirigir de vuelta al Index con el tenant seleccionado
                 return RedirectToAction("Index", new { tenantId = tenantId });
             }
             ViewBag.Tenants = await _iTenantService.GetAllAsync();
+            ViewBag.Ubicaciones = await _iUbicacionService.GetAllUbicacionesAsync();
             return View();
         }
     }

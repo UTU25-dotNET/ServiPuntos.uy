@@ -1,0 +1,79 @@
+﻿@model ServiPuntos.Core.Entities.ProductoCanjeable
+@{
+    ViewData["Title"] = "Detalles del Producto";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">@ViewData["Title"]</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>Nombre:</strong>
+                        </div>
+                        <div class="col-md-9">
+                            @Model.Nombre
+                        </div>
+                    </div>
+                    <hr />
+
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>Descripción:</strong>
+                        </div>
+                        <div class="col-md-9">
+                            @Model.Descripcion
+                        </div>
+                    </div>
+                    <hr />
+
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>Costo en Puntos:</strong>
+                        </div>
+                        <div class="col-md-9">
+                            <span class="badge bg-info fs-6">@Model.CostoEnPuntos puntos</span>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="row"></div>
+                        <div class="col-md-3">
+                            <strong>Foto:</strong>
+                        </div>
+                        <div class="col-md-9">
+                            <img src="@(string.IsNullOrEmpty(Model.FotoUrl) ? Url.Content("~/images/placeholder-logo.png") : Model.FotoUrl)" class="img-fluid rounded" style="max-width:150px" />
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>ID:</strong>
+                        </div>
+                        <div class="col-md-9">
+                            <code>@Model.Id</code>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver
+                        </a>
+                        <div>
+                            <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-primary">
+                                <i class="fas fa-edit"></i> Editar
+                            </a>
+                            <a asp-action="AsignarUbicacion" asp-route-id="@Model.Id" class="btn btn-success">
+                                <i class="fas fa-map-marker-alt"></i> Asignar Ubicaciones
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -5,6 +5,11 @@ using ServiPuntos.Core.DTOs;
 using ServiPuntos.Core.Enums;
 using System;
 using System.Text.Json;
+<<<<<<< HEAD
+=======
+using System.Linq;
+using System.Collections.Generic;
+>>>>>>> origin/dev
 using System.Threading.Tasks;
 
 namespace ServiPuntos.Application.Services
@@ -19,6 +24,11 @@ namespace ServiPuntos.Application.Services
         private readonly IPayPalService _payPalService;
         private readonly ITransaccionRepository _transaccionRepository;
 
+<<<<<<< HEAD
+=======
+        private readonly IProductoUbicacionService _productoUbicacionService;
+
+>>>>>>> origin/dev
         public NAFTAService(
             ICanjeService canjeService,
             IPuntosService puntosService,
@@ -26,7 +36,12 @@ namespace ServiPuntos.Application.Services
             ITenantService tenantService,
             IUbicacionService ubicacionService,
             IPayPalService payPalService,
+<<<<<<< HEAD
             ITransaccionRepository transaccionRepository)
+=======
+            ITransaccionRepository transaccionRepository,
+            IProductoUbicacionService productoUbicacionService)
+>>>>>>> origin/dev
         {
             _canjeService = canjeService;
             _puntosService = puntosService;
@@ -35,6 +50,10 @@ namespace ServiPuntos.Application.Services
             _ubicacionService = ubicacionService;
             _payPalService = payPalService;
             _transaccionRepository = transaccionRepository;
+<<<<<<< HEAD
+=======
+            _productoUbicacionService = productoUbicacionService;
+>>>>>>> origin/dev
         }
 
         /// <summary>
@@ -63,8 +82,19 @@ namespace ServiPuntos.Application.Services
                 TransaccionNAFTA transaccionNAFTA;
                 try
                 {
+<<<<<<< HEAD
                     transaccionNAFTA = JsonSerializer.Deserialize<TransaccionNAFTA>(
                         JsonSerializer.Serialize(mensaje.Datos["transaccion"]));
+=======
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    };
+
+                    transaccionNAFTA = JsonSerializer.Deserialize<TransaccionNAFTA>(
+                        JsonSerializer.Serialize(mensaje.Datos["transaccion"]),
+                        options);
+>>>>>>> origin/dev
                 }
                 catch (Exception ex)
                 {
@@ -126,6 +156,12 @@ namespace ServiPuntos.Application.Services
 
                     await _transaccionRepository.AddAsync(transaccionPendiente);
 
+<<<<<<< HEAD
+=======
+                    payPalPayment.AdditionalData.TryGetValue("approval_url", out var urlObj);
+                    var approvalUrl = urlObj?.ToString();
+
+>>>>>>> origin/dev
                     return new RespuestaNAFTA
                     {
                         IdMensajeReferencia = mensaje.IdMensaje,
@@ -134,6 +170,10 @@ namespace ServiPuntos.Application.Services
                         Datos = new System.Collections.Generic.Dictionary<string, object>
                         {
                             { "paymentId", payPalPayment.PaymentId },
+<<<<<<< HEAD
+=======
+                            { "approvalUrl", approvalUrl },
+>>>>>>> origin/dev
                             { "transaccionId", transaccionNAFTA.IdTransaccion },
                             { "montoPayPal", transaccionNAFTA.MontoPayPal },
                             { "puntosUtilizados", transaccionNAFTA.PuntosUtilizados }
@@ -188,15 +228,28 @@ namespace ServiPuntos.Application.Services
                     }
 
                     // Calcular y otorgar puntos por la compra (basado en el monto total, no solo PayPal)
+<<<<<<< HEAD
                     var puntosGanados = CalcularPuntosGanados(transaccion.Monto);
+=======
+                    var puntosGanados = await CalcularPuntosGanadosAsync(transaccion.Monto, transaccion.TipoTransaccion, transaccion.TenantId);
+>>>>>>> origin/dev
                     transaccion.PuntosOtorgados = puntosGanados;
 
                     if (puntosGanados > 0)
                     {
                         await _puntosService.ActualizarSaldoAsync(transaccion.UsuarioId, puntosGanados);
                     }
+<<<<<<< HEAD
                 }
 
+=======
+
+                    await ActualizarStockAsync(transaccion.UbicacionId, transaccion.Detalles);
+                }
+
+
+
+>>>>>>> origin/dev
                 await _transaccionRepository.UpdateAsync(transaccion);
 
                 var saldoActual = await _puntosService.GetSaldoByUsuarioIdAsync(transaccion.UsuarioId);
@@ -253,14 +306,22 @@ namespace ServiPuntos.Application.Services
                 await _puntosService.DebitarPuntosAsync(transaccion.UsuarioId, transaccion.PuntosUtilizados);
             }
 
+<<<<<<< HEAD
             var puntosGanados = CalcularPuntosGanados(transaccion.Monto);
+=======
+            var puntosGanados = await CalcularPuntosGanadosAsync(transaccion.Monto, transaccion.TipoTransaccion, transaccion.TenantId);
+>>>>>>> origin/dev
             transaccion.PuntosOtorgados = puntosGanados;
 
             if (puntosGanados > 0)
             {
                 await _puntosService.ActualizarSaldoAsync(transaccion.UsuarioId, puntosGanados);
             }
+<<<<<<< HEAD
 
+=======
+            await ActualizarStockAsync(transaccion.UbicacionId, transaccion.Detalles);
+>>>>>>> origin/dev
             await _transaccionRepository.UpdateAsync(transaccion);
 
             var saldoFinal = await _puntosService.GetSaldoByUsuarioIdAsync(transaccion.UsuarioId);
@@ -353,6 +414,64 @@ namespace ServiPuntos.Application.Services
             }
         }
 
+<<<<<<< HEAD
+=======
+        public async Task<RespuestaNAFTA> GenerarCanjesAsync(MensajeNAFTA mensaje)
+        {
+            try
+            {
+                if (mensaje == null || !mensaje.Datos.ContainsKey("productoIds") || !mensaje.Datos.ContainsKey("usuarioId"))
+                {
+                    return CrearErrorRespuesta(mensaje.IdMensaje, "Formato de mensaje inválido");
+                }
+
+                List<Guid> productos;
+                try
+                {
+                    productos = JsonSerializer.Deserialize<List<Guid>>(JsonSerializer.Serialize(mensaje.Datos["productoIds"])) ?? new List<Guid>();
+                }
+                catch (Exception ex)
+                {
+                    return CrearErrorRespuesta(mensaje.IdMensaje, $"Error al deserializar productos: {ex.Message}");
+                }
+
+                if (!Guid.TryParse(mensaje.Datos["usuarioId"].ToString(), out Guid usuarioId))
+                {
+                    return CrearErrorRespuesta(mensaje.IdMensaje, "UsuarioId inválido");
+                }
+
+                var resultados = new List<object>();
+                foreach (var prodId in productos)
+                {
+                    try
+                    {
+                        var codigo = await _canjeService.GenerarCodigoCanjeAsync(usuarioId, prodId, mensaje.UbicacionId, mensaje.TenantId);
+                        resultados.Add(new { productoId = prodId, codigoQR = codigo });
+                    }
+                    catch (Exception ex)
+                    {
+                        resultados.Add(new { productoId = prodId, error = ex.Message });
+                    }
+                }
+
+                return new RespuestaNAFTA
+                {
+                    IdMensajeReferencia = mensaje.IdMensaje,
+                    Codigo = "OK",
+                    Mensaje = "Canjes generados",
+                    Datos = new Dictionary<string, object>
+                    {
+                        { "resultados", resultados }
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return CrearErrorRespuesta(mensaje.IdMensaje, $"Error al generar canjes: {ex.Message}");
+            }
+        }
+
+>>>>>>> origin/dev
         /// <summary>
         /// Procesa canjes de productos usando solo puntos (genera QR)
         /// </summary>
@@ -451,11 +570,32 @@ namespace ServiPuntos.Application.Services
             }
         }
 
+<<<<<<< HEAD
         // CAMBIAR! ESTO DEPENDE DE LA TENANT
         private int CalcularPuntosGanados(decimal monto)
         {
             // Ejemplo: 1 punto por cada $100 UYU gastados
             return (int)(monto / 100);
+=======
+
+        private async Task<int> CalcularPuntosGanadosAsync(decimal monto, TipoTransaccion tipo, Guid tenantId)
+        {
+            var tenant = await _tenantService.GetByIdAsync(tenantId);
+            if (tenant == null)
+            {
+                return 0;
+            }
+
+            decimal tasa = tipo switch
+            {
+                TipoTransaccion.CompraCombustible => tenant.TasaCombustible,
+                TipoTransaccion.CompraMinimercado => tenant.TasaMinimercado,
+                TipoTransaccion.UsoServicio => tenant.TasaServicios,
+                _ => 0m
+            };
+
+            return (int)Math.Round(monto * tasa);
+>>>>>>> origin/dev
         }
 
         private RespuestaNAFTA CrearErrorRespuesta(Guid idMensajeReferencia, string mensajeError)
@@ -467,5 +607,53 @@ namespace ServiPuntos.Application.Services
                 Mensaje = mensajeError
             };
         }
+<<<<<<< HEAD
+=======
+        
+        private async Task ActualizarStockAsync(Guid ubicacionId, string detallesJson)
+        {
+            if (string.IsNullOrWhiteSpace(detallesJson))
+                return;
+
+            try
+            {
+                var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                List<LineaTransaccionNAFTA>? productos = null;
+
+                if (detallesJson.TrimStart().StartsWith("["))
+                {
+                    productos = JsonSerializer.Deserialize<List<LineaTransaccionNAFTA>>(detallesJson, opts);
+                }
+                else
+                {
+                    var detalles = JsonSerializer.Deserialize<DetallesTransaccion>(detallesJson, opts);
+                    productos = detalles?.Productos;
+                }
+
+                if (productos == null || productos.Count == 0)
+                    return;
+
+                var productosUbicacion = await _productoUbicacionService.GetAllAsync(ubicacionId);
+                foreach (var linea in productos)
+                {
+                    var prod = productosUbicacion.FirstOrDefault(p => p.ProductoCanjeableId == linea.IdProducto);
+                    if (prod != null)
+                    {
+                        prod.StockDisponible = Math.Max(0, prod.StockDisponible - linea.Cantidad);
+                        await _productoUbicacionService.UpdateAsync(prod);
+                    }
+                }
+            }
+            catch
+            {
+                // Ignorar errores de actualización de stock
+            }
+        }
+
+        private class DetallesTransaccion
+        {
+            public List<LineaTransaccionNAFTA> Productos { get; set; } = new();
+        }
+>>>>>>> origin/dev
     }
 }

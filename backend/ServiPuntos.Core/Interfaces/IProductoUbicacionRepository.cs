@@ -11,6 +11,11 @@ namespace ServiPuntos.Core.Interfaces
     {
         Task<ProductoUbicacion?> GetAsync(Guid id);
         Task<IEnumerable<ProductoUbicacion>> GetAllAsync();
+<<<<<<< HEAD
+=======
+
+        Task<IEnumerable<ProductoUbicacion>> GetAllAsync(Guid idUbicacion, string categoria);
+>>>>>>> origin/dev
         Task<IEnumerable<ProductoUbicacion>> GetAllAsync(Guid idUbicacion);
         Task AddAsync(ProductoUbicacion productoUbicacion);
         Task UpdateAsync(ProductoUbicacion productoUbicacion);

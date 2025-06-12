@@ -28,7 +28,10 @@ namespace ServiPuntos.Infrastructure.Data
         public DbSet<Tenant> Tenants { get; set; }
         public DbSet<Transaccion> Transacciones { get; set; }
         public DbSet<Canje> Canjes { get; set; }
+<<<<<<< HEAD
         public DbSet<SaldoPuntos> SaldosPuntos { get; set; }
+=======
+>>>>>>> origin/dev
 
         public DbSet<ConfigPlataforma> ConfigPlataformas { get; set; }
 
@@ -51,6 +54,13 @@ namespace ServiPuntos.Infrastructure.Data
                 .HasOne(u => u.Tenant)
                 .WithMany(t => t.Usuarios)
                 .HasForeignKey(u => u.TenantId);
+
+            // Relación Usuario – Ubicacion (N:1 opcional)
+            modelBuilder.Entity<Usuario>()
+                .HasOne(u => u.Ubicacion)
+                .WithMany()
+                .HasForeignKey(u => u.UbicacionId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Relación ProductoUbicacion – ProductoCanjeable (N:1)
             modelBuilder.Entity<ProductoUbicacion>()

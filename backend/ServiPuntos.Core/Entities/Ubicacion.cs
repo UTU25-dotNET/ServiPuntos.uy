@@ -21,6 +21,7 @@ namespace ServiPuntos.Core.Entities
         public TimeSpan HoraApertura { get; set; }
         public TimeSpan HoraCierre { get; set; }
 
+<<<<<<< HEAD
         public bool LavadoDeAuto { get; set; } = false;
         public bool CambioDeAceite { get; set; } = false;
         public bool CambioDeNeumaticos { get; set; } = false;
@@ -29,6 +30,21 @@ namespace ServiPuntos.Core.Entities
         public decimal PrecioNaftaSuper { get; set; }
         public decimal PrecioNaftaPremium { get; set; }
         public decimal PrecioDiesel { get; set; }
+=======
+        public bool Lavado { get; set; }
+
+        public bool LavadoDeAuto { get; set; }
+        public bool CambioDeAceite { get; set; }
+        public bool CambioDeNeumaticos { get; set; }
+
+        public decimal? PrecioLavado { get; set; }
+        public decimal? PrecioCambioAceite { get; set; }
+        public decimal? PrecioCambioNeumaticos { get; set; }
+
+        public decimal? PrecioNaftaSuper { get; set; }
+        public decimal? PrecioNaftaPremium { get; set; }
+        public decimal? PrecioDiesel { get; set; }
+>>>>>>> origin/dev
 
         public List<ProductoUbicacion> ProductosLocales { get; set; } = new List<ProductoUbicacion>();
         public List<Promocion> Promociones { get; set; } = new List<Promocion>();

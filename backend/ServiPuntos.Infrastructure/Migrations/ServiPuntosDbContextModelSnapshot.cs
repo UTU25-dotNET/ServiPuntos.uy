@@ -164,6 +164,9 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.Property<string>("Descripcion")
                         .HasColumnType("text");
 
+                    b.Property<string>("FotoUrl")
+                        .HasColumnType("text");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasColumnType("text");
@@ -181,6 +184,13 @@ namespace ServiPuntos.Infrastructure.Migrations
 
                     b.Property<bool>("Activo")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("Categoria")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<double>("Precio")
+                        .HasColumnType("double precision");
 
                     b.Property<Guid>("ProductoCanjeableId")
                         .HasColumnType("uuid");
@@ -325,20 +335,51 @@ namespace ServiPuntos.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+<<<<<<< HEAD
+=======
+                    b.Property<string>("EstadoPayPal")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("FechaCompletadoPayPal")
+                        .HasColumnType("timestamp with time zone");
+
+>>>>>>> origin/dev
                     b.Property<DateTime>("FechaTransaccion")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("Monto")
                         .HasColumnType("numeric");
 
+<<<<<<< HEAD
+=======
+                    b.Property<decimal>("MontoPayPal")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("PagoPayPalId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PayPalPayerId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PayPalToken")
+                        .HasColumnType("text");
+
+>>>>>>> origin/dev
                     b.Property<int?>("ProductoId")
                         .HasColumnType("integer");
 
                     b.Property<int>("PuntosOtorgados")
                         .HasColumnType("integer");
 
+<<<<<<< HEAD
                     b.Property<Guid>("ReferenciaExterna")
                         .HasColumnType("uuid");
+=======
+                    b.Property<int>("PuntosUtilizados")
+                        .HasColumnType("integer");
+>>>>>>> origin/dev
 
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");
@@ -371,7 +412,10 @@ namespace ServiPuntos.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<bool>("CambioAceite")
+                    b.Property<bool>("CambioDeAceite")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CambioDeNeumaticos")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("CambioDeAceite")
@@ -410,13 +454,22 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.Property<string>("Nombre")
                         .HasColumnType("text");
 
-                    b.Property<decimal>("PrecioDiesel")
+                    b.Property<decimal?>("PrecioCambioAceite")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal>("PrecioNaftaPremium")
+                    b.Property<decimal?>("PrecioCambioNeumaticos")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal>("PrecioNaftaSuper")
+                    b.Property<decimal?>("PrecioDiesel")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("PrecioLavado")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("PrecioNaftaPremium")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("PrecioNaftaSuper")
                         .HasColumnType("numeric");
 
                     b.Property<string>("Telefono")
@@ -519,6 +572,12 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.Property<int>("TotalVisitas")
                         .HasColumnType("integer");
 
+<<<<<<< HEAD
+=======
+                    b.Property<Guid?>("UbicacionId")
+                        .HasColumnType("uuid");
+
+>>>>>>> origin/dev
                     b.Property<Guid>("UbicacionPreferida")
                         .HasColumnType("uuid");
 
@@ -537,6 +596,8 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("TenantId");
+
+                    b.HasIndex("UbicacionId");
 
                     b.ToTable("Usuarios");
                 });
@@ -685,7 +746,21 @@ namespace ServiPuntos.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ServiPuntos.Core.Entities.Ubicacion", "Ubicacion")
+                        .WithMany()
+                        .HasForeignKey("UbicacionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Tenant");
+
+                    b.Navigation("Ubicacion");
+                });
+
+            modelBuilder.Entity("ServiPuntos.Core.Entities.Audiencia", b =>
+                {
+                    b.Navigation("Promociones");
+
+                    b.Navigation("Reglas");
                 });
 
             modelBuilder.Entity("ServiPuntos.Core.Entities.Audiencia", b =>

@@ -21,6 +21,14 @@ namespace ServiPuntos.Application.Services
             _iTenantResolver = tenantResolver;
         }
 
+<<<<<<< HEAD
+=======
+        public async Task<IEnumerable<ProductoUbicacion>> GetAllAsync(Guid idUbicacion, string categoria)
+        {
+            return await _iProductoUbicacionRepository.GetAllAsync(idUbicacion, categoria);
+        }
+
+>>>>>>> origin/dev
         public async Task<IEnumerable<ProductoUbicacion>> GetAllAsync()
         {
             return await _iProductoUbicacionRepository.GetAllAsync();

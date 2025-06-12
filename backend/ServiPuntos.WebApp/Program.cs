@@ -8,11 +8,20 @@ using ServiPuntos.Infrastructure.MultiTenancy;
 using ServiPuntos.Infrastructure.Repositories;
 using ServiPuntos.Application.Services;
 using ServiPuntos.Application.Services.Rules;
+<<<<<<< HEAD
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
+=======
+using ServiPuntos.WebApp.Services;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
+using QuestPDF.Infrastructure;
+>>>>>>> origin/dev
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Set QuestPDF license
+QuestPDF.Settings.License = LicenseType.Community;
 // -------------------------
 // Configuración de servicios
 // -------------------------
@@ -37,6 +46,10 @@ builder.Services.AddScoped<IUbicacionRepository, UbicacionRepository>();
 
 // ===== REPOSITORIOS NAFTA (solo los que definitivamente existen) =====
 builder.Services.AddScoped<ITransaccionRepository, TransaccionRepository>();
+<<<<<<< HEAD
+=======
+builder.Services.AddScoped<ICanjeRepository, CanjeRepository>();
+>>>>>>> origin/dev
 
 // ===== REPOSITORIOS AUDIENCIA =====
 builder.Services.AddScoped<IAudienciaRepository, AudienciaRepository>();
@@ -46,9 +59,22 @@ builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IUbicacionService, UbicacionService>();
 
+<<<<<<< HEAD
 // ===== SERVICIOS AUDIENCIA =====
 builder.Services.AddScoped<IAudienciaRuleEngine, AudienciaRuleEngine>();
 builder.Services.AddScoped<IAudienciaService, AudienciaService>();
+=======
+builder.Services.AddScoped<IPuntosService, PuntosService>();
+builder.Services.AddScoped<IPointsRuleEngine, PointsRuleEngine>();
+
+builder.Services.AddScoped<ITransaccionService, TransaccionService>();
+builder.Services.AddScoped<ICanjeService, CanjeService>();
+
+// ===== SERVICIOS AUDIENCIA =====
+builder.Services.AddScoped<IAudienciaRuleEngine, AudienciaRuleEngine>();
+builder.Services.AddScoped<IAudienciaService, AudienciaService>();
+builder.Services.AddHostedService<ServiPuntos.WebApp.Services.AudienciaBackgroundService>();
+>>>>>>> origin/dev
 
 // ===== SERVICIOS PRODUCTO CANJEABLE =====
 builder.Services.AddScoped<IProductoCanjeableService, ProductoCanjeableService>();
@@ -58,6 +84,13 @@ builder.Services.AddScoped<IProductoCanjeableRepository, ProductoCanjeableReposi
 builder.Services.AddScoped<IProductoUbicacionService, ProductoUbicacionService>();
 builder.Services.AddScoped<IProductoUbicacionRepository, ProductoUbicacionRepository>();
 
+<<<<<<< HEAD
+=======
+// ===== CONFIGURACIÓN PLATAFORMA =====
+builder.Services.AddScoped<IConfigPlataformaRepository, ConfigPlataformaRepository>();
+builder.Services.AddScoped<IConfigPlataformaService, ConfigPlataformaService>();
+
+>>>>>>> origin/dev
 
 
 // ===== MULTI-TENANCY =====

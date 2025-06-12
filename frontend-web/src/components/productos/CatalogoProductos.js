@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+<<<<<<< HEAD
 import apiService from "../../services/apiService";
 
 const CatalogoProductos = ({ ubicacion, onClose, isOpen }) => {
@@ -7,11 +8,56 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen }) => {
   const [error, setError] = useState("");
 
   useEffect(() => {
+=======
+import { QRCodeSVG } from "qrcode.react";
+import apiService from "../../services/apiService";
+import SeleccionarPuntosModal from "./SeleccionarPuntosModal";
+
+const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
+  const [productos, setProductos] = useState([]);
+  const [categorias, setCategorias] = useState([]);
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [canjeQR, setCanjeQR] = useState(null);
+  const [canjeLoading, setCanjeLoading] = useState(false);
+  const [canjeError, setCanjeError] = useState("");
+  const [carrito, setCarrito] = useState([]);
+  const [qrCarrito, setQrCarrito] = useState([]);
+  const [carritoLoading, setCarritoLoading] = useState(false);
+  const [carritoError, setCarritoError] = useState("");
+  const [compraLoading, setCompraLoading] = useState(false);
+  const [compraError, setCompraError] = useState("");
+  const [tenantInfo, setTenantInfo] = useState(null);
+  const [mostrarPuntosModal, setMostrarPuntosModal] = useState(false);
+  const [productoMixto, setProductoMixto] = useState(null);
+  const [maxPuntosMixto, setMaxPuntosMixto] = useState(0);
+
+  useEffect(() => {
+    const loadProductos = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const productosData = await apiService.getProductosByUbicacion(ubicacion.id);
+        setProductos(productosData);
+        const cats = [...new Set(productosData.map(p => p.categoria))];
+        setCategorias(cats);
+      } catch (err) {
+        setError(err.message);
+        setProductos([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+>>>>>>> origin/dev
     if (isOpen && ubicacion) {
       loadProductos();
     }
   }, [isOpen, ubicacion]);
 
+<<<<<<< HEAD
   const loadProductos = async () => {
     setLoading(true);
     setError("");
@@ -33,12 +79,157 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen }) => {
     }
   };
 
+=======
+  // Cargar información del tenant cuando se abre el catálogo
+  useEffect(() => {
+    const loadTenantInfo = async () => {
+      try {
+        const tenant = await apiService.getTenantInfo();
+        setTenantInfo(tenant);
+      } catch (err) {
+        // Silenciar error para no interrumpir la experiencia del usuario
+      }
+    };
+
+    if (isOpen) {
+      loadTenantInfo();
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paymentId = params.get('paymentId');
+    const payerId = params.get('PayerID');
+    if (paymentId && payerId) {
+      apiService.confirmarPagoPaypal(paymentId, payerId)
+        .then(() => {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        })
+        .catch(err => {
+          setCompraError(err.message);
+        });
+    }
+  }, []);
+
+  const handleCanjear = async (productoId) => {
+    setCanjeLoading(true);
+    setCanjeError("");
+    try {
+      const result = await apiService.generarCanje(productoId, ubicacion.id);
+      setCanjeQR(result?.datos?.codigoQR || null);
+    } catch (err) {
+      setCanjeError(err.message);
+    } finally {
+      setCanjeLoading(false);
+    }
+  };
+
+  const handleComprar = async (productoUbicacion, puntos = 0) => {
+    setCompraLoading(true);
+    setCompraError("");
+    try {
+      const result = await apiService.procesarTransaccion(
+        productoUbicacion,
+        ubicacion.id,
+        puntos,
+        tenantInfo?.valorPunto || 0
+      );
+      if (result?.codigo === "PENDING_PAYMENT" && result.datos?.approvalUrl) {
+        window.location.href = result.datos.approvalUrl;
+      } else if (result?.codigo !== "OK") {
+        setCompraError(result?.mensaje || "Error en la compra");
+      }
+    } catch (err) {
+      setCompraError(err.message);
+    } finally {
+      setCompraLoading(false);
+    }
+  };
+
+  const handleComprarMixto = (productoUbicacion) => {
+    if (!tenantInfo || !userProfile) return;
+    const valorPunto = tenantInfo.valorPunto || 0;
+    const puntosUsuario = userProfile.puntos || 0;
+    const maxPuntos = Math.min(
+      puntosUsuario,
+      Math.floor(productoUbicacion.precio / valorPunto)
+    );
+    if (maxPuntos <= 0) {
+      return handleComprar(productoUbicacion);
+    }
+    setProductoMixto(productoUbicacion);
+    setMaxPuntosMixto(maxPuntos);
+    setMostrarPuntosModal(true);
+  };
+
+  const confirmarCompraMixta = async (puntos) => {
+    setMostrarPuntosModal(false);
+    if (!productoMixto) return;
+    await handleComprar(productoMixto, puntos);
+    setProductoMixto(null);
+  };
+
+  const agregarAlCarrito = (producto) => {
+    setCarrito((prev) => [...prev, producto]);
+  };
+
+  const quitarDelCarrito = (productoId) => {
+    setCarrito((prev) => prev.filter((p) => p.id !== productoId));
+  };
+
+  const handleCanjearCarrito = async () => {
+    setCarritoLoading(true);
+    setCarritoError("");
+    try {
+      const ids = carrito.map((p) => p.productoCanjeable.id);
+      const result = await apiService.generarCanjes(ids, ubicacion.id);
+      setQrCarrito(result?.datos?.resultados || []);
+      setCarrito([]);
+    } catch (err) {
+      setCarritoError(err.message);
+    } finally {
+      setCarritoLoading(false);
+    }
+  };
+
+  const handleComprarCarrito = async () => {
+    setCompraLoading(true);
+    setCompraError("");
+    try {
+      const result = await apiService.procesarTransaccionMultiple(carrito, ubicacion.id);
+      if (result?.codigo === "PENDING_PAYMENT" && result.datos?.approvalUrl) {
+        window.location.href = result.datos.approvalUrl;
+      } else if (result?.codigo !== "OK") {
+        setCompraError(result?.mensaje || "Error en la compra");
+      } else {
+        setCarrito([]);
+      }
+    } catch (err) {
+      setCompraError(err.message);
+    } finally {
+      setCompraLoading(false);
+    }
+  };
+
+  const totalCarrito = carrito.reduce((sum, p) => sum + (p.precio || 0), 0);
+
+
+>>>>>>> origin/dev
   // Función para formatear el costo en puntos
   const formatCosto = (costo) => {
     if (!costo || costo === 0) return "Gratis";
     return `${costo.toLocaleString()} pts`;
   };
 
+<<<<<<< HEAD
+=======
+  // Formatea el precio en pesos uruguayos
+  const formatPrecio = (precio) => {
+    if (precio === null || precio === undefined) return "-";
+    return `$ ${precio.toFixed(2)}`;
+  };
+
+>>>>>>> origin/dev
   // Función para determinar el color del stock
   const getStockColor = (stock) => {
     if (stock === 0) return "#dc3545"; // Rojo
@@ -58,7 +249,11 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen }) => {
   if (!isOpen) return null;
 
   return (
+<<<<<<< HEAD
     <div
+=======
+    <><div
+>>>>>>> origin/dev
       style={{
         position: "fixed",
         top: 0,
@@ -78,7 +273,11 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen }) => {
         style={{
           backgroundColor: "white",
           borderRadius: "16px",
+<<<<<<< HEAD
           maxWidth: "900px",
+=======
+          maxWidth: "1200px",
+>>>>>>> origin/dev
           width: "100%",
           maxHeight: "80vh",
           overflow: "hidden",
@@ -145,17 +344,127 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen }) => {
               onMouseEnter={(e) => {
                 e.target.style.backgroundColor = "#f8f9fa";
                 e.target.style.color = "#212529";
+<<<<<<< HEAD
               }}
               onMouseLeave={(e) => {
                 e.target.style.backgroundColor = "transparent";
                 e.target.style.color = "#6c757d";
               }}
+=======
+              } }
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = "transparent";
+                e.target.style.color = "#6c757d";
+              } }
+>>>>>>> origin/dev
             >
               ×
             </button>
           </div>
         </div>
 
+<<<<<<< HEAD
+=======
+        {canjeQR && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0,0,0,0.6)",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              zIndex: 2000,
+            }}
+          >
+            <div
+              style={{
+                background: "white",
+                padding: "2rem",
+                borderRadius: "12px",
+                textAlign: "center",
+              }}
+            >
+              <h3 style={{ marginTop: 0 }}>Código de Canje</h3>
+              {canjeLoading ? (
+                <p>Generando código...</p>
+              ) : (
+                <>
+                  <QRCodeSVG value={canjeQR} size={180} />
+                  <p style={{ wordBreak: "break-all" }}>{canjeQR}</p>
+                </>
+              )}
+              {canjeError && (
+                <p style={{ color: "#dc3545" }}>{canjeError}</p>
+              )}
+              <button
+                onClick={() => setCanjeQR(null)}
+                style={{ marginTop: "1rem", padding: "0.5rem 1rem" }}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        )}
+
+        {qrCarrito.length > 0 && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0,0,0,0.6)",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              zIndex: 2000,
+              overflow: "auto"
+            }}
+          >
+            <div
+              style={{
+                background: "white",
+                padding: "2rem",
+                borderRadius: "12px",
+                textAlign: "center",
+                maxWidth: "90%"
+              }}
+            >
+              <h3 style={{ marginTop: 0 }}>Códigos de Canje</h3>
+              {carritoLoading ? (
+                <p>Generando códigos...</p>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem" }}>
+                  {qrCarrito.map((q) => (
+                    <div key={q.productoId} style={{ padding: "1rem", border: "1px solid #e9ecef", borderRadius: "8px" }}>
+                      {q.codigoQR ? (
+                        <>
+                          <QRCodeSVG value={q.codigoQR} size={160} />
+                          <p style={{ wordBreak: "break-all" }}>{q.codigoQR}</p>
+                        </>
+                      ) : (
+                        <p style={{ color: "#dc3545" }}>{q.error}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <button
+                onClick={() => setQrCarrito([])}
+                style={{ marginTop: "1rem", padding: "0.5rem 1rem" }}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        )}
+
+>>>>>>> origin/dev
         {/* Contenido del modal */}
         <div
           style={{
@@ -175,8 +484,12 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen }) => {
                   height: "50px",
                   animation: "spin 1s linear infinite",
                   margin: "0 auto 1rem"
+<<<<<<< HEAD
                 }}
               />
+=======
+                }} />
+>>>>>>> origin/dev
               <p style={{ color: "#007bff", fontSize: "1.1rem" }}>Cargando catálogo...</p>
 
               <style>{`
@@ -246,10 +559,78 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen }) => {
                     fontSize: "1.1rem"
                   }}
                 >
+<<<<<<< HEAD
                   💰 {productos.length} producto{productos.length !== 1 ? "s" : ""} disponible{productos.length !== 1 ? "s" : ""} para canje
                 </p>
               </div>
 
+=======
+                  🏅 {productos.length} producto{productos.length !== 1 ? "s" : ""} disponible{productos.length !== 1 ? "s" : ""} para canje
+                </p>
+              </div>
+
+              {categorias.length > 0 && (
+                <div className="mb-3 text-center">
+                  <label htmlFor="categoriaFiltro" className="form-label me-2">
+                    Filtrar por categoría:
+                  </label>
+                  <select
+                    id="categoriaFiltro"
+                    className="form-select d-inline-block w-auto"
+                    value={categoriaSeleccionada}
+                    onChange={(e) => setCategoriaSeleccionada(e.target.value)}
+                  >
+                    <option value="">Todas</option>
+                    {categorias.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {carrito.length > 0 && (
+                <div className="card mb-3">
+                  <div className="card-body">
+                    <h5 className="card-title">Carrito ({carrito.length})</h5>
+                    <ul className="list-group list-group-flush">
+                      {carrito.map((p) => (
+                        <li key={p.id} className="list-group-item d-flex justify-content-between align-items-center">
+                          <span>{p.productoCanjeable.nombre}</span>
+                          <button
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => quitarDelCarrito(p.id)}
+                          >
+                            ✕
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="d-flex justify-content-between align-items-center mt-3">
+                      <strong>Total: {formatPrecio(totalCarrito)}</strong>
+                      <div className="d-flex gap-2">
+                        <button
+                          className="btn btn-warning"
+                          onClick={handleComprarCarrito}
+                          disabled={compraLoading}
+                        >
+                          Comprar carrito
+                        </button>
+                        <button
+                          className="btn btn-success"
+                          onClick={handleCanjearCarrito}
+                          disabled={carritoLoading}
+                        >
+                          Canjear carrito
+                        </button>
+                      </div>
+                    </div>
+                    {carritoError && <p className="text-danger mt-2">{carritoError}</p>}
+                    {compraError && <p className="text-danger mt-2">{compraError}</p>}
+                  </div>
+                </div>
+              )}
+
+>>>>>>> origin/dev
               {/* Grid de productos */}
               <div
                 style={{
@@ -258,6 +639,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen }) => {
                   gap: "1.5rem"
                 }}
               >
+<<<<<<< HEAD
                 {productos.map((productoUbicacion) => {
                   const producto = productoUbicacion.productoCanjeable;
                   if (!producto) return null;
@@ -422,6 +804,251 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen }) => {
                   );
                 })}
               </div>
+=======
+                {productos
+                  .filter((p) => !categoriaSeleccionada || p.categoria === categoriaSeleccionada)
+                  .map((productoUbicacion) => {
+                    const producto = productoUbicacion.productoCanjeable;
+                    if (!producto) return null;
+
+                    return (
+                      <div
+                        key={productoUbicacion.id}
+                        style={{
+                          backgroundColor: "white",
+                          border: "2px solid #e9ecef",
+                          borderRadius: "12px",
+                          padding: "1.5rem",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                          transition: "all 0.3s ease",
+                          opacity: productoUbicacion.activo ? 1 : 0.6
+                        }}
+                        onMouseEnter={(e) => {
+                          if (productoUbicacion.activo) {
+                            e.currentTarget.style.transform = "translateY(-2px)";
+                            e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.15)";
+                            e.currentTarget.style.borderColor = "#007bff";
+                          }
+                        } }
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = "translateY(0)";
+                          e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
+                          e.currentTarget.style.borderColor = "#e9ecef";
+                        } }
+                      >
+                        <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+                          <img
+                            src={producto.fotoUrl || "placeholder-product.png"}
+                            alt={producto.nombre}
+                            style={{ width: "100%", height: "150px", objectFit: "cover", borderRadius: "8px" }} />
+                        </div>
+                        {/* Header del producto */}
+                        <div style={{ marginBottom: "1rem" }}>
+                          <h4
+                            style={{
+                              margin: "0 0 0.5rem 0",
+                              color: "#212529",
+                              fontSize: "1.2rem",
+                              fontWeight: "600",
+                              lineHeight: "1.3"
+                            }}
+                          >
+                            {producto.nombre}
+                          </h4>
+
+                          {producto.descripcion && (
+                            <p
+                              style={{
+                                margin: "0",
+                                color: "#6c757d",
+                                fontSize: "0.9rem",
+                                lineHeight: "1.4"
+                              }}
+                            >
+                              {producto.descripcion}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Costo en puntos */}
+                        <div
+                          style={{
+                            marginBottom: "1rem",
+                            padding: "0.75rem",
+                            backgroundColor: "#fff3cd",
+                            borderRadius: "8px",
+                            border: "1px solid #ffeaa7",
+                            textAlign: "center"
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: "1.5rem",
+                              fontWeight: "bold",
+                              color: "#856404",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: "0.5rem",
+                              marginBottom: "0.25rem"
+                            }}
+                          >
+                            💵 {formatPrecio(productoUbicacion.precio)}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "1.2rem",
+                              fontWeight: "bold",
+                              color: "#856404",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: "0.5rem"
+                            }}
+                          >
+                            🏅 {formatCosto(producto.costoEnPuntos)}
+                          </div>
+                        </div>
+
+                        {/* Estado del stock */}
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            padding: "0.75rem",
+                            backgroundColor: "#f8f9fa",
+                            borderRadius: "8px",
+                            marginBottom: "1rem"
+                          }}
+                        >
+                          <div style={{ display: "flex", flexDirection: "column" }}>
+                            <span
+                              style={{
+                                fontSize: "0.8rem",
+                                color: "#6c757d",
+                                fontWeight: "500"
+                              }}
+                            >
+                              Stock disponible:
+                            </span>
+                            <span
+                              style={{
+                                fontSize: "1.1rem",
+                                fontWeight: "bold",
+                                color: getStockColor(productoUbicacion.stockDisponible)
+                              }}
+                            >
+                              {productoUbicacion.stockDisponible} unidades
+                            </span>
+                          </div>
+                          <div
+                            style={{
+                              padding: "0.25rem 0.75rem",
+                              borderRadius: "12px",
+                              fontSize: "0.8rem",
+                              fontWeight: "600",
+                              color: "white",
+                              backgroundColor: getStockColor(productoUbicacion.stockDisponible)
+                            }}
+                          >
+                            {getStockText(productoUbicacion.stockDisponible)}
+                          </div>
+                        </div>
+
+                        {/* Estado activo/inactivo */}
+                        {!productoUbicacion.activo && (
+                          <div
+                            style={{
+                              padding: "0.5rem",
+                              backgroundColor: "#f8d7da",
+                              borderRadius: "6px",
+                              border: "1px solid #f5c6cb",
+                              textAlign: "center",
+                              fontSize: "0.9rem",
+                              color: "#721c24",
+                              fontWeight: "500"
+                            }}
+                          >
+                            ⚠️ Producto temporalmente no disponible
+                          </div>
+                        )}
+
+                        {productoUbicacion.activo && productoUbicacion.stockDisponible > 0 && (
+                          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                            <button
+                              onClick={() => handleComprar(productoUbicacion)}
+                              disabled={compraLoading}
+                              style={{
+                                width: "100%",
+                                padding: "0.5rem",
+                                backgroundColor: "#ffc107",
+                                color: "#212529",
+                                border: "none",
+                                borderRadius: "6px",
+                                cursor: "pointer"
+                              }}
+                            >
+                              Comprar
+                            </button>
+                            <button
+                              onClick={() => handleComprarMixto(productoUbicacion)}
+                              disabled={compraLoading || !tenantInfo}
+                              style={{
+                                width: "100%",
+                                padding: "0.5rem",
+                                backgroundColor: "#17a2b8",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "6px",
+                                cursor: "pointer"
+                              }}
+                            >
+                              {`Comprar con Dinero + ${tenantInfo?.nombrePuntos || "Puntos"}`}
+                            </button>
+                            <button
+                              onClick={() => handleCanjear(producto.id)}
+                              disabled={!userProfile || (userProfile.puntos || 0) < producto.costoEnPuntos || canjeLoading}
+                              style={{
+                                width: "100%",
+                                padding: "0.5rem",
+                                backgroundColor: "#007bff",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "6px",
+                                cursor: "pointer"
+                              }}
+                            >
+                              {`Canjear con ${tenantInfo?.nombrePuntos || "Puntos"}`}
+                            </button>
+                            <button
+                              onClick={() => agregarAlCarrito(productoUbicacion)}
+                              disabled={carritoLoading}
+                              style={{
+                                width: "100%",
+                                padding: "0.5rem",
+                                backgroundColor: "#28a745",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "6px",
+                                cursor: "pointer"
+                              }}
+                            >
+                              🛒 Agregar al carrito
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Footer con información adicional */}
+                        <div style={{ height: "1rem" }} />
+                      </div>
+                    );
+                  })}
+              </div>
+              {compraError && (
+                <p style={{ color: "#dc3545", marginTop: "1rem" }}>{compraError}</p>
+              )}
+>>>>>>> origin/dev
             </>
           )}
         </div>
@@ -456,7 +1083,18 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen }) => {
           </button>
         </div>
       </div>
+<<<<<<< HEAD
     </div>
+=======
+    </div><SeleccionarPuntosModal
+        isOpen={mostrarPuntosModal}
+        onClose={() => setMostrarPuntosModal(false)}
+        maxPuntos={maxPuntosMixto}
+        valorPunto={tenantInfo?.valorPunto || 0}
+        precio={productoMixto?.precio || 0}
+        nombrePuntos={tenantInfo?.nombrePuntos}
+        onConfirm={confirmarCompraMixta} /></>
+>>>>>>> origin/dev
   );
 };
 

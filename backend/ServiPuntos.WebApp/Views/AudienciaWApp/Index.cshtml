@@ -278,10 +278,16 @@
             <div class="modal-body">
                 <form id="clasificarUsuarioForm">
                     <div class="mb-3">
+<<<<<<< HEAD
                         <label for="usuarioId" class="form-label">ID del Usuario (GUID)</label>
                         <input type="text" class="form-control" id="usuarioId" required 
                                placeholder="00000000-0000-0000-0000-000000000000">
                         <div class="form-text">Ingrese el GUID del usuario a clasificar</div>
+=======
+                        <label for="usuarioIdSelect" class="form-label">Usuario</label>
+                        <select id="usuarioIdSelect" class="form-select" required></select>
+                        <div class="form-text">Seleccione el usuario a clasificar</div>
+>>>>>>> origin/dev
                     </div>
                 </form>
                 <div id="clasificacionResult" class="mt-3"></div>
@@ -320,17 +326,52 @@
 
 @section Scripts {
     <script>
+<<<<<<< HEAD
         function mostrarFormularioClasificar() {
             var modal = new bootstrap.Modal(document.getElementById('clasificarUsuarioModal'));
+=======
+        async function cargarUsuarios() {
+            const select = document.getElementById('usuarioIdSelect');
+            select.innerHTML = '<option value="">Cargando...</option>';
+            try {
+                const response = await fetch('@Url.Action("GetUsuariosTenant")');
+                const result = await response.json();
+                if (result.success) {
+                    let options = '<option value="">-- Seleccione Usuario --</option>';
+                    result.usuarios.forEach(u => {
+                        const nombre = u.nombre || u.id;
+                        options += `<option value="${u.id}">${nombre}</option>`;
+                    });
+                    select.innerHTML = options;
+                } else {
+                    select.innerHTML = '<option value="">Error al cargar</option>';
+                }
+            } catch {
+                select.innerHTML = '<option value="">Error al cargar</option>';
+            }
+        }
+
+        async function mostrarFormularioClasificar() {
+            const modal = new bootstrap.Modal(document.getElementById('clasificarUsuarioModal'));
+            await cargarUsuarios();
+>>>>>>> origin/dev
             modal.show();
         }
 
         async function ejecutarClasificacion() {
+<<<<<<< HEAD
             const usuarioId = document.getElementById('usuarioId').value;
             const resultDiv = document.getElementById('clasificacionResult');
             
             if (!usuarioId) {
                 resultDiv.innerHTML = '<div class="alert alert-warning">Por favor, ingrese un ID de usuario válido</div>';
+=======
+            const usuarioId = document.getElementById('usuarioIdSelect').value;
+            const resultDiv = document.getElementById('clasificacionResult');
+            
+            if (!usuarioId) {
+                resultDiv.innerHTML = '<div class="alert alert-warning">Seleccione un usuario válido</div>';
+>>>>>>> origin/dev
                 return;
             }
 

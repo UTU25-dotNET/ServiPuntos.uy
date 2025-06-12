@@ -51,6 +51,7 @@ const Login = () => {
 
     // **NUEVO: Cargar tenants cuando se cambia a modo registro**
     useEffect(() => {
+<<<<<<< HEAD
         console.log("useEffect ejecutándose - isRegisterMode:", isRegisterMode, "tenants.length:", tenants.length);
         
         if (isRegisterMode && tenants.length === 0) {
@@ -58,11 +59,19 @@ const Login = () => {
             loadTenants();
         }
     }, [isRegisterMode]);
+=======
+        
+        if (isRegisterMode && tenants.length === 0) {
+            loadTenants();
+        }
+    }, [isRegisterMode, tenants.length]);
+>>>>>>> origin/dev
 
     // Ponemos esto para cargar los tenants en el registro
     const loadTenants = async () => {
         try {
             setLoadingTenants(true);
+<<<<<<< HEAD
             console.log("Cargando tenants desde el servicio...");
             
             const tenantsData = await authService.getTenants();
@@ -71,6 +80,13 @@ const Login = () => {
             setTenants(tenantsData);
         } catch (err) {
             console.error("Error al cargar tenants:", err);
+=======
+            
+            const tenantsData = await authService.getTenants();
+            
+            setTenants(tenantsData);
+        } catch (err) {
+>>>>>>> origin/dev
             setError("Error al cargar la lista de empresas: " + (err.message || "Error desconocido"));
         } finally {
             setLoadingTenants(false);
@@ -151,6 +167,7 @@ const Login = () => {
         window.location.href = "https://localhost:5019/api/auth/google-login";
     };
 
+<<<<<<< HEAD
     const applyTestAccount = (type) => {
         setError("");
         setUrlError("");
@@ -162,6 +179,8 @@ const Login = () => {
             setCredentials({ email: "admin@gmail.com", password: "admin" });
         }
     };
+=======
+>>>>>>> origin/dev
 
     const toggleMode = () => {
         setIsRegisterMode(!isRegisterMode);
@@ -187,6 +206,7 @@ const Login = () => {
                 
                 {/* Error desde URL */}
                 {urlError && (
+<<<<<<< HEAD
                     <div className="url-error-message" style={{
                         backgroundColor: "#fff3cd",
                         border: "1px solid #ffeaa7",
@@ -197,6 +217,9 @@ const Login = () => {
                         textAlign: "center",
                         fontSize: "14px"
                     }}>
+=======
+                    <div className="error-message">
+>>>>>>> origin/dev
                         <strong>⚠️ {urlError}</strong>
                         {emailFromUrl && (
                             <div style={{ marginTop: "8px", fontSize: "12px" }}>
@@ -348,6 +371,7 @@ const Login = () => {
                     )}
                 </form>
 
+<<<<<<< HEAD
                 {!isRegisterMode && (
                     <div className="test-accounts">
                         <h4>Cuentas de prueba</h4>
@@ -357,6 +381,8 @@ const Login = () => {
                         </div>
                     </div>
                 )}
+=======
+>>>>>>> origin/dev
             </div>
         </div>
     );

@@ -1,4 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/dev
 using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Data;
@@ -24,12 +28,28 @@ public async Task<IEnumerable<ProductoUbicacion>> GetAllAsync()
         .ToListAsync();
 }
         public async Task<IEnumerable<ProductoUbicacion>> GetAllAsync(Guid ubicacionId)
+<<<<<<< HEAD
 {
+=======
+        {
+>>>>>>> origin/dev
     return await _dbContext.ProductoUbicaciones
         .Where(pu => pu.UbicacionId == ubicacionId)
         .Include(pu => pu.ProductoCanjeable)  // ← AGREGAR ESTA LÍNEA
         .ToListAsync();
+<<<<<<< HEAD
 }
+=======
+        }
+
+        public async Task<IEnumerable<ProductoUbicacion>> GetAllAsync(Guid ubicacionId, string categoria)
+        {
+    return await _dbContext.ProductoUbicaciones
+        .Where(pu => pu.UbicacionId == ubicacionId && pu.Categoria == categoria)
+        .Include(pu => pu.ProductoCanjeable)
+        .ToListAsync();
+        }
+>>>>>>> origin/dev
 
         public Task AddAsync(ProductoUbicacion productoUbicacion)
         {

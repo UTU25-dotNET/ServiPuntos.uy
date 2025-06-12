@@ -4,6 +4,10 @@ using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Core.NAFTA;
 using System;
 using System.Collections.Generic;
+<<<<<<< HEAD
+=======
+using System.Linq;
+>>>>>>> origin/dev
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -15,17 +19,30 @@ namespace ServiPuntos.Application.Services
         private readonly IPuntosService _puntosService;
         private readonly IPointsRuleEngine _pointsRuleEngine;
         private readonly IUsuarioService _usuarioService;
+<<<<<<< HEAD
+=======
+        private readonly IProductoUbicacionService _productoUbicacionService;
+>>>>>>> origin/dev
 
         public TransaccionService(
             ITransaccionRepository transaccionRepository,
             IPuntosService puntosService,
             IPointsRuleEngine pointsRuleEngine,
+<<<<<<< HEAD
             IUsuarioService usuarioService)
+=======
+            IUsuarioService usuarioService,
+            IProductoUbicacionService productoUbicacionService)
+>>>>>>> origin/dev
         {
             _transaccionRepository = transaccionRepository;
             _puntosService = puntosService;
             _pointsRuleEngine = pointsRuleEngine;
             _usuarioService = usuarioService;
+<<<<<<< HEAD
+=======
+            _productoUbicacionService = productoUbicacionService;
+>>>>>>> origin/dev
         }
 
         public async Task<Transaccion> GetTransaccionByIdAsync(Guid id)
@@ -95,7 +112,15 @@ namespace ServiPuntos.Application.Services
                 TipoTransaccion = tipoTransaccion,
                 Monto = transaccionNAFTA.Monto,
                 PuntosOtorgados = puntosOtorgados,
+<<<<<<< HEAD
                 Detalles = JsonSerializer.Serialize(transaccionNAFTA.Productos)
+=======
+                 Detalles = JsonSerializer.Serialize(new
+                {
+                    Productos = transaccionNAFTA.Productos,
+                    DatosAdicionales = transaccionNAFTA.DatosAdicionales
+                })
+>>>>>>> origin/dev
             };
 
             // Registrar la transacción
@@ -104,6 +129,12 @@ namespace ServiPuntos.Application.Services
             // Actualizar el saldo de puntos del usuario
             await _puntosService.ActualizarSaldoAsync(usuario.Id, puntosOtorgados);
 
+<<<<<<< HEAD
+=======
+            // Descontar stock de los productos involucrados
+            await ActualizarStockAsync(ubicacionId, transaccion.Detalles);
+
+>>>>>>> origin/dev
             // Obtener saldo actualizado
             int saldoActual = await _puntosService.GetSaldoByUsuarioIdAsync(usuario.Id);
 
@@ -119,7 +150,99 @@ namespace ServiPuntos.Application.Services
 
         public async Task<Guid> RegistrarTransaccionAsync(Transaccion transaccion)
         {
+<<<<<<< HEAD
             return await _transaccionRepository.AddAsync(transaccion);
         }
     }
 }
+=======
+            // Calcular los puntos a otorgar en base al monto y reglas del tenant
+            var productos = new List<LineaTransaccionNAFTA>();
+            if (!string.IsNullOrWhiteSpace(transaccion.Detalles))
+            {
+                try
+                {
+                    var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var detalles = JsonSerializer.Deserialize<DetallesTransaccion>(transaccion.Detalles, opts);
+                    if (detalles?.Productos != null)
+                    {
+                        productos = detalles.Productos;
+                    }
+                }
+                catch { /* Si el JSON no es válido, ignorar */ }
+            }
+
+            var transaccionNafta = new TransaccionNAFTA
+            {
+                Monto = (int)transaccion.Monto,
+                TipoTransaccion = transaccion.TipoTransaccion,
+                Productos = productos
+            };
+
+            int puntos = await _pointsRuleEngine.CalcularPuntosAsync(transaccionNafta, transaccion.TenantId);
+            transaccion.PuntosOtorgados = puntos;
+
+            var id = await _transaccionRepository.AddAsync(transaccion);
+
+            if (puntos > 0)
+            {
+                await _puntosService.ActualizarSaldoAsync(transaccion.UsuarioId, puntos);
+            }
+
+             // Ajustar stock de la ubicación por los productos comprados
+            await ActualizarStockAsync(transaccion.UbicacionId, transaccion.Detalles);
+
+            return id;
+        
+            }
+
+        private async Task ActualizarStockAsync(Guid ubicacionId, string detallesJson)
+        {
+            if (string.IsNullOrWhiteSpace(detallesJson))
+            {
+                Console.WriteLine("No hay detalles para actualizar el stock.");
+                return;
+            }
+            try
+            {
+                var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                 List<LineaTransaccionNAFTA>? productos = null;
+
+                if (detallesJson.TrimStart().StartsWith("["))
+                {
+                    // Formato antiguo: solo array de productos
+                    productos = JsonSerializer.Deserialize<List<LineaTransaccionNAFTA>>(detallesJson, opts);
+                }
+                else
+                {
+                    var detalles = JsonSerializer.Deserialize<DetallesTransaccion>(detallesJson, opts);
+                    productos = detalles?.Productos;
+                }
+
+                if (productos == null || productos.Count == 0)
+                    return;
+
+                var productosUbicacion = await _productoUbicacionService.GetAllAsync(ubicacionId);
+                foreach (var linea in productos)
+                {
+                    var prod = productosUbicacion.FirstOrDefault(p => p.ProductoCanjeableId == linea.IdProducto);
+                    if (prod != null)
+                    {
+                        prod.StockDisponible = Math.Max(0, prod.StockDisponible - linea.Cantidad);
+                        await _productoUbicacionService.UpdateAsync(prod);
+                    }
+                }
+            }
+            catch
+            {
+                Console.WriteLine("Error al actualizar el stock.");
+                // Ignorar errores de actualización de stock
+            }
+        }
+    }
+}
+internal class DetallesTransaccion
+    {
+        public List<LineaTransaccionNAFTA> Productos { get; set; } = new();
+    }
+>>>>>>> origin/dev

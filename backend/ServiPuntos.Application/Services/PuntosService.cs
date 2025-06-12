@@ -55,7 +55,11 @@ namespace ServiPuntos.Application.Services
                 throw new InvalidOperationException("Saldo insuficiente para realizar el débito");
             }
 
+<<<<<<< HEAD
             usuario.Puntos -= puntosDebitar;
+=======
+            usuario.UtilizarPuntos(puntosDebitar);
+>>>>>>> origin/dev
             await _usuarioRepository.UpdateAsync(usuario);
         }
     }

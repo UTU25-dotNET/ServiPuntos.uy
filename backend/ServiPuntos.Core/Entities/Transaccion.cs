@@ -32,14 +32,24 @@ namespace ServiPuntos.Core.Entities
         public int PuntosOtorgados { get; set; }
 
         [Required]
+<<<<<<< HEAD
         public string PagoPayPalId { get; set; }
         public string PayPalPayerId { get; set; }
         public string PayPalToken { get; set; }
+=======
+        public string? PagoPayPalId { get; set; }
+        public string? PayPalPayerId { get; set; }
+        public string? PayPalToken { get; set; }
+>>>>>>> origin/dev
 
         [Required]
         public decimal MontoPayPal { get; set; }
         [Required]
+<<<<<<< HEAD
         public string EstadoPayPal { get; set; } // CREATED, APPROVED, CAPTURED, FAILED
+=======
+        public string? EstadoPayPal { get; set; } // CREATED, APPROVED, CAPTURED, FAILED
+>>>>>>> origin/dev
         public DateTime? FechaCompletadoPayPal { get; set; }
 
         // Puntos utilizados en transacciones mixtas

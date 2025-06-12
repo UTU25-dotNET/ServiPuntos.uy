@@ -3,6 +3,11 @@ import { Link } from "react-router-dom";
 import authService from "../../services/authService";
 import apiService from "../../services/apiService";
 import CatalogoProductos from "../productos/CatalogoProductos";
+<<<<<<< HEAD
+=======
+import ComprarCombustibleModal from "./ComprarCombustibleModal";
+import ComprarServicioModal from "./ComprarServicioModal";
+>>>>>>> origin/dev
 
 const EstacionesList = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -10,11 +15,19 @@ const EstacionesList = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [userProfile, setUserProfile] = useState(null);
+<<<<<<< HEAD
   const [tenantInfo, setTenantInfo] = useState(null);
+=======
+>>>>>>> origin/dev
   
   // Estados para el modal de productos
   const [modalAbierto, setModalAbierto] = useState(false);
   const [ubicacionSeleccionada, setUbicacionSeleccionada] = useState(null);
+<<<<<<< HEAD
+=======
+  const [modalCombustible, setModalCombustible] = useState({ abierto: false, tipo: "", precio: 0, ubicacion: null });
+  const [modalServicio, setModalServicio] = useState({ abierto: false, servicio: "", precio: 0, ubicacion: null });
+>>>>>>> origin/dev
 
   useEffect(() => {
     const checkAuth = () => {
@@ -35,6 +48,7 @@ const EstacionesList = () => {
     setError("");
     
     try {
+<<<<<<< HEAD
       console.log("Cargando ubicaciones del tenant del usuario...");
       
       // Primero obtener el perfil del usuario
@@ -58,6 +72,27 @@ const EstacionesList = () => {
       
       // Como fallback, mostrar mensaje sin ubicaciones
       setUbicaciones([]);
+=======
+      // Primero obtener el perfil del usuario
+      const profile = await apiService.getUserProfile();
+      setUserProfile(profile);
+
+      // Obtener las ubicaciones de su tenant
+      const ubicacionesData = await apiService.getUbicacionesByUserTenant();
+      setUbicaciones(ubicacionesData);
+
+    } catch (err) {
+      setError(err.message);
+
+      // Fallback: intentar obtener todas las ubicaciones públicas
+      try {
+        const ubicacionesData = await apiService.getAllUbicaciones();
+        setUbicaciones(ubicacionesData);
+      } catch {
+        // Si también falla, dejar la lista vacía
+        setUbicaciones([]);
+      }
+>>>>>>> origin/dev
     } finally {
       setLoading(false);
     }
@@ -81,6 +116,25 @@ const EstacionesList = () => {
     setUbicacionSeleccionada(null);
   };
 
+<<<<<<< HEAD
+=======
+  const abrirModalCombustible = (ubicacion, tipo, precio) => {
+    setModalCombustible({ abierto: true, tipo, precio, ubicacion });
+  };
+
+  const cerrarModalCombustible = () => {
+    setModalCombustible({ abierto: false, tipo: "", precio: 0, ubicacion: null });
+  };
+
+  const abrirModalServicio = (ubicacion, servicio, precio) => {
+    setModalServicio({ abierto: true, servicio, precio, ubicacion });
+  };
+
+  const cerrarModalServicio = () => {
+    setModalServicio({ abierto: false, servicio: "", precio: 0, ubicacion: null });
+  };
+
+>>>>>>> origin/dev
   if (!isAuthenticated) {
     return (
       <div
@@ -226,6 +280,7 @@ const EstacionesList = () => {
               flexWrap: "wrap",
               gap: "1rem"
             }}>
+<<<<<<< HEAD
               <p style={{ 
                 margin: "0", 
                 color: "#1976d2",
@@ -236,6 +291,9 @@ const EstacionesList = () => {
               }}>
                 🏪 {ubicaciones.length} estación{ubicaciones.length !== 1 ? 'es' : ''} encontrada{ubicaciones.length !== 1 ? 's' : ''}
               </p>
+=======
+              
+>>>>>>> origin/dev
               
               <Link
                 to="/"
@@ -324,6 +382,7 @@ const EstacionesList = () => {
                   </div>
 
                   {/* Precios de combustible */}
+<<<<<<< HEAD
                   <div style={{
                     marginBottom: "1.25rem",
                     padding: "1rem",
@@ -361,6 +420,51 @@ const EstacionesList = () => {
                         </span>
                       </div>
                     </div>
+=======
+                  <div
+                    style={{
+                      marginBottom: "1.25rem",
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    {[
+                      { label: "Nafta Súper", precio: ubicacion.precioNaftaSuper },
+                      { label: "Nafta Premium", precio: ubicacion.precioNaftaPremium },
+                      { label: "Diesel", precio: ubicacion.precioDiesel },
+                    ].map((c) => (
+                      <div
+                        key={c.label}
+                        style={{
+                          backgroundColor: "#fff9c4",
+                          border: "1px solid #f9c74f",
+                          borderRadius: "8px",
+                          padding: "0.5rem",
+                          textAlign: "center",
+                        }}
+                      >
+                        <strong style={{ fontSize: "0.9rem", color: "#7B3F00" }}>{c.label}</strong>
+                        <p style={{ margin: "0.25rem 0", color: "#d68910", fontWeight: "bold" }}>
+                          ${formatPrice(c.precio)}
+                        </p>
+                        <button
+                          style={{
+                            width: "100%",
+                            padding: "0.25rem",
+                            backgroundColor: "#ffc107",
+                            color: "#212529",
+                            border: "none",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                          }}
+                          onClick={() => abrirModalCombustible(ubicacion, c.label, c.precio)}
+                        >
+                          Comprar
+                        </button>
+                      </div>
+                    ))}
+>>>>>>> origin/dev
                   </div>
 
                   {/* Botón para ver catálogo de productos */}
@@ -389,7 +493,62 @@ const EstacionesList = () => {
                       🛒 Ver Catálogo de Productos
                     </button>
                   </div>
+<<<<<<< HEAD
 
+=======
+                  {(ubicacion.cambioDeAceite || ubicacion.cambioDeNeumaticos || ubicacion.lavadoDeAuto) && (
+                    <div style={{ display: "grid", gap: "0.5rem", marginBottom: "1rem" }}>
+                      {ubicacion.cambioDeAceite && (
+                        <button
+                          onClick={() => abrirModalServicio(ubicacion, "Cambio de Aceite", ubicacion.precioCambioAceite)}
+                          style={{
+                            width: "100%",
+                            padding: "0.5rem",
+                            backgroundColor: "#6f42c1",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Cambio de Aceite
+                        </button>
+                      )}
+                      {ubicacion.cambioDeNeumaticos && (
+                        <button
+                          onClick={() => abrirModalServicio(ubicacion, "Cambio de Neumáticos", ubicacion.precioCambioNeumaticos)}
+                          style={{
+                            width: "100%",
+                            padding: "0.5rem",
+                            backgroundColor: "#20c997",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Cambio de Neumáticos
+                        </button>
+                      )}
+                      {ubicacion.lavadoDeAuto && (
+                        <button
+                          onClick={() => abrirModalServicio(ubicacion, "Lavado de Auto", ubicacion.precioLavado)}
+                          style={{
+                            width: "100%",
+                            padding: "0.5rem",
+                            backgroundColor: "#17a2b8",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Lavado de Auto
+                        </button>
+                      )}
+                    </div>
+                  )}
+>>>>>>> origin/dev
                   {/* Horarios y servicios (colapsados para ahorrar espacio) */}
                   {(ubicacion.horaApertura && ubicacion.horaCierre && 
                     ubicacion.horaApertura !== "00:00:00" && ubicacion.horaCierre !== "00:00:00") && (
@@ -406,6 +565,7 @@ const EstacionesList = () => {
                     </div>
                   )}
 
+<<<<<<< HEAD
                   {/* Información del sistema */}
                   <div style={{
                     padding: "0.5rem",
@@ -417,6 +577,9 @@ const EstacionesList = () => {
                   }}>
                     ID: {ubicacion.id.slice(0, 8)}...
                   </div>
+=======
+                  
+>>>>>>> origin/dev
                 </div>
               ))}
             </div>
@@ -429,6 +592,26 @@ const EstacionesList = () => {
         ubicacion={ubicacionSeleccionada}
         isOpen={modalAbierto}
         onClose={cerrarCatalogoProductos}
+<<<<<<< HEAD
+=======
+        userProfile={userProfile}
+      />
+      <ComprarCombustibleModal
+        isOpen={modalCombustible.abierto}
+        onClose={cerrarModalCombustible}
+        ubicacion={modalCombustible.ubicacion}
+        tipo={modalCombustible.tipo}
+        precio={modalCombustible.precio}
+        userProfile={userProfile}
+      />
+      <ComprarServicioModal
+        isOpen={modalServicio.abierto}
+        onClose={cerrarModalServicio}
+        ubicacion={modalServicio.ubicacion}
+        servicio={modalServicio.servicio}
+        precio={modalServicio.precio}
+        userProfile={userProfile}
+>>>>>>> origin/dev
       />
     </div>
   );

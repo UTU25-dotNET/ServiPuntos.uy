@@ -107,6 +107,28 @@ namespace ServiPuntos.API.Controllers
             return Ok(respuesta);
         }
 
+<<<<<<< HEAD
+=======
+        [HttpPost("generar-canjes")]
+        [AllowAnonymous]
+        public async Task<ActionResult<RespuestaNAFTA>> GenerarCanjes([FromBody] MensajeNAFTA mensaje)
+        {
+            if (mensaje == null)
+            {
+                return BadRequest("El mensaje no puede ser nulo");
+            }
+
+            var respuesta = await _naftaService.GenerarCanjesAsync(mensaje);
+
+            if (respuesta.Codigo == "ERROR")
+            {
+                return BadRequest(respuesta);
+            }
+
+            return Ok(respuesta);
+        }
+
+>>>>>>> origin/dev
         // Procesa un canje de puntos mediante código QR
         [HttpPost("procesar-canje")]
         [AllowAnonymous]

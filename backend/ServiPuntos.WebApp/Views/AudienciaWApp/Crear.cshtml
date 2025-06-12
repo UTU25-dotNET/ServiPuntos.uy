@@ -188,6 +188,7 @@
                             <h6><i class="fas fa-user text-primary"></i> Propiedades de Usuario:</h6>
                             <ul class="list-unstyled ms-3">
                                 <li><code>Puntos</code> - Puntos acumulados del usuario</li>
+<<<<<<< HEAD
                                 <li><code>Email</code> - Dirección de correo electrónico</li>
                                 <li><code>Nombre</code> - Nombre del usuario</li>
                                 <li><code>Apellido</code> - Apellido del usuario</li>
@@ -195,15 +196,28 @@
                                 <li><code>Edad</code> - Edad calculada en años</li>
                                 <li><code>FechaCreacion</code> - Fecha de registro</li>
                                 <li><code>FechaModificacion</code> - Última modificación</li>
+=======
+                                <li><code>Edad</code> - Edad calculada en años</li>
+                                <li><code>FechaCreacion</code> - Fecha de registro</li>
+                                <li><code>FechaModificacion</code> - Última modificación</li>
+                                <li><code>Nombre</code> - Nombre del usuario</li>
+                                <li><code>Apellido</code> - Apellido del usuario</li>
+>>>>>>> origin/dev
                             </ul>
                         </div>
                         <div class="col-md-6">
                             <h6><i class="fas fa-calendar text-warning"></i> Ejemplos de Valores:</h6>
                             <ul class="list-unstyled ms-3">
                                 <li><strong>Números:</strong> <code>100</code>, <code>1000</code>, <code>25</code></li>
+<<<<<<< HEAD
                                 <li><strong>Texto:</strong> <code>@@gmail.com</code>, <code>VIP</code></li>
                                 <li><strong>Fechas:</strong> <code>2024-01-01</code></li>
                                 <li><strong>Listas:</strong> <code>admin@@test.com,user@@test.com</code></li>
+=======
+                                <li><strong>Texto:</strong> <code>Ana</code>, <code>VIP</code></li>
+                                <li><strong>Fechas:</strong> <code>2024-01-01</code></li>
+                                <li><strong>Listas:</strong> <code>Ana,Juan</code></li>
+>>>>>>> origin/dev
                                 <li><strong>Regex:</strong> <code>^[0-9]+$</code></li>
                             </ul>
                             
@@ -211,7 +225,11 @@
                             <small class="text-muted">
                                 <strong>Edad > 18</strong> (mayores de edad)<br>
                                 <strong>Puntos >= 1000</strong> (clientes VIP)<br>
+<<<<<<< HEAD
                                 <strong>Email contiene @@gmail.com</strong>
+=======
+                                <strong>Nombre contiene Ana</strong>
+>>>>>>> origin/dev
                             </small>
                         </div>
                     </div>
@@ -291,18 +309,32 @@
         const operadores = [
             { value: 'EQUALS', text: 'Igual a (=)', ejemplo: 'Puntos = 100' },
             { value: 'NOT_EQUALS', text: 'Distinto de (≠)', ejemplo: 'Rol ≠ Admin' },
+<<<<<<< HEAD
             { value: 'CONTAINS', text: 'Contiene', ejemplo: 'Email contiene @@gmail.com' },
             { value: 'STARTS_WITH', text: 'Comienza con', ejemplo: 'Nombre comienza con Juan' },
             { value: 'ENDS_WITH', text: 'Termina con', ejemplo: 'Email termina con .edu' },
+=======
+            { value: 'CONTAINS', text: 'Contiene', ejemplo: 'Nombre contiene Ana' },
+            { value: 'STARTS_WITH', text: 'Comienza con', ejemplo: 'Nombre comienza con Juan' },
+            { value: 'ENDS_WITH', text: 'Termina con', ejemplo: 'Apellido termina con ez' },
+>>>>>>> origin/dev
             { value: 'GREATER_THAN', text: 'Mayor que (>)', ejemplo: 'Puntos > 1000, Edad > 18' },
             { value: 'LESS_THAN', text: 'Menor que (<)', ejemplo: 'Puntos < 50' },
             { value: 'GREATER_THAN_OR_EQUAL', text: 'Mayor o igual (≥)', ejemplo: 'Puntos ≥ 500' },
             { value: 'LESS_THAN_OR_EQUAL', text: 'Menor o igual (≤)', ejemplo: 'Puntos ≤ 999' },
+<<<<<<< HEAD
             { value: 'IN', text: 'En lista', ejemplo: 'Email en [admin@@test.com,user@@test.com]' },
             { value: 'NOT_IN', text: 'No en lista', ejemplo: 'Rol no en [Guest,Banned]' },
             { value: 'IS_NULL_OR_EMPTY', text: 'Es nulo o vacío', ejemplo: 'Telefono es vacío' },
             { value: 'IS_NOT_NULL_OR_EMPTY', text: 'No es nulo ni vacío', ejemplo: 'Apellido no es vacío' },
             { value: 'REGEX', text: 'Expresión Regular', ejemplo: 'Email coincide con ^[a-z]+@@[a-z]+\\.[a-z]+$' }
+=======
+            { value: 'IN', text: 'En lista', ejemplo: 'Nombre en [Ana,Juan]' },
+            { value: 'NOT_IN', text: 'No en lista', ejemplo: 'Rol no en [Guest,Banned]' },
+            { value: 'IS_NULL_OR_EMPTY', text: 'Es nulo o vacío', ejemplo: 'Apellido es vacío' },
+            { value: 'IS_NOT_NULL_OR_EMPTY', text: 'No es nulo ni vacío', ejemplo: 'Apellido no es vacío' },
+            { value: 'REGEX', text: 'Expresión Regular', ejemplo: 'Nombre coincide con ^[A-Za-z]+$' }
+>>>>>>> origin/dev
         ];
 
         function agregarRegla() {
@@ -347,6 +379,7 @@
                             <select class="form-select regla-propiedad" required onchange="actualizarCamposOcultos(this.closest('.regla-item')); actualizarPreviewRegla(this.closest('.regla-item'))">
                                 <option value="">-- Seleccionar Propiedad --</option>
                                 <option value="Puntos">Puntos - Puntos acumulados</option>
+<<<<<<< HEAD
                                 <option value="Email">Email - Correo electrónico</option>
                                 <option value="Nombre">Nombre - Nombre del usuario</option>
                                 <option value="Apellido">Apellido - Apellido del usuario</option>
@@ -354,6 +387,13 @@
                                 <option value="Edad">Edad - Edad calculada (años)</option>
                                 <option value="FechaCreacion">Fecha Creación - Fecha de registro</option>
                                 <option value="FechaModificacion">Fecha Modificación - Última actualización</option>
+=======
+                                <option value="Edad">Edad - Edad calculada (años)</option>
+                                <option value="FechaCreacion">Fecha Creación - Fecha de registro</option>
+                                <option value="FechaModificacion">Fecha Modificación - Última actualización</option>
+                                <option value="Nombre">Nombre - Nombre del usuario</option>
+                                <option value="Apellido">Apellido - Apellido del usuario</option>
+>>>>>>> origin/dev
                             </select>
                             <div class="form-text">Campo del usuario a evaluar</div>
                         </div>
@@ -366,8 +406,13 @@
                         </div>
                         <div class="col-md-3 mb-3">
                             <label class="form-label">Valor</label>
+<<<<<<< HEAD
                             <input type="text" class="form-control regla-valor" 
                                    placeholder="ej: 100, @@gmail.com"
+=======
+                            <input type="text" class="form-control regla-valor"
+                                   placeholder="ej: 100, Ana"
+>>>>>>> origin/dev
                                    onchange="actualizarCamposOcultos(this.closest('.regla-item')); actualizarPreviewRegla(this.closest('.regla-item'))"
                                    oninput="actualizarCamposOcultos(this.closest('.regla-item')); actualizarPreviewRegla(this.closest('.regla-item'))">
                             <div class="form-text">Valor a comparar (algunos operadores no lo requieren)</div>

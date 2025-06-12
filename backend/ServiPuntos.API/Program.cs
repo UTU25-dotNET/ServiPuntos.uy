@@ -30,7 +30,12 @@ builder.Logging.SetMinimumLevel(LogLevel.Trace);
 builder.Logging.AddFilter("Microsoft.AspNetCore.Authentication", LogLevel.Trace);
 
 // Agregar controladores a la aplicaci�n
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(opts =>
+    {
+        opts.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        opts.JsonSerializerOptions.DictionaryKeyPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
 
 // Agregar servicios de Swagger para documentaci�n de API
 builder.Services.AddEndpointsApiExplorer();
@@ -167,13 +172,19 @@ builder.Services.AddCors(options =>
 
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/dev
 builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
 builder.Services.AddScoped<JwtTokenService>();
 builder.Services.AddHttpClient();
-// Servicios Multi-Tenant
+builder.Services.AddScoped<IConfigPlataformaRepository, ConfigPlataformaRepository>();
+builder.Services.AddScoped<IConfigPlataformaService, ConfigPlataformaService>();
+
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ITenantRepository, TenantRepository>();

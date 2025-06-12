@@ -8,15 +8,23 @@ const DocumentVerification = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [userData, setUserData] = useState(null);
+<<<<<<< HEAD
     const [debugInfo, setDebugInfo] = useState("");
     const location = useLocation();
     const navigate = useNavigate();
 
     // Extraer token y returnUrl de los query params
+=======
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    // Extraer datos de la URL
+>>>>>>> origin/dev
     const params = new URLSearchParams(location.search);
     const token = params.get("token");
     const code = params.get("code");
     const state = params.get("state");
+<<<<<<< HEAD
     const returnUrl = params.get("returnUrl") || "/auth-callback";
 
     useEffect(() => {
@@ -28,6 +36,21 @@ const DocumentVerification = () => {
         // Si no hay token, redirigir al login
         if (!token) {
             console.error("No se recibió token en los parámetros");
+=======
+
+    useEffect(() => {
+<<<<<<<< HEAD:frontend-web/src/components/DocumentVerification.js
+        // L�gica existente...
+        console.log("Token recibido:", token);
+        console.log("Code:", code);
+        console.log("State:", state);
+========
+        // L�gica existente...
+>>>>>>>> origin/dev:frontend-web/src/components/auth/DocumentVerification.js
+
+        // Si no hay token, redirigir al login
+        if (!token) {
+>>>>>>> origin/dev
             setError("No se pudo obtener la información de autenticación. Inténtalo de nuevo.");
             setTimeout(() => navigate("/login"), 3000);
             return;
@@ -41,7 +64,10 @@ const DocumentVerification = () => {
             }
 
             const decoded = authService.decodeToken(token);
+<<<<<<< HEAD
             console.log("Token decodificado:", decoded);
+=======
+>>>>>>> origin/dev
 
             if (!decoded) {
                 throw new Error("No se pudo decodificar el token");
@@ -51,11 +77,22 @@ const DocumentVerification = () => {
             const userData = decoded.payload || decoded;
             setUserData(userData);
 
+<<<<<<< HEAD
+=======
+<<<<<<<< HEAD:frontend-web/src/components/DocumentVerification.js
+>>>>>>> origin/dev
             // Mostrar información de debug
             setDebugInfo(`Token recibido: ${token.substring(0, 20)}...`);
 
         } catch (err) {
             console.error("Error al decodificar token:", err);
+<<<<<<< HEAD
+=======
+========
+
+        } catch (err) {
+>>>>>>>> origin/dev:frontend-web/src/components/auth/DocumentVerification.js
+>>>>>>> origin/dev
             // En lugar de redirigir inmediatamente, mostramos el error y permitimos continuar
             setError(`Error al procesar la información de usuario: ${err.message}`);
 
@@ -110,7 +147,14 @@ const DocumentVerification = () => {
             if (code) callbackUrl += `&code=${encodeURIComponent(code)}`;
             if (state) callbackUrl += `&state=${encodeURIComponent(state)}`;
 
+<<<<<<< HEAD
             console.log("Redirigiendo a:", callbackUrl);
+=======
+<<<<<<<< HEAD:frontend-web/src/components/DocumentVerification.js
+            console.log("Redirigiendo a:", callbackUrl);
+========
+>>>>>>>> origin/dev:frontend-web/src/components/auth/DocumentVerification.js
+>>>>>>> origin/dev
 
             // Redirigir al callback de Google con la cédula
             window.location.href = callbackUrl;
@@ -179,7 +223,15 @@ const DocumentVerification = () => {
                         maxLength="11" // Longitud máxima: 8 dígitos + 3 separadores
                     />
                     <small style={{ color: "#6c757d" }}>
+<<<<<<< HEAD
                         Ingresa solo los n�meros, los separadores se agregar�n autom�ticamente
+=======
+<<<<<<<< HEAD:frontend-web/src/components/DocumentVerification.js
+                        Ingresa solo los n�meros, los separadores se agregar�n autom�ticamente
+========
+                        Ingresa solo los n�meros, los separadores se agregar�n autom�ticamente
+>>>>>>>> origin/dev:frontend-web/src/components/auth/DocumentVerification.js
+>>>>>>> origin/dev
                     </small>
                 </div>
 

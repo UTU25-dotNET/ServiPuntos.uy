@@ -58,4 +58,21 @@ namespace ServiPuntos.WebApp.Models
         public string ProductoNombre { get; set; } = string.Empty;
     }
 
+<<<<<<< HEAD
+=======
+// ViewModel utilizado al asignar un producto canjeable a múltiples
+// ubicaciones desde ProductoCanjeableWApp
+public class AsignarUbicacionesProductoViewModel
+{
+    public Guid ProductoId { get; set; }
+    public string ProductoNombre { get; set; } = string.Empty;
+    public int CostoEnPuntos { get; set; }
+    public List<UbicacionSelectionViewModel> Ubicaciones { get; set; } = new();
+
+    [Required(ErrorMessage = "El stock inicial es obligatorio")]
+    [Range(0, int.MaxValue, ErrorMessage = "El stock inicial no puede ser negativo")]
+    public int StockInicial { get; set; } = 10;
+}
+
+>>>>>>> origin/dev
 }

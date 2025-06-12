@@ -9,6 +9,10 @@ using System.Security.Claims;
 using ServiPuntos.Infrastructure.Data;
 using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
+<<<<<<< HEAD
+=======
+using ServiPuntos.Application.Services; // Assuming IConfigService is defined here
+>>>>>>> origin/dev
 
 /// <summary>
 /// Controlador que maneja la autenticación con Google y la gestión de tokens JWT
@@ -24,18 +28,31 @@ public class AuthController : ControllerBase
     private readonly ServiPuntosDbContext _context;
     
     private readonly ITenantService _tenantService;
+<<<<<<< HEAD
+=======
+
+    private readonly IConfigPlataformaService _configPlataformaService;
+>>>>>>> origin/dev
 
     /// <summary>
     /// Constructor que inyecta las dependencias necesarias
-    /// </summary>
     /// <param name="jwtTokenService">Servicio para generar tokens JWT</param>
+<<<<<<< HEAD
     public AuthController(JwtTokenService jwtTokenService, IConfiguration configuration, IHttpClientFactory httpClientFactory, ServiPuntosDbContext context, ITenantService tenantService)
+=======
+    public AuthController(JwtTokenService jwtTokenService, IConfiguration configuration, IHttpClientFactory httpClientFactory, ServiPuntosDbContext context, ITenantService tenantService, IConfigPlataformaService configPlataformaService)
+>>>>>>> origin/dev
     {
         _context = context;
         _jwtTokenService = jwtTokenService;
-        _configuration = configuration;
-        _httpClientFactory = httpClientFactory;
         _tenantService = tenantService;
+        _configPlataformaService = configPlataformaService;
+        _httpClientFactory = httpClientFactory;
+<<<<<<< HEAD
+        _tenantService = tenantService;
+=======
+        _configuration = configuration;
+>>>>>>> origin/dev
 
     }
 
@@ -290,7 +307,11 @@ public class AuthController : ControllerBase
             Console.WriteLine("[GoogleCallback] Usuario autenticado con cookies");
 
             // No eliminamos el estado porque volveremos a este endpoint
+<<<<<<< HEAD
             var tempToken = _jwtTokenService.GenerateJwtToken(claims);
+=======
+            var tempToken = await _jwtTokenService.GenerateJwtTokenAsync(claims);
+>>>>>>> origin/dev
             return Redirect($"http://localhost:3000/auth-callback?token={Uri.EscapeDataString(tempToken)}&state={Uri.EscapeDataString(state)}&returnUrl=/auth-callback");
         }
         catch (Exception ex)
@@ -334,9 +355,26 @@ public class AuthController : ControllerBase
                 return BadRequest(new { message = "Email y contraseña son requeridos" });
             }
 
+<<<<<<< HEAD
             // Buscar el usuario en la base de datos
             var usuario = await _context.Usuarios
                 .FirstOrDefaultAsync(u => u.Email == request.Email);
+=======
+            // Normalizamos el email para que la búsqueda no sea sensible a mayúsculas
+            var normalizedEmail = request.Email.Trim().ToLower();
+
+            // Buscar el usuario en la base de datos de forma insensible a mayúsculas
+            var usuario = await _context.Usuarios
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+
+            var config = await _configPlataformaService.ObtenerConfiguracionAsync();
+            int maxIntentos = config?.MaximoIntentosLogin ?? 3;
+
+            if (usuario != null && usuario.Bloqueado)
+            {
+                return Unauthorized(new { message = "Cuenta bloqueada" });
+            }
+>>>>>>> origin/dev
 
             // Verificar si el usuario existe
             if (usuario == null)
@@ -348,9 +386,33 @@ public class AuthController : ControllerBase
             bool passwordValid = VerifyPassword(request.Password, usuario.Password);
             if (!passwordValid)
             {
+<<<<<<< HEAD
                 return Unauthorized(new { message = "Email o contraseña incorrectos" });
             }
 
+=======
+                if (usuario != null)
+                {
+                    usuario.IntentosFallidos++;
+                    if (usuario.IntentosFallidos >= maxIntentos)
+                    {
+                        usuario.Bloqueado = true;
+                    }
+                    _context.Usuarios.Update(usuario);
+                    await _context.SaveChangesAsync();
+                }
+                return Unauthorized(new { message = "Email o contraseña incorrectos" });
+            }
+
+            if (usuario != null)
+            {
+                
+                usuario.Bloqueado = false;
+                _context.Usuarios.Update(usuario);
+                await _context.SaveChangesAsync();
+            }
+
+>>>>>>> origin/dev
             // Si tenemos cédula, verificamos la edad
             bool isAdult = false;
 
@@ -366,7 +428,11 @@ public class AuthController : ControllerBase
             // }
 
             // Generar el token JWT
+<<<<<<< HEAD
             var token = _jwtTokenService.GenerateJwtToken(claims);
+=======
+            var token = await _jwtTokenService.GenerateJwtTokenAsync(claims);
+>>>>>>> origin/dev
 
             // Devolver token y datos básicos del usuario
             return Ok(new
@@ -385,6 +451,34 @@ public class AuthController : ControllerBase
         }
     }
     
+<<<<<<< HEAD
+=======
+
+    [HttpPost("verify-password")]
+    public async Task<IActionResult> VerifyPassword([FromBody] VerifyPasswordRequest request)
+    {
+        if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+        {
+            return BadRequest(new { message = "Email y contraseña son requeridos" });
+        }
+
+        var normalizedEmail = request.Email.Trim().ToLower();
+        var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+        if (usuario == null)
+        {
+            return NotFound(new { message = "Usuario no encontrado" });
+        }
+
+        bool passwordValid = VerifyPassword(request.Password, usuario.Password);
+        if (!passwordValid)
+        {
+            return Unauthorized(new { message = "Contraseña incorrecta" });
+        }
+
+        return Ok(new { message = "Contraseña válida" });
+    }
+
+>>>>>>> origin/dev
     // Método auxiliar para verificar la contraseña
     private bool VerifyPassword(string providedPassword, string storedPassword)
     {
@@ -646,6 +740,18 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
+<<<<<<< HEAD
+=======
+    /// Clase para recibir los datos de verificación de contraseña
+    /// </summary>
+    public class VerifyPasswordRequest
+    {
+        public string? Email { get; set; }
+        public string? Password { get; set; }
+    }
+
+    /// <summary>
+>>>>>>> origin/dev
     /// Método auxiliar para validar formato de email
     /// </summary>
     /// <param name="email">Email a validar</param>

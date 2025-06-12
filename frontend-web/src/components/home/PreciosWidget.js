@@ -19,7 +19,10 @@ const PreciosWidget = ({ tenantInfo }) => {
     setError("");
     
     try {
+<<<<<<< HEAD
       console.log("Cargando precios mínimos de combustible...");
+=======
+>>>>>>> origin/dev
       
       // Obtener todas las ubicaciones del tenant
       const ubicaciones = await apiService.getUbicacionesByUserTenant();
@@ -86,10 +89,15 @@ const PreciosWidget = ({ tenantInfo }) => {
       });
 
       setPreciosMinimos(preciosCalculados);
+<<<<<<< HEAD
       console.log("Precios mínimos calculados:", preciosCalculados);
       
     } catch (err) {
       console.error("Error al cargar precios mínimos:", err);
+=======
+      
+    } catch (err) {
+>>>>>>> origin/dev
       setError("Error al cargar los precios de combustible");
     } finally {
       setLoading(false);

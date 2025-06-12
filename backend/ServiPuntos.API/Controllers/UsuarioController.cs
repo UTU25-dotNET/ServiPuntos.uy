@@ -1,10 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ServiPuntos.Core.DTOs;
+<<<<<<< HEAD
+=======
+using System.Linq;
+using System.Security.Claims;
+>>>>>>> origin/dev
 
 namespace ServiPuntos.API.Controllers
 {
@@ -13,10 +20,12 @@ namespace ServiPuntos.API.Controllers
     public class UsuarioController : ControllerBase
     {
         private readonly IUsuarioService _iUsuarioService;
+        private readonly ITransaccionService _transaccionService;
 
-        public UsuarioController(IUsuarioService usuarioService)
+        public UsuarioController(IUsuarioService usuarioService, ITransaccionService transaccionService)
         {
             _iUsuarioService = usuarioService;
+            _transaccionService = transaccionService;
         }
 
         // Obtener todos los usuarios.
@@ -227,7 +236,45 @@ namespace ServiPuntos.API.Controllers
                 });
             }
         }
+        [HttpGet("historial-transacciones")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<IActionResult> GetHistorialTransacciones()
+        {
+            try
+            {
+                var emailClaim = User.FindFirst(ClaimTypes.Email) ?? User.FindFirst("email");
+                if (emailClaim == null)
+                {
+                    return Unauthorized(new { message = "Email no disponible" });
+                }
 
+                var usuario = await _iUsuarioService.GetUsuarioAsync(emailClaim.Value);
+                if (usuario == null)
+                {
+                    return NotFound(new { message = "Usuario no encontrado" });
+                }
+
+                var transacciones = await _transaccionService.GetTransaccionesByUsuarioIdAsync(usuario.Id);
+
+                var response = transacciones.Select(t => new
+                {
+                    id = t.Id,
+                    fecha = t.FechaTransaccion,
+                    monto = t.Monto,
+                    tipo = t.TipoTransaccion.ToString(),
+                    ubicacion = t.Ubicacion?.Nombre,
+                    puntosOtorgados = t.PuntosOtorgados,
+                    puntosUtilizados = t.PuntosUtilizados,
+                    detalles = t.Detalles
+                });
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al obtener historial", error = ex.Message });
+            }
+        }
         // Eliminar un usuario por ID
 
         [HttpDelete("{id}")]
