@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import authService from "../../services/authService";
 import apiService from "../../services/apiService";
 import CatalogoProductos from "../productos/CatalogoProductos";
+import ComprarCombustibleModal from "./ComprarCombustibleModal";
+import ComprarServicioModal from "./ComprarServicioModal";
 
 const EstacionesList = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -14,6 +16,8 @@ const EstacionesList = () => {
   // Estados para el modal de productos
   const [modalAbierto, setModalAbierto] = useState(false);
   const [ubicacionSeleccionada, setUbicacionSeleccionada] = useState(null);
+  const [modalCombustible, setModalCombustible] = useState({ abierto: false, tipo: "", precio: 0, ubicacion: null });
+  const [modalServicio, setModalServicio] = useState({ abierto: false, servicio: "", precio: 0, ubicacion: null });
 
   useEffect(() => {
     const checkAuth = () => {
@@ -34,21 +38,25 @@ const EstacionesList = () => {
     setError("");
     
     try {
-      
       // Primero obtener el perfil del usuario
       const profile = await apiService.getUserProfile();
       setUserProfile(profile);
-      
+
       // Obtener las ubicaciones de su tenant
       const ubicacionesData = await apiService.getUbicacionesByUserTenant();
       setUbicaciones(ubicacionesData);
-      
-      
+
     } catch (err) {
       setError(err.message);
-      
-      // Como fallback, mostrar mensaje sin ubicaciones
-      setUbicaciones([]);
+
+      // Fallback: intentar obtener todas las ubicaciones públicas
+      try {
+        const ubicacionesData = await apiService.getAllUbicaciones();
+        setUbicaciones(ubicacionesData);
+      } catch {
+        // Si también falla, dejar la lista vacía
+        setUbicaciones([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -70,6 +78,22 @@ const EstacionesList = () => {
   const cerrarCatalogoProductos = () => {
     setModalAbierto(false);
     setUbicacionSeleccionada(null);
+  };
+
+  const abrirModalCombustible = (ubicacion, tipo, precio) => {
+    setModalCombustible({ abierto: true, tipo, precio, ubicacion });
+  };
+
+  const cerrarModalCombustible = () => {
+    setModalCombustible({ abierto: false, tipo: "", precio: 0, ubicacion: null });
+  };
+
+  const abrirModalServicio = (ubicacion, servicio, precio) => {
+    setModalServicio({ abierto: true, servicio, precio, ubicacion });
+  };
+
+  const cerrarModalServicio = () => {
+    setModalServicio({ abierto: false, servicio: "", precio: 0, ubicacion: null });
   };
 
   if (!isAuthenticated) {
@@ -217,16 +241,7 @@ const EstacionesList = () => {
               flexWrap: "wrap",
               gap: "1rem"
             }}>
-              <p style={{ 
-                margin: "0", 
-                color: "#1976d2",
-                fontWeight: "600",
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem"
-              }}>
-                🏪 {ubicaciones.length} estación{ubicaciones.length !== 1 ? 'es' : ''} encontrada{ubicaciones.length !== 1 ? 's' : ''}
-              </p>
+              
               
               <Link
                 to="/"
@@ -315,43 +330,49 @@ const EstacionesList = () => {
                   </div>
 
                   {/* Precios de combustible */}
-                  <div style={{
-                    marginBottom: "1.25rem",
-                    padding: "1rem",
-                    backgroundColor: "#fff9c4",
-                    borderRadius: "8px",
-                    border: "1px solid #f9c74f"
-                  }}>
-                    <h5 style={{ 
-                      margin: "0 0 0.75rem 0", 
-                      color: "#d68910",
-                      fontSize: "1rem",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.5rem"
-                    }}>
-                      ⛽ Precios de Combustible
-                    </h5>
-                    <div style={{ display: "grid", gap: "0.5rem", fontSize: "0.9rem" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ color: "#7B3F00", fontWeight: "500" }}>Nafta Súper:</span>
-                        <span style={{ fontWeight: "bold", color: "#d68910" }}>
-                          ${formatPrice(ubicacion.precioNaftaSuper)}
-                        </span>
+                  <div
+                    style={{
+                      marginBottom: "1.25rem",
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    {[
+                      { label: "Nafta Súper", precio: ubicacion.precioNaftaSuper },
+                      { label: "Nafta Premium", precio: ubicacion.precioNaftaPremium },
+                      { label: "Diesel", precio: ubicacion.precioDiesel },
+                    ].map((c) => (
+                      <div
+                        key={c.label}
+                        style={{
+                          backgroundColor: "#fff9c4",
+                          border: "1px solid #f9c74f",
+                          borderRadius: "8px",
+                          padding: "0.5rem",
+                          textAlign: "center",
+                        }}
+                      >
+                        <strong style={{ fontSize: "0.9rem", color: "#7B3F00" }}>{c.label}</strong>
+                        <p style={{ margin: "0.25rem 0", color: "#d68910", fontWeight: "bold" }}>
+                          ${formatPrice(c.precio)}
+                        </p>
+                        <button
+                          style={{
+                            width: "100%",
+                            padding: "0.25rem",
+                            backgroundColor: "#ffc107",
+                            color: "#212529",
+                            border: "none",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                          }}
+                          onClick={() => abrirModalCombustible(ubicacion, c.label, c.precio)}
+                        >
+                          Comprar
+                        </button>
                       </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ color: "#7B3F00", fontWeight: "500" }}>Nafta Premium:</span>
-                        <span style={{ fontWeight: "bold", color: "#d68910" }}>
-                          ${formatPrice(ubicacion.precioNaftaPremium)}
-                        </span>
-                      </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ color: "#7B3F00", fontWeight: "500" }}>Diesel:</span>
-                        <span style={{ fontWeight: "bold", color: "#d68910" }}>
-                          ${formatPrice(ubicacion.precioDiesel)}
-                        </span>
-                      </div>
-                    </div>
+                    ))}
                   </div>
 
                   {/* Botón para ver catálogo de productos */}
@@ -380,7 +401,58 @@ const EstacionesList = () => {
                       🛒 Ver Catálogo de Productos
                     </button>
                   </div>
-
+                  {(ubicacion.cambioDeAceite || ubicacion.cambioDeNeumaticos || ubicacion.lavadoDeAuto) && (
+                    <div style={{ display: "grid", gap: "0.5rem", marginBottom: "1rem" }}>
+                      {ubicacion.cambioDeAceite && (
+                        <button
+                          onClick={() => abrirModalServicio(ubicacion, "Cambio de Aceite", ubicacion.precioCambioAceite)}
+                          style={{
+                            width: "100%",
+                            padding: "0.5rem",
+                            backgroundColor: "#6f42c1",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Cambio de Aceite
+                        </button>
+                      )}
+                      {ubicacion.cambioDeNeumaticos && (
+                        <button
+                          onClick={() => abrirModalServicio(ubicacion, "Cambio de Neumáticos", ubicacion.precioCambioNeumaticos)}
+                          style={{
+                            width: "100%",
+                            padding: "0.5rem",
+                            backgroundColor: "#20c997",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Cambio de Neumáticos
+                        </button>
+                      )}
+                      {ubicacion.lavadoDeAuto && (
+                        <button
+                          onClick={() => abrirModalServicio(ubicacion, "Lavado de Auto", ubicacion.precioLavado)}
+                          style={{
+                            width: "100%",
+                            padding: "0.5rem",
+                            backgroundColor: "#17a2b8",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Lavado de Auto
+                        </button>
+                      )}
+                    </div>
+                  )}
                   {/* Horarios y servicios (colapsados para ahorrar espacio) */}
                   {(ubicacion.horaApertura && ubicacion.horaCierre && 
                     ubicacion.horaApertura !== "00:00:00" && ubicacion.horaCierre !== "00:00:00") && (
@@ -397,17 +469,7 @@ const EstacionesList = () => {
                     </div>
                   )}
 
-                  {/* Información del sistema */}
-                  <div style={{
-                    padding: "0.5rem",
-                    backgroundColor: "#f8f9fa",
-                    borderRadius: "4px",
-                    fontSize: "0.75rem",
-                    color: "#6c757d",
-                    textAlign: "center"
-                  }}>
-                    ID: {ubicacion.id.slice(0, 8)}...
-                  </div>
+                  
                 </div>
               ))}
             </div>
@@ -420,6 +482,22 @@ const EstacionesList = () => {
         ubicacion={ubicacionSeleccionada}
         isOpen={modalAbierto}
         onClose={cerrarCatalogoProductos}
+        userProfile={userProfile}
+      />
+      <ComprarCombustibleModal
+        isOpen={modalCombustible.abierto}
+        onClose={cerrarModalCombustible}
+        ubicacion={modalCombustible.ubicacion}
+        tipo={modalCombustible.tipo}
+        precio={modalCombustible.precio}
+        userProfile={userProfile}
+      />
+      <ComprarServicioModal
+        isOpen={modalServicio.abierto}
+        onClose={cerrarModalServicio}
+        ubicacion={modalServicio.ubicacion}
+        servicio={modalServicio.servicio}
+        precio={modalServicio.precio}
         userProfile={userProfile}
       />
     </div>

@@ -1,10 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ServiPuntos.Core.DTOs;
+using System.Linq;
+using System.Security.Claims;
 
 namespace ServiPuntos.API.Controllers
 {
@@ -13,10 +17,14 @@ namespace ServiPuntos.API.Controllers
     public class UsuarioController : ControllerBase
     {
         private readonly IUsuarioService _iUsuarioService;
+        private readonly ITransaccionService _transaccionService;
+        private readonly ICanjeService _canjeService;
 
-        public UsuarioController(IUsuarioService usuarioService)
+        public UsuarioController(IUsuarioService usuarioService, ITransaccionService transaccionService, ICanjeService canjeService)
         {
             _iUsuarioService = usuarioService;
+            _transaccionService = transaccionService;
+            _canjeService = canjeService;
         }
 
         // Obtener todos los usuarios.
@@ -52,8 +60,39 @@ namespace ServiPuntos.API.Controllers
                     Console.WriteLine($"[GetUsuarioByEmail] Usuario no encontrado: {email}");
                     return NotFound(new { message = "Usuario no encontrado" });
                 }
+                
+                var transacciones = await _transaccionService.GetTransaccionesByUsuarioIdAsync(usuario.Id);
+                var canjes = await _canjeService.GetCanjesByUsuarioIdAsync(usuario.Id);
 
-                Console.WriteLine($"[GetUsuarioByEmail] Usuario encontrado: {usuario.Nombre}");
+                var totalCompras = transacciones.Count();
+                var totalVisitas = totalCompras + canjes.Count();
+
+                usuario.TotalCompras = totalCompras;
+                usuario.TotalVisitas = totalVisitas;
+
+                usuario.GastoTotal = transacciones.Sum(t => t.Monto);
+                usuario.GastoPromedio = totalCompras > 0 ? usuario.GastoTotal / totalCompras : 0;
+
+                var ultimaTransaccion = transacciones.OrderByDescending(t => t.FechaTransaccion).FirstOrDefault()?.FechaTransaccion;
+                var ultimaFechaCanje = canjes.OrderByDescending(c => c.FechaCanje ?? c.FechaGeneracion).FirstOrDefault()?.FechaCanje ??
+                                        canjes.OrderByDescending(c => c.FechaCanje ?? c.FechaGeneracion).FirstOrDefault()?.FechaGeneracion;
+
+                DateTime? ultimaVisita = usuario.UltimaVisita;
+                if (ultimaTransaccion.HasValue && (!ultimaVisita.HasValue || ultimaTransaccion > ultimaVisita))
+                {
+                    ultimaVisita = ultimaTransaccion;
+                }
+                if (ultimaFechaCanje.HasValue && (!ultimaVisita.HasValue || ultimaFechaCanje > ultimaVisita))
+                {
+                    ultimaVisita = ultimaFechaCanje;
+                }
+                usuario.UltimaVisita = ultimaVisita;
+
+                var mesesDesdeCreacion = (DateTime.UtcNow - usuario.FechaCreacion).Days / 30.0;
+                if (mesesDesdeCreacion > 0)
+                {
+                    usuario.VisitasPorMes = (decimal)(totalVisitas / mesesDesdeCreacion);
+                }
                 return Ok(usuario);
             }
             catch (Exception ex)
@@ -227,7 +266,45 @@ namespace ServiPuntos.API.Controllers
                 });
             }
         }
+        [HttpGet("historial-transacciones")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<IActionResult> GetHistorialTransacciones()
+        {
+            try
+            {
+                var emailClaim = User.FindFirst(ClaimTypes.Email) ?? User.FindFirst("email");
+                if (emailClaim == null)
+                {
+                    return Unauthorized(new { message = "Email no disponible" });
+                }
 
+                var usuario = await _iUsuarioService.GetUsuarioAsync(emailClaim.Value);
+                if (usuario == null)
+                {
+                    return NotFound(new { message = "Usuario no encontrado" });
+                }
+
+                var transacciones = await _transaccionService.GetTransaccionesByUsuarioIdAsync(usuario.Id);
+
+                var response = transacciones.Select(t => new
+                {
+                    id = t.Id,
+                    fecha = t.FechaTransaccion,
+                    monto = t.Monto,
+                    tipo = t.TipoTransaccion.ToString(),
+                    ubicacion = t.Ubicacion?.Nombre,
+                    puntosOtorgados = t.PuntosOtorgados,
+                    puntosUtilizados = t.PuntosUtilizados,
+                    detalles = t.Detalles
+                });
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al obtener historial", error = ex.Message });
+            }
+        }
         // Eliminar un usuario por ID
 
         [HttpDelete("{id}")]

@@ -349,6 +349,7 @@ namespace ServiPuntos.WebApp.Controllers
                 UbicacionId = productoUbicacion.UbicacionId,
                 ProductoCanjeableId = productoUbicacion.ProductoCanjeableId,
                 StockDisponible = productoUbicacion.StockDisponible,
+                Precio = productoUbicacion.Precio,
                 Activo = productoUbicacion.Activo,
                 UbicacionNombre = productoUbicacion.Ubicacion?.Nombre ?? "Cargando...",
                 ProductoNombre = productoUbicacion.ProductoCanjeable?.Nombre ?? "Cargando..."
@@ -398,8 +399,14 @@ namespace ServiPuntos.WebApp.Controllers
                     ModelState.AddModelError("StockDisponible", "El stock no puede ser negativo.");
                     return View(model);
                 }
+                if (model.Precio < 0)
+                {
+                    ModelState.AddModelError("Precio", "El precio no puede ser negativo.");
+                    return View(model);
+                }
 
                 productoUbicacion.StockDisponible = model.StockDisponible;
+                productoUbicacion.Precio = model.Precio;
                 productoUbicacion.Activo = model.Activo;
 
                 await _productoUbicacionService.UpdateAsync(productoUbicacion);

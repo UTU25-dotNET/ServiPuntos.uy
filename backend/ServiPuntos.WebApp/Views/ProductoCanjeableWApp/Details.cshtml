@@ -40,7 +40,15 @@
                         </div>
                     </div>
                     <hr />
-
+                    <div class="row"></div>
+                        <div class="col-md-3">
+                            <strong>Foto:</strong>
+                        </div>
+                        <div class="col-md-9">
+                            <img src="@(string.IsNullOrEmpty(Model.FotoUrl) ? Url.Content("~/images/placeholder-logo.png") : Model.FotoUrl)" class="img-fluid rounded" style="max-width:150px" />
+                        </div>
+                    </div>
+                    <hr />
                     <div class="row">
                         <div class="col-md-3">
                             <strong>ID:</strong>

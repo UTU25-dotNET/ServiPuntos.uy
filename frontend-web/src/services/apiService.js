@@ -100,8 +100,10 @@ const apiService = {
       } catch (endpointError) {
         
         // Fallback: Obtener todos los usuarios y filtrar por email
-        const allUsers = await apiClient.get('usuario');
-        const currentUser = allUsers.find(u => u.email.toLowerCase() === user.email.toLowerCase());
+        const allUsersResponse = await apiClient.get('usuario');
+        const currentUser = allUsersResponse.data.find(
+          (u) => u.email.toLowerCase() === user.email.toLowerCase()
+        );
         
         if (!currentUser) {
           throw new Error("Usuario no encontrado en la base de datos");
@@ -389,14 +391,15 @@ getProductosCanjeables: async () => {
 },
 
 // Obtener productos disponibles en una ubicación específica
-getProductosByUbicacion: async (ubicacionId) => {
+getProductosByUbicacion: async (ubicacionId, categoria) => {
   try {
     if (!ubicacionId) {
       throw new Error("ID de ubicación es requerido");
     }
 
     
-    const response = await apiClient.get(`ProductoUbicacion/ubicacion/${ubicacionId}`);
+    const url = categoria ? `ProductoUbicacion/ubicacion/${ubicacionId}?categoria=${encodeURIComponent(categoria)}` : `ProductoUbicacion/ubicacion/${ubicacionId}`;
+    const response = await apiClient.get(url);
     
     return response.data;
     
@@ -474,7 +477,13 @@ getProductosByUbicacion: async (ubicacionId) => {
   },
 
   // Procesa la compra de un producto utilizando PayPal
-  procesarTransaccion: async (productoUbicacion, ubicacionId) => {
+  procesarTransaccion: async (
+    productoUbicacion,
+    ubicacionId,
+    puntosUtilizados = 0,
+    valorPunto = 0,
+    tipoTransaccion = 2
+  ) => {
     try {
       if (!productoUbicacion || !ubicacionId) {
         throw new Error("Producto y ubicación son requeridos");
@@ -491,18 +500,23 @@ getProductosByUbicacion: async (ubicacionId) => {
         subTotal: Math.round(productoUbicacion.precio)
       };
 
+      const total = Math.round(productoUbicacion.precio);
+      const montoPayPal = Math.max(
+        0,
+        Math.round(total - puntosUtilizados * valorPunto)
+      );
       const transaccion = {
         IdentificadorUsuario: user.id,
         fechaTransaccion: new Date().toISOString(),
-        tipoTransaccion: 2, // CompraMinimercado
-        monto: Math.round(productoUbicacion.precio),
-        metodoPago: 1, // PayPal
-        MontoPayPal: Math.round(productoUbicacion.precio),
+        tipoTransaccion,
+        monto: total,
+        metodoPago: 1,
+        MontoPayPal: montoPayPal,
         productos: [linea],
-        puntosUtilizados: 0,
+        puntosUtilizados,
         datosAdicionales: {}
       };
-      console.log(transaccion.montoPayPal);
+      console.log(transaccion.MontoPayPal);
       const mensaje = {
         tipoMensaje: 1,
         ubicacionId: ubicacionId,
@@ -516,6 +530,53 @@ getProductosByUbicacion: async (ubicacionId) => {
       throw new Error(error.response?.data?.mensaje || 'Error al procesar transacción');
     }
   },
+
+  // Procesa la compra de varios productos (carrito) utilizando PayPal
+  procesarTransaccionMultiple: async (productosUbicacion, ubicacionId) => {
+    try {
+      if (!Array.isArray(productosUbicacion) || productosUbicacion.length === 0 || !ubicacionId) {
+        throw new Error("Productos y ubicación son requeridos");
+      }
+
+      const user = await apiService.getUserProfile();
+
+      const lineas = productosUbicacion.map(p => ({
+        idProducto: p.productoCanjeable.id,
+        nombreProducto: p.productoCanjeable.nombre,
+        categoria: p.categoria || "general",
+        cantidad: 1,
+        precioUnitario: Math.round(p.precio),
+        subTotal: Math.round(p.precio)
+      }));
+
+      const total = lineas.reduce((sum, l) => sum + l.subTotal, 0);
+
+      const transaccion = {
+        IdentificadorUsuario: user.id,
+        fechaTransaccion: new Date().toISOString(),
+        tipoTransaccion: 2,
+        monto: total,
+        metodoPago: 1,
+        MontoPayPal: total,
+        productos: lineas,
+        puntosUtilizados: 0,
+        datosAdicionales: {}
+      };
+
+      const mensaje = {
+        tipoMensaje: 1,
+        ubicacionId: ubicacionId,
+        tenantId: user.tenantId,
+        datos: { transaccion }
+      };
+
+      const response = await apiClient.post('nafta/transaccion', mensaje);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.mensaje || 'Error al procesar transacción');
+    }
+  },
+
 
   // Confirma un pago de PayPal con los datos devueltos por la aprobación
   confirmarPagoPaypal: async (paymentId, payerId) => {
@@ -542,6 +603,16 @@ getProductosByUbicacion: async (ubicacionId) => {
       throw new Error(error.response?.data?.message || 'Error al obtener el historial de canjes');
     }
   },
+
+  getTransaccionesByUsuario: async () => {
+    try {
+      const response = await apiClient.get(`usuario/historial-transacciones`);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error al obtener el historial de transacciones');
+    }
+  },
+
 
   generarCanjes: async (productoIds, ubicacionId) => {
     try {
