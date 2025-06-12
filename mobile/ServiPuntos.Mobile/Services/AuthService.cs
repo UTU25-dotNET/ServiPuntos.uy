@@ -1,35 +1,63 @@
+// AuthService.cs
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls;
-using ServiPuntos.Mobile.Models;
+using Refit;
 using static ServiPuntos.Mobile.Services.AppLogger;
-using System.Net.Http.Json;
 
 namespace ServiPuntos.Mobile.Services
 {
+    // Refit API interface
+    public interface IAuthApi
+    {
+        [Post("/signin")]
+        Task<SignInResponse> SignInAsync([Body] SignInRequest request);
+
+        [Post("/register")]
+        Task<ApiResponse<object>> RegisterAsync([Body] RegisterRequest request);
+
+        [Get("/userinfo")]
+        Task<UserInfo> GetUserInfoAsync();
+
+        [Post("/refresh-token")]
+        Task<SignInResponse> RefreshTokenAsync([Body] RefreshTokenRequest request);
+    }
+
+    // Service interface + implementation
+    public interface IAuthService
+    {
+        Task<bool> LoginWithGoogleAsync();
+        Task<SignInResponse?> SignInAsync(string email, string password);
+        Task<bool> IsAuthenticatedAsync();
+        Task<string?> GetTokenAsync();
+        Task LogoutAsync();
+        Task<UserInfo?> GetUserInfoAsync();
+        Task<bool> RegisterAsync(RegisterRequest request);
+        Task<bool> RefreshTokenAsync();
+    }
+
     public class AuthService : IAuthService
     {
+        private readonly IAuthApi _api;
         private readonly HttpClient _httpClient;
         private const string TOKEN_KEY = "auth_token";
 
-        public AuthService(HttpClient httpClient)
+        public AuthService(IAuthApi api, HttpClient httpClient)
         {
+            _api = api;
             _httpClient = httpClient;
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
         }
 
         public async Task<bool> LoginWithGoogleAsync()
         {
             try
             {
-                var authUrl = new Uri(_httpClient.BaseAddress, "google-login?mobile=true").ToString();
-                LogInfo($"[AuthService] Abrir navegador: {authUrl}");
-                await Browser.OpenAsync(authUrl, BrowserLaunchMode.SystemPreferred);
+                var url = new Uri(_httpClient.BaseAddress, "google-login?mobile=true").ToString();
+                LogInfo($"[AuthService] Abrir navegador: {url}");
+                await Browser.OpenAsync(url, BrowserLaunchMode.SystemPreferred);
                 return true;
             }
             catch (Exception ex)
@@ -44,55 +72,24 @@ namespace ServiPuntos.Mobile.Services
 
         public async Task<SignInResponse?> SignInAsync(string email, string password)
         {
-            LogInfo($"[AuthService] POST {_httpClient.BaseAddress}signin");
-            var req = new SignInRequest { Email = email, Password = password };
-            var payload = JsonSerializer.Serialize(req);
-            LogInfo($"[AuthService] Payload: {payload}");
-
-            HttpResponseMessage response;
             try
             {
-                response = await _httpClient.PostAsync("signin", new StringContent(payload, Encoding.UTF8, "application/json"));
-            }
-            catch (Exception ex)
-            {
-                LogError($"[AuthService] Error POST signin: {ex}");
-                throw;
-            }
+                var req = new SignInRequest { Email = email, Password = password };
+                var result = await _api.SignInAsync(req);
 
-            LogInfo($"[AuthService] StatusCode: {response.StatusCode}");
-            var body = await response.Content.ReadAsStringAsync();
-            LogInfo($"[AuthService] ResponseBody: {body}");
-
-            if (!response.IsSuccessStatusCode)
+                if (!string.IsNullOrEmpty(result.Token))
+                {
+                    await SecureStorage.SetAsync(TOKEN_KEY, result.Token);
+                    _httpClient.DefaultRequestHeaders.Authorization =
+                        new AuthenticationHeaderValue("Bearer", result.Token);
+                }
+                return result;
+            }
+            catch (ApiException ex)
             {
-                LogInfo("[AuthService] Signin falló, devolviendo null");
+                LogError($"[AuthService] SignIn error: {ex}");
                 return null;
             }
-
-            SignInResponse? result;
-            try
-            {
-                result = JsonSerializer.Deserialize<SignInResponse>(body, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            }
-            catch (Exception ex)
-            {
-                LogError($"[AuthService] Error al parsear SignInResponse: {ex}");
-                return null;
-            }
-
-            if (result?.Token is string token && token.Length > 0)
-            {
-                LogInfo("[AuthService] Guardando token");
-                await SaveTokenAsync(token);
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-            else
-            {
-                LogInfo("[AuthService] SignInResponse sin token");
-            }
-
-            return result;
         }
 
         public async Task<bool> IsAuthenticatedAsync()
@@ -102,9 +99,9 @@ namespace ServiPuntos.Mobile.Services
         {
             try
             {
-                var t = await SecureStorage.GetAsync(TOKEN_KEY);
-                LogInfo($"[AuthService] GetTokenAsync -> {(t == null ? "null" : t[..10] + "...")}");
-                return t;
+                var token = await SecureStorage.GetAsync(TOKEN_KEY);
+                LogInfo($"[AuthService] Token retrieved: {(token == null ? "null" : token[..10] + "...")}");
+                return token;
             }
             catch (Exception ex)
             {
@@ -119,7 +116,7 @@ namespace ServiPuntos.Mobile.Services
             {
                 SecureStorage.Remove(TOKEN_KEY);
                 _httpClient.DefaultRequestHeaders.Authorization = null;
-                LogInfo("[AuthService] Logout completado");
+                LogInfo("[AuthService] Logout completed");
             }
             catch (Exception ex)
             {
@@ -127,67 +124,97 @@ namespace ServiPuntos.Mobile.Services
             }
         }
 
-        public async Task SaveTokenAsync(string token)
+        public async Task<UserInfo?> GetUserInfoAsync()
         {
             try
             {
-                await SecureStorage.SetAsync(TOKEN_KEY, token);
-                LogInfo("[AuthService] Token guardado exitosamente");
+                return await _api.GetUserInfoAsync();
             }
-            catch (Exception ex)
+            catch (ApiException ex)
             {
-                LogError($"[AuthService] Error SaveTokenAsync: {ex}");
-            }
-        }
-
-        private const string USER_INFO_PATH = "../usuario/me";
-        public async Task<UserInfo?> GetUserInfoAsync()
-        {
-            LogInfo("[AuthService] GET USERINFO");
-            var response = await _httpClient.GetAsync(USER_INFO_PATH);
-            if (!response.IsSuccessStatusCode)
-            {
-                LogInfo($"[AuthService] GetUserInfoAsync falló: {response.StatusCode}");
+                LogError($"[AuthService] GetUserInfoAsync failed: {ex}");
                 return null;
             }
-            var json = await response.Content.ReadAsStringAsync();
-            LogInfo($"[AuthService] UserInfo body: {json}");
-            return JsonSerializer.Deserialize<UserInfo>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
 
         public async Task<bool> RegisterAsync(RegisterRequest request)
         {
-            LogInfo("[AuthService] POST register");
-            var response = await _httpClient.PostAsJsonAsync("register", request);
-            LogInfo($"[AuthService] Register Status: {response.StatusCode}");
-            return response.IsSuccessStatusCode;
+            try
+            {
+                var response = await _api.RegisterAsync(request);
+                return response.IsSuccessStatusCode;
+            }
+            catch (ApiException ex)
+            {
+                LogError($"[AuthService] RegisterAsync failed: {ex}");
+                return false;
+            }
         }
 
         public async Task<bool> RefreshTokenAsync()
         {
-            LogInfo("[AuthService] POST refresh-token");
-            var refreshToken = await SecureStorage.GetAsync("refresh_token");
-            if (string.IsNullOrEmpty(refreshToken))
+            try
             {
-                LogInfo("[AuthService] No hay refresh_token");
+                var refreshToken = await SecureStorage.GetAsync("refresh_token");
+                if (string.IsNullOrEmpty(refreshToken))
+                    return false;
+
+                var req = new RefreshTokenRequest { Token = refreshToken };
+                var result = await _api.RefreshTokenAsync(req);
+
+                if (!string.IsNullOrEmpty(result.Token))
+                {
+                    await SecureStorage.SetAsync(TOKEN_KEY, result.Token);
+                    await SecureStorage.SetAsync("refresh_token", result.RefreshToken ?? "");
+                    _httpClient.DefaultRequestHeaders.Authorization =
+                        new AuthenticationHeaderValue("Bearer", result.Token);
+                    return true;
+                }
                 return false;
             }
-
-            var response = await _httpClient.PostAsJsonAsync("refresh-token", new { token = refreshToken });
-            LogInfo($"[AuthService] RefreshToken Status: {response.StatusCode}");
-            if (!response.IsSuccessStatusCode) return false;
-
-            var auth = JsonSerializer.Deserialize<SignInResponse>(
-                await response.Content.ReadAsStringAsync(),
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-            );
-            if (auth?.Token is null) return false;
-
-            await SecureStorage.SetAsync("auth_token", auth.Token);
-            await SecureStorage.SetAsync("refresh_token", auth.RefreshToken!);
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.Token);
-            LogInfo("[AuthService] RefreshToken completado");
-            return true;
+            catch (ApiException ex)
+            {
+                LogError($"[AuthService] RefreshTokenAsync failed: {ex}");
+                return false;
+            }
         }
+    }
+
+    // DTOs
+    public class SignInRequest
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+    public class SignInResponse
+    {
+        public string Token { get; set; } = string.Empty;
+        public string UserId { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
+        public string TenantId { get; set; } = string.Empty;
+        public bool IsMobile { get; set; }
+        public string? RefreshToken { get; set; }
+    }
+    public class RegisterRequest
+    {
+        public string Nombre { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public string Ci { get; set; } = string.Empty;
+        public Guid TenantId { get; set; }
+    }
+    public class RefreshTokenRequest
+    {
+        public string Token { get; set; } = string.Empty;
+    }
+    public class UserInfo
+    {
+        public string? UserId { get; set; }
+        public string? Name { get; set; }
+        public string? Email { get; set; }
+        public string? TenantId { get; set; }
+        public string? Role { get; set; }
     }
 }

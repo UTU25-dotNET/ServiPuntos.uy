@@ -1,41 +1,50 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Http.Json;
+using System.Linq;
 using System.Threading.Tasks;
+using Refit;
 using ServiPuntos.Mobile.Models;
 
 namespace ServiPuntos.Mobile.Services
 {
+    // Interfaz Refit para llamar al endpoint
+    public interface IProductoApi
+    {
+        // GET api/productoUbicacion/ubicacion/{ubicacionId}
+        [Get("/ubicacion/{ubicacionId}")]
+        Task<List<ProductoUbicacionDto>> GetByUbicacionAsync(string ubicacionId);
+    }
+
+    // Servicio y su interfaz combinados
+    public interface IProductoService
+    {
+        Task<List<ProductoUbicacionDto>> GetProductosPorUbicacionAsync(string ubicacionId);
+        Task<int> GetStockAsync(string ubicacionId, string productoCanjeableId);
+    }
+
     public class ProductoService : IProductoService
     {
-        private readonly HttpClient _httpClient;
+        private readonly IProductoApi _api;
 
-        public ProductoService(HttpClient httpClient)
+        public ProductoService(IProductoApi api)
         {
-            _httpClient = httpClient;
+            _api = api;
         }
 
-        public async Task<List<ProductoCanjeableDto>> GetProductosPorUbicacionAsync(string ubicacionId)
+        public async Task<List<ProductoUbicacionDto>> GetProductosPorUbicacionAsync(string ubicacionId)
         {
-
-            var list = await _httpClient.GetFromJsonAsync<List<ProductoCanjeableDto>>(
-                $"ubicacion/{ubicacionId}/productos");
-
-
-            return list ?? new List<ProductoCanjeableDto>();
+            var productos = await _api.GetByUbicacionAsync(ubicacionId);
+            return productos ?? new List<ProductoUbicacionDto>();
         }
 
-        public async Task<int> GetStockAsync(string ubicacionId, string productoId)
+        public async Task<int> GetStockAsync(string ubicacionId, string productoCanjeableId)
         {
+            if (!Guid.TryParse(productoCanjeableId, out var pid))
+                throw new ArgumentException("ID de producto no válido", nameof(productoCanjeableId));
 
-            var resp = await _httpClient.GetAsync(
-                $"ubicacion/{ubicacionId}/stock/{productoId}");
-            resp.EnsureSuccessStatusCode();
-
-
-            var stock = await resp.Content.ReadFromJsonAsync<int?>();
-            return stock.GetValueOrDefault();
+            var productos = await GetProductosPorUbicacionAsync(ubicacionId);
+            var item = productos.FirstOrDefault(p => p.ProductoCanjeableId == pid);
+            return item?.StockDisponible ?? 0;
         }
     }
 }

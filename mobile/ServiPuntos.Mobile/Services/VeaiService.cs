@@ -1,20 +1,43 @@
-using System.Net.Http;
-using System.Net.Http.Json;
+using System;
 using System.Threading.Tasks;
+using Refit;
 using ServiPuntos.Mobile.Models;
 
 namespace ServiPuntos.Mobile.Services
 {
+    // Refit API interface para verify endpoints
+    public interface IVeaiApi
+    {
+        // GET api/verify/age_verify?cedula={cedula}
+        [Get("/age_verify")]
+        Task<VeaiResponse> VerifyAgeAsync([AliasAs("cedula")] string cedula);
+    }
+
+    // Servicio y su interfaz combinados para VEAI
+    public interface IVeaiService
+    {
+        Task<VeaiResponse?> VerifyAgeAsync(string cedula);
+    }
+
     public class VeaiService : IVeaiService
     {
-        private readonly HttpClient _httpClient;
-        public VeaiService(HttpClient httpClient) => _httpClient = httpClient;
+        private readonly IVeaiApi _api;
+
+        public VeaiService(IVeaiApi api)
+        {
+            _api = api;
+        }
 
         public async Task<VeaiResponse?> VerifyAgeAsync(string cedula)
         {
-            var resp = await _httpClient.GetAsync($"age_verify?cedula={cedula}");
-            if (!resp.IsSuccessStatusCode) return null;
-            return await resp.Content.ReadFromJsonAsync<VeaiResponse>();
+            try
+            {
+                return await _api.VerifyAgeAsync(cedula);
+            }
+            catch (ApiException)
+            {
+                return null;
+            }
         }
     }
 }

@@ -1,46 +1,120 @@
-using ServiPuntos.Mobile.Models;
-using System.Net.Http;
-using System.Net.Http.Json;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Refit;
+using ServiPuntos.Mobile.Models;
 
 namespace ServiPuntos.Mobile.Services
 {
+    // Refit API interface para UsuarioController
+    public interface IUsuarioApi
+    {
+        // GET api/usuario/email/{email}
+        [Get("/email/{email}")]
+        Task<Usuario> GetByEmailAsync(string email);
+
+        // GET api/usuario/{id}
+        [Get("/{id}")]
+        Task<Usuario> GetByIdAsync(string id);
+
+        // PUT api/usuario/{id}
+        [Put("/{id}")]
+        Task<ApiResponse<object>> UpdateAsync(string id, [Body] Usuario usuario);
+
+        // GET api/usuario/historial-transacciones
+        [Get("/historial-transacciones")]
+        Task<List<TransactionSummary>> GetHistoryAsync();
+
+        // ** NUEVO ** GET api/usuario/balance
+        [Get("/balance")]
+        Task<int> GetBalanceAsync();
+    }
+
+    // Servicio de alto nivel para el cliente MAUI
+    public interface IUserService
+    {
+        Task<Usuario?> GetPerfilByEmailAsync(string email);
+        Task<Usuario?> GetPerfilByIdAsync(string id);
+        Task<bool> UpdatePerfilAsync(Usuario usuario);
+        Task<List<TransactionSummary>?> GetRecentTransactionsAsync();
+
+        // ** NUEVO ** expuesto para HomeViewModel
+        Task<int> GetBalanceAsync();
+    }
+
     public class UserService : IUserService
     {
-        private readonly HttpClient _httpClient;
-        private const string BASE_URL = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/usuario";
+        private readonly IUsuarioApi _api;
 
-        public UserService(HttpClient httpClient)
+        public UserService(IUsuarioApi api)
         {
-            _httpClient = httpClient;
+            _api = api;
         }
 
-
         public async Task<Usuario?> GetPerfilByEmailAsync(string email)
-            => await _httpClient.GetFromJsonAsync<Usuario>($"{BASE_URL}/email/{email}");
+        {
+            try
+            {
+                return await _api.GetByEmailAsync(email);
+            }
+            catch (ApiException)
+            {
+                return null;
+            }
+        }
 
         public async Task<Usuario?> GetPerfilByIdAsync(string id)
-            => await _httpClient.GetFromJsonAsync<Usuario>($"{BASE_URL}/{id}");
+        {
+            try
+            {
+                return await _api.GetByIdAsync(id);
+            }
+            catch (ApiException)
+            {
+                return null;
+            }
+        }
 
         public async Task<bool> UpdatePerfilAsync(Usuario usuario)
         {
-            var resp = await _httpClient.PutAsJsonAsync($"{BASE_URL}/{usuario.Id}", usuario);
-            return resp.IsSuccessStatusCode;
+            try
+            {
+                var response = await _api.UpdateAsync(usuario.Id.ToString(), usuario);
+                return response.IsSuccessStatusCode;
+            }
+            catch (ApiException)
+            {
+                return false;
+            }
         }
-
-
 
         public async Task<List<TransactionSummary>?> GetRecentTransactionsAsync()
-            => await _httpClient.GetFromJsonAsync<List<TransactionSummary>>($"{BASE_URL}/historial?limit=5");
-
-        public async Task<int> GetBalanceAsync()
         {
-            var resp = await _httpClient.GetAsync("balance");
-            resp.EnsureSuccessStatusCode();
-            return await resp.Content.ReadFromJsonAsync<int>();
+            try
+            {
+                var all = await _api.GetHistoryAsync();
+                // Devuelve sólo las 5 transacciones más recientes
+                return all.OrderByDescending(t => t.Fecha).Take(5).ToList();
+            }
+            catch (ApiException)
+            {
+                return null;
+            }
         }
 
-
+        // **Implementación del balance**
+        public async Task<int> GetBalanceAsync()
+        {
+            try
+            {
+                return await _api.GetBalanceAsync();
+            }
+            catch (ApiException)
+            {
+                // En caso de error devolvemos 0 o podrías lanzar
+                return 0;
+            }
+        }
     }
 }

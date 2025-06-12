@@ -1,23 +1,47 @@
+// TransactionService.cs
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Http.Json;
 using System.Threading.Tasks;
+using Refit;
 using ServiPuntos.Mobile.Models;
 
 namespace ServiPuntos.Mobile.Services
 {
+    // Refit API interface
+    public interface ITransactionApi
+    {
+        // GET api/usuario/historial-transacciones
+        [Get("/historial-transacciones")]
+        Task<IEnumerable<TransactionDto>> GetTransactionsAsync();
+    }
+
+    // Service interface
+    public interface ITransactionService
+    {
+        Task<IEnumerable<TransactionDto>> GetUserTransactionsAsync();
+    }
+
+    // Service implementation using Refit
     public class TransactionService : ITransactionService
     {
-        private readonly HttpClient _httpClient;
-        public TransactionService(HttpClient httpClient) => _httpClient = httpClient;
+        private readonly ITransactionApi _api;
 
-        public async Task<IEnumerable<TransactionDto>> GetUserTransactionsAsync(string userId)
+        public TransactionService(ITransactionApi api)
         {
-            var resp = await _httpClient.GetAsync($"usuario/{userId}");
-            resp.EnsureSuccessStatusCode();
-            return await resp.Content.ReadFromJsonAsync<IEnumerable<TransactionDto>>()
-                   ?? Array.Empty<TransactionDto>();
+            _api = api;
+        }
+
+        public async Task<IEnumerable<TransactionDto>> GetUserTransactionsAsync()
+        {
+            try
+            {
+                var list = await _api.GetTransactionsAsync();
+                return list ?? Array.Empty<TransactionDto>();
+            }
+            catch (ApiException ex)
+            {
+                throw new InvalidOperationException($"Error al obtener transacciones: {ex.StatusCode}", ex);
+            }
         }
     }
 }

@@ -1,42 +1,81 @@
-
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Threading.Tasks;
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Refit;
 using ServiPuntos.Mobile.Models;
 
 namespace ServiPuntos.Mobile.Services
 {
+    // Refit API interface para UbicacionController
+    public interface IUbicacionApi
+    {
+        // GET api/ubicacion/tenant/{tenantId}
+        [Get("/tenant/{tenantId}")]
+        Task<List<Ubicacion>> GetByTenantAsync(string tenantId);
+
+        // GET api/ubicacion/nearby?lat={lat}&lng={lng}&radius={radiusKm}
+        [Get("/nearby")]
+        Task<IEnumerable<UbicacionDto>> GetNearbyAsync(
+            [AliasAs("lat")] double latitude,
+            [AliasAs("lng")] double longitude,
+            [AliasAs("radius")] double radiusKm);
+
+        // GET api/ubicacion
+        [Get("")]
+        Task<List<Ubicacion>> GetAllAsync();
+    }
+
+    // Servicio y su interfaz combinados
     public interface IUbicacionService
     {
         Task<List<Ubicacion>> GetUbicacionesTenantAsync(string tenantId);
         Task<IEnumerable<UbicacionDto>> GetNearbyAsync(double lat, double lng, double radiusKm);
-
         Task<List<Ubicacion>> GetAllAsync();
-
     }
 
     public class UbicacionService : IUbicacionService
     {
-        private readonly HttpClient _httpClient;
-        public UbicacionService(HttpClient httpClient) => _httpClient = httpClient;
+        private readonly IUbicacionApi _api;
 
+        public UbicacionService(IUbicacionApi api)
+        {
+            _api = api;
+        }
 
-        public Task<List<Ubicacion>> GetUbicacionesTenantAsync(string tenantId) =>
-            _httpClient.GetFromJsonAsync<List<Ubicacion>>($"{tenantId}");
+        public async Task<List<Ubicacion>> GetUbicacionesTenantAsync(string tenantId)
+        {
+            try
+            {
+                return await _api.GetByTenantAsync(tenantId);
+            }
+            catch (ApiException)
+            {
+                return new List<Ubicacion>();
+            }
+        }
 
         public async Task<IEnumerable<UbicacionDto>> GetNearbyAsync(double lat, double lng, double radiusKm)
         {
-            var url = $"nearby?lat={lat}&lng={lng}&radius={radiusKm}";
-            var resp = await _httpClient.GetAsync(url);
-            resp.EnsureSuccessStatusCode();
-            return await resp.Content.ReadFromJsonAsync<IEnumerable<UbicacionDto>>()
-                   ?? Array.Empty<UbicacionDto>();
+            try
+            {
+                return await _api.GetNearbyAsync(lat, lng, radiusKm);
+            }
+            catch (ApiException)
+            {
+                return Array.Empty<UbicacionDto>();
+            }
         }
 
-        public Task<List<Ubicacion>> GetAllAsync() =>
-            _httpClient.GetFromJsonAsync<List<Ubicacion>>("");
-
-
+        public async Task<List<Ubicacion>> GetAllAsync()
+        {
+            try
+            {
+                return await _api.GetAllAsync();
+            }
+            catch (ApiException)
+            {
+                return new List<Ubicacion>();
+            }
+        }
     }
 }
