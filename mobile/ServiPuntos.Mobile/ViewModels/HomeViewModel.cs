@@ -1,10 +1,11 @@
-
-using ServiPuntos.Mobile.Models;
-using ServiPuntos.Mobile.Services;
+using System;
+using System.Linq;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Microsoft.Maui.Controls;
+using ServiPuntos.Mobile.Models;
+using ServiPuntos.Mobile.Services;
 
 namespace ServiPuntos.Mobile.ViewModels
 {
@@ -17,6 +18,7 @@ namespace ServiPuntos.Mobile.ViewModels
             _userService = userService;
             Transactions = new ObservableCollection<TransactionSummary>();
             LoadDataCommand = new Command(async () => await LoadDataAsync());
+
 
             LoadDataCommand.Execute(null);
         }
@@ -50,28 +52,29 @@ namespace ServiPuntos.Mobile.ViewModels
         {
             if (IsBusy) return;
             IsBusy = true;
-
             try
             {
-                var balance = await _userService.GetBalanceAsync();
-                if (balance != null)
-                {
-                    Saldo = balance.Saldo;
-                    PuntosAcumuladosMes = balance.PuntosAcumuladosMes;
-                }
+
+                Saldo = await _userService.GetBalanceAsync();
+
 
                 Transactions.Clear();
-                var list = await _userService.GetRecentTransactionsAsync();
-                if (list != null)
-                {
-                    foreach (var item in list)
-                        Transactions.Add(item);
-                }
+                var list = await _userService.GetRecentTransactionsAsync()
+                           ?? new List<TransactionSummary>();
+                foreach (var item in list)
+                    Transactions.Add(item);
+
+
+                var hoy = DateTime.Today;
+                PuntosAcumuladosMes = list
+                    .Where(t => t.Fecha.Month == hoy.Month && t.Fecha.Year == hoy.Year)
+                    .Sum(t => t.Puntos);
             }
             finally
             {
                 IsBusy = false;
             }
         }
+
     }
 }

@@ -1,6 +1,10 @@
+using System;
+using System.Net.Http;
 using System.Windows.Input;
+using Microsoft.Maui.Controls;
 using ServiPuntos.Mobile.Models;
 using ServiPuntos.Mobile.Services;
+using static ServiPuntos.Mobile.Services.AppLogger;
 
 namespace ServiPuntos.Mobile.ViewModels
 {
@@ -10,21 +14,21 @@ namespace ServiPuntos.Mobile.ViewModels
 
         public TenantConfig Tenant { get; set; }
 
-        private string _username;
+        private string _username = "";
         public string Username
         {
             get => _username;
             set { _username = value; OnPropertyChanged(); }
         }
 
-        private string _password;
+        private string _password = "";
         public string Password
         {
             get => _password;
             set { _password = value; OnPropertyChanged(); }
         }
 
-        private string _errorMessage;
+        private string _errorMessage = "";
         public string ErrorMessage
         {
             get => _errorMessage;
@@ -55,10 +59,10 @@ namespace ServiPuntos.Mobile.ViewModels
                 SecondaryColor = "#FFFFFF"
             };
 
-            LoginCommand = new Command(OnLogin);
+            LoginCommand = new Command(async () => await ExecuteLoginAsync());
         }
 
-        private async void OnLogin()
+        private async Task ExecuteLoginAsync()
         {
             ErrorMessage = "";
             IsLoading = true;
@@ -72,27 +76,31 @@ namespace ServiPuntos.Mobile.ViewModels
 
             try
             {
+                LogInfo($"[LoginVM] Iniciando SignInAsync con {Username}");
                 var response = await _authService.SignInAsync(Username, Password);
+                LogInfo($"[LoginVM] SignInAsync respondió: {(response == null ? "null" : "token=" + response.Token)}");
 
                 if (response != null && !string.IsNullOrEmpty(response.Token))
                 {
-
                     await Application.Current.MainPage.DisplayAlert("Éxito", "Login exitoso", "OK");
-                    await Shell.Current.GoToAsync("MainPage");
-
+                    LogInfo("[LoginVM] Navegando a MainPage");
+                    await Shell.Current.GoToAsync("//home"); // o la ruta que uses
                 }
                 else
                 {
                     ErrorMessage = "Email o contraseña incorrectos.";
+                    LogInfo("[LoginVM] Credenciales inválidas");
                 }
             }
-            catch (HttpRequestException)
+            catch (HttpRequestException ex)
             {
                 ErrorMessage = "Email o contraseña incorrectos.";
+                LogError($"[LoginVM] HttpRequestException en SignInAsync: {ex}");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 ErrorMessage = "Error de conexión. Inténtalo de nuevo.";
+                LogError($"[LoginVM] Excepción inesperada en SignInAsync: {ex}");
             }
             finally
             {

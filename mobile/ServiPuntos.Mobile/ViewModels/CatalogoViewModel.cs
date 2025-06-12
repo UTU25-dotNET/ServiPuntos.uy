@@ -1,47 +1,80 @@
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Input;
 using System.Collections.ObjectModel;
+using Microsoft.Maui.Controls;
 using ServiPuntos.Mobile.Models;
 using ServiPuntos.Mobile.Services;
 
-public class CatalogoViewModel : BindableObject
+namespace ServiPuntos.Mobile.ViewModels
 {
-    private readonly ProductoService _productoService;
-    private readonly UbicacionService _ubicacionService;
-    private readonly string _tenantId;
-
-    public ObservableCollection<ProductoCanjeable> Productos { get; set; } = new();
-    public ObservableCollection<Ubicacion> Ubicaciones { get; set; } = new();
-
-    private Ubicacion _ubicacionSeleccionada;
-    public Ubicacion UbicacionSeleccionada
+    public class CatalogoViewModel : BindableObject
     {
-        get => _ubicacionSeleccionada;
-        set { _ubicacionSeleccionada = value; OnPropertyChanged(); if (value != null) CargarProductos(); }
-    }
+        private readonly IProductoService _productoService;
+        private readonly IUbicacionService _ubicacionService;
 
-    public CatalogoViewModel(ProductoService productoService, UbicacionService ubicacionService, string tenantId)
-    {
-        _productoService = productoService;
-        _ubicacionService = ubicacionService;
-        _tenantId = tenantId;
-        CargarUbicaciones();
-    }
 
-    private async void CargarUbicaciones()
-    {
-        var list = await _ubicacionService.GetUbicacionesTenantAsync(_tenantId);
-        Ubicaciones.Clear();
-        foreach (var u in list)
-            Ubicaciones.Add(u);
+        public ObservableCollection<Ubicacion> Ubicaciones { get; }
+            = new ObservableCollection<Ubicacion>();
 
-        UbicacionSeleccionada = Ubicaciones.FirstOrDefault();
-    }
+        private Ubicacion _ubicacionSeleccionada;
+        public Ubicacion UbicacionSeleccionada
+        {
+            get => _ubicacionSeleccionada;
+            set
+            {
+                if (_ubicacionSeleccionada == value) return;
+                _ubicacionSeleccionada = value;
+                OnPropertyChanged();
+                _ = CargarProductosAsync();
+            }
+        }
 
-    private async void CargarProductos()
-    {
-        if (UbicacionSeleccionada == null) return;
-        var productos = await _productoService.GetProductosPorUbicacionAsync(UbicacionSeleccionada.Id);
-        Productos.Clear();
-        foreach (var p in productos)
-            Productos.Add(p);
+        public ObservableCollection<ProductoCanjeableDto> Productos { get; }
+            = new ObservableCollection<ProductoCanjeableDto>();
+
+        public ICommand RefreshCommand { get; }
+
+        public CatalogoViewModel(
+            IProductoService productoService,
+            IUbicacionService ubicacionService)
+        {
+            _productoService = productoService;
+            _ubicacionService = ubicacionService;
+
+            RefreshCommand = new Command(async () => await CargarProductosAsync());
+            _ = CargarUbicacionesAsync();
+        }
+
+        private async Task CargarUbicacionesAsync()
+        {
+            var list = await _ubicacionService.GetAllAsync();
+            Ubicaciones.Clear();
+            foreach (var u in list)
+                Ubicaciones.Add(u);
+
+            UbicacionSeleccionada = Ubicaciones.FirstOrDefault();
+        }
+
+        private async Task CargarProductosAsync()
+        {
+            if (_ubicacionSeleccionada == null) return;
+
+
+            var ubicId = _ubicacionSeleccionada.Id;
+
+
+            var list = await _productoService.GetProductosPorUbicacionAsync(ubicId);
+            Productos.Clear();
+
+            foreach (var dto in list)
+            {
+
+                dto.StockDisponible = await _productoService
+                    .GetStockAsync(ubicId, dto.Id.ToString());
+
+                Productos.Add(dto);
+            }
+        }
     }
 }

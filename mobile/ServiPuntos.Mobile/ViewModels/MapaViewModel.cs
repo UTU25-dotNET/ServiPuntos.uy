@@ -1,91 +1,102 @@
-using System.Collections.ObjectModel;
+using System;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Input;
+using System.Collections.ObjectModel;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Devices.Sensors;
 using ServiPuntos.Mobile.Models;
 using ServiPuntos.Mobile.Services;
-using Microsoft.Maui.Controls;
-using System.Windows.Input;
-using System.Threading.Tasks;
 
-public class MapaViewModel : BindableObject
+namespace ServiPuntos.Mobile.ViewModels
 {
-    private readonly UbicacionService _ubicacionService;
-    private readonly string _tenantId;
-
-    public ObservableCollection<Ubicacion> Ubicaciones { get; } = new();
-    public ObservableCollection<string> Ciudades { get; } = new();
-
-    private string _ciudadSeleccionada;
-    public string CiudadSeleccionada
+    public class MapaViewModel : BindableObject
     {
-        get => _ciudadSeleccionada;
-        set { _ciudadSeleccionada = value; OnPropertyChanged(); AplicarFiltros(); }
-    }
+        private readonly IUbicacionService _ubicService;
 
-    private bool _filtrarLavado;
-    public bool FiltrarLavado
-    {
-        get => _filtrarLavado;
-        set { _filtrarLavado = value; OnPropertyChanged(); AplicarFiltros(); }
-    }
+        public ObservableCollection<UbicacionDto> Estaciones { get; }
+            = new ObservableCollection<UbicacionDto>();
 
-    private bool _filtrarCambioAceite;
-    public bool FiltrarCambioAceite
-    {
-        get => _filtrarCambioAceite;
-        set { _filtrarCambioAceite = value; OnPropertyChanged(); AplicarFiltros(); }
-    }
+        public ObservableCollection<string> Ciudades { get; }
+            = new ObservableCollection<string>();
 
-    private decimal _precioNaftaSuperMax = 200;
-    public decimal PrecioNaftaSuperMax
-    {
-        get => _precioNaftaSuperMax;
-        set { _precioNaftaSuperMax = value; OnPropertyChanged(); AplicarFiltros(); }
-    }
+        private string _ciudadSeleccionada;
+        public string CiudadSeleccionada
+        {
+            get => _ciudadSeleccionada;
+            set
+            {
+                if (_ciudadSeleccionada == value) return;
+                _ciudadSeleccionada = value;
+                OnPropertyChanged();
+            }
+        }
 
-    private List<Ubicacion> _todasLasUbicaciones;
+        public double RadioKm { get; set; } = 5;
 
-    public MapaViewModel(UbicacionService ubicacionService, string tenantId)
-    {
-        _ubicacionService = ubicacionService;
-        _tenantId = tenantId;
-        CargarUbicacionesCommand = new Command(async () => await CargarUbicacionesAsync());
-        CargarUbicacionesCommand.Execute(null);
-    }
+        public ICommand LoadCommand { get; }
 
-    public ICommand CargarUbicacionesCommand { get; }
+        public MapaViewModel(IUbicacionService ubicService)
+        {
+            _ubicService = ubicService;
+            LoadCommand = new Command(async () => await LoadAsync());
+            _ = InicializarCiudadesAsync();
+        }
 
-    private async Task CargarUbicacionesAsync()
-    {
-        Ubicaciones.Clear();
-        _todasLasUbicaciones = await _ubicacionService.GetUbicacionesTenantAsync(_tenantId) ?? new List<Ubicacion>();
-        var ciudadesUnicas = _todasLasUbicaciones
-            .Select(u => u.Ciudad)
-            .Where(c => !string.IsNullOrEmpty(c))
-            .Distinct()
-            .OrderBy(c => c)
-            .ToList();
-        Ciudades.Clear();
-        foreach (var ciudad in ciudadesUnicas)
-            Ciudades.Add(ciudad);
+        private async Task InicializarCiudadesAsync()
+        {
+            var todas = await _ubicService.GetAllAsync();
+            var ciudades = todas
+                .Select(u => u.Ciudad)
+                .Distinct()
+                .OrderBy(c => c);
 
-        CiudadSeleccionada = Ciudades.FirstOrDefault();
-        AplicarFiltros();
-    }
+            Ciudades.Clear();
+            foreach (var ciudad in ciudades)
+                Ciudades.Add(ciudad);
 
-    private void AplicarFiltros()
-    {
-        if (_todasLasUbicaciones == null)
-            return;
+            CiudadSeleccionada = Ciudades.FirstOrDefault() ?? "";
+        }
 
-        var filtradas = _todasLasUbicaciones
-            .Where(u => string.IsNullOrEmpty(CiudadSeleccionada) || u.Ciudad == CiudadSeleccionada)
-            .Where(u => !FiltrarLavado || u.Lavado)
-            .Where(u => !FiltrarCambioAceite || u.CambioDeAceite)
-            .Where(u => u.PrecioNaftaSuper <= PrecioNaftaSuperMax)
-            .ToList();
+        private async Task LoadAsync()
+        {
 
-        Ubicaciones.Clear();
-        foreach (var u in filtradas)
-            Ubicaciones.Add(u);
+            var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
+            if (status != PermissionStatus.Granted)
+                status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+
+            if (status != PermissionStatus.Granted)
+            {
+                await Application.Current.MainPage.DisplayAlert(
+                    "Permiso denegado",
+                    "Necesitamos tu ubicación para mostrar estaciones cercanas.",
+                    "OK");
+                return;
+            }
+
+
+            var location = await Geolocation.GetLastKnownLocationAsync()
+                           ?? await Geolocation.GetLocationAsync(
+                                new GeolocationRequest(
+                                    GeolocationAccuracy.Medium,
+                                    TimeSpan.FromSeconds(10)));
+            if (location == null) return;
+
+
+            var lista = await _ubicService.GetNearbyAsync(
+                location.Latitude,
+                location.Longitude,
+                RadioKm);
+
+
+            if (!string.IsNullOrEmpty(CiudadSeleccionada))
+                lista = lista.Where(u => u.Ciudad == CiudadSeleccionada).ToList();
+
+
+            Estaciones.Clear();
+            foreach (var u in lista)
+                Estaciones.Add(u);
+        }
     }
 }
