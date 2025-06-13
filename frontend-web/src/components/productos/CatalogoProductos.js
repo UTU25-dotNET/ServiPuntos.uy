@@ -22,6 +22,8 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
   const [mostrarPuntosModal, setMostrarPuntosModal] = useState(false);
   const [productoMixto, setProductoMixto] = useState(null);
   const [maxPuntosMixto, setMaxPuntosMixto] = useState(0);
+  const [mostrarPuntosCarrito, setMostrarPuntosCarrito] = useState(false);
+  const [maxPuntosCarrito, setMaxPuntosCarrito] = useState(0);
 
   useEffect(() => {
     const loadProductos = async () => {
@@ -164,11 +166,21 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
     }
   };
 
-  const handleComprarCarrito = async () => {
+  const handleComprarCarrito = async (puntos = 0) => {
     setCompraLoading(true);
     setCompraError("");
     try {
-      const result = await apiService.procesarTransaccionMultiple(carrito, ubicacion.id);
+      let result;
+      if (puntos > 0) {
+        result = await apiService.procesarTransaccionMultipleMixto(
+          carrito,
+          ubicacion.id,
+          puntos,
+          tenantInfo?.valorPunto || 0
+        );
+      } else {
+        result = await apiService.procesarTransaccionMultiple(carrito, ubicacion.id);
+      }
       if (result?.codigo === "PENDING_PAYMENT" && result.datos?.approvalUrl) {
         window.location.href = result.datos.approvalUrl;
       } else if (result?.codigo !== "OK") {
@@ -181,6 +193,22 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
     } finally {
       setCompraLoading(false);
     }
+  };
+
+  const handleComprarCarritoMixto = () => {
+    if (!tenantInfo || !userProfile || carrito.length === 0) return;
+    const valorPunto = tenantInfo.valorPunto || 0;
+    const puntosUsuario = userProfile.puntos || 0;
+    const total = carrito.reduce((sum, p) => sum + (p.precio || 0), 0);
+    const max = Math.min(puntosUsuario, Math.floor(total / valorPunto));
+    if (max <= 0) return handleComprarCarrito();
+    setMaxPuntosCarrito(max);
+    setMostrarPuntosCarrito(true);
+  };
+
+  const confirmarCompraCarritoMixto = async (puntos) => {
+    setMostrarPuntosCarrito(false);
+    await handleComprarCarrito(puntos);
   };
 
   const totalCarrito = carrito.reduce((sum, p) => sum + (p.precio || 0), 0);
@@ -484,28 +512,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
 
           {!loading && productos.length > 0 && (
             <>
-              {/* Información resumida */}
-              <div
-                style={{
-                  marginBottom: "1.5rem",
-                  padding: "1rem",
-                  backgroundColor: "#e3f2fd",
-                  borderRadius: "8px",
-                  border: "1px solid #bbdefb",
-                  textAlign: "center"
-                }}
-              >
-                <p
-                  style={{
-                    margin: "0",
-                    color: "#1976d2",
-                    fontWeight: "600",
-                    fontSize: "1.1rem"
-                  }}
-                >
-                  🏅 {productos.length} producto{productos.length !== 1 ? "s" : ""} disponible{productos.length !== 1 ? "s" : ""} para canje
-                </p>
-              </div>
+            
 
               {categorias.length > 0 && (
                 <div className="mb-3 text-center">
@@ -545,15 +552,19 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                           key={p.id}
                           className="list-group-item d-flex justify-content-between align-items-center"
                         >
-                          <span>
-                            {p.productoCanjeable.nombre} x{p.cantidad}
-                          </span>
-                          <button
-                            className="btn btn-sm btn-outline-danger"
-                            onClick={() => quitarDelCarrito(p.id)}
-                          >
-                            ✕
-                          </button>
+                          <div>
+                            {p.productoCanjeable.nombre}
+                            <span className="badge bg-secondary ms-2">{p.cantidad}</span>
+                          </div>
+                          <div className="d-flex align-items-center gap-2">
+                            <small className="text-muted">{formatPrecio(p.precio * p.cantidad)}</small>
+                            <button
+                              className="btn btn-sm btn-outline-danger"
+                              onClick={() => quitarDelCarrito(p.id)}
+                            >
+                              ✕
+                            </button>
+                          </div>
                         </li>
                       ))}
                     </ul>
@@ -567,6 +578,15 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                         >
                           Comprar carrito
                         </button>
+                        {tenantInfo && (
+                          <button
+                            className="btn btn-info"
+                            onClick={handleComprarCarritoMixto}
+                            disabled={compraLoading}
+                          >
+                            {`Dinero + ${tenantInfo.nombrePuntos || "Puntos"}`}
+                          </button>
+                        )}
                         <button
                           className="btn btn-success"
                           onClick={handleCanjearCarrito}
@@ -867,14 +887,24 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
           </button>
         </div>
       </div>
-    </div><SeleccionarPuntosModal
+    </div>
+    <SeleccionarPuntosModal
         isOpen={mostrarPuntosModal}
         onClose={() => setMostrarPuntosModal(false)}
         maxPuntos={maxPuntosMixto}
         valorPunto={tenantInfo?.valorPunto || 0}
         precio={productoMixto?.precio || 0}
         nombrePuntos={tenantInfo?.nombrePuntos}
-        onConfirm={confirmarCompraMixta} /></>
+        onConfirm={confirmarCompraMixta} />
+    <SeleccionarPuntosModal
+        isOpen={mostrarPuntosCarrito}
+        onClose={() => setMostrarPuntosCarrito(false)}
+        maxPuntos={maxPuntosCarrito}
+        valorPunto={tenantInfo?.valorPunto || 0}
+        precio={totalCarrito}
+        nombrePuntos={tenantInfo?.nombrePuntos}
+        onConfirm={confirmarCompraCarritoMixto} />
+    </>
   );
 };
 
