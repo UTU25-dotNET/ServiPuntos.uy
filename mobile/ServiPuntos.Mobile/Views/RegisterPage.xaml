@@ -2,18 +2,22 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="ServiPuntos.Mobile.Views.RegisterPage"
              Title="Registro">
-    <StackLayout Padding="20"
-            VerticalOptions="Center">
-        <Entry Placeholder="Usuario"
-                Text="{Binding Usuario}"/>
-        <Entry Placeholder="Email"
-                Text="{Binding Email}"/>
-        <Entry Placeholder="Nombre completo"
-                Text="{Binding Nombre}"/>
-        <Entry Placeholder="Contraseña"
-                IsPassword="True"
-                Text="{Binding Password}"/>
-        <Button Text="Registrar"
-                Command="{Binding RegisterCommand}"/>
-    </StackLayout>
+        <StackLayout Padding="20"
+                     VerticalOptions="Center">
+                <Entry Placeholder="Nombre completo"
+                       Text="{Binding Nombre}"/>
+                <Entry Placeholder="Email"
+                       Keyboard="Email"
+                       Text="{Binding Email}"/>
+                <Entry Placeholder="Cédula de Identidad"
+                       Keyboard="Numeric"
+                       Text="{Binding Ci}"/>
+                <Entry Placeholder="Contraseña"
+                       IsPassword="True"
+                       Text="{Binding Password}"/>
+
+
+                <Button Text="Registrar"
+                        Command="{Binding RegisterCommand}"/>
+        </StackLayout>
 </ContentPage>

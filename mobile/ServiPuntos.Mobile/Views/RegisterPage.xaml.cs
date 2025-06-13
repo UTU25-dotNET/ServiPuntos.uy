@@ -1,4 +1,5 @@
 using ServiPuntos.Mobile.ViewModels;
+using ServiPuntos.Mobile.Services;
 
 namespace ServiPuntos.Mobile.Views
 {
@@ -7,7 +8,8 @@ namespace ServiPuntos.Mobile.Views
         public RegisterPage()
         {
             InitializeComponent();
-            BindingContext = new RegisterViewModel(new Services.AuthService(new HttpClient()));
+
+            BindingContext = new RegisterViewModel(new AuthService(new HttpClient()));
         }
     }
 }
