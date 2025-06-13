@@ -5,10 +5,19 @@ using ServiPuntos.Mobile.Models;
 
 namespace ServiPuntos.Mobile.Services
 {
+    public interface IVeaiService
+    {
+        Task<VeaiResponse?> VerifyAgeAsync(string cedula);
+    }
+
     public class VeaiService : IVeaiService
     {
         private readonly HttpClient _httpClient;
-        public VeaiService(HttpClient httpClient) => _httpClient = httpClient;
+
+        public VeaiService(HttpClient httpClient)
+        {
+            _httpClient = httpClient;
+        }
 
         public async Task<VeaiResponse?> VerifyAgeAsync(string cedula)
         {
