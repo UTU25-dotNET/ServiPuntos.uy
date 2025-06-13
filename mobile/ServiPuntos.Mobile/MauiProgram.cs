@@ -1,4 +1,5 @@
 using System;
+using System.Net.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Controls.Hosting;
 using Microsoft.Maui.Hosting;
@@ -26,16 +27,23 @@ namespace ServiPuntos.Mobile
 				});
 
 #if true
-
-			var apiBase = "http://10.0.2.2:5019/api/";
-#else
-			
 			var apiBase = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/";
+
+#else
+           	var apiBase = "https://10.0.2.2:5019/api/"; 
 #endif
 
+			// Registro del CanjeService con bypass SSL usando HttpClient singleton
+			builder.Services.AddSingleton<ICanjeService>(sp =>
+			{
+				var httpClient = new HttpClient(new BypassSslValidationHandler())
+				{
+					BaseAddress = new Uri($"{apiBase}canje/")
+				};
+				return new CanjeService(httpClient);
+			});
 
 			builder.Services.AddTransient<RefreshTokenHandler>();
-
 
 			builder.Services
 				.AddHttpClient<IAuthService, AuthService>(client =>
@@ -43,8 +51,8 @@ namespace ServiPuntos.Mobile
 					client.BaseAddress = new Uri($"{apiBase}auth/");
 					client.Timeout = TimeSpan.FromSeconds(60);
 					client.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
-				});
-
+				})
+				.ConfigurePrimaryHttpMessageHandler(() => new BypassSslValidationHandler());
 
 			builder.Services
 				.AddHttpClient<IUserService, UserService>(client =>
@@ -53,6 +61,7 @@ namespace ServiPuntos.Mobile
 					client.Timeout = TimeSpan.FromSeconds(60);
 					client.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
 				})
+				.ConfigurePrimaryHttpMessageHandler(() => new BypassSslValidationHandler())
 				.AddHttpMessageHandler<RefreshTokenHandler>();
 
 			builder.Services
@@ -62,6 +71,7 @@ namespace ServiPuntos.Mobile
 					client.Timeout = TimeSpan.FromSeconds(60);
 					client.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
 				})
+				.ConfigurePrimaryHttpMessageHandler(() => new BypassSslValidationHandler())
 				.AddHttpMessageHandler<RefreshTokenHandler>();
 
 			builder.Services
@@ -71,6 +81,7 @@ namespace ServiPuntos.Mobile
 					client.Timeout = TimeSpan.FromSeconds(60);
 					client.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
 				})
+				.ConfigurePrimaryHttpMessageHandler(() => new BypassSslValidationHandler())
 				.AddHttpMessageHandler<RefreshTokenHandler>();
 
 			builder.Services
@@ -80,26 +91,18 @@ namespace ServiPuntos.Mobile
 					client.Timeout = TimeSpan.FromSeconds(60);
 					client.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
 				})
-				.AddHttpMessageHandler<RefreshTokenHandler>();
-
-			builder.Services
-				.AddHttpClient<ICanjeService, CanjeService>(client =>
-				{
-					client.BaseAddress = new Uri($"{apiBase}nafta/");
-					client.Timeout = TimeSpan.FromSeconds(60);
-					client.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
-				})
+				.ConfigurePrimaryHttpMessageHandler(() => new BypassSslValidationHandler())
 				.AddHttpMessageHandler<RefreshTokenHandler>();
 
 			builder.Services
 				.AddHttpClient<ITransactionService, TransactionService>(client =>
 				{
-					client.BaseAddress = new Uri($"{apiBase}transacciones/");
+					client.BaseAddress = new Uri($"{apiBase}canje/");
 					client.Timeout = TimeSpan.FromSeconds(60);
 					client.DefaultRequestHeaders.Add("User-Agent", "ServiPuntos.Mobile");
 				})
+				.ConfigurePrimaryHttpMessageHandler(() => new BypassSslValidationHandler())
 				.AddHttpMessageHandler<RefreshTokenHandler>();
-
 
 			builder.Services.AddTransient<LoginViewModel>();
 			builder.Services.AddTransient<HomeViewModel>();
@@ -107,17 +110,14 @@ namespace ServiPuntos.Mobile
 			builder.Services.AddTransient<MapaViewModel>();
 			builder.Services.AddTransient<PerfilViewModel>();
 
-
 			builder.Services.AddTransient<LoginPage>();
 			builder.Services.AddTransient<HomePage>();
 			builder.Services.AddTransient<CanjePage>();
 			builder.Services.AddTransient<MapaPage>();
 			builder.Services.AddTransient<PerfilPage>();
 
-
 			builder.Logging.AddDebug();
 			builder.Logging.SetMinimumLevel(LogLevel.Information);
-
 
 			var app = builder.Build();
 
