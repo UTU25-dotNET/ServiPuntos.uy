@@ -185,12 +185,13 @@ const Historial = ({ usuarioId }) => {
         </tbody>
       </table>
       {tipo === "canjes" && (
-        <div className="d-flex gap-2 mt-2">
+        <div className="d-flex gap-2 mt-2 align-items-center">
           {canjePageIndex > 0 && (
             <button className="btn btn-outline-secondary" onClick={() => setCanjePageIndex(prev => prev - 1)}>
               Anterior
             </button>
           )}
+          <span className="fw-bold">Página {canjePageIndex + 1}</span>
           {canjeCursor && (
             <button className="btn btn-outline-primary" onClick={cargarMasCanjes}>
               Siguiente
@@ -199,12 +200,13 @@ const Historial = ({ usuarioId }) => {
         </div>
       )}
       {tipo === "transacciones" && (
-        <div className="d-flex gap-2 mt-2">
-          {transPageIndex > 0 && (
+        <div className="d-flex gap-2 mt-2 align-items-center">
+            {transPageIndex > 0 && (
             <button className="btn btn-outline-secondary" onClick={() => setTransPageIndex(prev => prev - 1)}>
               Anterior
             </button>
           )}
+          <span className="fw-bold">Página {canjePageIndex + 1}</span>
           {transCursorState && (
             <button className="btn btn-outline-primary" onClick={cargarMasTrans}>
               Siguiente
