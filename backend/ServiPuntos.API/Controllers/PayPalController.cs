@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
+using ServiPuntos.Core.Interfaces;
+using ServiPuntos.Core.NAFTA;
 
 namespace ServiPuntos.API.Controllers
 {
@@ -7,11 +9,40 @@ namespace ServiPuntos.API.Controllers
     [Route("api/paypal")]
     public class PayPalController : ControllerBase
     {
-        [HttpGet("return")]
-        public IActionResult PayPalReturn([FromQuery] string paymentId, [FromQuery] string PayerID, [FromQuery] string token)
+        private readonly INAFTAService _naftaService;
+
+        public PayPalController(INAFTAService naftaService)
         {
-            // Esta URL se llama cuando el usuario APRUEBA el pago en PayPal
-            var redirectUrl = $"http://localhost:3000/paypal-return?paymentId={Uri.EscapeDataString(paymentId)}&payerId={Uri.EscapeDataString(PayerID)}&token={Uri.EscapeDataString(token)}";
+            _naftaService = naftaService;
+        }
+
+        [HttpGet("return")]
+
+        public async Task<IActionResult> PayPalReturn([FromQuery] string paymentId, [FromQuery] string PayerID, [FromQuery] string token)
+        {
+            // Cuando el usuario aprueba el pago en PayPal, confirmamos la transacción
+            var mensaje = new MensajeNAFTA
+        {
+                TipoMensaje = Core.Enums.TipoMensajeNAFTA.Transaccion,
+                Datos = new System.Collections.Generic.Dictionary<string, object>
+                {
+                    { "paymentId", paymentId },
+                    { "payerId", PayerID },
+                    { "token", token }
+                }
+            };
+
+            var respuesta = await _naftaService.ConfirmarPagoPayPalAsync(mensaje);
+             var status = respuesta.Codigo == "OK" ? "success" : "error";
+            var redirectUrl = $"http://localhost:3000/paypal-return?status={Uri.EscapeDataString(status)}&paymentId={Uri.EscapeDataString(paymentId)}&payerId={Uri.EscapeDataString(PayerID)}&token={Uri.EscapeDataString(token)}";
+
+            // Incluir el ID de la transacción si está disponible
+            if (respuesta.Datos != null && respuesta.Datos.ContainsKey("transaccionId"))
+            {
+                var transaccionId = respuesta.Datos["transaccionId"].ToString();
+                redirectUrl += $"&transaccionId={Uri.EscapeDataString(transaccionId)}";
+            }
+
             return Redirect(redirectUrl);
         }
 
