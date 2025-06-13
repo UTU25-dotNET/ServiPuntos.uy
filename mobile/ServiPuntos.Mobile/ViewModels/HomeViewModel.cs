@@ -11,6 +11,7 @@ namespace ServiPuntos.Mobile.ViewModels
 {
     public class HomeViewModel : BindableObject
     {
+
         private readonly IUserService _userService;
 
         public HomeViewModel(IUserService userService)
@@ -18,7 +19,6 @@ namespace ServiPuntos.Mobile.ViewModels
             _userService = userService;
             Transactions = new ObservableCollection<TransactionSummary>();
             LoadDataCommand = new Command(async () => await LoadDataAsync());
-
 
             LoadDataCommand.Execute(null);
         }
@@ -55,15 +55,17 @@ namespace ServiPuntos.Mobile.ViewModels
             try
             {
 
-                Saldo = await _userService.GetBalanceAsync();
-
+                Saldo = 1500; 
 
                 Transactions.Clear();
-                var list = await _userService.GetRecentTransactionsAsync()
-                           ?? new List<TransactionSummary>();
+                var list = new[]
+                {
+                    new TransactionSummary { Fecha = DateTime.Now, Descripcion = "Carga inicial", Puntos = 500, Tipo = "Carga" },
+                    new TransactionSummary { Fecha = DateTime.Now.AddDays(-2), Descripcion = "Canje Nafta", Puntos = -200, Tipo = "Canje" }
+                };
+
                 foreach (var item in list)
                     Transactions.Add(item);
-
 
                 var hoy = DateTime.Today;
                 PuntosAcumuladosMes = list
@@ -75,6 +77,5 @@ namespace ServiPuntos.Mobile.ViewModels
                 IsBusy = false;
             }
         }
-
     }
 }

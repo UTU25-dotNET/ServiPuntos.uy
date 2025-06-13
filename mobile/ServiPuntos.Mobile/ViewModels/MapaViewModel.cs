@@ -15,13 +15,10 @@ namespace ServiPuntos.Mobile.ViewModels
     {
         private readonly IUbicacionService _ubicService;
 
-        public ObservableCollection<UbicacionDto> Estaciones { get; }
-            = new ObservableCollection<UbicacionDto>();
+        public ObservableCollection<UbicacionDto> Estaciones { get; } = new ObservableCollection<UbicacionDto>();
+        public ObservableCollection<string> Ciudades { get; } = new ObservableCollection<string>();
 
-        public ObservableCollection<string> Ciudades { get; }
-            = new ObservableCollection<string>();
-
-        private string _ciudadSeleccionada;
+        private string _ciudadSeleccionada = string.Empty;
         public string CiudadSeleccionada
         {
             get => _ciudadSeleccionada;
@@ -56,12 +53,11 @@ namespace ServiPuntos.Mobile.ViewModels
             foreach (var ciudad in ciudades)
                 Ciudades.Add(ciudad);
 
-            CiudadSeleccionada = Ciudades.FirstOrDefault() ?? "";
+            CiudadSeleccionada = Ciudades.FirstOrDefault() ?? string.Empty;
         }
 
         private async Task LoadAsync()
         {
-
             var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
             if (status != PermissionStatus.Granted)
                 status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
@@ -75,28 +71,30 @@ namespace ServiPuntos.Mobile.ViewModels
                 return;
             }
 
-
             var location = await Geolocation.GetLastKnownLocationAsync()
                            ?? await Geolocation.GetLocationAsync(
                                 new GeolocationRequest(
                                     GeolocationAccuracy.Medium,
                                     TimeSpan.FromSeconds(10)));
+
             if (location == null) return;
 
 
-            var lista = await _ubicService.GetNearbyAsync(
-                location.Latitude,
-                location.Longitude,
-                RadioKm);
-
+            var lista = await _ubicService.GetAllAsync();
 
             if (!string.IsNullOrEmpty(CiudadSeleccionada))
                 lista = lista.Where(u => u.Ciudad == CiudadSeleccionada).ToList();
 
-
             Estaciones.Clear();
             foreach (var u in lista)
-                Estaciones.Add(u);
+                Estaciones.Add(new UbicacionDto
+                {
+                    Id = Guid.Parse(u.Id),
+                    Nombre = u.Nombre,
+                    Ciudad = u.Ciudad,
+                    Direccion = u.Direccion,
+
+                });
         }
     }
 }

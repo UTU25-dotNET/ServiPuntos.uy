@@ -13,12 +13,10 @@ namespace ServiPuntos.Mobile.ViewModels
         private readonly IProductoService _productoService;
         private readonly IUbicacionService _ubicacionService;
 
+        public ObservableCollection<Ubicacion> Ubicaciones { get; } = new ObservableCollection<Ubicacion>();
 
-        public ObservableCollection<Ubicacion> Ubicaciones { get; }
-            = new ObservableCollection<Ubicacion>();
-
-        private Ubicacion _ubicacionSeleccionada;
-        public Ubicacion UbicacionSeleccionada
+        private Ubicacion? _ubicacionSeleccionada;
+        public Ubicacion? UbicacionSeleccionada
         {
             get => _ubicacionSeleccionada;
             set
@@ -30,18 +28,14 @@ namespace ServiPuntos.Mobile.ViewModels
             }
         }
 
-        public ObservableCollection<ProductoCanjeableDto> Productos { get; }
-            = new ObservableCollection<ProductoCanjeableDto>();
+        public ObservableCollection<ProductoCanjeableDto> Productos { get; } = new ObservableCollection<ProductoCanjeableDto>();
 
         public ICommand RefreshCommand { get; }
 
-        public CatalogoViewModel(
-            IProductoService productoService,
-            IUbicacionService ubicacionService)
+        public CatalogoViewModel(IProductoService productoService, IUbicacionService ubicacionService)
         {
             _productoService = productoService;
             _ubicacionService = ubicacionService;
-
             RefreshCommand = new Command(async () => await CargarProductosAsync());
             _ = CargarUbicacionesAsync();
         }
@@ -52,28 +46,35 @@ namespace ServiPuntos.Mobile.ViewModels
             Ubicaciones.Clear();
             foreach (var u in list)
                 Ubicaciones.Add(u);
-
             UbicacionSeleccionada = Ubicaciones.FirstOrDefault();
         }
 
         private async Task CargarProductosAsync()
         {
-            if (_ubicacionSeleccionada == null) return;
-
+            if (_ubicacionSeleccionada == null)
+                return;
 
             var ubicId = _ubicacionSeleccionada.Id;
 
-
             var list = await _productoService.GetProductosPorUbicacionAsync(ubicId);
+
             Productos.Clear();
 
             foreach (var dto in list)
             {
 
-                dto.StockDisponible = await _productoService
-                    .GetStockAsync(ubicId, dto.Id.ToString());
+                var productoCanjeable = new ProductoCanjeableDto
+                {
+                    Id = Guid.TryParse(dto.ProductoCanjeableId, out var guid) ? guid : Guid.Empty,
+                    Nombre = dto.ProductoNombre,
+                    StockDisponible = await _productoService.GetStockAsync(ubicId, dto.Id),
 
-                Productos.Add(dto);
+                    Descripcion = null,
+                    CostoEnPuntos = 0,
+                    FotoUrl = null
+                };
+
+                Productos.Add(productoCanjeable);
             }
         }
     }

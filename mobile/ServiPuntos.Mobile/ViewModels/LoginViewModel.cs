@@ -84,7 +84,7 @@ namespace ServiPuntos.Mobile.ViewModels
                 {
                     await Application.Current.MainPage.DisplayAlert("Éxito", "Login exitoso", "OK");
                     LogInfo("[LoginVM] Navegando a MainPage");
-                    await Shell.Current.GoToAsync("//home"); // o la ruta que uses
+                    await Shell.Current.GoToAsync("//home"); 
                 }
                 else
                 {
@@ -94,12 +94,12 @@ namespace ServiPuntos.Mobile.ViewModels
             }
             catch (HttpRequestException ex)
             {
-                ErrorMessage = "Email o contraseña incorrectos.";
+                ErrorMessage = "Error en la conexión. Verifica tu red.";
                 LogError($"[LoginVM] HttpRequestException en SignInAsync: {ex}");
             }
             catch (Exception ex)
             {
-                ErrorMessage = "Error de conexión. Inténtalo de nuevo.";
+                ErrorMessage = "Error inesperado. Intenta nuevamente.";
                 LogError($"[LoginVM] Excepción inesperada en SignInAsync: {ex}");
             }
             finally

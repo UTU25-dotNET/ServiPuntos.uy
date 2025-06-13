@@ -8,31 +8,44 @@ namespace ServiPuntos.Mobile.ViewModels
 {
     public class RegisterViewModel : BindableObject
     {
-        private readonly AuthService _authService;
+        private readonly IAuthService _authService;
 
-        public RegisterViewModel(AuthService authService)
+        public RegisterViewModel(IAuthService authService)
         {
             _authService = authService;
             RegisterCommand = new Command(async () => await OnRegister());
         }
 
-        public string Usuario { get; set; }
-        public string Password { get; set; }
-        public string Email { get; set; }
-        public string Nombre { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public string Ci { get; set; } = string.Empty;
+
+
+        public string TenantId { get; set; } = "b3908dc4-79b4-4e6f-9e15-6db86e10baaa";
 
         public ICommand RegisterCommand { get; }
 
         private async Task OnRegister()
         {
+            if (string.IsNullOrWhiteSpace(Nombre) ||
+                string.IsNullOrWhiteSpace(Email) ||
+                string.IsNullOrWhiteSpace(Password) ||
+                string.IsNullOrWhiteSpace(Ci) ||
+                string.IsNullOrWhiteSpace(TenantId))
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Completa todos los campos.", "OK");
+                return;
+            }
+
             var req = new RegisterRequest
             {
-                Usuario = this.Usuario,
-                Password = this.Password,
+                Nombre = this.Nombre,
                 Email = this.Email,
-                Nombre = this.Nombre
+                Password = this.Password,
+                Ci = this.Ci,
+                TenantId = this.TenantId 
             };
-
 
             var ok = await _authService.RegisterAsync(req);
 
