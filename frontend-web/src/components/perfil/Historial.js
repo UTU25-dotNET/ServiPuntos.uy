@@ -3,10 +3,13 @@ import apiService from "../../services/apiService";
 
 const Historial = ({ usuarioId }) => {
   const [tipo, setTipo] = useState("canjes");
-  const [canjes, setCanjes] = useState([]);
-  const [canjesCursor, setCanjesCursor] = useState(null);
-  const [transacciones, setTransacciones] = useState([]);
-  const [transCursor, setTransCursor] = useState(null);
+  const [canjePages, setCanjePages] = useState([]); // [{ items }]
+  const [canjeCursor, setCanjeCursor] = useState(null);
+  const [canjePageIndex, setCanjePageIndex] = useState(0);
+
+  const [transPages, setTransPages] = useState([]); // [{ items }]
+  const [transCursorState, setTransCursorState] = useState(null);
+  const [transPageIndex, setTransPageIndex] = useState(0);
   const [expandedRows, setExpandedRows] = useState({});
   
   const [loading, setLoading] = useState(true);
@@ -30,10 +33,13 @@ const Historial = ({ usuarioId }) => {
           apiService.getCanjesByUsuario(usuarioId),
           apiService.getTransaccionesByUsuario()
         ]);
-        setCanjes(c.items);
-        setCanjesCursor(c.nextCursor);
-        setTransacciones(t.items);
-        setTransCursor(t.nextCursor);
+        setCanjePages([{ items: c.items }]);
+        setCanjeCursor(c.nextCursor);
+        setCanjePageIndex(0);
+
+        setTransPages([{ items: t.items }]);
+        setTransCursorState(t.nextCursor);
+        setTransPageIndex(0);
       } catch (err) {
         setError(err.message || "Error al cargar historial");
       } finally {
@@ -47,23 +53,29 @@ const Historial = ({ usuarioId }) => {
     setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
+  useEffect(() => {
+    setExpandedRows({});
+  }, [canjePageIndex, transPageIndex, tipo]);
+
   const cargarMasCanjes = async () => {
-    if (!canjesCursor) return;
+    if (!canjeCursor) return;
     try {
-      const res = await apiService.getCanjesByUsuario(usuarioId, canjesCursor);
-      setCanjes(prev => [...prev, ...res.items]);
-      setCanjesCursor(res.nextCursor);
+      const res = await apiService.getCanjesByUsuario(usuarioId, canjeCursor);
+      setCanjePages(prev => [...prev, { items: res.items }]);
+      setCanjeCursor(res.nextCursor);
+      setCanjePageIndex(prev => prev + 1);
     } catch (err) {
       setError(err.message || 'Error al cargar m\u00e1s canjes');
     }
   };
 
   const cargarMasTrans = async () => {
-    if (!transCursor) return;
+    if (!transCursorState) return;
     try {
-      const res = await apiService.getTransaccionesByUsuario(transCursor);
-      setTransacciones(prev => [...prev, ...res.items]);
-      setTransCursor(res.nextCursor);
+      const res = await apiService.getTransaccionesByUsuario(transCursorState);
+      setTransPages(prev => [...prev, { items: res.items }]);
+      setTransCursorState(res.nextCursor);
+      setTransPageIndex(prev => prev + 1);
     } catch (err) {
       setError(err.message || 'Error al cargar m\u00e1s transacciones');
     }
@@ -72,7 +84,9 @@ const Historial = ({ usuarioId }) => {
   if (loading) return <p>Cargando historial...</p>;
   if (error) return <p>{error}</p>;
 
-  const data = tipo === "canjes" ? canjes : transacciones;
+  const data = tipo === "canjes"
+    ? (canjePages[canjePageIndex]?.items || [])
+    : (transPages[transPageIndex]?.items || []);
 
   if (!data.length) {
     return (
@@ -119,7 +133,7 @@ const Historial = ({ usuarioId }) => {
         </thead>
         <tbody>
           {tipo === "canjes"
-            ? canjes.map(c => (
+            ? (canjePages[canjePageIndex]?.items || []).map(c => (
                 <tr key={c.id}>
                   <td>{c.producto || "-"}</td>
                   <td>{c.ubicacion || "-"}</td>
@@ -128,7 +142,7 @@ const Historial = ({ usuarioId }) => {
                   <td>{estadoLabel(c.estado)}</td>
                 </tr>
               ))
-              : transacciones.map(t => {
+              : (transPages[transPageIndex]?.items || []).map(t => {
                 let productos = [];
                 if (t.detalles) {
                   try {
@@ -170,15 +184,33 @@ const Historial = ({ usuarioId }) => {
               })}
         </tbody>
       </table>
-      {tipo === "canjes" && canjesCursor && (
-        <button className="btn btn-outline-primary mt-2" onClick={cargarMasCanjes}>
-          Cargar más
-        </button>
+      {tipo === "canjes" && (
+        <div className="d-flex gap-2 mt-2">
+          {canjePageIndex > 0 && (
+            <button className="btn btn-outline-secondary" onClick={() => setCanjePageIndex(prev => prev - 1)}>
+              Anterior
+            </button>
+          )}
+          {canjeCursor && (
+            <button className="btn btn-outline-primary" onClick={cargarMasCanjes}>
+              Siguiente
+            </button>
+          )}
+        </div>
       )}
-      {tipo === "transacciones" && transCursor && (
-        <button className="btn btn-outline-primary mt-2" onClick={cargarMasTrans}>
-          Cargar más
-        </button>
+      {tipo === "transacciones" && (
+        <div className="d-flex gap-2 mt-2">
+          {transPageIndex > 0 && (
+            <button className="btn btn-outline-secondary" onClick={() => setTransPageIndex(prev => prev - 1)}>
+              Anterior
+            </button>
+          )}
+          {transCursorState && (
+            <button className="btn btn-outline-primary" onClick={cargarMasTrans}>
+              Siguiente
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
