@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-<TargetFramework>net9.0-android</TargetFramework>
+    <TargetFramework>net9.0-android</TargetFramework>
     <OutputType>Exe</OutputType>
     <RootNamespace>ServiPuntos.Mobile</RootNamespace>
     <UseMaui>true</UseMaui>
@@ -16,8 +16,11 @@
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">11.0</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">13.1</SupportedOSPlatformVersion>
-    <AndroidFastDeployment>false</AndroidFastDeployment>
 
+
+    <AndroidFastDeployment>false</AndroidFastDeployment>
+    <AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
   </PropertyGroup>
 
   <ItemGroup>
@@ -38,8 +41,6 @@
     <PackageReference Include="System.Net.Http.Json" Version="9.0.5" />
     <PackageReference Include="ZXing.Net.MAUI" Version="0.4.0" />
     <PackageReference Include="ZXing.Net.MAUI.Controls" Version="0.4.0" />
-
-
   </ItemGroup>
 
 </Project>
