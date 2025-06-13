@@ -170,6 +170,11 @@ namespace ServiPuntos.Application.Services
         
             }
 
+        public async Task<IEnumerable<Transaccion>> GetTransaccionesByUsuarioIdPaginatedAsync(Guid usuarioId, Guid? cursor, int limit)
+        {
+            return await _transaccionRepository.GetByUsuarioIdPaginatedAsync(usuarioId, cursor, limit);
+        }
+        
         private async Task ActualizarStockAsync(Guid ubicacionId, string detallesJson)
         {
             if (string.IsNullOrWhiteSpace(detallesJson))
@@ -180,7 +185,7 @@ namespace ServiPuntos.Application.Services
             try
             {
                 var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                 List<LineaTransaccionNAFTA>? productos = null;
+                List<LineaTransaccionNAFTA>? productos = null;
 
                 if (detallesJson.TrimStart().StartsWith("["))
                 {

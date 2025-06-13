@@ -312,7 +312,7 @@ namespace ServiPuntos.API.Controllers
         }
         [HttpGet("historial-transacciones")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public async Task<IActionResult> GetHistorialTransacciones()
+        public async Task<IActionResult> GetHistorialTransacciones([FromQuery] Guid? cursor, [FromQuery] int limit = 10)
         {
             try
             {
@@ -328,9 +328,11 @@ namespace ServiPuntos.API.Controllers
                     return NotFound(new { message = "Usuario no encontrado" });
                 }
 
-                var transacciones = await _transaccionService.GetTransaccionesByUsuarioIdAsync(usuario.Id);
+                var transacciones = await _transaccionService.GetTransaccionesByUsuarioIdPaginatedAsync(usuario.Id, cursor, limit);
 
-                var response = transacciones.Select(t => new
+                var lastId = transacciones.LastOrDefault()?.Id;
+
+                var items = transacciones.Select(t => new
                 {
                     id = t.Id,
                     fecha = t.FechaTransaccion,
@@ -340,9 +342,9 @@ namespace ServiPuntos.API.Controllers
                     puntosOtorgados = t.PuntosOtorgados,
                     puntosUtilizados = t.PuntosUtilizados,
                     detalles = t.Detalles
-                });
+                }).ToList();
 
-                return Ok(response);
+                return Ok(new { items, nextCursor = lastId });
             }
             catch (Exception ex)
             {

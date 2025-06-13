@@ -4,8 +4,11 @@ import apiService from "../../services/apiService";
 const Historial = ({ usuarioId }) => {
   const [tipo, setTipo] = useState("canjes");
   const [canjes, setCanjes] = useState([]);
+  const [canjesCursor, setCanjesCursor] = useState(null);
   const [transacciones, setTransacciones] = useState([]);
+  const [transCursor, setTransCursor] = useState(null);
   const [expandedRows, setExpandedRows] = useState({});
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -27,8 +30,10 @@ const Historial = ({ usuarioId }) => {
           apiService.getCanjesByUsuario(usuarioId),
           apiService.getTransaccionesByUsuario()
         ]);
-        setCanjes(c);
-        setTransacciones(t);
+        setCanjes(c.items);
+        setCanjesCursor(c.nextCursor);
+        setTransacciones(t.items);
+        setTransCursor(t.nextCursor);
       } catch (err) {
         setError(err.message || "Error al cargar historial");
       } finally {
@@ -40,6 +45,28 @@ const Historial = ({ usuarioId }) => {
 
   const toggleRow = id => {
     setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const cargarMasCanjes = async () => {
+    if (!canjesCursor) return;
+    try {
+      const res = await apiService.getCanjesByUsuario(usuarioId, canjesCursor);
+      setCanjes(prev => [...prev, ...res.items]);
+      setCanjesCursor(res.nextCursor);
+    } catch (err) {
+      setError(err.message || 'Error al cargar m\u00e1s canjes');
+    }
+  };
+
+  const cargarMasTrans = async () => {
+    if (!transCursor) return;
+    try {
+      const res = await apiService.getTransaccionesByUsuario(transCursor);
+      setTransacciones(prev => [...prev, ...res.items]);
+      setTransCursor(res.nextCursor);
+    } catch (err) {
+      setError(err.message || 'Error al cargar m\u00e1s transacciones');
+    }
   };
 
   if (loading) return <p>Cargando historial...</p>;
@@ -143,6 +170,16 @@ const Historial = ({ usuarioId }) => {
               })}
         </tbody>
       </table>
+      {tipo === "canjes" && canjesCursor && (
+        <button className="btn btn-outline-primary mt-2" onClick={cargarMasCanjes}>
+          Cargar más
+        </button>
+      )}
+      {tipo === "transacciones" && transCursor && (
+        <button className="btn btn-outline-primary mt-2" onClick={cargarMasTrans}>
+          Cargar más
+        </button>
+      )}
     </div>
   );
 };
