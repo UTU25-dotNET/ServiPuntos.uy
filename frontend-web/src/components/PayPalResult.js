@@ -1,16 +1,44 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import apiService from "../services/apiService";
 
 const PayPalResult = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const [transaccion, setTransaccion] = useState(null);
 
-  const status = searchParams.get("status") || (window.location.pathname.includes("paypal-cancel") ? "cancel" : "success");
+  const status =
+    searchParams.get("status") ||
+    (window.location.pathname.includes("paypal-cancel") ? "cancel" : "success");
   const paymentId = searchParams.get("paymentId");
-  const payerId = searchParams.get("payerId");
+  const payerId = searchParams.get("payerId") || searchParams.get("PayerID");
   const token = searchParams.get("token");
+  const transaccionId = searchParams.get("transaccionId");
 
   const isSuccess = status !== "cancel";
+
+  useEffect(() => {
+    if (isSuccess && transaccionId) {
+      apiService
+        .getTransaccionById(transaccionId)
+        .then((data) => setTransaccion(data))
+        .catch(() => {});
+    }
+  }, [isSuccess, transaccionId]);
+
+  let productos = [];
+  if (transaccion && transaccion.detalles) {
+    try {
+      const obj = JSON.parse(transaccion.detalles);
+      if (Array.isArray(obj)) {
+        productos = obj;
+      } else if (obj.productos) {
+        productos = obj.productos;
+      }
+    } catch {
+      productos = [];
+    }
+  }
 
   return (
     <div
@@ -68,6 +96,28 @@ const PayPalResult = () => {
           <p style={{ margin: "0.25rem 0", fontSize: "0.9rem", color: "#6c757d" }}>
             <strong>token:</strong> {token}
           </p>
+        )}
+         {isSuccess && transaccion && (
+          <div style={{ marginTop: "1rem", textAlign: "left" }}>
+            <p style={{ margin: "0.25rem 0", fontSize: "0.9rem" }}>
+              <strong>Monto:</strong> ${" "}{transaccion.monto}
+            </p>
+            <p style={{ margin: "0.25rem 0", fontSize: "0.9rem" }}>
+              <strong>Fecha:</strong> {new Date(transaccion.fecha).toLocaleString()}
+            </p>
+            {productos.length > 0 && (
+              <div>
+                <strong>Productos:</strong>
+                <ul style={{ paddingLeft: "1.2rem" }}>
+                  {productos.map((p, idx) => (
+                    <li key={idx} style={{ fontSize: "0.9rem" }}>
+                      {p.nombreProducto || p.NombreProducto} x {p.cantidad || p.Cantidad}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
         )}
         <button
           onClick={() => navigate("/")}

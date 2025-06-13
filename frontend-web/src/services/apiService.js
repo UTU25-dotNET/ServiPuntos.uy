@@ -326,6 +326,7 @@ updateUserProfile: async (profileData) => {
     }
   },
 
+  
   // Obtener todas las ubicaciones
   getAllUbicaciones: async () => {
     try {
@@ -612,7 +613,14 @@ getProductosByUbicacion: async (ubicacionId, categoria) => {
       throw new Error(error.response?.data?.message || 'Error al obtener el historial de transacciones');
     }
   },
-
+  getTransaccionById: async (id) => {
+    try {
+      const response = await apiClient.get(`usuario/transaccion/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error al obtener la transacci\u00f3n');
+    }
+  },
 
   generarCanjes: async (productoIds, ubicacionId) => {
     try {
