@@ -172,8 +172,22 @@ const Historial = ({ usuarioId }) => {
                       <tr>
                         <td colSpan="6">
                           <ul className="mb-0">
-                            {productos.map((p, idx) => (
-                              <li key={idx}>{p.NombreProducto} x{p.Cantidad} - ${p.SubTotal}</li>
+                            {Object.values(
+                              productos.reduce((acc, item) => {
+                                const key = item.NombreProducto;
+                                if (!acc[key]) {
+                                  acc[key] = { ...item };
+                                } else {
+                                  acc[key].Cantidad += item.Cantidad;
+                                  if (item.SubTotal) {
+                                    acc[key].SubTotal =
+                                      (acc[key].SubTotal || 0) + item.SubTotal;
+                                  }
+                                }
+                                return acc;
+                              }, {})
+                            ).map((p, idx) => (
+                              <li key={idx}>{p.NombreProducto} x{p.Cantidad}{p.SubTotal ? ` - $${p.SubTotal}` : ''}</li>
                             ))}
                           </ul>
                         </td>
