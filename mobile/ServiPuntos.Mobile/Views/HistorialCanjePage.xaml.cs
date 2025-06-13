@@ -19,7 +19,8 @@ namespace ServiPuntos.Mobile.Views
                               ?? new AuthService(new HttpClient());
 
             var userInfo = await authService.GetUserInfoAsync();
-            var usuarioId = userInfo?.UserId;
+            var usuarioId = userInfo?.UserId ?? "";
+
 
             var canjeService = Application.Current?.Handler?.MauiContext?.Services?.GetService<ICanjeService>()
                                ?? new CanjeService(new HttpClient());
