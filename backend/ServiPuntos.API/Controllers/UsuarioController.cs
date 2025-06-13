@@ -102,6 +102,50 @@ namespace ServiPuntos.API.Controllers
             }
         }
 
+        [HttpGet("transaccion/{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<IActionResult> GetTransaccion(Guid id)
+        {
+            try
+            {
+                var emailClaim = User.FindFirst(ClaimTypes.Email) ?? User.FindFirst("email");
+                if (emailClaim == null)
+                {
+                    return Unauthorized(new { message = "Email no disponible" });
+                }
+
+                var usuario = await _iUsuarioService.GetUsuarioAsync(emailClaim.Value);
+                if (usuario == null)
+                {
+                    return NotFound(new { message = "Usuario no encontrado" });
+                }
+
+                var transaccion = await _transaccionService.GetTransaccionByIdAsync(id);
+                if (transaccion == null || transaccion.UsuarioId != usuario.Id)
+                {
+                    return NotFound(new { message = "Transacción no encontrada" });
+                }
+
+                var response = new
+                {
+                    id = transaccion.Id,
+                    fecha = transaccion.FechaTransaccion,
+                    monto = transaccion.Monto,
+                    tipo = transaccion.TipoTransaccion.ToString(),
+                    ubicacion = transaccion.Ubicacion?.Nombre,
+                    puntosOtorgados = transaccion.PuntosOtorgados,
+                    puntosUtilizados = transaccion.PuntosUtilizados,
+                    detalles = transaccion.Detalles
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al obtener transacción", error = ex.Message });
+            }
+        }
+
         // Obtener un usuario por ID.
 
         [HttpGet("{id}")]

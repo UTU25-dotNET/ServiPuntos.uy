@@ -23,8 +23,7 @@ namespace ServiPuntos.API.Controllers
             // Cuando el usuario aprueba el pago en PayPal, confirmamos la transacción
             var mensaje = new MensajeNAFTA
         {
-            // Esta URL se llama cuando el usuario APRUEBA el pago en PayPal
-            TipoMensaje = Core.Enums.TipoMensajeNAFTA.Transaccion,
+                TipoMensaje = Core.Enums.TipoMensajeNAFTA.Transaccion,
                 Datos = new System.Collections.Generic.Dictionary<string, object>
                 {
                     { "paymentId", paymentId },
@@ -34,7 +33,17 @@ namespace ServiPuntos.API.Controllers
             };
 
             var respuesta = await _naftaService.ConfirmarPagoPayPalAsync(mensaje);
-            return Ok(respuesta);
+             var status = respuesta.Codigo == "OK" ? "success" : "error";
+            var redirectUrl = $"http://localhost:3000/paypal-return?status={Uri.EscapeDataString(status)}&paymentId={Uri.EscapeDataString(paymentId)}&payerId={Uri.EscapeDataString(PayerID)}&token={Uri.EscapeDataString(token)}";
+
+            // Incluir el ID de la transacción si está disponible
+            if (respuesta.Datos != null && respuesta.Datos.ContainsKey("transaccionId"))
+            {
+                var transaccionId = respuesta.Datos["transaccionId"].ToString();
+                redirectUrl += $"&transaccionId={Uri.EscapeDataString(transaccionId)}";
+            }
+
+            return Redirect(redirectUrl);
         }
 
         [HttpGet("cancel")]
