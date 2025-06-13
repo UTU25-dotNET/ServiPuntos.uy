@@ -1,44 +1,38 @@
-using ServiPuntos.Mobile.Models;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using ServiPuntos.Mobile.Models;
 
 namespace ServiPuntos.Mobile.Services
 {
+    public interface IUserService
+    {
+        Task<Usuario?> GetPerfilByEmailAsync(string email);
+        Task<Usuario?> GetPerfilByIdAsync(string id);
+        Task<bool> UpdatePerfilAsync(Usuario usuario);
+
+    }
+
     public class UserService : IUserService
     {
         private readonly HttpClient _httpClient;
-        private const string BASE_URL = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/usuario";
 
         public UserService(HttpClient httpClient)
         {
             _httpClient = httpClient;
         }
 
-
         public async Task<Usuario?> GetPerfilByEmailAsync(string email)
-            => await _httpClient.GetFromJsonAsync<Usuario>($"{BASE_URL}/email/{email}");
+            => await _httpClient.GetFromJsonAsync<Usuario>($"email/{email}");
 
         public async Task<Usuario?> GetPerfilByIdAsync(string id)
-            => await _httpClient.GetFromJsonAsync<Usuario>($"{BASE_URL}/{id}");
+            => await _httpClient.GetFromJsonAsync<Usuario>($"{id}");
 
         public async Task<bool> UpdatePerfilAsync(Usuario usuario)
         {
-            var resp = await _httpClient.PutAsJsonAsync($"{BASE_URL}/{usuario.Id}", usuario);
+            var resp = await _httpClient.PutAsJsonAsync($"{usuario.Id}", usuario);
             return resp.IsSuccessStatusCode;
-        }
-
-
-
-        public async Task<List<TransactionSummary>?> GetRecentTransactionsAsync()
-            => await _httpClient.GetFromJsonAsync<List<TransactionSummary>>($"{BASE_URL}/historial?limit=5");
-
-        public async Task<int> GetBalanceAsync()
-        {
-            var resp = await _httpClient.GetAsync("balance");
-            resp.EnsureSuccessStatusCode();
-            return await resp.Content.ReadFromJsonAsync<int>();
         }
 
 
