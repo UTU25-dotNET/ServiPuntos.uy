@@ -181,6 +181,11 @@ namespace ServiPuntos.Application.Services
             return true;
         }
 
+        public async Task<IEnumerable<Canje>> GetCanjesByUsuarioIdPaginatedAsync(Guid usuarioId, Guid? cursor, int limit)
+        {
+            return await _canjeRepository.GetByUsuarioIdPaginatedAsync(usuarioId, cursor, limit);
+        }
+
         public async Task<bool> ValidarCanjeAsync(string codigoQR)
         {
             var canje = await _canjeRepository.GetByCodigoQRAsync(codigoQR);

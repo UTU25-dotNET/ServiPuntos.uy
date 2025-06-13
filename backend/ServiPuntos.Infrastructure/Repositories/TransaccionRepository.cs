@@ -36,6 +36,27 @@ namespace ServiPuntos.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Transaccion>> GetByUsuarioIdPaginatedAsync(Guid usuarioId, Guid? cursor, int limit)
+        {
+            var query = _context.Transacciones
+                .Where(t => t.UsuarioId == usuarioId)
+                .Include(t => t.Ubicacion)
+                .OrderByDescending(t => t.FechaTransaccion)
+                .ThenByDescending(t => t.Id)
+                .AsQueryable();
+
+            if (cursor.HasValue)
+            {
+                var cursorTx = await _context.Transacciones.AsNoTracking().FirstOrDefaultAsync(t => t.Id == cursor.Value);
+                if (cursorTx != null)
+                {
+                    query = query.Where(t => t.FechaTransaccion < cursorTx.FechaTransaccion ||
+                        (t.FechaTransaccion == cursorTx.FechaTransaccion && string.Compare(t.Id.ToString(), cursor.Value.ToString(), StringComparison.Ordinal) < 0));
+                }
+            }
+
+            return await query.Take(limit).ToListAsync();
+        }
         public async Task<IEnumerable<Transaccion>> GetByUbicacionIdAsync(Guid ubicacionId)
         {
             return await _context.Transacciones

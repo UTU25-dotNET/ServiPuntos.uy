@@ -39,6 +39,29 @@ namespace ServiPuntos.Infrastructure.Repositories
                 .FirstOrDefaultAsync(c => c.CodigoQR == codigoQR);
         }
 
+        public async Task<IEnumerable<Canje>> GetByUsuarioIdPaginatedAsync(Guid usuarioId, Guid? cursor, int limit)
+        {
+            var query = _context.Canjes
+                .Where(c => c.UsuarioId == usuarioId)
+                .Include(c => c.Ubicacion)
+                .Include(c => c.ProductoCanjeable)
+                .OrderByDescending(c => c.FechaGeneracion)
+                .ThenByDescending(c => c.Id)
+                .AsQueryable();
+
+            if (cursor.HasValue)
+            {
+                var cursorObj = await _context.Canjes.AsNoTracking().FirstOrDefaultAsync(c => c.Id == cursor.Value);
+                if (cursorObj != null)
+                {
+                    query = query.Where(c => c.FechaGeneracion < cursorObj.FechaGeneracion ||
+                        (c.FechaGeneracion == cursorObj.FechaGeneracion && string.Compare(c.Id.ToString(), cursor.Value.ToString(), StringComparison.Ordinal) < 0));
+                }
+            }
+
+            return await query.Take(limit).ToListAsync();
+        }
+
         public async Task<IEnumerable<Canje>> GetByUsuarioIdAsync(Guid usuarioId)
         {
             return await _context.Canjes

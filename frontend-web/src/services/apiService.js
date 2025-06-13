@@ -596,18 +596,22 @@ getProductosByUbicacion: async (ubicacionId, categoria) => {
 
 
   // Obtener historial de canjes del usuario
-  getCanjesByUsuario: async (usuarioId) => {
+  getCanjesByUsuario: async (usuarioId, cursor = null, limit = 10) => {
     try {
-      const response = await apiClient.get(`canje/usuario/${usuarioId}`);
+      const params = { limit };
+      if (cursor) params.cursor = cursor;
+      const response = await apiClient.get(`canje/usuario/${usuarioId}`, { params });
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Error al obtener el historial de canjes');
     }
   },
 
-  getTransaccionesByUsuario: async () => {
+  getTransaccionesByUsuario: async (cursor = null, limit = 10) => {
     try {
-      const response = await apiClient.get(`usuario/historial-transacciones`);
+      const params = { limit };
+      if (cursor) params.cursor = cursor;
+      const response = await apiClient.get(`usuario/historial-transacciones`, { params });
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Error al obtener el historial de transacciones');
