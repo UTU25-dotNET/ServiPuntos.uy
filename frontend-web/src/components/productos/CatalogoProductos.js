@@ -140,7 +140,13 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
   };
 
   const quitarDelCarrito = (productoId) => {
-    setCarrito((prev) => prev.filter((p) => p.id !== productoId));
+    setCarrito((prev) => {
+      const index = prev.findIndex((p) => p.id === productoId);
+      if (index === -1) return prev;
+      const updated = [...prev];
+      updated.splice(index, 1);
+      return updated;
+    });
   };
 
   const handleCanjearCarrito = async () => {
@@ -525,9 +531,23 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                   <div className="card-body">
                     <h5 className="card-title">Carrito ({carrito.length})</h5>
                     <ul className="list-group list-group-flush">
-                      {carrito.map((p) => (
-                        <li key={p.id} className="list-group-item d-flex justify-content-between align-items-center">
-                          <span>{p.productoCanjeable.nombre}</span>
+                      {Object.values(
+                        carrito.reduce((acc, item) => {
+                          const key = item.id;
+                          if (!acc[key]) {
+                            acc[key] = { ...item, cantidad: 0 };
+                          }
+                          acc[key].cantidad += 1;
+                          return acc;
+                        }, {})
+                      ).map((p) => (
+                        <li
+                          key={p.id}
+                          className="list-group-item d-flex justify-content-between align-items-center"
+                        >
+                          <span>
+                            {p.productoCanjeable.nombre} x{p.cantidad}
+                          </span>
                           <button
                             className="btn btn-sm btn-outline-danger"
                             onClick={() => quitarDelCarrito(p.id)}

@@ -109,9 +109,20 @@ const PayPalResult = () => {
               <div>
                 <strong>Productos:</strong>
                 <ul style={{ paddingLeft: "1.2rem" }}>
-                  {productos.map((p, idx) => (
+                  {Object.values(
+                    productos.reduce((acc, item) => {
+                      const key = item.nombreProducto || item.NombreProducto;
+                      if (!acc[key]) {
+                        acc[key] = { ...item };
+                      } else {
+                        const cant = item.cantidad || item.Cantidad || 0;
+                        acc[key].Cantidad = (acc[key].Cantidad || acc[key].cantidad || 0) + cant;
+                      }
+                      return acc;
+                    }, {})
+                  ).map((p, idx) => (
                     <li key={idx} style={{ fontSize: "0.9rem" }}>
-                      {p.nombreProducto || p.NombreProducto} x {p.cantidad || p.Cantidad}
+                      {p.nombreProducto || p.NombreProducto} x {p.Cantidad || p.cantidad}
                     </li>
                   ))}
                 </ul>
