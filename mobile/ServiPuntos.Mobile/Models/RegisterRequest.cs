@@ -1,19 +1,9 @@
-using System.Text.Json.Serialization;
-
-namespace ServiPuntos.Mobile.Models
+public class RegisterRequest
 {
-    public class RegisterRequest
-    {
-        [JsonPropertyName("usuario")]
-        public string Usuario { get; set; }
-
-        [JsonPropertyName("password")]
-        public string Password { get; set; }
-
-        [JsonPropertyName("email")]
-        public string Email { get; set; }
-
-        [JsonPropertyName("nombre")]
-        public string Nombre { get; set; }
-    }
+    public string Usuario { get; set; }
+    public string Password { get; set; }
+    public string Email { get; set; }
+    public string Nombre { get; set; }
+    public string Ci { get; set; }
+    public string TenantId { get; set; }
 }
