@@ -51,7 +51,7 @@ namespace ServiPuntos.Infrastructure.Repositories
                 if (cursorTx != null)
                 {
                     query = query.Where(t => t.FechaTransaccion < cursorTx.FechaTransaccion ||
-                        (t.FechaTransaccion == cursorTx.FechaTransaccion && string.Compare(t.Id.ToString(), cursor.Value.ToString(), StringComparison.Ordinal) < 0));
+                        (t.FechaTransaccion == cursorTx.FechaTransaccion && t.Id.CompareTo(cursor.Value) < 0));
                 }
             }
 

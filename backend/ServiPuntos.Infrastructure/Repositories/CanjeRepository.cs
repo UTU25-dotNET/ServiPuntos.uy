@@ -55,7 +55,7 @@ namespace ServiPuntos.Infrastructure.Repositories
                 if (cursorObj != null)
                 {
                     query = query.Where(c => c.FechaGeneracion < cursorObj.FechaGeneracion ||
-                        (c.FechaGeneracion == cursorObj.FechaGeneracion && string.Compare(c.Id.ToString(), cursor.Value.ToString(), StringComparison.Ordinal) < 0));
+                        (c.FechaGeneracion == cursorObj.FechaGeneracion && c.Id.CompareTo(cursor.Value) < 0));
                 }
             }
 

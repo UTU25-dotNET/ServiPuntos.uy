@@ -41,7 +41,7 @@ namespace ServiPuntos.API.Controllers
                     puntos = c.PuntosCanjeados
                 }).ToList();
 
-                return Ok(new {items = response, nextcursor = lastId});
+                return Ok(new { items = response, nextCursor = lastId });
             }
             catch (Exception ex)
             {
