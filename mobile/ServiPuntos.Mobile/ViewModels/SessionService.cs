@@ -12,16 +12,18 @@ namespace ServiPuntos.Mobile.ViewModels
 
         public async Task SaveSessionAsync(LoginResponse response)
         {
-            await SecureStorage.Default.SetAsync(TokenKey, response.Token);
-            await SecureStorage.Default.SetAsync(NombreKey, response.Nombre ?? "");
-            await SecureStorage.Default.SetAsync(RolKey, response.Rol ?? "");
+            if (response == null) return;
+
+            await SecureStorage.SetAsync(TokenKey, response.Token ?? "");
+            await SecureStorage.SetAsync(NombreKey, response.Nombre ?? "");
+            await SecureStorage.SetAsync(RolKey, response.Rol ?? "");
         }
 
         public async Task<UserSession> GetSessionAsync()
         {
-            var token = await SecureStorage.Default.GetAsync(TokenKey);
-            var nombre = await SecureStorage.Default.GetAsync(NombreKey);
-            var rol = await SecureStorage.Default.GetAsync(RolKey);
+            var token = await SecureStorage.GetAsync(TokenKey);
+            var nombre = await SecureStorage.GetAsync(NombreKey);
+            var rol = await SecureStorage.GetAsync(RolKey);
 
             return new UserSession
             {
@@ -31,12 +33,27 @@ namespace ServiPuntos.Mobile.ViewModels
             };
         }
 
-        public async Task ClearSessionAsync()
+        public Task ClearSessionAsync()
         {
-            SecureStorage.Default.Remove(TokenKey);
-            SecureStorage.Default.Remove(NombreKey);
-            SecureStorage.Default.Remove(RolKey);
-            await Task.CompletedTask;
+            SecureStorage.Remove(TokenKey);
+            SecureStorage.Remove(NombreKey);
+            SecureStorage.Remove(RolKey);
+            return Task.CompletedTask;
         }
+    }
+
+    // Modelos auxiliares
+    public class LoginResponse
+    {
+        public string Token { get; set; }
+        public string Nombre { get; set; }
+        public string Rol { get; set; }
+    }
+
+    public class UserSession
+    {
+        public string Token { get; set; }
+        public string Nombre { get; set; }
+        public string Rol { get; set; }
     }
 }
