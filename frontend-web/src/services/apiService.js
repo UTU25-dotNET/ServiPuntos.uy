@@ -676,6 +676,15 @@ getProductosByUbicacion: async (ubicacionId, categoria) => {
     }
   },
 
+  getPromociones: async () => {
+    try {
+      const response = await apiClient.get('Promocion');
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error al obtener las promociones');
+    }
+  },
+
   generarCanjes: async (productoIds, ubicacionId) => {
     try {
       if (!Array.isArray(productoIds) || productoIds.length === 0 || !ubicacionId) {

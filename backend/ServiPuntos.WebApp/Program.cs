@@ -69,6 +69,8 @@ builder.Services.AddScoped<IProductoCanjeableRepository, ProductoCanjeableReposi
 // ===== SERVICIOS PRODUCTO UBICACION =====
 builder.Services.AddScoped<IProductoUbicacionService, ProductoUbicacionService>();
 builder.Services.AddScoped<IProductoUbicacionRepository, ProductoUbicacionRepository>();
+builder.Services.AddScoped<IPromocionRepository, PromocionRepository>();
+builder.Services.AddScoped<IPromocionService, PromocionService>();
 
 // ===== CONFIGURACIÓN PLATAFORMA =====
 builder.Services.AddScoped<IConfigPlataformaRepository, ConfigPlataformaRepository>();

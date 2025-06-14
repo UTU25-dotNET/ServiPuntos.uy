@@ -1,0 +1,59 @@
+@model ServiPuntos.WebApp.Models.CreatePromocionViewModel
+@using ServiPuntos.Core.Enums
+@{
+    ViewData["Title"] = "Crear Promoción";
+}
+<div class="container">
+    <h3 class="mb-4">@ViewData["Title"]</h3>
+    <form asp-action="Crear" method="post">
+        @Html.AntiForgeryToken()
+        <div class="mb-3">
+            <label asp-for="Titulo" class="form-label">Título</label>
+            <input asp-for="Titulo" class="form-control" />
+            <span asp-validation-for="Titulo" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Descripcion" class="form-label">Descripción</label>
+            <textarea asp-for="Descripcion" class="form-control" rows="3"></textarea>
+        </div>
+        <div class="row mb-3">
+            <div class="col">
+                <label asp-for="FechaInicio" class="form-label">Inicio</label>
+                <input asp-for="FechaInicio" class="form-control" type="date" />
+            </div>
+            <div class="col">
+                <label asp-for="FechaFin" class="form-label">Fin</label>
+                <input asp-for="FechaFin" class="form-control" type="date" />
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col">
+                <label asp-for="PrecioEnPuntos" class="form-label">Precio Puntos</label>
+                <input asp-for="PrecioEnPuntos" class="form-control" type="number" />
+            </div>
+            <div class="col">
+                <label asp-for="DescuentoEnPuntos" class="form-label">Descuento %</label>
+                <input asp-for="DescuentoEnPuntos" class="form-control" type="number" />
+            </div>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Tipo" class="form-label">Tipo</label>
+            <select asp-for="Tipo" class="form-select" asp-items="Html.GetEnumSelectList<TipoPromocion>()"></select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Ubicaciones</label>
+            <select asp-for="UbicacionIds" class="form-select" multiple>
+                @foreach (var u in (IEnumerable<ServiPuntos.Core.Entities.Ubicacion>)ViewBag.Ubicaciones)
+                {
+                    <option value="@u.Id">@u.Nombre</option>
+                }
+            </select>
+            <div class="form-text">Dejar vacío para que sea global.</div>
+        </div>
+        <button type="submit" class="btn btn-primary">Crear</button>
+        <a asp-action="Index" class="btn btn-secondary">Volver</a>
+    </form>
+</div>
+@section Scripts{
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
