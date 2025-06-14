@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import Breadcrumb from "./layout/Breadcrumb";
 import apiService from "../services/apiService";
 
 const PayPalResult = () => {
@@ -62,6 +63,7 @@ const PayPalResult = () => {
           textAlign: "center"
         }}
       >
+        <Breadcrumb current="Pago" />
         <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>
           {isSuccess ? "✅" : "❌"}
         </div>
