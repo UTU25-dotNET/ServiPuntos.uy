@@ -39,6 +39,29 @@ namespace ServiPuntos.Infrastructure.Repositories
                 .FirstOrDefaultAsync(c => c.CodigoQR == codigoQR);
         }
 
+        public async Task<IEnumerable<Canje>> GetByUsuarioIdPaginatedAsync(Guid usuarioId, Guid? cursor, int limit)
+        {
+            var query = _context.Canjes
+                .Where(c => c.UsuarioId == usuarioId)
+                .Include(c => c.Ubicacion)
+                .Include(c => c.ProductoCanjeable)
+                .OrderByDescending(c => c.FechaGeneracion)
+                .ThenByDescending(c => c.Id)
+                .AsQueryable();
+
+            if (cursor.HasValue)
+            {
+                var cursorObj = await _context.Canjes.AsNoTracking().FirstOrDefaultAsync(c => c.Id == cursor.Value);
+                if (cursorObj != null)
+                {
+                    query = query.Where(c => c.FechaGeneracion < cursorObj.FechaGeneracion ||
+                        (c.FechaGeneracion == cursorObj.FechaGeneracion && c.Id.CompareTo(cursor.Value) < 0));
+                }
+            }
+
+            return await query.Take(limit).ToListAsync();
+        }
+
         public async Task<IEnumerable<Canje>> GetByUsuarioIdAsync(Guid usuarioId)
         {
             return await _context.Canjes
@@ -73,8 +96,20 @@ namespace ServiPuntos.Infrastructure.Repositories
         public async Task<IEnumerable<Canje>> GetPendientesByUsuarioIdAsync(Guid usuarioId)
         {
             return await _context.Canjes
-                .Where(c => c.UsuarioId == usuarioId && c.Estado == EstadoCanje.Generado && c.FechaExpiracion > DateTime.Now)
+                .Where(c => c.UsuarioId == usuarioId && c.Estado == EstadoCanje.Generado && c.FechaExpiracion > DateTime.UtcNow)
                 .Include(c => c.Ubicacion)
+                .Include(c => c.ProductoCanjeable)
+                .OrderByDescending(c => c.FechaGeneracion)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Canje>> GetPendientesByUbicacionIdAsync(Guid ubicacionId)
+        {
+            return await _context.Canjes
+
+                .Where(c => c.UbicacionId == ubicacionId && c.Estado == EstadoCanje.Generado && c.FechaExpiracion > DateTime.UtcNow)
+
+                .Include(c => c.Usuario)
                 .Include(c => c.ProductoCanjeable)
                 .OrderByDescending(c => c.FechaGeneracion)
                 .ToListAsync();

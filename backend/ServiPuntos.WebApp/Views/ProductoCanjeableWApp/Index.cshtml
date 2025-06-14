@@ -30,6 +30,7 @@
                                     <th>Descripción</th>
                                     <th>Costo (Puntos)</th>
                                     <th>Acciones</th>
+                                    <th>Foto</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -83,6 +84,9 @@
                                                 </div>
                                             </div>
                                         </td>
+                                        <td>
+                                            <img src="@(string.IsNullOrEmpty(producto.FotoUrl) ? Url.Content("~/images/placeholder-logo.png") : producto.FotoUrl)" style="width:50px; height:50px; object-fit:cover;" class="rounded" />
+                                        </td>
                                     </tr>
                                 }
                             </tbody>
@@ -114,7 +118,7 @@
                                     <div class="card border-secondary">
                                         <div class="card-body text-center">
                                             <h6 class="card-title">@ubicacion.Nombre</h6>
-                                            <a asp-action="GestionarStock" asp-route-ubicacionId="@ubicacion.Id"
+                                            <a asp-controller="ProductoUbicacionWApp" asp-action="GestionarStock" asp-route-ubicacionId="@ubicacion.Id"
                                                class="btn btn-outline-primary btn-sm">
                                                 <i class="fas fa-warehouse"></i> Gestionar Stock
                                             </a>

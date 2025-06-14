@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import authService from "../../services/authService";
+import Breadcrumb from "../layout/Breadcrumb";
 
 // Renombra el componente a DocumentVerification para mantener consistencia con el nombre del archivo
 const DocumentVerification = () => {
@@ -112,6 +113,7 @@ const DocumentVerification = () => {
     // Mostrar el formulario incluso si no tenemos datos de usuario, pero con menos personalización
     return (
         <div style={{ maxWidth: "400px", margin: "0 auto", padding: "1rem" }}>
+            <Breadcrumb current="Verificar edad" />
             <h2 style={{ color: "#7B3F00" }}>Servipuntos.uy</h2>
             <h3>Verificacion de identidad</h3>
 

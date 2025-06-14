@@ -100,8 +100,10 @@ const apiService = {
       } catch (endpointError) {
         
         // Fallback: Obtener todos los usuarios y filtrar por email
-        const allUsers = await apiClient.get('usuario');
-        const currentUser = allUsers.find(u => u.email.toLowerCase() === user.email.toLowerCase());
+        const allUsersResponse = await apiClient.get('usuario');
+        const currentUser = allUsersResponse.data.find(
+          (u) => u.email.toLowerCase() === user.email.toLowerCase()
+        );
         
         if (!currentUser) {
           throw new Error("Usuario no encontrado en la base de datos");
@@ -324,6 +326,7 @@ updateUserProfile: async (profileData) => {
     }
   },
 
+  
   // Obtener todas las ubicaciones
   getAllUbicaciones: async () => {
     try {
@@ -389,14 +392,15 @@ getProductosCanjeables: async () => {
 },
 
 // Obtener productos disponibles en una ubicación específica
-getProductosByUbicacion: async (ubicacionId) => {
+getProductosByUbicacion: async (ubicacionId, categoria) => {
   try {
     if (!ubicacionId) {
       throw new Error("ID de ubicación es requerido");
     }
 
     
-    const response = await apiClient.get(`ProductoUbicacion/ubicacion/${ubicacionId}`);
+    const url = categoria ? `ProductoUbicacion/ubicacion/${ubicacionId}?categoria=${encodeURIComponent(categoria)}` : `ProductoUbicacion/ubicacion/${ubicacionId}`;
+    const response = await apiClient.get(url);
     
     return response.data;
     
@@ -473,13 +477,202 @@ getProductosByUbicacion: async (ubicacionId) => {
     }
   },
 
-  // Obtener historial de canjes del usuario
-  getCanjesByUsuario: async (usuarioId) => {
+  // Procesa la compra de un producto utilizando PayPal
+  procesarTransaccion: async (
+    productoUbicacion,
+    ubicacionId,
+    puntosUtilizados = 0,
+    valorPunto = 0,
+    tipoTransaccion = 2
+  ) => {
     try {
-      const response = await apiClient.get(`canje/usuario/${usuarioId}`);
+      if (!productoUbicacion || !ubicacionId) {
+        throw new Error("Producto y ubicación son requeridos");
+      }
+
+      const user = await apiService.getUserProfile();
+
+      const linea = {
+        idProducto: productoUbicacion.productoCanjeable.id,
+        nombreProducto: productoUbicacion.productoCanjeable.nombre,
+        categoria: productoUbicacion.categoria || "general",
+        cantidad: 1,
+        precioUnitario: Math.round(productoUbicacion.precio),
+        subTotal: Math.round(productoUbicacion.precio)
+      };
+
+      const total = Math.round(productoUbicacion.precio);
+      const montoPayPal = Math.max(
+        0,
+        Math.round(total - puntosUtilizados * valorPunto)
+      );
+      const transaccion = {
+        IdentificadorUsuario: user.id,
+        fechaTransaccion: new Date().toISOString(),
+        tipoTransaccion,
+        monto: total,
+        metodoPago: 1,
+        MontoPayPal: montoPayPal,
+        productos: [linea],
+        puntosUtilizados,
+        datosAdicionales: {}
+      };
+      console.log(transaccion.MontoPayPal);
+      const mensaje = {
+        tipoMensaje: 1,
+        ubicacionId: ubicacionId,
+        tenantId: user.tenantId,
+        datos: { transaccion }
+      };
+
+      const response = await apiClient.post('nafta/transaccion', mensaje);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.mensaje || 'Error al procesar transacción');
+    }
+  },
+
+  // Procesa la compra de varios productos (carrito) utilizando PayPal
+  procesarTransaccionMultiple: async (productosUbicacion, ubicacionId) => {
+    try {
+      if (!Array.isArray(productosUbicacion) || productosUbicacion.length === 0 || !ubicacionId) {
+        throw new Error("Productos y ubicación son requeridos");
+      }
+
+      const user = await apiService.getUserProfile();
+
+      const lineas = productosUbicacion.map(p => ({
+        idProducto: p.productoCanjeable.id,
+        nombreProducto: p.productoCanjeable.nombre,
+        categoria: p.categoria || "general",
+        cantidad: 1,
+        precioUnitario: Math.round(p.precio),
+        subTotal: Math.round(p.precio)
+      }));
+
+      const total = lineas.reduce((sum, l) => sum + l.subTotal, 0);
+
+      const transaccion = {
+        IdentificadorUsuario: user.id,
+        fechaTransaccion: new Date().toISOString(),
+        tipoTransaccion: 2,
+        monto: total,
+        metodoPago: 1,
+        MontoPayPal: total,
+        productos: lineas,
+        puntosUtilizados: 0,
+        datosAdicionales: {}
+      };
+
+      const mensaje = {
+        tipoMensaje: 1,
+        ubicacionId: ubicacionId,
+        tenantId: user.tenantId,
+        datos: { transaccion }
+      };
+
+      const response = await apiClient.post('nafta/transaccion', mensaje);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.mensaje || 'Error al procesar transacción');
+    }
+  },
+
+   // Procesa la compra de varios productos utilizando combinación de dinero y puntos
+   procesarTransaccionMultipleMixto: async (
+    productosUbicacion,
+    ubicacionId,
+    puntosUtilizados = 0,
+    valorPunto = 0
+  ) => {
+    try {
+      if (!Array.isArray(productosUbicacion) || productosUbicacion.length === 0 || !ubicacionId) {
+        throw new Error("Productos y ubicación son requeridos");
+      }
+
+      const user = await apiService.getUserProfile();
+
+      const lineas = productosUbicacion.map(p => ({
+        idProducto: p.productoCanjeable.id,
+        nombreProducto: p.productoCanjeable.nombre,
+        categoria: p.categoria || "general",
+        cantidad: 1,
+        precioUnitario: Math.round(p.precio),
+        subTotal: Math.round(p.precio)
+      }));
+
+      const total = lineas.reduce((sum, l) => sum + l.subTotal, 0);
+      const montoPayPal = Math.max(0, Math.round(total - puntosUtilizados * valorPunto));
+
+      const transaccion = {
+        IdentificadorUsuario: user.id,
+        fechaTransaccion: new Date().toISOString(),
+        tipoTransaccion: 2,
+        monto: total,
+        metodoPago: 1,
+        MontoPayPal: montoPayPal,
+        productos: lineas,
+        puntosUtilizados,
+        datosAdicionales: {}
+      };
+
+      const mensaje = {
+        tipoMensaje: 1,
+        ubicacionId: ubicacionId,
+        tenantId: user.tenantId,
+        datos: { transaccion }
+      };
+
+      const response = await apiClient.post('nafta/transaccion', mensaje);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.mensaje || 'Error al procesar transacción');
+    }
+  },
+  // Confirma un pago de PayPal con los datos devueltos por la aprobación
+  confirmarPagoPaypal: async (paymentId, payerId) => {
+    try {
+      const mensaje = {
+        tipoMensaje: 1,
+        datos: { paymentId, payerId }
+      };
+
+      const response = await apiClient.post('nafta/confirmar-paypal', mensaje);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.mensaje || 'Error al confirmar pago');
+    }
+  },
+
+
+  // Obtener historial de canjes del usuario
+  getCanjesByUsuario: async (usuarioId, cursor = null, limit = 10) => {
+    try {
+      const params = { limit };
+      if (cursor) params.cursor = cursor;
+      const response = await apiClient.get(`canje/usuario/${usuarioId}`, { params });
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Error al obtener el historial de canjes');
+    }
+  },
+
+  getTransaccionesByUsuario: async (cursor = null, limit = 10) => {
+    try {
+      const params = { limit };
+      if (cursor) params.cursor = cursor;
+      const response = await apiClient.get(`usuario/historial-transacciones`, { params });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error al obtener el historial de transacciones');
+    }
+  },
+  getTransaccionById: async (id) => {
+    try {
+      const response = await apiClient.get(`usuario/transaccion/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error al obtener la transacci\u00f3n');
     }
   },
 

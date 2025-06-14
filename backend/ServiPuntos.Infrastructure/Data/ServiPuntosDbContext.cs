@@ -51,6 +51,13 @@ namespace ServiPuntos.Infrastructure.Data
                 .WithMany(t => t.Usuarios)
                 .HasForeignKey(u => u.TenantId);
 
+            // Relación Usuario – Ubicacion (N:1 opcional)
+            modelBuilder.Entity<Usuario>()
+                .HasOne(u => u.Ubicacion)
+                .WithMany()
+                .HasForeignKey(u => u.UbicacionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Relación ProductoUbicacion – ProductoCanjeable (N:1)
             modelBuilder.Entity<ProductoUbicacion>()
                 .HasOne(pu => pu.ProductoCanjeable)

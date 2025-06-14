@@ -9,6 +9,7 @@ using System.Security.Claims;
 using ServiPuntos.Infrastructure.Data;
 using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
+using ServiPuntos.Application.Services; // Assuming IConfigService is defined here
 
 /// <summary>
 /// Controlador que maneja la autenticación con Google y la gestión de tokens JWT
@@ -25,17 +26,19 @@ public class AuthController : ControllerBase
     
     private readonly ITenantService _tenantService;
 
+    private readonly IConfigPlataformaService _configPlataformaService;
+
     /// <summary>
     /// Constructor que inyecta las dependencias necesarias
-    /// </summary>
     /// <param name="jwtTokenService">Servicio para generar tokens JWT</param>
-    public AuthController(JwtTokenService jwtTokenService, IConfiguration configuration, IHttpClientFactory httpClientFactory, ServiPuntosDbContext context, ITenantService tenantService)
+    public AuthController(JwtTokenService jwtTokenService, IConfiguration configuration, IHttpClientFactory httpClientFactory, ServiPuntosDbContext context, ITenantService tenantService, IConfigPlataformaService configPlataformaService)
     {
         _context = context;
         _jwtTokenService = jwtTokenService;
-        _configuration = configuration;
-        _httpClientFactory = httpClientFactory;
         _tenantService = tenantService;
+        _configPlataformaService = configPlataformaService;
+        _httpClientFactory = httpClientFactory;
+        _configuration = configuration;
 
     }
 
@@ -334,9 +337,20 @@ public class AuthController : ControllerBase
                 return BadRequest(new { message = "Email y contraseña son requeridos" });
             }
 
-            // Buscar el usuario en la base de datos
+            // Normalizamos el email para que la búsqueda no sea sensible a mayúsculas
+            var normalizedEmail = request.Email.Trim().ToLower();
+
+            // Buscar el usuario en la base de datos de forma insensible a mayúsculas
             var usuario = await _context.Usuarios
-                .FirstOrDefaultAsync(u => u.Email == request.Email);
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+
+            var config = await _configPlataformaService.ObtenerConfiguracionAsync();
+            int maxIntentos = config?.MaximoIntentosLogin ?? 3;
+
+            if (usuario != null && usuario.Bloqueado)
+            {
+                return Unauthorized(new { message = "Cuenta bloqueada" });
+            }
 
             // Verificar si el usuario existe
             if (usuario == null)
@@ -348,7 +362,25 @@ public class AuthController : ControllerBase
             bool passwordValid = VerifyPassword(request.Password, usuario.Password);
             if (!passwordValid)
             {
+                if (usuario != null)
+                {
+                    usuario.IntentosFallidos++;
+                    if (usuario.IntentosFallidos >= maxIntentos)
+                    {
+                        usuario.Bloqueado = true;
+                    }
+                    _context.Usuarios.Update(usuario);
+                    await _context.SaveChangesAsync();
+                }
                 return Unauthorized(new { message = "Email o contraseña incorrectos" });
+            }
+
+            if (usuario != null)
+            {
+                
+                usuario.Bloqueado = false;
+                _context.Usuarios.Update(usuario);
+                await _context.SaveChangesAsync();
             }
 
             // Si tenemos cédula, verificamos la edad
@@ -385,6 +417,31 @@ public class AuthController : ControllerBase
         }
     }
     
+
+    [HttpPost("verify-password")]
+    public async Task<IActionResult> VerifyPassword([FromBody] VerifyPasswordRequest request)
+    {
+        if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+        {
+            return BadRequest(new { message = "Email y contraseña son requeridos" });
+        }
+
+        var normalizedEmail = request.Email.Trim().ToLower();
+        var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+        if (usuario == null)
+        {
+            return NotFound(new { message = "Usuario no encontrado" });
+        }
+
+        bool passwordValid = VerifyPassword(request.Password, usuario.Password);
+        if (!passwordValid)
+        {
+            return Unauthorized(new { message = "Contraseña incorrecta" });
+        }
+
+        return Ok(new { message = "Contraseña válida" });
+    }
+
     // Método auxiliar para verificar la contraseña
     private bool VerifyPassword(string providedPassword, string storedPassword)
     {
@@ -640,6 +697,15 @@ public class AuthController : ControllerBase
     /// Clase para recibir los datos de inicio de sesión
     /// </summary>
     public class SignInRequest
+    {
+        public string? Email { get; set; }
+        public string? Password { get; set; }
+    }
+
+    /// <summary>
+    /// Clase para recibir los datos de verificación de contraseña
+    /// </summary>
+    public class VerifyPasswordRequest
     {
         public string? Email { get; set; }
         public string? Password { get; set; }

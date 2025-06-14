@@ -487,5 +487,25 @@ namespace ServiPuntos.WebApp.Controllers
                 return Json(new { success = false, message = "Error al obtener distribución" });
             }
         }
+
+        /// <summary>
+        /// Obtiene todos los usuarios del tenant actual (AJAX)
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetUsuariosTenant()
+        {
+            try
+            {
+                Guid tenantId = GetEffectiveTenantId();
+                var usuarios = await _iUsuarioService.GetAllUsuariosAsync(tenantId);
+                var usuariosDto = usuarios.Select(u => new { id = u.Id, nombre = u.Nombre });
+                return Json(new { success = true, usuarios = usuariosDto });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error en GetUsuariosTenant: {ex.Message}");
+                return Json(new { success = false, message = "Error al obtener usuarios" });
+            }
+        }
     }
 }

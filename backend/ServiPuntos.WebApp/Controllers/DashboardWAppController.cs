@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
 using ServiPuntos.Core.Interfaces;
+using ServiPuntos.WebApp.Models;
+using QuestPDF.Fluent;
+using QuestPDF.Infrastructure;
 
 namespace ServiPuntos.Controllers
 {
@@ -14,13 +17,17 @@ namespace ServiPuntos.Controllers
         private readonly ITenantService _iTenantService;
         private readonly IUbicacionService _iUbicacionService;
         private readonly IConfigPlataformaService _iConfigPlataformaService;
+        private readonly ITransaccionService _iTransaccionService;
+        private readonly ICanjeService _iCanjeService;
 
-        public DashboardWAppController(IUsuarioService usuarioService, ITenantService iTenantService, IUbicacionService ubicacionService, IConfigPlataformaService configPlataformaService)
+        public DashboardWAppController(IUsuarioService usuarioService, ITenantService iTenantService, IUbicacionService ubicacionService, IConfigPlataformaService configPlataformaService, ITransaccionService transaccionService, ICanjeService canjeService)
         {
             _iUsuarioService = usuarioService;
             _iTenantService = iTenantService;
             _iUbicacionService = ubicacionService;
             _iConfigPlataformaService = configPlataformaService;
+            _iTransaccionService = transaccionService;
+            _iCanjeService = canjeService;
         }
 
         public async Task<IActionResult> Index()
@@ -64,6 +71,32 @@ namespace ServiPuntos.Controllers
                     {
                         ViewBag.MiTenant = null;
                         ViewBag.Ubicaciones = new List<ServiPuntos.Core.Entities.Ubicacion>();
+                    }
+                }
+
+                if (User.IsInRole("AdminUbicacion"))
+                {
+                    var ubicacionIdClaim = User.Claims.FirstOrDefault(c => c.Type == "ubicacionId")?.Value;
+                    if (!string.IsNullOrEmpty(ubicacionIdClaim) && Guid.TryParse(ubicacionIdClaim, out Guid ubicacionId))
+                    {
+                        var ubicacionActual = await _iUbicacionService.GetUbicacionAsync(ubicacionId);
+                        if (ubicacionActual != null)
+                        {
+                            ViewBag.MiUbicacion = ubicacionActual;
+
+                            var transacciones = await _iTransaccionService.GetTransaccionesByUbicacionIdAsync(ubicacionId);
+                            var canjes = await _iCanjeService.GetCanjesByUbicacionIdAsync(ubicacionId);
+                            var pendientes = await _iCanjeService.GetCanjesPendientesByUbicacionIdAsync(ubicacionId);
+
+                            ViewBag.ReporteUbicacion = new ServiPuntos.WebApp.Models.ReporteUbicacionViewModel
+                            {
+                                TotalTransacciones = transacciones.Count(),
+                                MontoTotalTransacciones = transacciones.Sum(t => t.Monto),
+                                TotalCanjes = canjes.Count(),
+                                CanjesCompletados = canjes.Count(c => c.Estado == ServiPuntos.Core.Enums.EstadoCanje.Canjeado)
+                            };
+                            ViewBag.CanjesPendientes = pendientes;
+                        }
                     }
                 }
 
@@ -250,10 +283,10 @@ public async Task<IActionResult> ActualizarNombrePuntos(string nombrePuntos)
 
 [HttpPost]
 [Authorize(Roles = "AdminTenant")]
-public async Task<IActionResult> ActualizarPoliticas(decimal tasaCombustible, decimal tasaMinimercado, decimal tasaServicios, int diasCaducidad)
-{
-    try
-    {
+        public async Task<IActionResult> ActualizarPoliticas(decimal tasaCombustible, decimal tasaMinimercado, decimal tasaServicios, int diasCaducidad)
+        {
+            try
+            {
         var tenantIdClaim = User.Claims.FirstOrDefault(c => c.Type == "tenantId")?.Value;
 
         if (string.IsNullOrEmpty(tenantIdClaim) || !Guid.TryParse(tenantIdClaim, out Guid tenantId))
@@ -295,7 +328,135 @@ public async Task<IActionResult> ActualizarPoliticas(decimal tasaCombustible, de
         Console.WriteLine($"❌ Error al actualizar políticas de acumulación: {ex.Message}");
         return Json(new { success = false, message = $"Error interno: {ex.Message}" });
     }
-}
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "AdminUbicacion")]
+        public async Task<IActionResult> ActualizarPreciosCombustible(decimal precioSuper, decimal precioPremium, decimal precioDiesel)
+        {
+            try
+            {
+                var ubicacionIdClaim = User.Claims.FirstOrDefault(c => c.Type == "ubicacionId")?.Value;
+                if (string.IsNullOrEmpty(ubicacionIdClaim) || !Guid.TryParse(ubicacionIdClaim, out Guid ubicacionId))
+                {
+                    return Json(new { success = false, message = "No se pudo identificar su ubicación." });
+                }
+
+                var ubicacion = await _iUbicacionService.GetUbicacionAsync(ubicacionId);
+                if (ubicacion == null)
+                {
+                    return Json(new { success = false, message = "Ubicación no encontrada." });
+                }
+
+                if (precioSuper < 0 || precioPremium < 0 || precioDiesel < 0)
+                {
+                    return Json(new { success = false, message = "Los precios deben ser valores positivos." });
+                }
+
+                ubicacion.PrecioNaftaSuper = precioSuper;
+                ubicacion.PrecioNaftaPremium = precioPremium;
+                ubicacion.PrecioDiesel = precioDiesel;
+                ubicacion.FechaModificacion = DateTime.UtcNow;
+
+                await _iUbicacionService.UpdateUbicacionByTenantAsync(ubicacion.TenantId, ubicacion);
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Precios actualizados correctamente",
+                    precioSuper = precioSuper.ToString("F2"),
+                    precioPremium = precioPremium.ToString("F2"),
+                    precioDiesel = precioDiesel.ToString("F2")
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error al actualizar precios de combustible: {ex.Message}");
+                return Json(new { success = false, message = $"Error interno: {ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "AdminUbicacion")]
+        public async Task<IActionResult> ConfirmarCanje(Guid canjeId)
+        {
+            try
+            {
+                await _iCanjeService.ConfirmarCanjeAsync(canjeId);
+                return Json(new { success = true, message = "Canje confirmado correctamente" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "AdminTenant")]
+        public async Task<IActionResult> Reportes()
+        {
+            var tenantIdClaim = User.Claims.FirstOrDefault(c => c.Type == "tenantId")?.Value;
+            if (string.IsNullOrEmpty(tenantIdClaim) || !Guid.TryParse(tenantIdClaim, out Guid tenantId))
+            {
+                TempData["Error"] = "No se pudo identificar su tenant.";
+                return RedirectToAction("Index");
+            }
+
+            var transacciones = await _iTransaccionService.GetTransaccionesByTenantIdAsync(tenantId);
+            var canjes = await _iCanjeService.GetCanjesByTenantIdAsync(tenantId);
+
+            var modelo = new ReporteTenantViewModel
+            {
+                TotalTransacciones = transacciones.Count(),
+                MontoTotalTransacciones = transacciones.Sum(t => t.Monto),
+                TotalCanjes = canjes.Count(),
+                CanjesCompletados = canjes.Count(c => c.Estado == ServiPuntos.Core.Enums.EstadoCanje.Canjeado)
+            };
+
+            return View(modelo);
+        }
+
+        [Authorize(Roles = "AdminTenant")]
+        public async Task<IActionResult> DescargarReportePdf()
+        {
+            var tenantIdClaim = User.Claims.FirstOrDefault(c => c.Type == "tenantId")?.Value;
+            if (string.IsNullOrEmpty(tenantIdClaim) || !Guid.TryParse(tenantIdClaim, out Guid tenantId))
+            {
+                return RedirectToAction("Reportes");
+            }
+
+            var transacciones = await _iTransaccionService.GetTransaccionesByTenantIdAsync(tenantId);
+            var canjes = await _iCanjeService.GetCanjesByTenantIdAsync(tenantId);
+
+            var modelo = new ReporteTenantViewModel
+            {
+                TotalTransacciones = transacciones.Count(),
+                MontoTotalTransacciones = transacciones.Sum(t => t.Monto),
+                TotalCanjes = canjes.Count(),
+                CanjesCompletados = canjes.Count(c => c.Estado == ServiPuntos.Core.Enums.EstadoCanje.Canjeado)
+            };
+
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(QuestPDF.Helpers.PageSizes.A4);
+                    page.Margin(2, Unit.Centimetre);
+                    page.DefaultTextStyle(x => x.FontSize(16));
+
+                    page.Content().Column(col =>
+                    {
+                        col.Item().Text("Reporte del Tenant").FontSize(20).Bold();
+                        col.Item().Text($"Transacciones: {modelo.TotalTransacciones}");
+                        col.Item().Text($"Monto Total: ${modelo.MontoTotalTransacciones:F2}");
+                        col.Item().Text($"Canjes Generados: {modelo.TotalCanjes}");
+                        col.Item().Text($"Canjes Completados: {modelo.CanjesCompletados}");
+                    });
+                });
+            });
+
+            var pdfBytes = document.GeneratePdf();
+            return File(pdfBytes, "application/pdf", "reporte.pdf");
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetCantidadUsuariosPorTipoTodos()

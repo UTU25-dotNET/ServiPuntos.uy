@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import authService from "../../services/authService";
+import Breadcrumb from "../layout/Breadcrumb";
 
 const AuthCallback = () => {
   const [loading, setLoading] = useState(true);
@@ -93,6 +94,7 @@ const AuthCallback = () => {
       borderRadius: "8px",
       border: "1px solid #dee2e6"
     }}>
+      <Breadcrumb current="Callback" />
       <h2 style={{ color: "#dc3545", marginBottom: "1rem" }}>
         Error de Autenticación
       </h2>

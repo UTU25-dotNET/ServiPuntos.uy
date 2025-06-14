@@ -53,9 +53,25 @@ namespace ServiPuntos.WebApp.Models
         [Range(0, int.MaxValue, ErrorMessage = "El stock no puede ser negativo")]
         public int StockDisponible { get; set; }
 
+        [Range(0, double.MaxValue, ErrorMessage = "El precio no puede ser negativo")]
+        public double Precio { get; set; }
         public bool Activo { get; set; }
         public string UbicacionNombre { get; set; } = string.Empty;
         public string ProductoNombre { get; set; } = string.Empty;
     }
+
+// ViewModel utilizado al asignar un producto canjeable a múltiples
+// ubicaciones desde ProductoCanjeableWApp
+public class AsignarUbicacionesProductoViewModel
+{
+    public Guid ProductoId { get; set; }
+    public string ProductoNombre { get; set; } = string.Empty;
+    public int CostoEnPuntos { get; set; }
+    public List<UbicacionSelectionViewModel> Ubicaciones { get; set; } = new();
+
+    [Required(ErrorMessage = "El stock inicial es obligatorio")]
+    [Range(0, int.MaxValue, ErrorMessage = "El stock inicial no puede ser negativo")]
+    public int StockInicial { get; set; } = 10;
+}
 
 }

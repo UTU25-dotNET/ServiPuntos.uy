@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Breadcrumb from "../layout/Breadcrumb";
 import authService from "../../services/authService";
 import apiService from "../../services/apiService";
-import HistorialCanjes from "./HistorialCanjes";
+import Historial from "./Historial";
+import CambiarPasswordModal from "./CambiarPasswordModal";
 
 const Perfil = () => {
   const [profileData, setProfileData] = useState({
@@ -12,18 +14,14 @@ const Perfil = () => {
     email: "",
     telefono: "",
     ciudadResidencia: "",
-    combustiblePreferido: "",
-    // Campos de contraseña
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: ""
+    combustiblePreferido: ""
   });
   const [readOnlyData, setReadOnlyData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showHistorial, setShowHistorial] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
   const navigate = useNavigate();
@@ -57,10 +55,7 @@ const Perfil = () => {
           email: fullProfile.email || "",
           telefono: fullProfile.telefono || "",
           ciudadResidencia: fullProfile.ciudadResidencia || "",
-          combustiblePreferido: fullProfile.combustiblePreferido || "",
-          currentPassword: "",
-          newPassword: "",
-          confirmPassword: ""
+          combustiblePreferido: fullProfile.combustiblePreferido || ""
         });
 
         setReadOnlyData(fullProfile);
@@ -77,10 +72,7 @@ const Perfil = () => {
             email: userData.email || "",
             telefono: "",
             ciudadResidencia: "",
-            combustiblePreferido: "",
-            currentPassword: "",
-            newPassword: "",
-            confirmPassword: ""
+            combustiblePreferido: ""
           });
         }
       } finally {
@@ -134,29 +126,6 @@ const Perfil = () => {
       return false;
     }
 
-    // Si se quiere cambiar la contraseña
-    if (showPasswordChange) {
-      if (!profileData.currentPassword) {
-        setError("Ingresa tu contraseña actual para cambiarla");
-        return false;
-      }
-
-      if (!profileData.newPassword) {
-        setError("Ingresa la nueva contraseña");
-        return false;
-      }
-
-      if (profileData.newPassword.length < 6) {
-        setError("La nueva contraseña debe tener al menos 6 caracteres");
-        return false;
-      }
-
-      if (profileData.newPassword !== profileData.confirmPassword) {
-        setError("Las contraseñas nuevas no coinciden");
-        return false;
-      }
-    }
-
     return true;
   };
 
@@ -182,9 +151,6 @@ const Perfil = () => {
       };
 
       // Solo incluir contraseña si se quiere cambiar
-      if (showPasswordChange && profileData.newPassword) {
-        dataToSend.password = profileData.newPassword;
-      }
 
       // Enviar al backend
       await apiService.updateUserProfile(dataToSend);
@@ -192,15 +158,6 @@ const Perfil = () => {
       setSuccess("Perfil actualizado exitosamente");
       
       // Limpiar campos de contraseña
-      if (showPasswordChange) {
-        setProfileData(prev => ({
-          ...prev,
-          currentPassword: "",
-          newPassword: "",
-          confirmPassword: ""
-        }));
-        setShowPasswordChange(false);
-      }
 
       // Recargar datos para reflejar los cambios
       setTimeout(async () => {
@@ -229,10 +186,7 @@ const Perfil = () => {
         email: fullProfile.email || "",
         telefono: fullProfile.telefono || "",
         ciudadResidencia: fullProfile.ciudadResidencia || "",
-        combustiblePreferido: fullProfile.combustiblePreferido || "",
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: ""
+        combustiblePreferido: fullProfile.combustiblePreferido || ""
       });
     } catch (err) {
       // Si falla, usar datos del token como fallback
@@ -244,15 +198,12 @@ const Perfil = () => {
           email: userData.email || "",
           telefono: "",
           ciudadResidencia: "",
-          combustiblePreferido: "",
-          currentPassword: "",
-          newPassword: "",
-          confirmPassword: ""
+          combustiblePreferido: ""
         });
       }
     }
     
-    setShowPasswordChange(false);
+    setShowPasswordModal(false);
     setError("");
     setSuccess("");
   };
@@ -288,6 +239,7 @@ if (loading) {
 
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "1rem" }}>
+      <Breadcrumb current="Mi Perfil" />
       <h2>Mi Perfil</h2>
 
       {/* Mensajes de error y éxito */}
@@ -739,9 +691,9 @@ if (loading) {
             
             <button
               type="button"
-              onClick={() => setShowPasswordChange(!showPasswordChange)}
+              onClick={() => setShowPasswordModal(true)}
               style={{
-                backgroundColor: showPasswordChange ? "#6c757d" : "#17a2b8",
+                backgroundColor: "#17a2b8",
                 color: "white",
                 border: "none",
                 borderRadius: "8px",
@@ -753,113 +705,12 @@ if (loading) {
                 alignItems: "center",
                 gap: "0.5rem",
                 transition: "background-color 0.3s ease",
-                marginBottom: showPasswordChange ? "1.5rem" : "0"
               }}
             >
-              {showPasswordChange ? "❌ Cancelar cambio" : "🔑 Cambiar contraseña"}
+              🔑 Cambiar contraseña
             </button>
 
-            {/* Campos de contraseña */}
-            {showPasswordChange && (
-              <div style={{ 
-                padding: "1.5rem",
-                backgroundColor: "#fff",
-                borderRadius: "8px",
-                border: "2px solid #e9ecef"
-              }}>
-                <div style={{ marginBottom: "1.25rem" }}>
-                  <label htmlFor="currentPassword" style={{ 
-                    display: "block", 
-                    marginBottom: "0.5rem", 
-                    fontWeight: "600",
-                    color: "#495057",
-                    fontSize: "0.95rem"
-                  }}>
-                    🔒 Contraseña actual *
-                  </label>
-                  <input
-                    type="password"
-                    id="currentPassword"
-                    name="currentPassword"
-                    value={profileData.currentPassword}
-                    onChange={handleInputChange}
-                    placeholder="Ingresa tu contraseña actual"
-                    style={{
-                      width: "100%",
-                      padding: "0.75rem",
-                      border: "2px solid #e9ecef",
-                      borderRadius: "8px",
-                      fontSize: "1rem"
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = "#007bff"}
-                    onBlur={(e) => e.target.style.borderColor = "#e9ecef"}
-                  />
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
-                  <div>
-                    <label htmlFor="newPassword" style={{ 
-                      display: "block", 
-                      marginBottom: "0.5rem", 
-                      fontWeight: "600",
-                      color: "#495057",
-                      fontSize: "0.95rem"
-                    }}>
-                      🆕 Nueva contraseña *
-                    </label>
-                    <input
-                      type="password"
-                      id="newPassword"
-                      name="newPassword"
-                      value={profileData.newPassword}
-                      onChange={handleInputChange}
-                      placeholder="Mínimo 6 caracteres"
-                      style={{
-                        width: "100%",
-                        padding: "0.75rem",
-                        border: "2px solid #e9ecef",
-                        borderRadius: "8px",
-                        fontSize: "1rem"
-                      }}
-                      onFocus={(e) => e.target.style.borderColor = "#007bff"}
-                      onBlur={(e) => e.target.style.borderColor = "#e9ecef"}
-                    />
-                    <small style={{ color: "#6c757d", fontSize: "0.8rem", marginTop: "0.25rem", display: "block" }}>
-                      La contraseña debe tener al menos 6 caracteres
-                    </small>
-                  </div>
-
-                  <div>
-                    <label htmlFor="confirmPassword" style={{ 
-                      display: "block", 
-                      marginBottom: "0.5rem", 
-                      fontWeight: "600",
-                      color: "#495057",
-                      fontSize: "0.95rem"
-                    }}>
-                      ✅ Confirmar contraseña *
-                    </label>
-                    <input
-                      type="password"
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      value={profileData.confirmPassword}
-                      onChange={handleInputChange}
-                      placeholder="Repite la nueva contraseña"
-                      style={{
-                        width: "100%",
-                        padding: "0.75rem",
-                        border: "2px solid #e9ecef",
-                        borderRadius: "8px",
-                        fontSize: "1rem"
-                      }}
-                      onFocus={(e) => e.target.style.borderColor = "#007bff"}
-                      onBlur={(e) => e.target.style.borderColor = "#e9ecef"}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
+            
           </div>
         </div>
       )}
@@ -980,15 +831,20 @@ if (loading) {
                 cursor: "pointer"
               }}
             >
-              {showHistorial ? "Ocultar historial" : "Ver historial de canjes"}
+              {showHistorial ? "Ocultar historial" : "Ver historial"}
             </button>
           </div>
 
           {showHistorial && (
-            <HistorialCanjes usuarioId={readOnlyData.id} onClose={() => setShowHistorial(false)} />
+            <Historial usuarioId={readOnlyData.id} />
           )}
         </div>
       )}
+      <CambiarPasswordModal
+        isOpen={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+        onSuccess={() => setSuccess("Contraseña actualizada exitosamente")}
+      />
     </div>
   );
 };

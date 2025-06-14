@@ -42,6 +42,11 @@ namespace ServiPuntos.WebApp.Controllers
                 new Claim("tenantId", usuario.TenantId.ToString())
             };
 
+            if (usuario.UbicacionId.HasValue)
+            {
+                claims.Add(new Claim("ubicacionId", usuario.UbicacionId.Value.ToString()));
+            }
+
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var principal = new ClaimsPrincipal(identity);
 

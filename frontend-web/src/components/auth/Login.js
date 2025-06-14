@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import authService from "../../services/authService";
 import '../../App.css';
+import Breadcrumb from "../layout/Breadcrumb";
 
 const Login = () => {
     const [credentials, setCredentials] = useState({ email: "", password: "" });
@@ -162,6 +163,7 @@ const Login = () => {
             </div>
 
             <div className="login-form">
+                <Breadcrumb current={isRegisterMode ? "Registro" : "Login"} />
                 <h2 className="title">Servipuntos</h2>
                 <h3>{isRegisterMode ? "Registro" : "Iniciar Sesión"}</h3>
                 <p>¡La app donde tus compras sí rinden!</p>
@@ -171,16 +173,7 @@ const Login = () => {
                 
                 {/* Error desde URL */}
                 {urlError && (
-                    <div className="url-error-message" style={{
-                        backgroundColor: "#fff3cd",
-                        border: "1px solid #ffeaa7",
-                        color: "#856404",
-                        padding: "12px",
-                        borderRadius: "6px",
-                        marginBottom: "1rem",
-                        textAlign: "center",
-                        fontSize: "14px"
-                    }}>
+                    <div className="error-message">
                         <strong>⚠️ {urlError}</strong>
                         {emailFromUrl && (
                             <div style={{ marginTop: "8px", fontSize: "12px" }}>

@@ -5,6 +5,8 @@ using ServiPuntos.Core.DTOs;
 using ServiPuntos.Core.Enums;
 using System;
 using System.Text.Json;
+using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ServiPuntos.Application.Services
@@ -19,6 +21,8 @@ namespace ServiPuntos.Application.Services
         private readonly IPayPalService _payPalService;
         private readonly ITransaccionRepository _transaccionRepository;
 
+        private readonly IProductoUbicacionService _productoUbicacionService;
+
         public NAFTAService(
             ICanjeService canjeService,
             IPuntosService puntosService,
@@ -26,7 +30,8 @@ namespace ServiPuntos.Application.Services
             ITenantService tenantService,
             IUbicacionService ubicacionService,
             IPayPalService payPalService,
-            ITransaccionRepository transaccionRepository)
+            ITransaccionRepository transaccionRepository,
+            IProductoUbicacionService productoUbicacionService)
         {
             _canjeService = canjeService;
             _puntosService = puntosService;
@@ -35,6 +40,7 @@ namespace ServiPuntos.Application.Services
             _ubicacionService = ubicacionService;
             _payPalService = payPalService;
             _transaccionRepository = transaccionRepository;
+            _productoUbicacionService = productoUbicacionService;
         }
 
         /// <summary>
@@ -63,8 +69,14 @@ namespace ServiPuntos.Application.Services
                 TransaccionNAFTA transaccionNAFTA;
                 try
                 {
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    };
+
                     transaccionNAFTA = JsonSerializer.Deserialize<TransaccionNAFTA>(
-                        JsonSerializer.Serialize(mensaje.Datos["transaccion"]));
+                        JsonSerializer.Serialize(mensaje.Datos["transaccion"]),
+                        options);
                 }
                 catch (Exception ex)
                 {
@@ -126,6 +138,9 @@ namespace ServiPuntos.Application.Services
 
                     await _transaccionRepository.AddAsync(transaccionPendiente);
 
+                    payPalPayment.AdditionalData.TryGetValue("approval_url", out var urlObj);
+                    var approvalUrl = urlObj?.ToString();
+
                     return new RespuestaNAFTA
                     {
                         IdMensajeReferencia = mensaje.IdMensaje,
@@ -134,6 +149,7 @@ namespace ServiPuntos.Application.Services
                         Datos = new System.Collections.Generic.Dictionary<string, object>
                         {
                             { "paymentId", payPalPayment.PaymentId },
+                            { "approvalUrl", approvalUrl },
                             { "transaccionId", transaccionNAFTA.IdTransaccion },
                             { "montoPayPal", transaccionNAFTA.MontoPayPal },
                             { "puntosUtilizados", transaccionNAFTA.PuntosUtilizados }
@@ -188,14 +204,18 @@ namespace ServiPuntos.Application.Services
                     }
 
                     // Calcular y otorgar puntos por la compra (basado en el monto total, no solo PayPal)
-                    var puntosGanados = CalcularPuntosGanados(transaccion.Monto);
+                    var puntosGanados = await CalcularPuntosGanadosAsync(transaccion.Monto, transaccion.TipoTransaccion, transaccion.TenantId);
                     transaccion.PuntosOtorgados = puntosGanados;
 
                     if (puntosGanados > 0)
                     {
                         await _puntosService.ActualizarSaldoAsync(transaccion.UsuarioId, puntosGanados);
                     }
+
+                    await ActualizarStockAsync(transaccion.UbicacionId, transaccion.Detalles);
                 }
+
+
 
                 await _transaccionRepository.UpdateAsync(transaccion);
 
@@ -253,14 +273,14 @@ namespace ServiPuntos.Application.Services
                 await _puntosService.DebitarPuntosAsync(transaccion.UsuarioId, transaccion.PuntosUtilizados);
             }
 
-            var puntosGanados = CalcularPuntosGanados(transaccion.Monto);
+            var puntosGanados = await CalcularPuntosGanadosAsync(transaccion.Monto, transaccion.TipoTransaccion, transaccion.TenantId);
             transaccion.PuntosOtorgados = puntosGanados;
 
             if (puntosGanados > 0)
             {
                 await _puntosService.ActualizarSaldoAsync(transaccion.UsuarioId, puntosGanados);
             }
-
+            await ActualizarStockAsync(transaccion.UbicacionId, transaccion.Detalles);
             await _transaccionRepository.UpdateAsync(transaccion);
 
             var saldoFinal = await _puntosService.GetSaldoByUsuarioIdAsync(transaccion.UsuarioId);
@@ -506,11 +526,24 @@ namespace ServiPuntos.Application.Services
             }
         }
 
-        // CAMBIAR! ESTO DEPENDE DE LA TENANT
-        private int CalcularPuntosGanados(decimal monto)
+
+        private async Task<int> CalcularPuntosGanadosAsync(decimal monto, TipoTransaccion tipo, Guid tenantId)
         {
-            // Ejemplo: 1 punto por cada $100 UYU gastados
-            return (int)(monto / 100);
+            var tenant = await _tenantService.GetByIdAsync(tenantId);
+            if (tenant == null)
+            {
+                return 0;
+            }
+
+            decimal tasa = tipo switch
+            {
+                TipoTransaccion.CompraCombustible => tenant.TasaCombustible,
+                TipoTransaccion.CompraMinimercado => tenant.TasaMinimercado,
+                TipoTransaccion.UsoServicio => tenant.TasaServicios,
+                _ => 0m
+            };
+
+            return (int)Math.Round(monto * tasa);
         }
 
         private RespuestaNAFTA CrearErrorRespuesta(Guid idMensajeReferencia, string mensajeError)
@@ -521,6 +554,51 @@ namespace ServiPuntos.Application.Services
                 Codigo = "ERROR",
                 Mensaje = mensajeError
             };
+        }
+        
+        private async Task ActualizarStockAsync(Guid ubicacionId, string detallesJson)
+        {
+            if (string.IsNullOrWhiteSpace(detallesJson))
+                return;
+
+            try
+            {
+                var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                List<LineaTransaccionNAFTA>? productos = null;
+
+                if (detallesJson.TrimStart().StartsWith("["))
+                {
+                    productos = JsonSerializer.Deserialize<List<LineaTransaccionNAFTA>>(detallesJson, opts);
+                }
+                else
+                {
+                    var detalles = JsonSerializer.Deserialize<DetallesTransaccion>(detallesJson, opts);
+                    productos = detalles?.Productos;
+                }
+
+                if (productos == null || productos.Count == 0)
+                    return;
+
+                var productosUbicacion = await _productoUbicacionService.GetAllAsync(ubicacionId);
+                foreach (var linea in productos)
+                {
+                    var prod = productosUbicacion.FirstOrDefault(p => p.ProductoCanjeableId == linea.IdProducto);
+                    if (prod != null)
+                    {
+                        prod.StockDisponible = Math.Max(0, prod.StockDisponible - linea.Cantidad);
+                        await _productoUbicacionService.UpdateAsync(prod);
+                    }
+                }
+            }
+            catch
+            {
+                // Ignorar errores de actualización de stock
+            }
+        }
+
+        private class DetallesTransaccion
+        {
+            public List<LineaTransaccionNAFTA> Productos { get; set; } = new();
         }
     }
 }
