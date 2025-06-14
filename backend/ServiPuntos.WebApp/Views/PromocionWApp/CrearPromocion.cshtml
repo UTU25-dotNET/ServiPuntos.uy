@@ -50,7 +50,7 @@
             <div class="mb-3">
                 <label class="form-label">Producto</label>
                 <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#productoModal">Seleccionar Producto</button>
-                <input type="hidden" name="ProductoIds" id="ProductoIds" />
+                <div id="productoInputs"></div>
                 <div id="productoSeleccionado" class="mt-3" style="display:none;"></div>
             </div>
             <button type="submit" class="btn btn-primary">Crear</button>
@@ -82,7 +82,15 @@
 
             function actualizarLista() {
                 const cont = document.querySelector('#productoSeleccionado');
-                document.getElementById('ProductoIds').value = seleccionados.join(',');
+                const inputsCont = document.getElementById('productoInputs');
+                inputsCont.innerHTML = '';
+                seleccionados.forEach(id => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'ProductoIds';
+                    input.value = id;
+                    inputsCont.appendChild(input);
+                });
                 if (seleccionados.length === 0) { cont.style.display = 'none'; cont.innerHTML = ''; return; }
                 cont.innerHTML = seleccionados.map(id => {
                     const card = document.querySelector(`.seleccionar-producto[data-id="${id}"]`);
