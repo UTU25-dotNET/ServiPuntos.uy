@@ -20,6 +20,7 @@ const PromocionesList = () => {
       try {
         // Obtener siempre las promociones
         const promosData = await apiService.getPromociones();
+        console.log("Promociones cargadas", promosData); // Added log
         setPromos(promosData);
 
         // Intentar cargar las ubicaciones pero no fallar si ocurre un error
@@ -35,6 +36,7 @@ const PromocionesList = () => {
           // No interrumpe la carga de promociones
         }
       } catch (err) {
+        console.error("Error al cargar promociones", err); // Added log
         setError(err.message);
       } finally {
         setLoading(false);

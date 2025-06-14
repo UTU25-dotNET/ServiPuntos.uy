@@ -679,8 +679,10 @@ getProductosByUbicacion: async (ubicacionId, categoria) => {
   getPromociones: async () => {
     try {
       const response = await apiClient.get('Promocion');
+      console.log('Respuesta de Promocion', response.data); // Added log
       return response.data;
     } catch (error) {
+      console.error('Error en getPromociones', error); // Added log
       throw new Error(error.response?.data?.message || 'Error al obtener las promociones');
     }
   },
