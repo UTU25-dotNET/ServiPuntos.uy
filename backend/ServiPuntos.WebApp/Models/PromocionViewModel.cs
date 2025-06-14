@@ -15,6 +15,7 @@ namespace ServiPuntos.WebApp.Models
         public string? Descripcion { get; set; }
 
         public int? PrecioEnPuntos { get; set; }
+        public decimal? PrecioEnPesos { get; set; }
         public int? DescuentoEnPuntos { get; set; }
 
         [DataType(DataType.Date)]

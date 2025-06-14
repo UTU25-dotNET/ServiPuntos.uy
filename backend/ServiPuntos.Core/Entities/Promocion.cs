@@ -10,6 +10,7 @@
         required public string Titulo { get; set; }
         public string? Descripcion { get; set; }
         public int? PrecioEnPuntos { get; set; }
+        public decimal? PrecioEnPesos { get; set; }
 
         public DateTime FechaInicio { get; set; }
         public DateTime FechaFin { get; set; }
@@ -22,7 +23,7 @@
 
         //Constructor
         public Promocion() { }
-        public Promocion(string titulo, string? descripcion, DateTime fechaInicio, DateTime fechaFin, int? descuentoEnPuntos, int? precioEnPuntos, Enums.TipoPromocion tipo, Guid tenantId)
+        public Promocion(string titulo, string? descripcion, DateTime fechaInicio, DateTime fechaFin, int? descuentoEnPuntos, int? precioEnPuntos, decimal? precioEnPesos, Enums.TipoPromocion tipo, Guid tenantId)
         {
             Titulo = titulo;
             Descripcion = descripcion;
@@ -30,6 +31,7 @@
             FechaFin = fechaFin;
             DescuentoEnPuntos = descuentoEnPuntos;
             PrecioEnPuntos = precioEnPuntos;
+            PrecioEnPesos = precioEnPesos;
             Tipo = tipo;
             TenantId = tenantId;
         }

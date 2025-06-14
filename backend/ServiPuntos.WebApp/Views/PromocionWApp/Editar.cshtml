@@ -32,6 +32,10 @@
                 <label asp-for="PrecioEnPuntos" class="form-label">Precio Puntos</label>
                 <input asp-for="PrecioEnPuntos" class="form-control" type="number" />
             </div>
+            <div class="col" id="precioPesosField">
+                <label asp-for="PrecioEnPesos" class="form-label">Precio Pesos</label>
+                <input asp-for="PrecioEnPesos" class="form-control" type="number" step="0.01" />
+            </div>
             <div class="col" id="descuentoField">
                 <label asp-for="DescuentoEnPuntos" class="form-label">Descuento %</label>
                 <input asp-for="DescuentoEnPuntos" class="form-control" type="number" />
@@ -71,11 +75,14 @@
             const tipo = document.getElementById("Tipo").value;
             const descuento = document.getElementById("descuentoField");
             const precio = document.getElementById("precioPuntosField");
+            const precioPesos = document.getElementById("precioPesosField");
             if (tipo === 'Promocion') {
                 descuento.style.display = 'none';
                 precio.style.display = '';
+                precioPesos.style.display = '';
             } else if (tipo === 'Oferta') {
                 precio.style.display = 'none';
+                precioPesos.style.display = 'none';
                 descuento.style.display = '';
             }
         }

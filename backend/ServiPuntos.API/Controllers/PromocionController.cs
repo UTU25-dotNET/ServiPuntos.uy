@@ -40,6 +40,7 @@ namespace ServiPuntos.API.Controllers
                 fechaFin = p.FechaFin,
                 tipo = p.Tipo.ToString(),
                 precioEnPuntos = p.PrecioEnPuntos,
+                precioEnPesos = p.PrecioEnPesos,
                 descuentoEnPuntos = p.DescuentoEnPuntos,
                 productoIds = p.Productos?.Select(pp => pp.ProductoCanjeableId).ToList()
             });
@@ -60,6 +61,7 @@ namespace ServiPuntos.API.Controllers
                 fechaFin = promo.FechaFin,
                 tipo = promo.Tipo.ToString(),
                 precioEnPuntos = promo.PrecioEnPuntos,
+                precioEnPesos = promo.PrecioEnPesos,
                 descuentoEnPuntos = promo.DescuentoEnPuntos,
                 ubicaciones = promo.Ubicaciones?.Select(u => u.Id).ToList(),
                 audienciaId = promo.AudienciaId,
@@ -106,6 +108,7 @@ namespace ServiPuntos.API.Controllers
             // Enforce business rules depending on the tipo de promoción
             int? descuento = request.Tipo == Core.Enums.TipoPromocion.Promocion ? null : request.DescuentoEnPuntos;
             int? precioPuntos = request.Tipo == Core.Enums.TipoPromocion.Oferta ? null : request.PrecioEnPuntos;
+            decimal? precioPesos = request.Tipo == Core.Enums.TipoPromocion.Oferta ? null : request.PrecioEnPesos;
 
             var promo = new Promocion
             {
@@ -115,6 +118,7 @@ namespace ServiPuntos.API.Controllers
                 FechaFin = fechaFin,
                 DescuentoEnPuntos = descuento,
                 PrecioEnPuntos = precioPuntos,
+                PrecioEnPesos = precioPesos,
                 Tipo = request.Tipo,
                 TenantId = tenantId,
                 AudienciaId = request.AudienciaId,
@@ -138,6 +142,7 @@ namespace ServiPuntos.API.Controllers
             // Enforce business rules depending on the tipo de promoción
             promo.DescuentoEnPuntos = request.Tipo == Core.Enums.TipoPromocion.Promocion ? null : request.DescuentoEnPuntos;
             promo.PrecioEnPuntos = request.Tipo == Core.Enums.TipoPromocion.Oferta ? null : request.PrecioEnPuntos;
+            promo.PrecioEnPesos = request.Tipo == Core.Enums.TipoPromocion.Oferta ? null : request.PrecioEnPesos;
 
             promo.Titulo = request.Titulo;
             promo.Descripcion = request.Descripcion;
@@ -183,6 +188,7 @@ namespace ServiPuntos.API.Controllers
         public DateTime FechaFin { get; set; }
         public int? DescuentoEnPuntos { get; set; }
         public int? PrecioEnPuntos { get; set; }
+        public decimal? PrecioEnPesos { get; set; }
         public Core.Enums.TipoPromocion Tipo { get; set; } = Core.Enums.TipoPromocion.Promocion;
         public Guid? AudienciaId { get; set; }
         public List<Guid>? UbicacionIds { get; set; }

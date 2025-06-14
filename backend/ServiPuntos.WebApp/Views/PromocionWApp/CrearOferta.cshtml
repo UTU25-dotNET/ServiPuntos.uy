@@ -1,0 +1,129 @@
+@model ServiPuntos.WebApp.Models.CreatePromocionViewModel
+@using ServiPuntos.Core.Enums
+@{
+    ViewData["Title"] = "Crear Oferta";
+}
+<div class="container">
+    <h3 class="mb-4">@ViewData["Title"]</h3>
+    <form asp-action="CrearOferta" method="post">
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(m => m.Tipo, new { Value = TipoPromocion.Oferta })
+        <div id="formFields">
+            <div class="mb-3">
+                <label asp-for="Titulo" class="form-label">Título</label>
+                <input asp-for="Titulo" class="form-control" />
+                <span asp-validation-for="Titulo" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Descripcion" class="form-label">Descripción</label>
+                <textarea asp-for="Descripcion" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="row mb-3">
+                <div class="col">
+                    <label asp-for="FechaInicio" class="form-label">Inicio</label>
+                    <input asp-for="FechaInicio" class="form-control" type="date" />
+                </div>
+                <div class="col">
+                    <label asp-for="FechaFin" class="form-label">Fin</label>
+                    <input asp-for="FechaFin" class="form-control" type="date" />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col" id="descuentoField">
+                    <label asp-for="DescuentoEnPuntos" class="form-label">Descuento %</label>
+                    <input asp-for="DescuentoEnPuntos" class="form-control" type="number" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Ubicaciones</label>
+                <div class="list-group" style="max-height: 250px; overflow-y: auto;">
+                    @foreach (var u in (IEnumerable<ServiPuntos.Core.Entities.Ubicacion>)ViewBag.Ubicaciones)
+                    {
+                        <label class="list-group-item">
+                            <input class="form-check-input me-1" type="checkbox" name="UbicacionIds" value="@u.Id" />
+                            @u.Nombre
+                        </label>
+                    }
+                </div>
+                <div class="form-text">Dejar vacío para que sea global.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Producto</label>
+                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#productoModal">Seleccionar Producto</button>
+                <input type="hidden" name="ProductoIds" id="ProductoId" />
+                <div id="productoSeleccionado" class="mt-3" style="display:none;"></div>
+            </div>
+            <button type="submit" class="btn btn-primary">Crear</button>
+            <a asp-action="Index" class="btn btn-secondary">Volver</a>
+        </div>
+    </form>
+</div>
+
+<!-- Modal selección de producto -->
+<div class="modal fade" id="productoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Seleccionar Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+                    @foreach (var p in (IEnumerable<ServiPuntos.Core.Entities.ProductoCanjeable>)ViewBag.Productos)
+                    {
+                        <div class="col">
+                            <div class="card h-100 producto-card seleccionar-producto" data-id="@p.Id" data-nombre="@p.Nombre" data-foto="@(string.IsNullOrEmpty(p.FotoUrl) ? Url.Content("~/images/placeholder-logo.png") : p.FotoUrl)" data-precio="@p.CostoEnPuntos">
+                                <img src="@(string.IsNullOrEmpty(p.FotoUrl) ? Url.Content("~/images/placeholder-logo.png") : p.FotoUrl)" class="card-img-top" style="height:150px; object-fit:cover;" />
+                                <div class="card-body p-2">
+                                    <h6 class="card-title">@p.Nombre</h6>
+                                    <p class="mb-0"><small>@p.CostoEnPuntos puntos</small></p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts{
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            function actualizarCard() {
+                const card = document.querySelector('#productoSeleccionado');
+                const id = document.getElementById('ProductoId').value;
+                if (!id) { card.style.display = 'none'; card.innerHTML = ''; return; }
+                const selected = document.querySelector(`.seleccionar-producto[data-id="${id}"]`);
+                const nombre = selected.dataset.nombre;
+                const foto = selected.dataset.foto;
+                const precio = parseInt(selected.dataset.precio || '0');
+                const descuento = parseInt(document.getElementById('DescuentoEnPuntos').value || '0');
+                const final = Math.max(precio - (precio * descuento / 100), 0);
+                card.innerHTML = `<div class="card" style="max-width: 18rem;">
+                        <img src="${foto}" class="card-img-top" style="height:150px; object-fit:cover;" />
+                        <div class="card-body">
+                            <h6 class="card-title mb-2">${nombre}</h6>
+                            <p class="mb-0">Precio: $${precio}</p>
+                            <p class="mb-0">Descuento: ${descuento}%</p>
+                            <p class="fw-bold">Precio final: $${final}</p>
+                        </div>
+                    </div>`;
+                card.style.display = '';
+            }
+
+            document.querySelectorAll('.seleccionar-producto').forEach(card => {
+                card.addEventListener('click', () => {
+                    document.getElementById('ProductoId').value = card.dataset.id;
+                    actualizarCard();
+                    bootstrap.Modal.getInstance(document.getElementById('productoModal')).hide();
+                });
+            });
+
+            document.getElementById('DescuentoEnPuntos').addEventListener('input', actualizarCard);
+
+            actualizarCard();
+        });
+    </script>
+}
