@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import Breadcrumb from "../layout/Breadcrumb";
 import authService from "../../services/authService";
 import apiService from "../../services/apiService";
 import CatalogoProductos from "../productos/CatalogoProductos";
@@ -145,18 +146,7 @@ const EstacionesList = () => {
     >
       {/* Header con breadcrumb */}
       <div style={{ marginBottom: "2rem" }}>
-        <div style={{ 
-          fontSize: "0.9rem", 
-          color: "#6c757d", 
-          marginBottom: "0.5rem",
-          display: "flex",
-          alignItems: "center",
-          gap: "0.5rem"
-        }}>
-          <Link to="/" style={{ color: "#007bff", textDecoration: "none" }}>🏠 Inicio</Link>
-          <span>›</span>
-          <span>Estaciones</span>
-        </div>
+        <Breadcrumb current="Estaciones" />
         <h1 style={{ color: "#7B3F00", fontSize: "2.5rem", marginBottom: "0.5rem", margin: 0 }}>
           Estaciones de Servicio
         </h1>
