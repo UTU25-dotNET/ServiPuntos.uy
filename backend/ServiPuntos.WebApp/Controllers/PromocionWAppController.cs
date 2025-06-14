@@ -61,14 +61,22 @@ namespace ServiPuntos.WebApp.Controllers
                 if (ub != null) ubicaciones.Add(ub);
             }
 
+            // Ensure UTC dates for PostgreSQL
+            var fechaInicio = DateTime.SpecifyKind(model.FechaInicio, DateTimeKind.Utc);
+            var fechaFin = DateTime.SpecifyKind(model.FechaFin, DateTimeKind.Utc);
+
+            // Enforce business rules depending on the tipo de promoción
+            int? descuento = model.Tipo == TipoPromocion.Promocion ? null : model.DescuentoEnPuntos;
+            int? precioPuntos = model.Tipo == TipoPromocion.Oferta ? null : model.PrecioEnPuntos;
+
             var promo = new Promocion
             {
                 Titulo = model.Titulo,
                 Descripcion = model.Descripcion,
-                FechaInicio = model.FechaInicio,
-                FechaFin = model.FechaFin,
-                DescuentoEnPuntos = model.DescuentoEnPuntos,
-                PrecioEnPuntos = model.PrecioEnPuntos,
+                FechaInicio = fechaInicio,
+                FechaFin = fechaFin,
+                DescuentoEnPuntos = descuento,
+                PrecioEnPuntos = precioPuntos,
                 Tipo = model.Tipo,
                 TenantId = tenantId,
                 AudienciaId = model.AudienciaId,
@@ -119,12 +127,16 @@ namespace ServiPuntos.WebApp.Controllers
             var promo = await _promocionService.GetPromocionAsync(id);
             if (promo == null || promo.TenantId != tenantId) return NotFound();
 
+            // Ensure UTC dates for PostgreSQL
+            promo.FechaInicio = DateTime.SpecifyKind(model.FechaInicio, DateTimeKind.Utc);
+            promo.FechaFin = DateTime.SpecifyKind(model.FechaFin, DateTimeKind.Utc);
+
+            // Enforce business rules depending on the tipo de promoción
+            promo.DescuentoEnPuntos = model.Tipo == TipoPromocion.Promocion ? null : model.DescuentoEnPuntos;
+            promo.PrecioEnPuntos = model.Tipo == TipoPromocion.Oferta ? null : model.PrecioEnPuntos;
+
             promo.Titulo = model.Titulo;
             promo.Descripcion = model.Descripcion;
-            promo.PrecioEnPuntos = model.PrecioEnPuntos;
-            promo.DescuentoEnPuntos = model.DescuentoEnPuntos;
-            promo.FechaInicio = model.FechaInicio;
-            promo.FechaFin = model.FechaFin;
             promo.Tipo = model.Tipo;
             promo.AudienciaId = model.AudienciaId;
             promo.Ubicaciones = new List<Ubicacion>();

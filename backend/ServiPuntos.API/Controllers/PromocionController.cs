@@ -78,14 +78,22 @@ namespace ServiPuntos.API.Controllers
                     if (ub != null) ubicaciones.Add(ub);
                 }
             }
+            // Ensure UTC dates for PostgreSQL
+            var fechaInicio = DateTime.SpecifyKind(request.FechaInicio, DateTimeKind.Utc);
+            var fechaFin = DateTime.SpecifyKind(request.FechaFin, DateTimeKind.Utc);
+
+            // Enforce business rules depending on the tipo de promoción
+            int? descuento = request.Tipo == Core.Enums.TipoPromocion.Promocion ? null : request.DescuentoEnPuntos;
+            int? precioPuntos = request.Tipo == Core.Enums.TipoPromocion.Oferta ? null : request.PrecioEnPuntos;
+
             var promo = new Promocion
             {
                 Titulo = request.Titulo,
                 Descripcion = request.Descripcion,
-                FechaInicio = request.FechaInicio,
-                FechaFin = request.FechaFin,
-                DescuentoEnPuntos = request.DescuentoEnPuntos,
-                PrecioEnPuntos = request.PrecioEnPuntos,
+                FechaInicio = fechaInicio,
+                FechaFin = fechaFin,
+                DescuentoEnPuntos = descuento,
+                PrecioEnPuntos = precioPuntos,
                 Tipo = request.Tipo,
                 TenantId = tenantId,
                 AudienciaId = request.AudienciaId,
@@ -100,12 +108,17 @@ namespace ServiPuntos.API.Controllers
         {
             var promo = await _promocionService.GetPromocionAsync(id);
             if (promo == null) return NotFound(new { message = "Promoción no encontrada" });
+
+            // Ensure UTC dates for PostgreSQL
+            promo.FechaInicio = DateTime.SpecifyKind(request.FechaInicio, DateTimeKind.Utc);
+            promo.FechaFin = DateTime.SpecifyKind(request.FechaFin, DateTimeKind.Utc);
+
+            // Enforce business rules depending on the tipo de promoción
+            promo.DescuentoEnPuntos = request.Tipo == Core.Enums.TipoPromocion.Promocion ? null : request.DescuentoEnPuntos;
+            promo.PrecioEnPuntos = request.Tipo == Core.Enums.TipoPromocion.Oferta ? null : request.PrecioEnPuntos;
+
             promo.Titulo = request.Titulo;
             promo.Descripcion = request.Descripcion;
-            promo.FechaInicio = request.FechaInicio;
-            promo.FechaFin = request.FechaFin;
-            promo.DescuentoEnPuntos = request.DescuentoEnPuntos;
-            promo.PrecioEnPuntos = request.PrecioEnPuntos;
             promo.Tipo = request.Tipo;
             promo.AudienciaId = request.AudienciaId;
             if (request.UbicacionIds != null)

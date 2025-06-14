@@ -27,11 +27,11 @@
             </div>
         </div>
         <div class="row mb-3">
-            <div class="col">
+            <div class="col" id="precioPuntosField">
                 <label asp-for="PrecioEnPuntos" class="form-label">Precio Puntos</label>
                 <input asp-for="PrecioEnPuntos" class="form-control" type="number" />
             </div>
-            <div class="col">
+            <div class="col" id="descuentoField">
                 <label asp-for="DescuentoEnPuntos" class="form-label">Descuento %</label>
                 <input asp-for="DescuentoEnPuntos" class="form-control" type="number" />
             </div>
@@ -56,4 +56,20 @@
 </div>
 @section Scripts{
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function toggleFields() {
+            const tipo = document.getElementById("Tipo").value;
+            const descuento = document.getElementById("descuentoField");
+            const precio = document.getElementById("precioPuntosField");
+            if (tipo === 'Promocion') {
+                descuento.style.display = 'none';
+                precio.style.display = '';
+            } else if (tipo === 'Oferta') {
+                precio.style.display = 'none';
+                descuento.style.display = '';
+            }
+        }
+        document.getElementById("Tipo").addEventListener('change', toggleFields);
+        document.addEventListener('DOMContentLoaded', toggleFields);
+    </script>
 }
