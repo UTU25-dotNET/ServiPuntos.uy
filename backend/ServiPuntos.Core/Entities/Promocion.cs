@@ -18,6 +18,7 @@
 
         // Relación con ubicaciones (puede ser global o por estaciones específicas)
         public List<Ubicacion>? Ubicaciones { get; set; }
+        public List<PromocionProducto>? Productos { get; set; }
 
         //Constructor
         public Promocion() { }

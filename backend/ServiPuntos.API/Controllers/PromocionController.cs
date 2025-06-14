@@ -14,12 +14,14 @@ namespace ServiPuntos.API.Controllers
     {
         private readonly IPromocionService _promocionService;
         private readonly IUbicacionRepository _ubicacionRepository;
+        private readonly IProductoCanjeableService _productoService;
         private readonly ITenantContext _tenantContext;
 
-        public PromocionController(IPromocionService promocionService, IUbicacionRepository ubicacionRepository, ITenantContext tenantContext)
+        public PromocionController(IPromocionService promocionService, IUbicacionRepository ubicacionRepository, IProductoCanjeableService productoService, ITenantContext tenantContext)
         {
             _promocionService = promocionService;
             _ubicacionRepository = ubicacionRepository;
+            _productoService = productoService;
             _tenantContext = tenantContext;
         }
 
@@ -38,7 +40,8 @@ namespace ServiPuntos.API.Controllers
                 fechaFin = p.FechaFin,
                 tipo = p.Tipo.ToString(),
                 precioEnPuntos = p.PrecioEnPuntos,
-                descuentoEnPuntos = p.DescuentoEnPuntos
+                descuentoEnPuntos = p.DescuentoEnPuntos,
+                productoIds = p.Productos?.Select(pp => pp.ProductoCanjeableId).ToList()
             });
             return Ok(result);
         }
@@ -59,7 +62,8 @@ namespace ServiPuntos.API.Controllers
                 precioEnPuntos = promo.PrecioEnPuntos,
                 descuentoEnPuntos = promo.DescuentoEnPuntos,
                 ubicaciones = promo.Ubicaciones?.Select(u => u.Id).ToList(),
-                audienciaId = promo.AudienciaId
+                audienciaId = promo.AudienciaId,
+                productoIds = promo.Productos?.Select(pp => pp.ProductoCanjeableId).ToList()
             };
             return Ok(result);
         }
@@ -76,6 +80,23 @@ namespace ServiPuntos.API.Controllers
                 {
                     var ub = await _ubicacionRepository.GetAsync(id);
                     if (ub != null) ubicaciones.Add(ub);
+                }
+            }
+
+            var productos = new List<PromocionProducto>();
+            if (request.ProductoIds != null)
+            {
+                foreach (var pid in request.ProductoIds)
+                {
+                    var prod = await _productoService.GetProductoAsync(pid);
+                    if (prod != null)
+                    {
+                        productos.Add(new PromocionProducto
+                        {
+                            ProductoCanjeableId = pid,
+                            ProductoCanjeable = prod
+                        });
+                    }
                 }
             }
             // Ensure UTC dates for PostgreSQL
@@ -97,7 +118,8 @@ namespace ServiPuntos.API.Controllers
                 Tipo = request.Tipo,
                 TenantId = tenantId,
                 AudienciaId = request.AudienciaId,
-                Ubicaciones = ubicaciones
+                Ubicaciones = ubicaciones,
+                Productos = productos
             };
             await _promocionService.AddPromocionAsync(promo);
             return CreatedAtAction(nameof(GetById), new { id = promo.Id }, new { id = promo.Id });
@@ -131,6 +153,23 @@ namespace ServiPuntos.API.Controllers
                 }
                 promo.Ubicaciones = ubs;
             }
+            if (request.ProductoIds != null)
+            {
+                var pps = new List<PromocionProducto>();
+                foreach (var pid in request.ProductoIds)
+                {
+                    var prod = await _productoService.GetProductoAsync(pid);
+                    if (prod != null)
+                    {
+                        pps.Add(new PromocionProducto
+                        {
+                            ProductoCanjeableId = pid,
+                            ProductoCanjeable = prod
+                        });
+                    }
+                }
+                promo.Productos = pps;
+            }
             await _promocionService.UpdatePromocionAsync(promo);
             return Ok(new { id = promo.Id });
         }
@@ -147,5 +186,6 @@ namespace ServiPuntos.API.Controllers
         public Core.Enums.TipoPromocion Tipo { get; set; } = Core.Enums.TipoPromocion.Promocion;
         public Guid? AudienciaId { get; set; }
         public List<Guid>? UbicacionIds { get; set; }
+        public List<Guid>? ProductoIds { get; set; }
     }
 }
