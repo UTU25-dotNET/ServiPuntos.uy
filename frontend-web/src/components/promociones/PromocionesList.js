@@ -14,16 +14,22 @@ const PromocionesList = () => {
       setLoading(true);
       setError("");
       try {
-        const [promosData, ubicaciones] = await Promise.all([
-          apiService.getPromociones(),
-          apiService.getAllUbicaciones()
-        ]);
+        // Obtener siempre las promociones
+        const promosData = await apiService.getPromociones();
         setPromos(promosData);
-        const map = {};
-        ubicaciones.forEach((u) => {
-          map[u.id] = u.nombre;
-        });
-        setUbicacionesMap(map);
+
+        // Intentar cargar las ubicaciones pero no fallar si ocurre un error
+        try {
+          const ubicaciones = await apiService.getAllUbicaciones();
+          const map = {};
+          ubicaciones.forEach((u) => {
+            map[u.id] = u.nombre;
+          });
+          setUbicacionesMap(map);
+        } catch (err) {
+          console.error("Error al cargar ubicaciones", err);
+          // No interrumpe la carga de promociones
+        }
       } catch (err) {
         setError(err.message);
       } finally {
