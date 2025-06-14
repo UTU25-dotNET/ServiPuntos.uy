@@ -16,16 +16,19 @@ namespace ServiPuntos.Infrastructure.Repositories
         public Task<Promocion?> GetAsync(Guid id) =>
             _dbContext.Promociones
                 .Include(p => p.Ubicaciones)
+                .Include(p => p.Productos)!.ThenInclude(pp => pp.ProductoCanjeable)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
         public async Task<IEnumerable<Promocion>> GetAllAsync() =>
             await _dbContext.Promociones
                 .Include(p => p.Ubicaciones)
+                .Include(p => p.Productos)!.ThenInclude(pp => pp.ProductoCanjeable)
                 .ToListAsync();
 
         public async Task<IEnumerable<Promocion>> GetAllByTenantAsync(Guid tenantId) =>
             await _dbContext.Promociones
                 .Include(p => p.Ubicaciones)
+                .Include(p => p.Productos)!.ThenInclude(pp => pp.ProductoCanjeable)
                 .Where(p => p.TenantId == tenantId)
                 .ToListAsync();
 

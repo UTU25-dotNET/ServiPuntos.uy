@@ -12,15 +12,18 @@ namespace ServiPuntos.WebApp.Controllers
     {
         private readonly IPromocionService _promocionService;
         private readonly IUbicacionService _ubicacionService;
+        private readonly IProductoCanjeableService _productoService;
         private readonly ITenantContext _tenantContext;
 
         public PromocionWAppController(
             IPromocionService promocionService,
             IUbicacionService ubicacionService,
+            IProductoCanjeableService productoService,
             ITenantContext tenantContext)
         {
             _promocionService = promocionService;
             _ubicacionService = ubicacionService;
+            _productoService = productoService;
             _tenantContext = tenantContext;
         }
 
@@ -39,6 +42,7 @@ namespace ServiPuntos.WebApp.Controllers
             var tenantId = _tenantContext.TenantId;
             if (tenantId == null) return Unauthorized();
             ViewBag.Ubicaciones = await _ubicacionService.GetAllUbicacionesAsync(tenantId);
+            ViewBag.Productos = await _productoService.GetAllProductosAsync();
             return View(new CreatePromocionViewModel());
         }
 
@@ -51,6 +55,7 @@ namespace ServiPuntos.WebApp.Controllers
             if (!ModelState.IsValid)
             {
                 ViewBag.Ubicaciones = await _ubicacionService.GetAllUbicacionesAsync(tenantId);
+                ViewBag.Productos = await _productoService.GetAllProductosAsync();
                 return View(model);
             }
 
@@ -69,6 +74,16 @@ namespace ServiPuntos.WebApp.Controllers
             int? descuento = model.Tipo == TipoPromocion.Promocion ? null : model.DescuentoEnPuntos;
             int? precioPuntos = model.Tipo == TipoPromocion.Oferta ? null : model.PrecioEnPuntos;
 
+            var productos = new List<PromocionProducto>();
+            foreach (var pid in model.ProductoIds)
+            {
+                var prod = await _productoService.GetProductoAsync(pid);
+                if (prod != null)
+                {
+                    productos.Add(new PromocionProducto { ProductoCanjeableId = pid, ProductoCanjeable = prod });
+                }
+            }  
+
             var promo = new Promocion
             {
                 Titulo = model.Titulo,
@@ -80,7 +95,8 @@ namespace ServiPuntos.WebApp.Controllers
                 Tipo = model.Tipo,
                 TenantId = tenantId,
                 AudienciaId = model.AudienciaId,
-                Ubicaciones = ubicaciones
+                Ubicaciones = ubicaciones,
+                Productos = productos
             };
             await _promocionService.AddPromocionAsync(promo);
             TempData["Success"] = "Promoción creada";
@@ -105,9 +121,11 @@ namespace ServiPuntos.WebApp.Controllers
                 FechaFin = promo.FechaFin,
                 Tipo = promo.Tipo,
                 AudienciaId = promo.AudienciaId,
-                UbicacionIds = promo.Ubicaciones?.Select(u => u.Id).ToList() ?? new List<Guid>()
+                UbicacionIds = promo.Ubicaciones?.Select(u => u.Id).ToList() ?? new List<Guid>(),
+                ProductoIds = promo.Productos?.Select(pp => pp.ProductoCanjeableId).ToList() ?? new List<Guid>()
             };
             ViewBag.Ubicaciones = await _ubicacionService.GetAllUbicacionesAsync(tenantId);
+            ViewBag.Productos = await _productoService.GetAllProductosAsync();
             return View(model);
         }
 
@@ -121,6 +139,7 @@ namespace ServiPuntos.WebApp.Controllers
             if (!ModelState.IsValid)
             {
                 ViewBag.Ubicaciones = await _ubicacionService.GetAllUbicacionesAsync(tenantId);
+                ViewBag.Productos = await _productoService.GetAllProductosAsync();
                 return View(model);
             }
 
@@ -145,6 +164,16 @@ namespace ServiPuntos.WebApp.Controllers
                 var ub = await _ubicacionService.GetUbicacionAsync(uid);
                 if (ub != null) promo.Ubicaciones.Add(ub);
             }
+            var pps = new List<PromocionProducto>();
+            foreach (var pid in model.ProductoIds)
+            {
+                var prod = await _productoService.GetProductoAsync(pid);
+                if (prod != null)
+                {
+                    pps.Add(new PromocionProducto { ProductoCanjeableId = pid, ProductoCanjeable = prod });
+                }
+            }
+            promo.Productos = pps;
 
             await _promocionService.UpdatePromocionAsync(promo);
             TempData["Success"] = "Promoción actualizada";

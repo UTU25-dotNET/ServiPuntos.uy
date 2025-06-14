@@ -50,6 +50,15 @@
             </select>
             <div class="form-text">Dejar vacío para que sea global.</div>
         </div>
+        <div class="mb-3">
+            <label class="form-label">Productos</label>
+            <select asp-for="ProductoIds" class="form-select" multiple>
+                @foreach (var p in (IEnumerable<ServiPuntos.Core.Entities.ProductoCanjeable>)ViewBag.Productos)
+                {
+                    <option value="@p.Id">@p.Nombre</option>
+                }
+            </select>
+        </div>
         <button type="submit" class="btn btn-primary">Crear</button>
         <a asp-action="Index" class="btn btn-secondary">Volver</a>
     </form>

@@ -27,6 +27,7 @@ namespace ServiPuntos.WebApp.Models
 
         public Guid? AudienciaId { get; set; }
         public List<Guid> UbicacionIds { get; set; } = new();
+        public List<Guid> ProductoIds { get; set; } = new();
     }
 
     public class EditPromocionViewModel : CreatePromocionViewModel
