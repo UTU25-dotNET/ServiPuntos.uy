@@ -334,43 +334,70 @@ const EstacionesList = () => {
                     style={{
                       marginBottom: "1.25rem",
                       display: "grid",
-                      gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
                       gap: "0.5rem",
                     }}
                   >
                     {[
-                      { label: "Nafta Súper", precio: ubicacion.precioNaftaSuper },
-                      { label: "Nafta Premium", precio: ubicacion.precioNaftaPremium },
-                      { label: "Diesel", precio: ubicacion.precioDiesel },
+                      {
+                        label: "Nafta Súper",
+                        precio: ubicacion.precioNaftaSuper,
+                        color: "#2d5a2d",
+                        bg: "#e8f5e8",
+                        border: "#c3e6c3",
+                        emoji: "🚗",
+                      },
+                      {
+                        label: "Nafta Premium",
+                        precio: ubicacion.precioNaftaPremium,
+                        color: "#b8860b",
+                        bg: "#fff9c4",
+                        border: "#f9c74f",
+                        emoji: "⭐",
+                      },
+                      {
+                        label: "Diesel",
+                        precio: ubicacion.precioDiesel,
+                        color: "#1565c0",
+                        bg: "#e3f2fd",
+                        border: "#90caf9",
+                        emoji: "🚛",
+                      },
                     ].map((c) => (
                       <div
                         key={c.label}
                         style={{
-                          backgroundColor: "#fff9c4",
-                          border: "1px solid #f9c74f",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "0.75rem",
+                          backgroundColor: c.bg,
                           borderRadius: "8px",
-                          padding: "0.5rem",
-                          textAlign: "center",
+                          border: `1px solid ${c.border}`,
                         }}
                       >
-                        <strong style={{ fontSize: "0.9rem", color: "#7B3F00" }}>{c.label}</strong>
-                        <p style={{ margin: "0.25rem 0", color: "#d68910", fontWeight: "bold" }}>
-                          ${formatPrice(c.precio)}
-                        </p>
-                        <button
-                          style={{
-                            width: "100%",
-                            padding: "0.25rem",
-                            backgroundColor: "#ffc107",
-                            color: "#212529",
-                            border: "none",
-                            borderRadius: "6px",
-                            cursor: "pointer",
-                          }}
-                          onClick={() => abrirModalCombustible(ubicacion, c.label, c.precio)}
-                        >
-                          Comprar
-                        </button>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                          <span style={{ fontSize: "1rem" }}>{c.emoji}</span>
+                          <span style={{ fontWeight: "600", color: c.color }}>{c.label}</span>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ fontWeight: "bold", color: c.color }}>
+                            ${formatPrice(c.precio)}
+                          </div>
+                          <button
+                            style={{
+                              marginTop: "0.25rem",
+                              padding: "0.25rem 0.5rem",
+                              backgroundColor: c.color,
+                              color: "white",
+                              border: "none",
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                            }}
+                            onClick={() => abrirModalCombustible(ubicacion, c.label, c.precio)}
+                          >
+                            Comprar
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
