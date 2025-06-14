@@ -72,33 +72,60 @@ const ComprarServicioModal = ({
 
   if (!isOpen) return null;
 
+  const btnStyle = tenantInfo?.color
+    ? { backgroundColor: tenantInfo.color, borderColor: tenantInfo.color }
+    : {};
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div
-        className="modal-content"
-        onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: "400px" }}
-      >
-        <h3 style={{ marginTop: 0 }}>{servicio}</h3>
-        <p style={{ marginTop: 0 }}>
-          Precio: <strong>${precio?.toFixed ? precio.toFixed(2) : precio}</strong>
-        </p>
-        {error && <p style={{ color: "#dc3545" }}>{error}</p>}
-        <div className="modal-buttons">
-          <button type="button" className="danger-btn" onClick={onClose} disabled={loading}>
-            Cancelar
-          </button>
-          <button type="button" className="login-btn" onClick={() => handleComprar()} disabled={loading}>
-            Pagar con Dinero
-          </button>
-          <button
-            type="button"
-            className="login-btn"
-            onClick={handleComprarMixto}
-            disabled={loading || !tenantInfo}
+    <div
+    className="modal show d-block"
+    tabIndex="-1"
+    style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+    onClick={onClose}
+  >
+    <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content">
+        <div
+          className="modal-header"
+          style={{ backgroundColor: tenantInfo?.color || "#f8f9fa" }}
           >
-            Dinero + {tenantInfo?.nombrePuntos || "Puntos"}
-          </button>
+            <h5 className="modal-title">{servicio}</h5>
+            <button type="button" className="btn-close" onClick={onClose}></button>
+          </div>
+          <div className="modal-body">
+            <p className="mb-3">
+              Precio: <strong>${precio?.toFixed ? precio.toFixed(2) : precio}</strong>
+            </p>
+            {error && <div className="alert alert-danger py-2">{error}</div>}
+          </div>
+          <div className="modal-footer">
+            <button
+              type="button"
+              className="btn btn-outline-secondary"
+              onClick={onClose}
+              disabled={loading}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={btnStyle}
+              onClick={() => handleComprar()}
+              disabled={loading}
+            >
+              Pagar con Dinero
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={btnStyle}
+              onClick={handleComprarMixto}
+              disabled={loading || !tenantInfo}
+            >
+              Dinero + {tenantInfo?.nombrePuntos || "Puntos"}
+            </button>
+          </div>
         </div>
       </div>
       <SeleccionarPuntosModal
