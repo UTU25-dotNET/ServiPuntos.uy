@@ -16,7 +16,7 @@ namespace ServiPuntos.WebApp.Models
 
         public int? PrecioEnPuntos { get; set; }
         public decimal? PrecioEnPesos { get; set; }
-        public int? DescuentoEnPuntos { get; set; }
+        public decimal? DescuentoEnPesos { get; set; }
 
         [DataType(DataType.Date)]
         public DateTime FechaInicio { get; set; } = DateTime.UtcNow.Date;

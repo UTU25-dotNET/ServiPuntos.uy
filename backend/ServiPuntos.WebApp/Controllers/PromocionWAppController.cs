@@ -52,21 +52,23 @@ namespace ServiPuntos.WebApp.Controllers
             var tenantId = _tenantContext.TenantId;
             if (tenantId == null) return Unauthorized();
             ViewBag.Ubicaciones = await _ubicacionService.GetAllUbicacionesAsync(tenantId);
-            ViewBag.Productos = await _productoService.GetAllProductosAsync();
+            ViewBag.Productos = new List<ProductoCanjeable>();
             return View("CrearOferta", new CreatePromocionViewModel { Tipo = TipoPromocion.Oferta });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public Task<IActionResult> CrearPromocion(CreatePromocionViewModel model)
-            => CrearInterno(model);
+        public async Task<IActionResult> CrearPromocion(CreatePromocionViewModel model)
+        {
+            return await CrearInterno(model);
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public Task<IActionResult> CrearOferta(CreatePromocionViewModel model)
+        public async Task<IActionResult> CrearOferta(CreatePromocionViewModel model)
         {
             model.Tipo = TipoPromocion.Oferta;
-            return CrearInterno(model);
+            return await CrearInterno(model);
         }
 
         private async Task<IActionResult> CrearInterno(CreatePromocionViewModel model)
@@ -76,7 +78,9 @@ namespace ServiPuntos.WebApp.Controllers
             if (!ModelState.IsValid)
             {
                 ViewBag.Ubicaciones = await _ubicacionService.GetAllUbicacionesAsync(tenantId);
-                ViewBag.Productos = await _productoService.GetAllProductosAsync();
+                ViewBag.Productos = model.Tipo == TipoPromocion.Oferta
+                    ? new List<ProductoCanjeable>()
+                    : await _productoService.GetAllProductosAsync();
                 return View(model.Tipo == TipoPromocion.Oferta ? "CrearOferta" : "CrearPromocion", model);
             }
 
@@ -90,9 +94,9 @@ namespace ServiPuntos.WebApp.Controllers
             var fechaInicio = DateTime.SpecifyKind(model.FechaInicio, DateTimeKind.Utc);
             var fechaFin = DateTime.SpecifyKind(model.FechaFin, DateTimeKind.Utc);
 
-            int? descuento = model.Tipo == TipoPromocion.Promocion ? null : model.DescuentoEnPuntos;
+            decimal? descuento = model.Tipo == TipoPromocion.Promocion ? null : model.DescuentoEnPesos;
             int? precioPuntos = model.Tipo == TipoPromocion.Oferta ? null : model.PrecioEnPuntos;
-            decimal? precioPesos = model.Tipo == TipoPromocion.Oferta ? null : model.PrecioEnPesos;
+            decimal? precioPesos = model.PrecioEnPesos;
 
             var productos = new List<PromocionProducto>();
             foreach (var pid in model.ProductoIds)
@@ -110,7 +114,7 @@ namespace ServiPuntos.WebApp.Controllers
                 Descripcion = model.Descripcion,
                 FechaInicio = fechaInicio,
                 FechaFin = fechaFin,
-                DescuentoEnPuntos = descuento,
+                DescuentoEnPesos = descuento,
                 PrecioEnPuntos = precioPuntos,
                 PrecioEnPesos = precioPesos,
                 Tipo = model.Tipo,
@@ -121,7 +125,7 @@ namespace ServiPuntos.WebApp.Controllers
             };
             await _promocionService.AddPromocionAsync(promo);
             TempData["Success"] = "Promoción creada";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), nameof(PromocionWAppController).Replace("Controller", ""));
         }
 
         [HttpGet]
@@ -138,7 +142,7 @@ namespace ServiPuntos.WebApp.Controllers
                 Descripcion = promo.Descripcion,
                 PrecioEnPuntos = promo.PrecioEnPuntos,
                 PrecioEnPesos = promo.PrecioEnPesos,
-                DescuentoEnPuntos = promo.DescuentoEnPuntos,
+                DescuentoEnPesos = promo.DescuentoEnPesos,
                 FechaInicio = promo.FechaInicio,
                 FechaFin = promo.FechaFin,
                 Tipo = promo.Tipo,
@@ -173,9 +177,9 @@ namespace ServiPuntos.WebApp.Controllers
             promo.FechaFin = DateTime.SpecifyKind(model.FechaFin, DateTimeKind.Utc);
 
             // Enforce business rules depending on the tipo de promoción
-            promo.DescuentoEnPuntos = model.Tipo == TipoPromocion.Promocion ? null : model.DescuentoEnPuntos;
+            promo.DescuentoEnPesos = model.Tipo == TipoPromocion.Promocion ? null : model.DescuentoEnPesos;
             promo.PrecioEnPuntos = model.Tipo == TipoPromocion.Oferta ? null : model.PrecioEnPuntos;
-            promo.PrecioEnPesos = model.Tipo == TipoPromocion.Oferta ? null : model.PrecioEnPesos;
+            promo.PrecioEnPesos = model.PrecioEnPesos;
 
             promo.Titulo = model.Titulo;
             promo.Descripcion = model.Descripcion;
@@ -200,7 +204,31 @@ namespace ServiPuntos.WebApp.Controllers
 
             await _promocionService.UpdatePromocionAsync(promo);
             TempData["Success"] = "Promoción actualizada";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), nameof(PromocionWAppController).Replace("Controller", ""));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Borrar(Guid id)
+        {
+            var tenantId = _tenantContext.TenantId;
+            if (tenantId == null) return Unauthorized();
+            var promo = await _promocionService.GetPromocionAsync(id);
+            if (promo == null || promo.TenantId != tenantId) return NotFound();
+            return View(promo);
+        }
+
+        [HttpPost, ActionName("Borrar")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BorrarConfirmed(Guid id)
+        {
+            var tenantId = _tenantContext.TenantId;
+            if (tenantId == null) return Unauthorized();
+            var promo = await _promocionService.GetPromocionAsync(id);
+            if (promo == null || promo.TenantId != tenantId) return NotFound();
+
+            await _promocionService.DeletePromocionAsync(id);
+            TempData["Success"] = "Promoción eliminada";
+            return RedirectToAction(nameof(Index), nameof(PromocionWAppController).Replace("Controller", ""));
         }
     }
 }

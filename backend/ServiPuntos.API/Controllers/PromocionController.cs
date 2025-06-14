@@ -41,7 +41,7 @@ namespace ServiPuntos.API.Controllers
                 tipo = p.Tipo.ToString(),
                 precioEnPuntos = p.PrecioEnPuntos,
                 precioEnPesos = p.PrecioEnPesos,
-                descuentoEnPuntos = p.DescuentoEnPuntos,
+                descuentoEnPesos = p.DescuentoEnPesos,
                 productoIds = p.Productos?.Select(pp => pp.ProductoCanjeableId).ToList()
             });
             return Ok(result);
@@ -62,7 +62,7 @@ namespace ServiPuntos.API.Controllers
                 tipo = promo.Tipo.ToString(),
                 precioEnPuntos = promo.PrecioEnPuntos,
                 precioEnPesos = promo.PrecioEnPesos,
-                descuentoEnPuntos = promo.DescuentoEnPuntos,
+                descuentoEnPesos = promo.DescuentoEnPesos,
                 ubicaciones = promo.Ubicaciones?.Select(u => u.Id).ToList(),
                 audienciaId = promo.AudienciaId,
                 productoIds = promo.Productos?.Select(pp => pp.ProductoCanjeableId).ToList()
@@ -106,9 +106,9 @@ namespace ServiPuntos.API.Controllers
             var fechaFin = DateTime.SpecifyKind(request.FechaFin, DateTimeKind.Utc);
 
             // Enforce business rules depending on the tipo de promoción
-            int? descuento = request.Tipo == Core.Enums.TipoPromocion.Promocion ? null : request.DescuentoEnPuntos;
+            decimal? descuento = request.Tipo == Core.Enums.TipoPromocion.Promocion ? null : request.DescuentoEnPesos;
             int? precioPuntos = request.Tipo == Core.Enums.TipoPromocion.Oferta ? null : request.PrecioEnPuntos;
-            decimal? precioPesos = request.Tipo == Core.Enums.TipoPromocion.Oferta ? null : request.PrecioEnPesos;
+            decimal? precioPesos = request.PrecioEnPesos;
 
             var promo = new Promocion
             {
@@ -116,7 +116,7 @@ namespace ServiPuntos.API.Controllers
                 Descripcion = request.Descripcion,
                 FechaInicio = fechaInicio,
                 FechaFin = fechaFin,
-                DescuentoEnPuntos = descuento,
+                DescuentoEnPesos = descuento,
                 PrecioEnPuntos = precioPuntos,
                 PrecioEnPesos = precioPesos,
                 Tipo = request.Tipo,
@@ -140,9 +140,9 @@ namespace ServiPuntos.API.Controllers
             promo.FechaFin = DateTime.SpecifyKind(request.FechaFin, DateTimeKind.Utc);
 
             // Enforce business rules depending on the tipo de promoción
-            promo.DescuentoEnPuntos = request.Tipo == Core.Enums.TipoPromocion.Promocion ? null : request.DescuentoEnPuntos;
+            promo.DescuentoEnPesos = request.Tipo == Core.Enums.TipoPromocion.Promocion ? null : request.DescuentoEnPesos;
             promo.PrecioEnPuntos = request.Tipo == Core.Enums.TipoPromocion.Oferta ? null : request.PrecioEnPuntos;
-            promo.PrecioEnPesos = request.Tipo == Core.Enums.TipoPromocion.Oferta ? null : request.PrecioEnPesos;
+            promo.PrecioEnPesos = request.PrecioEnPesos;
 
             promo.Titulo = request.Titulo;
             promo.Descripcion = request.Descripcion;
@@ -186,7 +186,7 @@ namespace ServiPuntos.API.Controllers
         public string? Descripcion { get; set; }
         public DateTime FechaInicio { get; set; }
         public DateTime FechaFin { get; set; }
-        public int? DescuentoEnPuntos { get; set; }
+        public decimal? DescuentoEnPesos { get; set; }
         public int? PrecioEnPuntos { get; set; }
         public decimal? PrecioEnPesos { get; set; }
         public Core.Enums.TipoPromocion Tipo { get; set; } = Core.Enums.TipoPromocion.Promocion;
