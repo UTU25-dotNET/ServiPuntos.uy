@@ -114,7 +114,13 @@
                 const cont = document.getElementById('productosContainer');
                 cont.innerHTML = '';
                 if (!ubicacionId) return;
-                const resp = await fetch(`/api/ProductoUbicacion/ubicacion/${ubicacionId}`);
+                // La API de productos se expone en el proyecto ServiPuntos.API
+                // que por defecto corre en https://localhost:5019. Al usar una
+                // ruta relativa se intentaba resolver contra este mismo WebApp
+                // (puerto 5240) y se obtenía un 404. Por eso construimos la URL
+                // completa hacia la API para cargar correctamente los productos.
+                const apiBase = 'https://localhost:5019';
+                const resp = await fetch(`${apiBase}/api/ProductoUbicacion/ubicacion/${ubicacionId}`);
                 if (!resp.ok) return;
                 const productos = await resp.json();
                 productos.forEach(p => {
