@@ -33,10 +33,6 @@
                     <label asp-for="PrecioEnPuntos" class="form-label">Precio Puntos</label>
                     <input asp-for="PrecioEnPuntos" class="form-control" type="number" />
                 </div>
-                <div class="col">
-                    <label asp-for="PrecioEnPesos" class="form-label">Precio Pesos</label>
-                    <input asp-for="PrecioEnPesos" class="form-control" type="number" step="0.01" />
-                </div>
             </div>
             <div class="mb-3">
                 <label class="form-label">Ubicaciones</label>
@@ -72,19 +68,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
-                    @foreach (var p in (IEnumerable<ServiPuntos.Core.Entities.ProductoCanjeable>)ViewBag.Productos)
-                    {
-                        <div class="col">
-                            <div class="card h-100 producto-card seleccionar-producto" data-id="@p.Id" data-nombre="@p.Nombre" data-foto="@(string.IsNullOrEmpty(p.FotoUrl) ? Url.Content("~/images/placeholder-logo.png") : p.FotoUrl)" data-precio="@p.CostoEnPuntos">
-                                <img src="@(string.IsNullOrEmpty(p.FotoUrl) ? Url.Content("~/images/placeholder-logo.png") : p.FotoUrl)" class="card-img-top" style="height:150px; object-fit:cover;" />
-                                <div class="card-body p-2">
-                                    <h6 class="card-title">@p.Nombre</h6>
-                                    <p class="mb-0"><small>@p.CostoEnPuntos puntos</small></p>
-                                </div>
-                            </div>
-                        </div>
-                    }
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3" id="productosContainer">
                 </div>
             </div>
         </div>
@@ -95,6 +79,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             let seleccionados = [];
+
             function actualizarLista() {
                 const cont = document.querySelector('#productoSeleccionado');
                 document.getElementById('ProductoIds').value = seleccionados.join(',');
@@ -106,20 +91,57 @@
                 cont.style.display = '';
             }
 
-            document.querySelectorAll('.seleccionar-producto').forEach(card => {
-                card.addEventListener('click', () => {
-                    const id = card.dataset.id;
-                    if (seleccionados.includes(id)) {
-                        seleccionados = seleccionados.filter(x => x !== id);
-                        card.classList.remove('border-primary');
-                    } else {
-                        seleccionados.push(id);
-                        card.classList.add('border-primary');
-                    }
-                    actualizarLista();
+            function attachSelectHandlers() {
+                document.querySelectorAll('.seleccionar-producto').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const id = card.dataset.id;
+                        if (seleccionados.includes(id)) {
+                            seleccionados = seleccionados.filter(x => x !== id);
+                            card.classList.remove('border-primary');
+                        } else {
+                            seleccionados.push(id);
+                            card.classList.add('border-primary');
+                        }
+                        actualizarLista();
+                    });
                 });
-            });
+            }
 
+            const API_BASE = "https://localhost:5019";
+
+            async function cargarProductos() {
+                const cont = document.getElementById('productosContainer');
+                cont.innerHTML = '';
+                const ubicaciones = Array.from(document.querySelectorAll('input[name="UbicacionIds"]:checked')).map(cb => cb.value);
+                if (ubicaciones.length === 0) return;
+                const productosMap = {};
+                for (const uid of ubicaciones) {
+                    const resp = await fetch(`${API_BASE}/api/ProductoUbicacion/ubicacion/${uid}`);
+                    if (!resp.ok) continue;
+                    const prods = await resp.json();
+                    prods.forEach(p => { productosMap[p.productoCanjeableId] = p; });
+                }
+                Object.values(productosMap).forEach(p => {
+                    const foto = p.productoCanjeable?.fotoUrl || '/images/placeholder-logo.png';
+                    const nombre = p.productoCanjeable?.nombre || '';
+                    const isSelected = seleccionados.includes(p.productoCanjeableId.toString());
+                    const col = document.createElement('div');
+                    col.className = 'col';
+                    col.innerHTML = `<div class="card h-100 producto-card seleccionar-producto ${isSelected ? 'border-primary' : ''}" data-id="${p.productoCanjeableId}" data-nombre="${nombre}" data-foto="${foto}" data-precio="${p.precio}">
+                            <img src="${foto}" class="card-img-top" style="height:150px; object-fit:cover;" />
+                            <div class="card-body p-2">
+                                <h6 class="card-title">${nombre}</h6>
+                                <p class="mb-0"><small>${p.precio}</small></p>
+                            </div>
+                        </div>`;
+                    cont.appendChild(col);
+                });
+                attachSelectHandlers();
+            }
+
+            document.querySelectorAll('input[name="UbicacionIds"]').forEach(cb => cb.addEventListener('change', cargarProductos));
+
+            cargarProductos();
             actualizarLista();
         });
     </script>
