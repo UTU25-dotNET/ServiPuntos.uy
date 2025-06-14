@@ -18,10 +18,10 @@ namespace ServiPuntos.WebApp.Models
         public int? DescuentoEnPuntos { get; set; }
 
         [DataType(DataType.Date)]
-        public DateTime FechaInicio { get; set; } = DateTime.Today;
+        public DateTime FechaInicio { get; set; } = DateTime.UtcNow.Date;
 
         [DataType(DataType.Date)]
-        public DateTime FechaFin { get; set; } = DateTime.Today.AddDays(7);
+        public DateTime FechaFin { get; set; } = DateTime.UtcNow.Date.AddDays(7);
 
         public TipoPromocion Tipo { get; set; } = TipoPromocion.Promocion;
 
