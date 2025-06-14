@@ -13,7 +13,7 @@
                 <option value="">Seleccione...</option>
             </select>
         </div>
-        <div id="formFields" style="display:none;">
+        <div id="formFields">
             <div class="mb-3">
                 <label asp-for="Titulo" class="form-label">Título</label>
                 <input asp-for="Titulo" class="form-control" />
@@ -94,25 +94,7 @@
 @section Scripts{
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
-        function toggleFields() {
-            const tipo = document.getElementById("Tipo").value;
-            const fields = document.getElementById("formFields");
-            const descuento = document.getElementById("descuentoField");
-            if (!tipo) {
-                fields.style.display = 'none';
-                return;
-            }
-            fields.style.display = '';
-            if (tipo === 'Oferta') {
-                descuento.style.display = '';
-            } else {
-                descuento.style.display = 'none';
-            }
-        }
-        document.getElementById("Tipo").addEventListener('change', toggleFields);
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById("Tipo").selectedIndex = 0;
-            toggleFields();
 
             function actualizarCard() {
                 const card = document.querySelector('#productoSeleccionado');
@@ -128,9 +110,9 @@
                         <img src="${foto}" class="card-img-top" style="height:150px; object-fit:cover;" />
                         <div class="card-body">
                             <h6 class="card-title mb-2">${nombre}</h6>
-                            <p class="mb-0">Precio: ${precio} pts</p>
+                            <p class="mb-0">Precio: $${precio}</p>
                             <p class="mb-0">Descuento: ${descuento}%</p>
-                            <p class="fw-bold">Precio final: ${final} pts</p>
+                            <p class="fw-bold">Precio final: $${final}</p>
                         </div>
                     </div>`;
                 card.style.display = '';
