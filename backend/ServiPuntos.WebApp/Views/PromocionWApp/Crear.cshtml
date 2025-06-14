@@ -42,22 +42,28 @@
         </div>
         <div class="mb-3">
             <label class="form-label">Ubicaciones</label>
-            <select asp-for="UbicacionIds" class="form-select" multiple>
+            <div class="list-group" style="max-height: 250px; overflow-y: auto;">
                 @foreach (var u in (IEnumerable<ServiPuntos.Core.Entities.Ubicacion>)ViewBag.Ubicaciones)
                 {
-                    <option value="@u.Id">@u.Nombre</option>
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" type="checkbox" name="UbicacionIds" value="@u.Id" />
+                        @u.Nombre
+                    </label>
                 }
-            </select>
+            </div>
             <div class="form-text">Dejar vacío para que sea global.</div>
         </div>
         <div class="mb-3">
             <label class="form-label">Productos</label>
-            <select asp-for="ProductoIds" class="form-select" multiple>
+            <div class="list-group" style="max-height: 250px; overflow-y: auto;">
                 @foreach (var p in (IEnumerable<ServiPuntos.Core.Entities.ProductoCanjeable>)ViewBag.Productos)
                 {
-                    <option value="@p.Id">@p.Nombre</option>
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" type="checkbox" name="ProductoIds" value="@p.Id" />
+                        @p.Nombre
+                    </label>
                 }
-            </select>
+            </div>
         </div>
         <button type="submit" class="btn btn-primary">Crear</button>
         <a asp-action="Index" class="btn btn-secondary">Volver</a>
