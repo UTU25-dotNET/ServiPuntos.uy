@@ -4,15 +4,26 @@ import apiService from "../../services/apiService";
 
 const PromocionesList = () => {
   const [promos, setPromos] = useState([]);
+  const [ubicacionesMap, setUbicacionesMap] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [filter, setFilter] = useState("todas");
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
+      setError("");
       try {
-        const data = await apiService.getPromociones();
-        setPromos(data);
+        const [promosData, ubicaciones] = await Promise.all([
+          apiService.getPromociones(),
+          apiService.getAllUbicaciones()
+        ]);
+        setPromos(promosData);
+        const map = {};
+        ubicaciones.forEach((u) => {
+          map[u.id] = u.nombre;
+        });
+        setUbicacionesMap(map);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -22,20 +33,72 @@ const PromocionesList = () => {
     load();
   }, []);
 
+  const filteredPromos = promos.filter((p) => {
+    if (filter === "todas") return true;
+    if (filter === "promociones") return p.tipo === "Promocion";
+    if (filter === "ofertas") return p.tipo === "Oferta";
+    return true;
+  });
+
+  const formatDate = (d) => new Date(d).toLocaleDateString();
+
   return (
-    <div style={{ maxWidth: "800px", margin: "2rem auto" }}>
-      <Breadcrumb items={[{ label: "Home", to: "/" }, { label: "Promociones" }]} />
-      <h2>Promociones</h2>
+    <div className="container my-4">
+      <Breadcrumb current="Promociones" />
+      <h2 className="mb-3">Promociones</h2>
+      <div className="mb-3">
+        <select
+          className="form-select w-auto d-inline-block"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        >
+          <option value="todas">Todas</option>
+          <option value="promociones">Promociones</option>
+          <option value="ofertas">Ofertas</option>
+        </select>
+      </div>
       {loading && <p>Cargando...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {promos.map((p) => (
-        <div key={p.id} style={{ border: "1px solid #ccc", padding: "1rem", borderRadius: "8px", marginBottom: "1rem" }}>
-          <h4>{p.titulo}</h4>
-          <p>{p.descripcion}</p>
-          {p.precioEnPuntos && <p>Por {p.precioEnPuntos} puntos</p>}
-          {p.descuentoEnPuntos && <p>Descuento: {p.descuentoEnPuntos}%</p>}
-        </div>
-      ))}
+      {error && <p className="text-danger">{error}</p>}
+      <div className="row">
+        {filteredPromos.map((p) => (
+          <div className="col-md-4 mb-3" key={p.id}>
+            <div className="card h-100">
+              <div className="card-body">
+                <h5 className="card-title">{p.titulo}</h5>
+                <p className="card-text">{p.descripcion}</p>
+                <p className="card-text">
+                  <small className="text-muted">Inicio: {formatDate(p.fechaInicio)}</small>
+                  <br />
+                  <small className="text-muted">Fin: {formatDate(p.fechaFin)}</small>
+                </p>
+                {p.tipo === "Promocion" && p.precioEnPuntos && (
+                  <p className="card-text">Costo: {p.precioEnPuntos} puntos</p>
+                )}
+                {p.tipo === "Oferta" && (
+                  <>
+                    {p.precioEnPesos !== null && (
+                      <p className="card-text">Precio: ${p.precioEnPesos}</p>
+                    )}
+                    {p.descuentoEnPesos !== null && (
+                      <p className="card-text">Descuento: ${p.descuentoEnPesos}</p>
+                    )}
+                  </>
+                )}
+                {p.ubicaciones && p.ubicaciones.length > 0 && (
+                  <div>
+                    <small className="text-muted">Ubicaciones:</small>
+                    <ul className="mb-0">
+                      {p.ubicaciones.map((uid) => (
+                        <li key={uid}>{ubicacionesMap[uid] || uid}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
