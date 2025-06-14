@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
@@ -7,10 +8,10 @@ using System.Linq;
 
 namespace ServiPuntos.API.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    [Authorize]
-    public class PromocionController : ControllerBase
+[ApiController]
+[Route("api/[controller]")]
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+public class PromocionController : ControllerBase
     {
         private readonly IPromocionService _promocionService;
         private readonly IUbicacionRepository _ubicacionRepository;
@@ -26,6 +27,7 @@ namespace ServiPuntos.API.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<object>>> Get()
         {
             var tenantId = _tenantContext.TenantId;
@@ -48,6 +50,7 @@ namespace ServiPuntos.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<object>> GetById(Guid id)
         {
             var promo = await _promocionService.GetPromocionAsync(id);
