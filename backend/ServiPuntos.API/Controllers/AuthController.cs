@@ -269,7 +269,7 @@ public class AuthController : ControllerBase
                 _context.Usuarios.Update(usuario);
                 await _context.SaveChangesAsync();
 
-                claims.Add(new Claim("TenantId", usuario.TenantId.ToString() ?? string.Empty));
+                claims.Add(new Claim("tenantId", usuario.TenantId.ToString() ?? string.Empty));
             }
 
             // Guardar la información importante en la sesión para usarla cuando el usuario regrese
