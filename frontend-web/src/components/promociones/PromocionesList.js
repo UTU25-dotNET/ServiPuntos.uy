@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Breadcrumb from "../layout/Breadcrumb";
 import apiService from "../../services/apiService";
 
@@ -9,8 +9,12 @@ const PromocionesList = () => {
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("todas");
 
+  const loadedRef = useRef(false);
+
   useEffect(() => {
     const load = async () => {
+      if (loadedRef.current) return;
+      loadedRef.current = true;
       setLoading(true);
       setError("");
       try {
@@ -20,7 +24,7 @@ const PromocionesList = () => {
 
         // Intentar cargar las ubicaciones pero no fallar si ocurre un error
         try {
-          const ubicaciones = await apiService.getAllUbicaciones();
+          const ubicaciones = await apiService.getUbicacionesByUserTenant();
           const map = {};
           ubicaciones.forEach((u) => {
             map[u.id] = u.nombre;
