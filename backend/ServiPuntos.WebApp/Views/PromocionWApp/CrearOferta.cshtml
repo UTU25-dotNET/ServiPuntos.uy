@@ -29,23 +29,25 @@
                 </div>
             </div>
             <div class="row mb-3">
+                <div class="col">
+                    <label asp-for="PrecioEnPesos" class="form-label">Precio Pesos</label>
+                    <input asp-for="PrecioEnPesos" class="form-control" type="number" step="0.01" />
+                </div>
                 <div class="col" id="descuentoField">
-                    <label asp-for="DescuentoEnPuntos" class="form-label">Descuento %</label>
-                    <input asp-for="DescuentoEnPuntos" class="form-control" type="number" />
+                    <label asp-for="DescuentoEnPesos" class="form-label">Descuento</label>
+                    <input asp-for="DescuentoEnPesos" class="form-control" type="number" step="0.01" />
                 </div>
             </div>
             <div class="mb-3">
-                <label class="form-label">Ubicaciones</label>
-                <div class="list-group" style="max-height: 250px; overflow-y: auto;">
+                <label class="form-label">Ubicación</label>
+                <select class="form-select" id="UbicacionSelect" name="UbicacionIds">
+                    <option value="">Seleccione...</option>
                     @foreach (var u in (IEnumerable<ServiPuntos.Core.Entities.Ubicacion>)ViewBag.Ubicaciones)
                     {
-                        <label class="list-group-item">
-                            <input class="form-check-input me-1" type="checkbox" name="UbicacionIds" value="@u.Id" />
-                            @u.Nombre
-                        </label>
+                        <option value="@u.Id">@u.Nombre</option>
                     }
-                </div>
-                <div class="form-text">Dejar vacío para que sea global.</div>
+                </select>
+                <div class="form-text">Seleccione la estación para cargar sus productos.</div>
             </div>
             <div class="mb-3">
                 <label class="form-label">Producto</label>
@@ -68,19 +70,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
-                    @foreach (var p in (IEnumerable<ServiPuntos.Core.Entities.ProductoCanjeable>)ViewBag.Productos)
-                    {
-                        <div class="col">
-                            <div class="card h-100 producto-card seleccionar-producto" data-id="@p.Id" data-nombre="@p.Nombre" data-foto="@(string.IsNullOrEmpty(p.FotoUrl) ? Url.Content("~/images/placeholder-logo.png") : p.FotoUrl)" data-precio="@p.CostoEnPuntos">
-                                <img src="@(string.IsNullOrEmpty(p.FotoUrl) ? Url.Content("~/images/placeholder-logo.png") : p.FotoUrl)" class="card-img-top" style="height:150px; object-fit:cover;" />
-                                <div class="card-body p-2">
-                                    <h6 class="card-title">@p.Nombre</h6>
-                                    <p class="mb-0"><small>@p.CostoEnPuntos puntos</small></p>
-                                </div>
-                            </div>
-                        </div>
-                    }
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3" id="productosContainer">
                 </div>
             </div>
         </div>
@@ -98,30 +88,64 @@
                 const selected = document.querySelector(`.seleccionar-producto[data-id="${id}"]`);
                 const nombre = selected.dataset.nombre;
                 const foto = selected.dataset.foto;
-                const precio = parseInt(selected.dataset.precio || '0');
-                const descuento = parseInt(document.getElementById('DescuentoEnPuntos').value || '0');
+                const precio = parseFloat(selected.dataset.precio || '0');
+                const descuento = parseFloat(document.getElementById('DescuentoEnPuntos').value || '0');
                 const final = Math.max(precio - (precio * descuento / 100), 0);
                 card.innerHTML = `<div class="card" style="max-width: 18rem;">
                         <img src="${foto}" class="card-img-top" style="height:150px; object-fit:cover;" />
                         <div class="card-body">
                             <h6 class="card-title mb-2">${nombre}</h6>
-                            <p class="mb-0">Precio: $${precio}</p>
+                            <p class="mb-0">Precio: $${precio.toFixed(2)}</p>
                             <p class="mb-0">Descuento: ${descuento}%</p>
-                            <p class="fw-bold">Precio final: $${final}</p>
+                            <p class="fw-bold">Precio final: $${final.toFixed(2)}</p>
                         </div>
                     </div>`;
                 card.style.display = '';
             }
 
-            document.querySelectorAll('.seleccionar-producto').forEach(card => {
-                card.addEventListener('click', () => {
-                    document.getElementById('ProductoId').value = card.dataset.id;
-                    actualizarCard();
-                    bootstrap.Modal.getInstance(document.getElementById('productoModal')).hide();
+            function attachSelectHandlers() {
+                document.querySelectorAll('.seleccionar-producto').forEach(card => {
+                    card.addEventListener('click', () => {
+                        document.getElementById('ProductoId').value = card.dataset.id;
+                        actualizarCard();
+                        bootstrap.Modal.getInstance(document.getElementById('productoModal')).hide();
+                    });
                 });
+            }
+
+            async function cargarProductos(ubicacionId) {
+                const cont = document.getElementById('productosContainer');
+                cont.innerHTML = '';
+                if (!ubicacionId) return;
+                const resp = await fetch(`/api/ProductoUbicacion/ubicacion/${ubicacionId}`);
+                if (!resp.ok) return;
+                const productos = await resp.json();
+                productos.forEach(p => {
+                    const foto = p.productoCanjeable?.fotoUrl || '/images/placeholder-logo.png';
+                    const nombre = p.productoCanjeable?.nombre || '';
+                    const col = document.createElement('div');
+                    col.className = 'col';
+                    col.innerHTML = `<div class="card h-100 producto-card seleccionar-producto" data-id="${p.productoCanjeableId}" data-nombre="${nombre}" data-foto="${foto}" data-precio="${p.precio}">
+                            <img src="${foto}" class="card-img-top" style="height:150px; object-fit:cover;" />
+                            <div class="card-body p-2">
+                                <h6 class="card-title">${nombre}</h6>
+                                <p class="mb-0"><small>$${p.precio}</small></p>
+                            </div>
+                        </div>`;
+                    cont.appendChild(col);
+                });
+                attachSelectHandlers();
+            }
+
+            document.getElementById('UbicacionSelect').addEventListener('change', e => {
+                cargarProductos(e.target.value);
             });
 
-            document.getElementById('DescuentoEnPuntos').addEventListener('input', actualizarCard);
+            document.getElementById('DescuentoEnPesos').addEventListener('input', actualizarCard);
+
+            if (document.getElementById('UbicacionSelect').value) {
+                cargarProductos(document.getElementById('UbicacionSelect').value);
+            }
 
             actualizarCard();
         });
