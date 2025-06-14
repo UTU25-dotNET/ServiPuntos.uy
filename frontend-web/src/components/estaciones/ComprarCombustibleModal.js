@@ -88,52 +88,79 @@ const ComprarCombustibleModal = ({
 
   if (!isOpen) return null;
 
+  const btnStyle = tenantInfo?.color
+    ? { backgroundColor: tenantInfo.color, borderColor: tenantInfo.color }
+    : {};
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div
-        className="modal-content"
-        onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: "400px" }}
-      >
-        <h3 style={{ marginTop: 0 }}>Comprar {tipo}</h3>
-        <div style={{ display: "grid", gap: "0.75rem" }}>
-          <label>
-            Litros:
-            <input
-              type="number"
-              value={litros}
-              onChange={(e) => handleLitrosChange(e.target.value)}
-              min="0"
-              step="0.01"
-            />
-          </label>
-          <label>
-            Monto ($):
-            <input
-              type="number"
-              value={monto}
-              onChange={(e) => handleMontoChange(e.target.value)}
-              min="0"
-              step="0.01"
-            />
-          </label>
-        </div>
-        {error && <p style={{ color: "#dc3545" }}>{error}</p>}
-        <div className="modal-buttons">
-          <button type="button" className="danger-btn" onClick={onClose} disabled={loading}>
-            Cancelar
-          </button>
-          <button type="button" className="login-btn" onClick={() => handleComprar()} disabled={loading}>
-            Pagar con Dinero
-          </button>
-          <button
-            type="button"
-            className="login-btn"
-            onClick={handleComprarMixto}
-            disabled={loading || !tenantInfo}
+    <div
+      className="modal show d-block"
+      tabIndex="-1"
+      style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+      onClick={onClose}
+    >
+      <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-content">
+          <div
+            className="modal-header"
+            style={{ backgroundColor: tenantInfo?.color || "#f8f9fa" }}
           >
-            Dinero + {tenantInfo?.nombrePuntos || "Puntos"}
-          </button>
+            <h5 className="modal-title">Comprar {tipo}</h5>
+            <button type="button" className="btn-close" onClick={onClose}></button>
+          </div>
+          <div className="modal-body">
+            <div className="mb-3">
+              <label className="form-label">Litros</label>
+              <input
+                type="number"
+                className="form-control"
+                value={litros}
+                onChange={(e) => handleLitrosChange(e.target.value)}
+                min="0"
+                step="0.01"
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Monto ($)</label>
+              <input
+                type="number"
+                className="form-control"
+                value={monto}
+                onChange={(e) => handleMontoChange(e.target.value)}
+                min="0"
+                step="0.01"
+              />
+            </div>
+            {error && <div className="alert alert-danger py-2">{error}</div>}
+          </div>
+          <div className="modal-footer">
+            <button
+              type="button"
+              className="btn btn-outline-secondary"
+              onClick={onClose}
+              disabled={loading}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={btnStyle}
+              onClick={() => handleComprar()}
+              disabled={loading}
+            >
+              Pagar con Dinero
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={btnStyle}
+              onClick={handleComprarMixto}
+              disabled={loading || !tenantInfo}
+            >
+              Dinero + {tenantInfo?.nombrePuntos || "Puntos"}
+            </button>
+          </div>
         </div>
       </div>
       <SeleccionarPuntosModal

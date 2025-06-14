@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import Breadcrumb from "./layout/Breadcrumb";
 import tokenUtils from "../utils/tokenUtils";
 
 const TokenDisplay = () => {
@@ -70,6 +71,7 @@ const TokenDisplay = () => {
 
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "1rem" }}>
+      <Breadcrumb current="Token" />
       <h2>Visualizador de JWT</h2>
 
       <div style={{ marginBottom: "1rem" }}>

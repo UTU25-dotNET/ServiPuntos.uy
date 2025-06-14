@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import authService from "../../services/authService";
 import '../../App.css';
+import Breadcrumb from "../layout/Breadcrumb";
 
 const Login = () => {
     const [credentials, setCredentials] = useState({ email: "", password: "" });
@@ -162,6 +163,7 @@ const Login = () => {
             </div>
 
             <div className="login-form">
+                <Breadcrumb current={isRegisterMode ? "Registro" : "Login"} />
                 <h2 className="title">Servipuntos</h2>
                 <h3>{isRegisterMode ? "Registro" : "Iniciar Sesión"}</h3>
                 <p>¡La app donde tus compras sí rinden!</p>

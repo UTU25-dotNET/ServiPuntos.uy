@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Breadcrumb from "../layout/Breadcrumb";
 import authService from "../../services/authService";
 import apiService from "../../services/apiService";
 import Historial from "./Historial";
@@ -238,6 +239,7 @@ if (loading) {
 
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "1rem" }}>
+      <Breadcrumb current="Mi Perfil" />
       <h2>Mi Perfil</h2>
 
       {/* Mensajes de error y éxito */}
