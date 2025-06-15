@@ -9,6 +9,7 @@ namespace ServiPuntos.Mobile.Services
     {
         private readonly HttpClient _httpClient;
         private const string API_BASE_URL = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth"; // HTTPS
+
         private const string TOKEN_KEY = "auth_token";
 
         public AuthService(HttpClient httpClient)
