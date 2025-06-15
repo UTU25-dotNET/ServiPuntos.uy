@@ -1,0 +1,66 @@
+@model ServiPuntos.Core.Entities.Audiencia
+@{
+    ViewData["Title"] = "Editar Audiencia";
+    var tenants = ViewBag.Tenants as IEnumerable<ServiPuntos.Core.Entities.Tenant>;
+}
+
+<h1 class="mb-4">@ViewData["Title"]</h1>
+
+<form asp-action="Editar" method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="mb-3">
+        <label asp-for="NombreUnicoInterno" class="form-label"></label>
+        <input asp-for="NombreUnicoInterno" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label asp-for="NombreDescriptivo" class="form-label"></label>
+        <input asp-for="NombreDescriptivo" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Descripcion" class="form-label"></label>
+        <textarea asp-for="Descripcion" class="form-control" rows="3"></textarea>
+    </div>
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="Prioridad" class="form-label"></label>
+            <input asp-for="Prioridad" type="number" class="form-control" />
+        </div>
+        <div class="col-md-4 mb-3 d-flex align-items-center">
+            <div class="form-check">
+                <input asp-for="Activa" class="form-check-input" type="checkbox" />
+                <label asp-for="Activa" class="form-check-label"></label>
+            </div>
+        </div>
+        @if (User.IsInRole("AdminPlataforma") && tenants != null)
+        {
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Tenant</label>
+                <select name="tenantId" class="form-select" required>
+                    @foreach (var t in tenants)
+                    {
+                        <option value="@t.Id" selected="@(t.Id == Model.TenantId)">@t.Nombre</option>
+                    }
+                </select>
+            </div>
+        }
+    </div>
+
+    @if (Model.Reglas != null)
+    {
+        @for (int i = 0; i < Model.Reglas.Count; i++)
+        {
+            <input type="hidden" name="Reglas[@i].Id" value="@Model.Reglas[i].Id" />
+            <input type="hidden" name="Reglas[@i].Propiedad" value="@Model.Reglas[i].Propiedad" />
+            <input type="hidden" name="Reglas[@i].Operador" value="@Model.Reglas[i].Operador" />
+            <input type="hidden" name="Reglas[@i].Valor" value="@Model.Reglas[i].Valor" />
+            <input type="hidden" name="Reglas[@i].OperadorLogicoConSiguiente" value="@Model.Reglas[i].OperadorLogicoConSiguiente" />
+            <input type="hidden" name="Reglas[@i].OrdenEvaluacion" value="@Model.Reglas[i].OrdenEvaluacion" />
+        }
+    }
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        <a asp-action="Index" asp-route-tenantId="@Model.TenantId" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>

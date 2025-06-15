@@ -1,4 +1,5 @@
-﻿using ServiPuntos.Core.Interfaces;
+﻿using ServiPuntos.Core.Enums;
+using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Core.NAFTA;
 using System;
 using System.Linq;
@@ -26,24 +27,24 @@ namespace ServiPuntos.Application.Services
 
             // Estos valores deberían venir de la configuración del tenant
             // Aquí simplificamos con valores predeterminados
-            int tasaConversionCombustible = 1;  // 1 punto por cada 1 pesos
-            int tasaConversionMinimercado = 2;  // 2 puntos por cada 1 pesos
-            int tasaConversionServicios = 3;   // 3 puntos por cada 1 pesos
+            decimal tasaConversionCombustible = tenant.TasaCombustible;
+            decimal tasaConversionMinimercado = tenant.TasaMinimercado;
+            decimal tasaConversionServicios = tenant.TasaServicios;   // 3 puntos por cada 1 pesos
 
-            int puntosCalculados = 0;
+            decimal puntosCalculados = 0m;
 
             // Aplicar reglas según el tipo de transacción
-            switch (transaccion.TipoTransaccion.ToLower())
+            switch (transaccion.TipoTransaccion)
             {
-                case "combustible":
+                case TipoTransaccion.CompraCombustible:
                     puntosCalculados = transaccion.Monto * tasaConversionCombustible;
                     break;
 
-                case "minimercado":
+                case TipoTransaccion.CompraMinimercado:
                     puntosCalculados = transaccion.Monto * tasaConversionMinimercado;
                     break;
 
-                case "servicio":
+                case TipoTransaccion.UsoServicio:
                     puntosCalculados = transaccion.Monto * tasaConversionServicios;
                     break;
 
@@ -65,7 +66,7 @@ namespace ServiPuntos.Application.Services
             }
 
             // Redondear puntos a 2 decimales
-            return puntosCalculados;
+            return (int)Math.Round(puntosCalculados);
         }
     }
 }

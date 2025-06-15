@@ -1,0 +1,74 @@
+@model ServiPuntos.WebApp.Models.EditProductoUbicacionViewModel
+@{
+    ViewData["Title"] = "Editar Producto en Ubicación";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">@ViewData["Title"]</h3>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        @Html.AntiForgeryToken()
+                        <input asp-for="Id" type="hidden" />
+                        <input asp-for="UbicacionId" type="hidden" />
+                        <input asp-for="ProductoCanjeableId" type="hidden" />
+
+                        <div class="mb-3">
+                            <label class="form-label">Ubicación</label>
+                            <input type="text" class="form-control" value="@Model.UbicacionNombre" disabled />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Producto</label>
+                            <input type="text" class="form-control" value="@Model.ProductoNombre" disabled />
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="StockDisponible" class="form-label">Stock Disponible</label>
+                            <input asp-for="StockDisponible" class="form-control" min="0" />
+                            <span asp-validation-for="StockDisponible" class="text-danger"></span>
+                        </div>
+                        @if (User.IsInRole("AdminUbicacion"))
+                        {
+                            <div class="mb-3">
+                                <label asp-for="Precio" class="form-label">Precio</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="Precio" class="form-control" min="0" step="0.01" />
+                                </div>
+                                <span asp-validation-for="Precio" class="text-danger"></span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="row mb-2">
+                                <div class="col-md-4"><strong>Precio:</strong></div>
+                                <div class="col-md-8">$@Model.Precio.ToString("F2")</div>
+                            </div>
+                        }
+
+                        <div class="mb-3 form-check">
+                            <input asp-for="Activo" class="form-check-input" />
+                            <label asp-for="Activo" class="form-check-label">Activo</label>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Volver
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

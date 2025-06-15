@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,11 +14,15 @@ namespace ServiPuntos.Core.Entities
         public string? Descripcion { get; set; }
         public int CostoEnPuntos { get; set; }
 
+        public string? FotoUrl { get; set; }
+
         // Puede estar disponible globalmente o por ubicación
         public List<ProductoUbicacion>? DisponibilidadesPorUbicacion { get; set; }
 
         //Constructor
         public ProductoCanjeable() { }
+
+        [SetsRequiredMembers]
         public ProductoCanjeable(string nombre, string? descripcion, int costoEnPuntos)
         {
             Nombre = nombre;

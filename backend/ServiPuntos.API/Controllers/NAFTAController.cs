@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ServiPuntos.Application.Services;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Core.NAFTA;
 using System.Threading.Tasks;
@@ -30,6 +31,34 @@ namespace ServiPuntos.API.Controllers
 
             var respuesta = await _naftaService.ProcesarTransaccionAsync(mensaje);
 
+            // Para transacciones pendientes de pago PayPal, devolver 202 Accepted
+            if (respuesta.Codigo == "PENDING_PAYMENT")
+            {
+                return Accepted(respuesta);
+            }
+
+            if (respuesta.Codigo == "ERROR")
+            {
+                return BadRequest(respuesta);
+            }
+
+            return Ok(respuesta);
+        }
+
+        /// <summary>
+        /// Confirma un pago de PayPal después de la aprobación del usuario
+        /// </summary>
+        [HttpPost("confirmar-paypal")]
+        [AllowAnonymous]
+        public async Task<ActionResult<RespuestaNAFTA>> ConfirmarPagoPayPal([FromBody] MensajeNAFTA mensaje)
+        {
+            if (mensaje == null)
+            {
+                return BadRequest("El mensaje no puede ser nulo");
+            }
+
+            var respuesta = await _naftaService.ConfirmarPagoPayPalAsync(mensaje);
+
             if (respuesta.Codigo == "ERROR")
             {
                 return BadRequest(respuesta);
@@ -58,8 +87,47 @@ namespace ServiPuntos.API.Controllers
             return Ok(respuesta);
         }
 
+        // Genera un canje para que el usuario obtenga el código QR
+        [HttpPost("generar-canje")]
+        [AllowAnonymous]
+        public async Task<ActionResult<RespuestaNAFTA>> GenerarCanje([FromBody] MensajeNAFTA mensaje)
+        {
+            if (mensaje == null)
+            {
+                return BadRequest("El mensaje no puede ser nulo");
+            }
+
+            var respuesta = await _naftaService.GenerarCanjeAsync(mensaje);
+
+            if (respuesta.Codigo == "ERROR")
+            {
+                return BadRequest(respuesta);
+            }
+
+            return Ok(respuesta);
+        }
+
+        [HttpPost("generar-canjes")]
+        [AllowAnonymous]
+        public async Task<ActionResult<RespuestaNAFTA>> GenerarCanjes([FromBody] MensajeNAFTA mensaje)
+        {
+            if (mensaje == null)
+            {
+                return BadRequest("El mensaje no puede ser nulo");
+            }
+
+            var respuesta = await _naftaService.GenerarCanjesAsync(mensaje);
+
+            if (respuesta.Codigo == "ERROR")
+            {
+                return BadRequest(respuesta);
+            }
+
+            return Ok(respuesta);
+        }
+
         // Procesa un canje de puntos mediante código QR
-        [HttpPost("canje")]
+        [HttpPost("procesar-canje")]
         [AllowAnonymous]
         public async Task<ActionResult<RespuestaNAFTA>> ProcesarCanje([FromBody] MensajeNAFTA mensaje)
         {

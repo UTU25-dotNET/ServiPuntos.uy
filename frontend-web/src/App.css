@@ -37,44 +37,6 @@
   }
 }
 
-.App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
 
 .login-container {
     display: flex;
@@ -137,27 +99,64 @@
     margin-top: 1rem;
 }
 
+.danger-btn {
+  background-color: #dc3545;
+    color: white;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 6px;
+    width: 100%;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+.error-message {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    padding: 0.75rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
 .google-button-wrapper {
     display: flex;
     justify-content: center;
     margin-top: 1rem;
 }
 
-.test-accounts {
-    margin-top: 2rem;
-}
-
-.test-buttons {
+/* Estilos reutilizables para modales */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
     display: flex;
-    gap: 1rem;
-    margin-top: 0.5rem;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 1rem;
 }
 
-    .test-buttons button {
-        padding: 0.5rem 1rem;
-        border: none;
-        background-color: #0d6efd;
-        color: white;
-        border-radius: 5px;
-        cursor: pointer;
-    }
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 400px;
+    padding: 1.5rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.range-slider {
+  width: 100%;
+  margin: 0.5rem 0;
+}

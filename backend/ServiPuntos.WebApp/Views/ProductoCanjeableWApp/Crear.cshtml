@@ -1,0 +1,63 @@
+﻿@model ServiPuntos.WebApp.Models.CreateProductoCanjeableViewModel
+@{
+    ViewData["Title"] = "Crear Producto Canjeable";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">@ViewData["Title"]</h3>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Crear" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label asp-for="Nombre" class="form-label">Nombre del Producto</label>
+                            <input asp-for="Nombre" class="form-control" placeholder="Ej: Descuento 10%" />
+                            <span asp-validation-for="Nombre" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Descripcion" class="form-label">Descripción</label>
+                            <textarea asp-for="Descripcion" class="form-control" rows="3"
+                                      placeholder="Descripción detallada del producto canjeable"></textarea>
+                            <span asp-validation-for="Descripcion" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="CostoEnPuntos" class="form-label">Costo en Puntos</label>
+                            <div class="input-group">
+                                <input asp-for="CostoEnPuntos" class="form-control" type="number" min="1" />
+                                <span class="input-group-text">puntos</span>
+                            </div>
+                            <span asp-validation-for="CostoEnPuntos" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="FotoUrl" class="form-label">URL de la foto</label>
+                            <input asp-for="FotoUrl" class="form-control" placeholder="https://..." />
+                            <span asp-validation-for="FotoUrl" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Volver
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Crear Producto
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

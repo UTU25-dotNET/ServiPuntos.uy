@@ -1,0 +1,209 @@
+﻿@model ServiPuntos.WebApp.Models.AsignarProductoUbicacionViewModel
+@{
+    ViewData["Title"] = "Asignar Productos a Ubicaciones";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>@ViewData["Title"]</h2>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+
+            <form asp-action="AsignarProducto" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="row">
+                    <!-- Selección de Productos -->
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-box"></i> Seleccionar Productos
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                @if (Model.Productos != null && Model.Productos.Any())
+                                {
+                                    <div class="mb-3">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="toggleAllProducts(true)">
+                                            Seleccionar Todos
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleAllProducts(false)">
+                                            Deseleccionar Todos
+                                        </button>
+                                    </div>
+
+                                    <div style="max-height: 400px; overflow-y: auto;">
+                                        @for (int i = 0; i < Model.Productos.Count; i++)
+                                        {
+                                            <div class="form-check mb-2">
+                                                @Html.CheckBoxFor(m => m.Productos[i].Selected, new { @class = "form-check-input", id = $"producto_{i}" })
+                                                @Html.HiddenFor(m => m.Productos[i].Id)
+                                                @Html.HiddenFor(m => m.Productos[i].Nombre)
+                                                @Html.HiddenFor(m => m.Productos[i].CostoEnPuntos)
+                                                <label class="form-check-label" for="producto_@i">
+                                                    <strong>@Model.Productos[i].Nombre</strong>
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-coins"></i> @Model.Productos[i].CostoEnPuntos puntos
+                                                    </small>
+                                                </label>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-center py-3">
+                                        <i class="fas fa-exclamation-triangle text-warning fa-2x mb-2"></i>
+                                        <p class="text-muted">No hay productos disponibles</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Selección de Ubicaciones -->
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-map-marker-alt"></i> Seleccionar Ubicaciones
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                @if (Model.Ubicaciones != null && Model.Ubicaciones.Any())
+                                {
+                                    <div class="mb-3">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="toggleAllUbicaciones(true)">
+                                            Seleccionar Todas
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleAllUbicaciones(false)">
+                                            Deseleccionar Todas
+                                        </button>
+                                    </div>
+
+                                    <div style="max-height: 400px; overflow-y: auto;">
+                                        @for (int i = 0; i < Model.Ubicaciones.Count; i++)
+                                        {
+                                            <div class="form-check mb-2">
+                                                @Html.CheckBoxFor(m => m.Ubicaciones[i].Selected, new { @class = "form-check-input", id = $"ubicacion_{i}" })
+                                                @Html.HiddenFor(m => m.Ubicaciones[i].Id)
+                                                @Html.HiddenFor(m => m.Ubicaciones[i].Nombre)
+                                                <label class="form-check-label" for="ubicacion_@i">
+                                                    <strong>@Model.Ubicaciones[i].Nombre</strong>
+                                                </label>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-center py-3">
+                                        <i class="fas fa-exclamation-triangle text-warning fa-2x mb-2"></i>
+                                        <p class="text-muted">No hay ubicaciones disponibles</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stock Inicial -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-warehouse"></i> Configuración de Stock
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label asp-for="StockInicial" class="form-label">Stock Inicial</label>
+                                            <input asp-for="StockInicial" class="form-control" min="0" />
+                                            <span asp-validation-for="StockInicial" class="text-danger"></span>
+                                            <small class="form-text text-muted">
+                                                Este será el stock inicial para todos los productos en todas las ubicaciones seleccionadas
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Errores de validación -->
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Por favor corrija los siguientes errores:</h6>
+                        <ul class="mb-0">
+                            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                                <li>@error.ErrorMessage</li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                <!-- Botones de acción -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Asignar Productos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleAllProducts(select) {
+            const checkboxes = document.querySelectorAll('input[name*="Productos"][name*="Selected"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = select;
+            });
+        }
+
+        function toggleAllUbicaciones(select) {
+            const checkboxes = document.querySelectorAll('input[name*="Ubicaciones"][name*="Selected"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = select;
+            });
+        }
+
+        // Validación del formulario antes de enviar
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const productosSeleccionados = document.querySelectorAll('input[name*="Productos"][name*="Selected"]:checked').length;
+            const ubicacionesSeleccionadas = document.querySelectorAll('input[name*="Ubicaciones"][name*="Selected"]:checked').length;
+
+            if (productosSeleccionados === 0) {
+                e.preventDefault();
+                alert('Debe seleccionar al menos un producto.');
+                return;
+            }
+
+            if (ubicacionesSeleccionadas === 0) {
+                e.preventDefault();
+                alert('Debe seleccionar al menos una ubicación.');
+                return;
+            }
+        });
+    </script>
+}
