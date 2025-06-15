@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+
 using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Data;
@@ -14,16 +15,32 @@ namespace ServiPuntos.Infrastructure.Repositories
         }
         public Task<ProductoUbicacion?> GetAsync(Guid id)
             => _dbContext.ProductoUbicaciones
+                .Include(p => p.ProductoCanjeable)
+                .Include(p => p.Ubicacion)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
-        public async Task<IEnumerable<ProductoUbicacion>> GetAllAsync()
-            => await _dbContext.ProductoUbicaciones
-                .ToListAsync();
-        public async Task<IEnumerable<ProductoUbicacion>> GetAllAsync(Guid idUbicacion)
-            => await _dbContext.ProductoUbicaciones
-                .Include(p => p.ProductoCanjeable)
-                .Where(p => p.UbicacionId == idUbicacion)
-                .ToListAsync();
+        // En ProductoUbicacionRepository.cs  
+public async Task<IEnumerable<ProductoUbicacion>> GetAllAsync()
+{
+    return await _dbContext.ProductoUbicaciones
+        .Include(pu => pu.ProductoCanjeable)  
+        .ToListAsync();
+}
+        public async Task<IEnumerable<ProductoUbicacion>> GetAllAsync(Guid ubicacionId)
+        {
+    return await _dbContext.ProductoUbicaciones
+        .Where(pu => pu.UbicacionId == ubicacionId)
+        .Include(pu => pu.ProductoCanjeable)  // ← AGREGAR ESTA LÍNEA
+        .ToListAsync();
+        }
+
+        public async Task<IEnumerable<ProductoUbicacion>> GetAllAsync(Guid ubicacionId, string categoria)
+        {
+    return await _dbContext.ProductoUbicaciones
+        .Where(pu => pu.UbicacionId == ubicacionId && pu.Categoria == categoria)
+        .Include(pu => pu.ProductoCanjeable)
+        .ToListAsync();
+        }
 
         public Task AddAsync(ProductoUbicacion productoUbicacion)
         {

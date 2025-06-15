@@ -10,6 +10,7 @@ using System.Text;
 using ServiPuntos.Infrastructure.Data;
 using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
+using ServiPuntos.Application.Services; // Assuming IConfigService is defined here
 
 /// <summary>
 /// Controlador que maneja la autenticación con Google y la gestión de tokens JWT
@@ -26,17 +27,19 @@ public class AuthController : ControllerBase
 
     private readonly ITenantService _tenantService;
 
+    private readonly IConfigPlataformaService _configPlataformaService;
+
     /// <summary>
     /// Constructor que inyecta las dependencias necesarias
-    /// </summary>
     /// <param name="jwtTokenService">Servicio para generar tokens JWT</param>
-    public AuthController(JwtTokenService jwtTokenService, IConfiguration configuration, IHttpClientFactory httpClientFactory, ServiPuntosDbContext context, ITenantService tenantService)
+    public AuthController(JwtTokenService jwtTokenService, IConfiguration configuration, IHttpClientFactory httpClientFactory, ServiPuntosDbContext context, ITenantService tenantService, IConfigPlataformaService configPlataformaService)
     {
         _context = context;
         _jwtTokenService = jwtTokenService;
-        _configuration = configuration;
-        _httpClientFactory = httpClientFactory;
         _tenantService = tenantService;
+        _configPlataformaService = configPlataformaService;
+        _httpClientFactory = httpClientFactory;
+        _configuration = configuration;
 
     }
 
@@ -326,8 +329,8 @@ public class AuthController : ControllerBase
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal, authProperties);
             Console.WriteLine("[GoogleCallback] Usuario autenticado con cookies");
 
-            // Retornar el token JWT generado
-            var tempToken = _jwtTokenService.GenerateJwtToken(claims);
+            // Generar el token JWT usando el método async de dev
+            var tempToken = await _jwtTokenService.GenerateJwtTokenAsync(claims);
             if (isMobileRequest)
             {
                 Console.WriteLine("[GoogleCallback] Redirigiendo a app móvil...");
@@ -425,11 +428,21 @@ public class AuthController : ControllerBase
                 return BadRequest(new { message = "Email y contraseña son requeridos" });
             }
 
+            // Normalizamos el email para que la búsqueda no sea sensible a mayúsculas
+            var normalizedEmail = request.Email.Trim().ToLower();
             Console.WriteLine($"[SignIn] Buscando usuario en BD: {request.Email}");
 
-            // Buscar el usuario en la base de datos
+            // Buscar el usuario en la base de datos de forma insensible a mayúsculas
             var usuario = await _context.Usuarios
-                .FirstOrDefaultAsync(u => u.Email == request.Email);
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+
+            var config = await _configPlataformaService.ObtenerConfiguracionAsync();
+            int maxIntentos = config?.MaximoIntentosLogin ?? 3;
+
+            if (usuario != null && usuario.Bloqueado)
+            {
+                return Unauthorized(new { message = "Cuenta bloqueada" });
+            }
 
             Console.WriteLine($"[SignIn] Usuario encontrado: {usuario != null}");
 
@@ -449,7 +462,28 @@ public class AuthController : ControllerBase
             if (!passwordValid)
             {
                 Console.WriteLine("[SignIn] ERROR: Contraseña incorrecta");
+                
+                // Incrementar intentos fallidos (lógica de dev)
+                if (usuario != null)
+                {
+                    usuario.IntentosFallidos++;
+                    if (usuario.IntentosFallidos >= maxIntentos)
+                    {
+                        usuario.Bloqueado = true;
+                    }
+                    _context.Usuarios.Update(usuario);
+                    await _context.SaveChangesAsync();
+                }
                 return Unauthorized(new { message = "Email o contraseña incorrectos" });
+            }
+
+            // Resetear intentos fallidos en login exitoso (lógica de dev)
+            if (usuario != null)
+            {
+                usuario.IntentosFallidos = 0;
+                usuario.Bloqueado = false;
+                _context.Usuarios.Update(usuario);
+                await _context.SaveChangesAsync();
             }
 
             Console.WriteLine("[SignIn] Creando claims...");
@@ -484,8 +518,8 @@ public class AuthController : ControllerBase
 
             Console.WriteLine("[SignIn] Generando token JWT...");
 
-            // Generar el token JWT (tanto para web como para móvil)
-            var token = _jwtTokenService.GenerateJwtToken(claims);
+            // Generar el token JWT usando el método async de dev (tanto para web como para móvil)
+            var token = await _jwtTokenService.GenerateJwtTokenAsync(claims);
 
             Console.WriteLine($"[SignIn] Token generado: {token.Substring(0, Math.Min(20, token.Length))}...");
 
@@ -514,6 +548,31 @@ public class AuthController : ControllerBase
     }
 
     
+
+    [HttpPost("verify-password")]
+    public async Task<IActionResult> VerifyPassword([FromBody] VerifyPasswordRequest request)
+    {
+        if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+        {
+            return BadRequest(new { message = "Email y contraseña son requeridos" });
+        }
+
+        var normalizedEmail = request.Email.Trim().ToLower();
+        var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+        if (usuario == null)
+        {
+            return NotFound(new { message = "Usuario no encontrado" });
+        }
+
+        bool passwordValid = VerifyPassword(request.Password, usuario.Password);
+        if (!passwordValid)
+        {
+            return Unauthorized(new { message = "Contraseña incorrecta" });
+        }
+
+        return Ok(new { message = "Contraseña válida" });
+    }
+
     // Método auxiliar para verificar la contraseña
     private bool VerifyPassword(string providedPassword, string storedPassword)
     {
@@ -769,6 +828,15 @@ public class AuthController : ControllerBase
     /// Clase para recibir los datos de inicio de sesión
     /// </summary>
     public class SignInRequest
+    {
+        public string? Email { get; set; }
+        public string? Password { get; set; }
+    }
+
+    /// <summary>
+    /// Clase para recibir los datos de verificación de contraseña
+    /// </summary>
+    public class VerifyPasswordRequest
     {
         public string? Email { get; set; }
         public string? Password { get; set; }

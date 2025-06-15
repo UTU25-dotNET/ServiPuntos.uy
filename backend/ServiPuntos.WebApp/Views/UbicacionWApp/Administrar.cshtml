@@ -1,0 +1,199 @@
+@model IEnumerable<ServiPuntos.Core.Entities.Ubicacion>
+
+@{
+    ViewData["Title"] = "Administrar Ubicaciones";
+    var tenantName = ViewBag.TenantName as string ?? "Tu Tenant";
+    var tenantId = (Guid)ViewBag.TenantId;
+}
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-5">
+                        <i class="fas fa-map-marker-alt me-3"></i>
+                        Administrar Ubicaciones
+                    </h1>
+                    <p class="lead text-muted">
+                        Gestiona las ubicaciones de <strong>@tenantName</strong>
+                    </p>
+                </div>
+                <div>
+                    <a asp-action="Crear" class="btn btn-success btn-lg">
+                        <i class="fas fa-plus me-2"></i>
+                        Nueva Ubicación
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (Model.Any())
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Total: <strong>@Model.Count()</strong> ubicaciones registradas
+                    </small>
+                </div>
+                
+                <div class="card shadow-sm">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>
+                                            <i class="fas fa-store me-1"></i>
+                                            Nombre
+                                        </th>
+                                        <th>
+                                            <i class="fas fa-map-pin me-1"></i>
+                                            Dirección
+                                        </th>
+                                        <th>
+                                            <i class="fas fa-city me-1"></i>
+                                            Ciudad
+                                        </th>
+                                        <th>
+                                            <i class="fas fa-clock me-1"></i>
+                                            Horario
+                                        </th>
+                                        <th>
+                                            <i class="fas fa-gas-pump me-1"></i>
+                                            Precios
+                                        </th>
+                                        <th>
+                                            Acciones
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var ubicacion in Model)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                        <i class="fas fa-store text-white" style="font-size: 12px;"></i>
+                                                    </div>
+                                                    <div>
+                                                        <strong>@ubicacion.Nombre</strong>
+                                                         @if (!string.IsNullOrEmpty(ubicacion.Telefono))
+                                                        {
+                                                            <br>
+                                                            <small class="text-muted">
+                                                                <i class="fas fa-phone me-1"></i>@ubicacion.Telefono
+                                                            </small>
+                                                        } 
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                @ubicacion.Direccion
+                                                @if (!string.IsNullOrEmpty(ubicacion.Departamento))
+                                                {
+                                                    <br>
+                                                    <small class="text-muted">@ubicacion.Departamento</small>
+                                                }
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">@ubicacion.Ciudad</span>
+                                            </td>
+                                            <td>
+                                                <small>
+                                                    <i class="fas fa-clock me-1"></i>
+                                                     @ubicacion.HoraApertura.ToString(@"hh\:mm") - @ubicacion.HoraCierre.ToString(@"hh\:mm") 
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <div class="small">
+                                                    <div><strong>Súper:</strong> $@(ubicacion.PrecioNaftaSuper?.ToString("0.##") ?? "N/A")</div>
+                                                    <div><strong>Premium:</strong> $@(ubicacion.PrecioNaftaPremium?.ToString("0.##") ?? "N/A")</div>
+                                                    <div><strong>Diesel:</strong> $@(ubicacion.PrecioDiesel?.ToString("0.##") ?? "N/A")</div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <a asp-action="Editar" asp-route-id="@ubicacion.Id" class="btn btn-sm btn-primary">Editar</a>
+                                                <a asp-action="Detalle" asp-route-id="@ubicacion.Id" class="btn btn-sm btn-info">Ver</a>
+                                                <a asp-action="Eliminar" asp-route-id="@ubicacion.Id" class="btn btn-sm btn-danger eliminar-btn">Eliminar</a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="text-center py-5">
+                            <div class="mb-4">
+                                <i class="fas fa-map-marker-alt text-muted" style="font-size: 4rem;"></i>
+                            </div>
+                            <h4 class="text-muted mb-3">No hay ubicaciones registradas</h4>
+                            <p class="text-muted mb-4">
+                                Comienza agregando tu primera ubicación para <strong>@tenantName</strong>
+                            </p>
+                            <a asp-action="Crear" class="btn btn-primary btn-lg">
+                                <i class="fas fa-plus me-2"></i>
+                                Crear Primera Ubicación
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <a asp-controller="DashboardWApp" asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>
+                Volver al Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert-dismissible');
+            alerts.forEach(function(alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+        
+    </script>
+}

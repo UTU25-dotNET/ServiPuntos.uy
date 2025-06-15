@@ -41,11 +41,22 @@ namespace ServiPuntos.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<Usuario>()
+                .Property(u => u.Intereses)
+                .IsRequired(false);
+
             // Relación Usuario – Tenant (1:N)
             modelBuilder.Entity<Usuario>()
                 .HasOne(u => u.Tenant)
                 .WithMany(t => t.Usuarios)
                 .HasForeignKey(u => u.TenantId);
+
+            // Relación Usuario – Ubicacion (N:1 opcional)
+            modelBuilder.Entity<Usuario>()
+                .HasOne(u => u.Ubicacion)
+                .WithMany()
+                .HasForeignKey(u => u.UbicacionId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Relación ProductoUbicacion – ProductoCanjeable (N:1)
             modelBuilder.Entity<ProductoUbicacion>()

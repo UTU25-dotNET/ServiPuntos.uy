@@ -36,6 +36,27 @@ namespace ServiPuntos.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Transaccion>> GetByUsuarioIdPaginatedAsync(Guid usuarioId, Guid? cursor, int limit)
+        {
+            var query = _context.Transacciones
+                .Where(t => t.UsuarioId == usuarioId)
+                .Include(t => t.Ubicacion)
+                .OrderByDescending(t => t.FechaTransaccion)
+                .ThenByDescending(t => t.Id)
+                .AsQueryable();
+
+            if (cursor.HasValue)
+            {
+                var cursorTx = await _context.Transacciones.AsNoTracking().FirstOrDefaultAsync(t => t.Id == cursor.Value);
+                if (cursorTx != null)
+                {
+                    query = query.Where(t => t.FechaTransaccion < cursorTx.FechaTransaccion ||
+                        (t.FechaTransaccion == cursorTx.FechaTransaccion && t.Id.CompareTo(cursor.Value) < 0));
+                }
+            }
+
+            return await query.Take(limit).ToListAsync();
+        }
         public async Task<IEnumerable<Transaccion>> GetByUbicacionIdAsync(Guid ubicacionId)
         {
             return await _context.Transacciones
@@ -89,6 +110,14 @@ namespace ServiPuntos.Infrastructure.Repositories
             _context.Transacciones.Remove(transaccion);
             int result = await _context.SaveChangesAsync();
             return result > 0;
+        }
+        public async Task<Transaccion> GetByPayPalPaymentIdAsync(string pagoPayPalId)
+        {
+            return await _context.Transacciones
+                .Include(t => t.Usuario)
+                .Include(t => t.Ubicacion)
+                .Include(t => t.Tenant)
+                .FirstOrDefaultAsync(t => t.PagoPayPalId == pagoPayPalId);
         }
     }
 }

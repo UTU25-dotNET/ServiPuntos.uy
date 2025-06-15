@@ -1,0 +1,671 @@
+@model ServiPuntos.Core.DTOs.AudienciaDto
+
+@{
+    ViewData["Title"] = "Crear Nueva Audiencia";
+}
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-5">
+                        <i class="fas fa-plus-circle me-3 text-success"></i>
+                        Crear Nueva Audiencia
+                    </h1>
+                    <p class="lead text-muted">
+                        Define una nueva audiencia para segmentar usuarios de tu tenant
+                    </p>
+                </div>
+                <div>
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Volver al Listado
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <form asp-action="Crear" method="post" id="audienciaForm" novalidate>
+        @Html.AntiForgeryToken()
+        
+        <!-- Información Básica -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Información Básica
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Información del Tenant -->
+                <div class="alert alert-info mb-4">
+                    <i class="fas fa-building me-2"></i>
+                    <strong>Tenant:</strong> Esta audiencia se creará para tu tenant actual.
+                    <br><small class="text-muted">El sistema determinará automáticamente el tenant basándose en tu usuario.</small>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="NombreUnicoInterno" class="form-label">
+                            <i class="fas fa-tag me-1"></i>
+                            Nombre Único Interno *
+                        </label>
+                        <input asp-for="NombreUnicoInterno" class="form-control" required 
+                               placeholder="ej: ClientesVIP, UsuariosNuevos, CompradoresRecurrentes">
+                        <div class="form-text">
+                            Identificador único para uso interno. Solo letras, números y guiones bajos.
+                        </div>
+                        <span asp-validation-for="NombreUnicoInterno" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="NombreDescriptivo" class="form-label">
+                            <i class="fas fa-signature me-1"></i>
+                            Nombre Descriptivo *
+                        </label>
+                        <input asp-for="NombreDescriptivo" class="form-control" required 
+                               placeholder="ej: Clientes VIP con más de 1000 puntos">
+                        <div class="form-text">Nombre amigable para mostrar en reportes</div>
+                        <span asp-validation-for="NombreDescriptivo" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Descripcion" class="form-label">
+                        <i class="fas fa-align-left me-1"></i>
+                        Descripción
+                    </label>
+                    <textarea asp-for="Descripcion" class="form-control" rows="3" 
+                              placeholder="Describe el propósito y criterios de esta audiencia..."></textarea>
+                    <div class="form-text">Descripción detallada para documentación interna</div>
+                    <span asp-validation-for="Descripcion" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Prioridad" class="form-label">
+                            <i class="fas fa-sort-numeric-up me-1"></i>
+                            Prioridad *
+                        </label>
+                        <input asp-for="Prioridad" type="number" class="form-control" required 
+                               min="0" max="100" value="0">
+                        <div class="form-text">
+                            Orden de evaluación (0 = más alta, 100 = más baja)
+                        </div>
+                        <span asp-validation-for="Prioridad" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4 mb-3 d-flex align-items-end">
+                        <div class="form-check">
+                            <input asp-for="Activa" class="form-check-input" type="checkbox" checked>
+                            <label asp-for="Activa" class="form-check-label">
+                                <i class="fas fa-toggle-on me-1 text-success"></i>
+                                <strong>Audiencia Activa</strong>
+                            </label>
+                            <div class="form-text">Solo las audiencias activas clasifican usuarios</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card bg-light h-100">
+                            <div class="card-body py-2">
+                                <h6 class="card-title mb-1">
+                                    <i class="fas fa-info-circle text-info"></i>
+                                    Tip de Prioridad
+                                </h6>
+                                <small class="text-muted">
+                                    Las audiencias con menor número tienen mayor prioridad.
+                                    Los usuarios se asignan a la primera audiencia que cumplan.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reglas de Segmentación -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-success text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-rules me-2"></i>
+                        Reglas de Segmentación
+                    </h5>
+                    <button type="button" class="btn btn-light btn-sm" onclick="agregarRegla()">
+                        <i class="fas fa-plus me-1"></i>
+                        Agregar Regla
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>¿Cómo funcionan las reglas?</strong><br>
+                    Define condiciones que los usuarios deben cumplir para pertenecer a esta audiencia.
+                    Todas las reglas se evalúan según los operadores lógicos (AND/OR) entre ellas.
+                </div>
+
+                <div id="reglasContainer">
+                    <!-- Las reglas se agregarán aquí dinámicamente -->
+                </div>
+
+                <div id="noReglasMessage" class="text-center py-4">
+                    <i class="fas fa-plus-circle text-muted mb-2" style="font-size: 3rem;"></i>
+                    <p class="text-muted mb-3">No hay reglas definidas</p>
+                    <button type="button" class="btn btn-success" onclick="agregarRegla()">
+                        <i class="fas fa-plus me-2"></i>
+                        Agregar Primera Regla
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Propiedades Disponibles (Ayuda) -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <button class="btn btn-link p-0 text-decoration-none" type="button" 
+                        data-bs-toggle="collapse" data-bs-target="#propiedadesAyuda">
+                    <h6 class="mb-0">
+                        <i class="fas fa-question-circle me-2"></i>
+                        Propiedades Disponibles para Reglas
+                        <i class="fas fa-chevron-down ms-2"></i>
+                    </h6>
+                </button>
+            </div>
+            <div id="propiedadesAyuda" class="collapse">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-user text-primary"></i> Propiedades de Usuario:</h6>
+                            <ul class="list-unstyled ms-3">
+                                <li><code>Puntos</code> - Puntos acumulados del usuario</li>
+                                <li><code>Edad</code> - Edad calculada en años</li>
+                                <li><code>FechaCreacion</code> - Fecha de registro</li>
+                                <li><code>FechaModificacion</code> - Última modificación</li>
+                                <li><code>Nombre</code> - Nombre del usuario</li>
+                                <li><code>Apellido</code> - Apellido del usuario</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-calendar text-warning"></i> Ejemplos de Valores:</h6>
+                            <ul class="list-unstyled ms-3">
+                                <li><strong>Números:</strong> <code>100</code>, <code>1000</code>, <code>25</code></li>
+                                <li><strong>Texto:</strong> <code>Ana</code>, <code>VIP</code></li>
+                                <li><strong>Fechas:</strong> <code>2024-01-01</code></li>
+                                <li><strong>Listas:</strong> <code>Ana,Juan</code></li>
+                                <li><strong>Regex:</strong> <code>^[0-9]+$</code></li>
+                            </ul>
+                            
+                            <h6 class="mt-3"><i class="fas fa-cogs text-info"></i> Ejemplos de Reglas:</h6>
+                            <small class="text-muted">
+                                <strong>Edad > 18</strong> (mayores de edad)<br>
+                                <strong>Puntos >= 1000</strong> (clientes VIP)<br>
+                                <strong>Nombre contiene Ana</strong>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <button type="button" class="btn btn-outline-info" onclick="previewAudiencia()">
+                            <i class="fas fa-eye me-2"></i>
+                            Vista Previa
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="limpiarFormulario()">
+                            <i class="fas fa-eraser me-2"></i>
+                            Limpiar Todo
+                        </button>
+                    </div>
+                    <div>
+                        <a asp-action="Index" class="btn btn-secondary btn-lg me-2">
+                            <i class="fas fa-times me-2"></i>
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-save me-2"></i>
+                            Crear Audiencia
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Modal de Vista Previa -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-eye me-2"></i>
+                    Vista Previa de Audiencia
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="previewContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal" onclick="document.getElementById('audienciaForm').scrollIntoView()">
+                    <i class="fas fa-edit me-1"></i>
+                    Continuar Editando
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .operador-logico-container {
+            transition: all 0.3s ease;
+        }
+        .operador-logico-container[style*="display: none"] {
+            display: none !important;
+        }
+    </style>
+    
+    <script>
+        let contadorReglas = 0;
+        const GUID_EMPTY = "00000000-0000-0000-0000-000000000000";
+
+        const operadores = [
+            { value: 'EQUALS', text: 'Igual a (=)', ejemplo: 'Puntos = 100' },
+            { value: 'NOT_EQUALS', text: 'Distinto de (≠)', ejemplo: 'Rol ≠ Admin' },
+            { value: 'CONTAINS', text: 'Contiene', ejemplo: 'Nombre contiene Ana' },
+            { value: 'STARTS_WITH', text: 'Comienza con', ejemplo: 'Nombre comienza con Juan' },
+            { value: 'ENDS_WITH', text: 'Termina con', ejemplo: 'Apellido termina con ez' },
+            { value: 'GREATER_THAN', text: 'Mayor que (>)', ejemplo: 'Puntos > 1000, Edad > 18' },
+            { value: 'LESS_THAN', text: 'Menor que (<)', ejemplo: 'Puntos < 50' },
+            { value: 'GREATER_THAN_OR_EQUAL', text: 'Mayor o igual (≥)', ejemplo: 'Puntos ≥ 500' },
+            { value: 'LESS_THAN_OR_EQUAL', text: 'Menor o igual (≤)', ejemplo: 'Puntos ≤ 999' },
+            { value: 'IN', text: 'En lista', ejemplo: 'Nombre en [Ana,Juan]' },
+            { value: 'NOT_IN', text: 'No en lista', ejemplo: 'Rol no en [Guest,Banned]' },
+            { value: 'IS_NULL_OR_EMPTY', text: 'Es nulo o vacío', ejemplo: 'Apellido es vacío' },
+            { value: 'IS_NOT_NULL_OR_EMPTY', text: 'No es nulo ni vacío', ejemplo: 'Apellido no es vacío' },
+            { value: 'REGEX', text: 'Expresión Regular', ejemplo: 'Nombre coincide con ^[A-Za-z]+$' }
+        ];
+
+        function agregarRegla() {
+            contadorReglas++;
+            const container = document.getElementById('reglasContainer');
+            const noReglasMessage = document.getElementById('noReglasMessage');
+            
+            // Ocultar mensaje de "no hay reglas"
+            noReglasMessage.style.display = 'none';
+
+            const reglaDiv = document.createElement('div');
+            reglaDiv.classList.add('card', 'mb-3', 'regla-item');
+            reglaDiv.id = `regla-${contadorReglas}`;
+
+            let operadoresOptions = '';
+            operadores.forEach(op => {
+                operadoresOptions += `<option value="${op.value}" title="${op.ejemplo}">${op.text}</option>`;
+            });
+
+            reglaDiv.innerHTML = `
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>
+                        Regla #${contadorReglas}
+                    </h6>
+                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="eliminarRegla('regla-${contadorReglas}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <!-- Campos ocultos para envío al servidor -->
+                    <input type="hidden" name="Reglas[${contadorReglas-1}].Id" value="${GUID_EMPTY}" />
+                    <input type="hidden" name="Reglas[${contadorReglas-1}].Propiedad" class="regla-propiedad-hidden" />
+                    <input type="hidden" name="Reglas[${contadorReglas-1}].Operador" class="regla-operador-hidden" />
+                    <input type="hidden" name="Reglas[${contadorReglas-1}].Valor" class="regla-valor-hidden" />
+                    <input type="hidden" name="Reglas[${contadorReglas-1}].OperadorLogicoConSiguiente" class="regla-operador-logico-hidden" />
+                    <input type="hidden" name="Reglas[${contadorReglas-1}].OrdenEvaluacion" value="${contadorReglas-1}" />
+                    
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Propiedad *</label>
+                            <select class="form-select regla-propiedad" required onchange="actualizarCamposOcultos(this.closest('.regla-item')); actualizarPreviewRegla(this.closest('.regla-item'))">
+                                <option value="">-- Seleccionar Propiedad --</option>
+                                <option value="Puntos">Puntos - Puntos acumulados</option>
+                                <option value="Edad">Edad - Edad calculada (años)</option>
+                                <option value="FechaCreacion">Fecha Creación - Fecha de registro</option>
+                                <option value="FechaModificacion">Fecha Modificación - Última actualización</option>
+                                <option value="Nombre">Nombre - Nombre del usuario</option>
+                                <option value="Apellido">Apellido - Apellido del usuario</option>
+                            </select>
+                            <div class="form-text">Campo del usuario a evaluar</div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Operador *</label>
+                            <select class="form-select regla-operador" required onchange="mostrarEjemplo(this); actualizarCamposOcultos(this.closest('.regla-item')); actualizarPreviewRegla(this.closest('.regla-item'))">
+                                ${operadoresOptions}
+                            </select>
+                            <div class="form-text operador-ejemplo">Seleccione un operador</div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Valor</label>
+                            <input type="text" class="form-control regla-valor"
+                                   placeholder="ej: 100, Ana"
+                                   onchange="actualizarCamposOcultos(this.closest('.regla-item')); actualizarPreviewRegla(this.closest('.regla-item'))"
+                                   oninput="actualizarCamposOcultos(this.closest('.regla-item')); actualizarPreviewRegla(this.closest('.regla-item'))">
+                            <div class="form-text">Valor a comparar (algunos operadores no lo requieren)</div>
+                        </div>
+                        <div class="col-md-3 mb-3 operador-logico-container">
+                            <label class="form-label">Operador Lógico</label>
+                            <select class="form-select regla-operador-logico" onchange="actualizarCamposOcultos(this.closest('.regla-item')); actualizarPreviewRegla(this.closest('.regla-item'))">
+                                <option value="AND">Y (AND) - Ambas condiciones</option>
+                                <option value="OR">O (OR) - Cualquier condición</option>
+                            </select>
+                            <div class="form-text">Cómo combinar con la siguiente regla</div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-light regla-preview" style="display: none;">
+                        <small><strong>Vista previa:</strong> <span class="preview-text"></span></small>
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(reglaDiv);
+
+            // Actualizar visibilidad de operadores lógicos
+            actualizarVisibilidadOperadoresLogicos();
+
+            // Trigger para mostrar ejemplo inicial
+            mostrarEjemplo(reglaDiv.querySelector('.regla-operador'));
+        }
+
+        function eliminarRegla(reglaId) {
+            const regla = document.getElementById(reglaId);
+            if (regla) {
+                regla.remove();
+                
+                // Si no quedan reglas, mostrar el mensaje
+                const reglasRestantes = document.querySelectorAll('.regla-item');
+                if (reglasRestantes.length === 0) {
+                    document.getElementById('noReglasMessage').style.display = 'block';
+                }
+                
+                // Renumerar reglas y reindexar campos ocultos
+                renumerarReglas();
+                
+                // Actualizar visibilidad de operadores lógicos
+                actualizarVisibilidadOperadoresLogicos();
+            }
+        }
+
+        function actualizarCamposOcultos(reglaDiv) {
+            const propiedad = reglaDiv.querySelector('.regla-propiedad').value;
+            const operador = reglaDiv.querySelector('.regla-operador').value;
+            const valor = reglaDiv.querySelector('.regla-valor').value;
+            const operadorLogico = reglaDiv.querySelector('.regla-operador-logico').value;
+            
+            reglaDiv.querySelector('.regla-propiedad-hidden').value = propiedad;
+            reglaDiv.querySelector('.regla-operador-hidden').value = operador;
+            reglaDiv.querySelector('.regla-valor-hidden').value = valor;
+            reglaDiv.querySelector('.regla-operador-logico-hidden').value = operadorLogico;
+        }
+
+        function actualizarVisibilidadOperadoresLogicos() {
+            const reglas = document.querySelectorAll('.regla-item');
+            
+            reglas.forEach((regla, index) => {
+                const operadorLogicoContainer = regla.querySelector('.operador-logico-container');
+                
+                // Ocultar operador lógico si es la última regla o si solo hay una regla
+                if (index === reglas.length - 1 || reglas.length === 1) {
+                    operadorLogicoContainer.style.display = 'none';
+                } else {
+                    operadorLogicoContainer.style.display = 'block';
+                }
+            });
+        }
+
+        function renumerarReglas() {
+            const reglas = document.querySelectorAll('.regla-item');
+            reglas.forEach((regla, index) => {
+                // Actualizar título
+                const titulo = regla.querySelector('.card-header h6');
+                if (titulo) {
+                    titulo.innerHTML = `<i class="fas fa-filter me-2"></i>Regla #${index + 1}`;
+                }
+                
+                // Reindexar campos ocultos
+                const camposOcultos = regla.querySelectorAll('input[type="hidden"]');
+                camposOcultos.forEach(campo => {
+                    const name = campo.getAttribute('name');
+                    if (name && name.includes('Reglas[')) {
+                        const newName = name.replace(/Reglas\[\d+\]/, `Reglas[${index}]`);
+                        campo.setAttribute('name', newName);
+                    }
+                });
+                
+                // Actualizar orden de evaluación
+                const ordenField = regla.querySelector('input[name*="OrdenEvaluacion"]');
+                if (ordenField) {
+                    ordenField.value = index;
+                }
+            });
+        }
+
+        function mostrarEjemplo(selectElement) {
+            const operadorValue = selectElement.value;
+            const operador = operadores.find(op => op.value === operadorValue);
+            const ejemploDiv = selectElement.parentElement.querySelector('.operador-ejemplo');
+            
+            if (operador && ejemploDiv) {
+                ejemploDiv.textContent = `Ejemplo: ${operador.ejemplo}`;
+                ejemploDiv.className = 'form-text text-info operador-ejemplo';
+            }
+        }
+
+        function actualizarPreviewRegla(reglaDiv) {
+            const propiedad = reglaDiv.querySelector('.regla-propiedad').value;
+            const operadorSelect = reglaDiv.querySelector('.regla-operador');
+            const valor = reglaDiv.querySelector('.regla-valor').value;
+            const operadorLogico = reglaDiv.querySelector('.regla-operador-logico').value;
+            
+            const operadorValue = operadorSelect.value;
+            const operadorTexto = operadorSelect.options[operadorSelect.selectedIndex]?.text || '';
+            
+            const previewDiv = reglaDiv.querySelector('.regla-preview');
+            const previewText = reglaDiv.querySelector('.preview-text');
+            
+            // Actualizar campos ocultos
+            actualizarCamposOcultos(reglaDiv);
+            
+            if (propiedad && operadorValue) {
+                let preview = `${propiedad} ${operadorTexto}`;
+                
+                // Algunos operadores no necesitan valor
+                const sinValor = ['IS_NULL_OR_EMPTY', 'IS_NOT_NULL_OR_EMPTY'];
+                if (!sinValor.includes(operadorValue) && valor) {
+                    preview += ` "${valor}"`;
+                } else if (!sinValor.includes(operadorValue)) {
+                    preview += ` [valor requerido]`;
+                }
+                
+                // Solo mostrar operador lógico si no es la última regla
+                const todasLasReglas = document.querySelectorAll('.regla-item');
+                const reglaIndex = Array.from(todasLasReglas).indexOf(reglaDiv);
+                if (reglaIndex < todasLasReglas.length - 1 && todasLasReglas.length > 1) {
+                    preview += ` ${operadorLogico === 'AND' ? 'Y' : 'O'}`;
+                }
+                
+                previewText.textContent = preview;
+                previewDiv.style.display = 'block';
+            } else {
+                previewDiv.style.display = 'none';
+            }
+        }
+
+        function limpiarFormulario() {
+            if (confirm('¿Está seguro de limpiar todo el formulario? Se perderán todos los datos ingresados.')) {
+                document.getElementById('audienciaForm').reset();
+                document.getElementById('reglasContainer').innerHTML = '';
+                document.getElementById('noReglasMessage').style.display = 'block';
+                contadorReglas = 0;
+                
+                // Foco en primer campo
+                document.querySelector('#audienciaForm input[type="text"]').focus();
+            }
+        }
+
+        function previewAudiencia() {
+            const nombreUnico = document.querySelector('[name="NombreUnicoInterno"]').value;
+            const nombreDescriptivo = document.querySelector('[name="NombreDescriptivo"]').value;
+            const descripcion = document.querySelector('[name="Descripcion"]').value;
+            const prioridad = document.querySelector('[name="Prioridad"]').value;
+            const activa = document.querySelector('[name="Activa"]').checked;
+            
+            let html = `
+                <div class="card">
+                    <div class="card-header ${activa ? 'bg-success' : 'bg-warning'} text-white">
+                        <h5 class="mb-0">${nombreDescriptivo || '[Sin nombre descriptivo]'}</h5>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row">
+                            <dt class="col-sm-4">Nombre Único:</dt>
+                            <dd class="col-sm-8"><code>${nombreUnico || '[Sin nombre único]'}</code></dd>
+                            
+                            <dt class="col-sm-4">Descripción:</dt>
+                            <dd class="col-sm-8">${descripcion || '[Sin descripción]'}</dd>
+                            
+                            <dt class="col-sm-4">Prioridad:</dt>
+                            <dd class="col-sm-8"><span class="badge bg-secondary">${prioridad || '0'}</span></dd>
+                            
+                            <dt class="col-sm-4">Estado:</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge bg-${activa ? 'success' : 'warning'}">
+                                    ${activa ? 'Activa' : 'Inactiva'}
+                                </span>
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+                
+                <h6 class="mt-4 mb-3">Reglas de Segmentación:</h6>
+            `;
+            
+            const reglas = document.querySelectorAll('.regla-item');
+            if (reglas.length === 0) {
+                html += '<div class="alert alert-warning">No se han definido reglas para esta audiencia.</div>';
+            } else {
+                html += '<div class="list-group">';
+                reglas.forEach((regla, index) => {
+                    const propiedad = regla.querySelector('.regla-propiedad').value;
+                    const operadorSelect = regla.querySelector('.regla-operador');
+                    const valor = regla.querySelector('.regla-valor').value;
+                    const operadorLogico = regla.querySelector('.regla-operador-logico').value;
+                    
+                    const operadorTexto = operadorSelect.options[operadorSelect.selectedIndex].text;
+                    
+                    html += `
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Regla ${index + 1}</h6>
+                                <small class="text-muted">${operadorLogico === 'AND' ? 'Y' : 'O'}</small>
+                            </div>
+                            <p class="mb-1">
+                                <code>${propiedad || '[propiedad]'}</code> 
+                                <strong>${operadorTexto}</strong> 
+                                <code>${valor || (operadorSelect.value.includes('NULL') ? '[sin valor requerido]' : '[valor]')}</code>
+                            </p>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+            
+            document.getElementById('previewContent').innerHTML = html;
+            const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+            modal.show();
+        }
+
+        // Validación de nombre único (opcional - puede ser validado en servidor)
+        document.querySelector('[name="NombreUnicoInterno"]').addEventListener('input', function() {
+            const value = this.value;
+            const pattern = /^[a-zA-Z0-9_]+$/;
+            
+            if (value && !pattern.test(value)) {
+                this.setCustomValidity('Solo se permiten letras, números y guiones bajos');
+                this.classList.add('is-invalid');
+            } else {
+                this.setCustomValidity('');
+                this.classList.remove('is-invalid');
+            }
+        });
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-dismiss alerts
+            setTimeout(function() {
+                const alerts = document.querySelectorAll('.alert-dismissible');
+                alerts.forEach(function(alert) {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 5000);
+
+            // Agregar primera regla automáticamente si no hay ninguna
+            setTimeout(() => {
+                const reglas = document.querySelectorAll('.regla-item');
+                if (reglas.length === 0) {
+                    agregarRegla();
+                }
+            }, 500);
+        });
+
+        // Interceptar envío del formulario para validar reglas
+        document.getElementById('audienciaForm').addEventListener('submit', function(e) {
+            const reglas = document.querySelectorAll('.regla-item');
+            
+            if (reglas.length === 0) {
+                if (!confirm('No hay reglas definidas. ¿Desea crear una audiencia sin reglas específicas?')) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+            
+            // Validar que las reglas tengan datos básicos
+            let reglasValidas = true;
+            reglas.forEach(regla => {
+                const propiedad = regla.querySelector('.regla-propiedad').value;
+                const operador = regla.querySelector('.regla-operador').value;
+                
+                if (!propiedad || !operador) {
+                    reglasValidas = false;
+                }
+                
+                // Actualizar campos ocultos antes del envío
+                actualizarCamposOcultos(regla);
+            });
+            
+            if (!reglasValidas) {
+                alert('Por favor, complete todas las reglas antes de guardar.');
+                e.preventDefault();
+                return false;
+            }
+            
+            console.log('✅ Formulario validado, enviando con', reglas.length, 'reglas');
+        });
+    </script>
+}

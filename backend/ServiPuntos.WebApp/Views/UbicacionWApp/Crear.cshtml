@@ -1,84 +1,328 @@
-﻿@{
-    ViewData["Title"] = "Crear Ubicación";
-    var tenants = ViewBag.Tenants as IEnumerable<ServiPuntos.Core.Entities.Tenant>
-        ?? Enumerable.Empty<ServiPuntos.Core.Entities.Tenant>();
+﻿@model ServiPuntos.Core.Entities.Ubicacion
+
+@{
+    ViewData["Title"] = "Crear Nueva Ubicación";
+    var tenants = ViewBag.Tenants as IEnumerable<ServiPuntos.Core.Entities.Tenant>;
+    var isAdminTenant = User.IsInRole("AdminTenant");
+    var currentTenantId = User.Claims.FirstOrDefault(c => c.Type == "tenantId")?.Value;
 }
 
-<h2>Crear Ubicación</h2>
+<h1>@ViewData["Title"]</h1>
+
+<div class="alert alert-info">
+    <i class="fas fa-info-circle me-2"></i>
+    Complete la información necesaria para registrar una nueva ubicación.
+    Los campos marcados con <strong>*</strong> son obligatorios.
+</div>
 
 <form asp-action="Crear" method="post">
-    <div class="form-group">
-        <label for="Nombre">Nombre</label>
-        <input type="text" name="Nombre" class="form-control" required />
+    
+    @if (!isAdminTenant)
+    {
+        <!-- Solo AdminPlataforma puede seleccionar tenant -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-building me-2"></i>
+                    Asignación de Tenant
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="TenantId">Tenant *</label>
+                    <select name="TenantId" id="TenantId" class="form-control" required>
+                        <option value="">-- Seleccione Tenant --</option>
+                        @if (tenants != null)
+                        {
+                            @foreach (var t in tenants)
+                            {
+                                <option value="@t.Id">@t.Nombre</option>
+                            }
+                        }
+                    </select>
+                    <div class="form-text">Seleccione el tenant al que pertenecerá esta ubicación</div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- AdminTenant: tenant automático -->
+        <input type="hidden" name="TenantId" value="@currentTenantId" />
+    }
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-map-marker-alt me-2"></i>
+                Información Básica
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label for="Nombre">Nombre *</label>
+                        <input type="text" class="form-control" asp-for="Nombre" id="Nombre" required placeholder="Ej: Shell Montevideo Centro" />
+                        <div class="form-text">Nombre identificativo de la ubicación</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label for="Telefono">Teléfono</label>
+                         <input type="text" class="form-control" name="Telefono" id="Telefono" placeholder="099 123 456" /> 
+                        <div class="form-text">Número de contacto de la ubicación</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="Direccion">Dirección *</label>
+                <input type="text" class="form-control" asp-for="Direccion" id="Direccion" required placeholder="Ej: Av. 18 de Julio 1234" />
+                <div class="form-text">Dirección completa de la ubicación</div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label for="Ciudad">Ciudad *</label>
+                        <input type="text" class="form-control" asp-for="Ciudad" id="Ciudad" required placeholder="Ej: Montevideo" />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label for="Departamento">Departamento *</label>
+                        <input type="text" class="form-control" asp-for="Departamento" id="Departamento" required placeholder="Ej: Montevideo" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label for="HoraApertura">Hora de Apertura *</label>
+                         <input type="time" class="form-control" asp-for="HoraApertura" id="HoraApertura" required value="08:00" />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label for="HoraCierre">Hora de Cierre *</label>
+                        <input type="time" class="form-control" asp-for="HoraCierre" id="HoraCierre" required value="20:00" />
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="form-group">
-        <label for="Direccion">Dirección</label>
-        <input type="text" name="Direccion" class="form-control" required />
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-gas-pump me-2"></i>
+                Precios de Combustible
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-warning">
+                <small>
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    Ingrese los precios actuales por litro. Puede actualizarlos posteriormente.
+                </small>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group mb-3">
+                        <label for="PrecioNaftaSuper">Nafta Súper *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" step="0.01" class="form-control" asp-for="PrecioNaftaSuper" id="PrecioNaftaSuper" required placeholder="65.50" />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group mb-3">
+                        <label for="PrecioNaftaPremium">Nafta Premium *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" step="0.01" class="form-control" asp-for="PrecioNaftaPremium" id="PrecioNaftaPremium" required placeholder="70.80" />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group mb-3">
+                        <label for="PrecioDiesel">Diesel *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" step="0.01" class="form-control" asp-for="PrecioDiesel" id="PrecioDiesel" required placeholder="58.90" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="form-group">
-        <label for="Ciudad">Ciudad</label>
-        <input type="text" name="Ciudad" class="form-control" required />
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-cogs me-2"></i>
+                Servicios Adicionales
+            </h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-3">Seleccione los servicios adicionales que ofrece esta ubicación:</p>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" asp-for="Lavado" id="Lavado" />
+                        <label class="form-check-label" for="Lavado">
+                            <i class="fas fa-car me-1 text-primary"></i>
+                            <strong>Servicio de Lavado</strong>
+                            <br>
+                            <small class="text-muted">Lavado completo de vehículos</small>
+                        </label>
+                    </div>
+                    <div class="input-group mt-1">
+                        <span class="input-group-text">$</span>
+                        <input type="number" step="0.01" class="form-control" asp-for="PrecioLavado" placeholder="Precio" />
+                    </div>
+                </div>
+                 <div class="col-md-6">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" asp-for="CambioDeAceite" id="CambioDeAceite" />
+                        <label class="form-check-label" for="CambioDeAceite">
+                            <i class="fas fa-wrench me-1 text-success"></i>
+                            <strong>Cambio de Aceite</strong>
+                            <br>
+                            <small class="text-muted">Servicio de cambio de aceite y filtros</small>
+                        </label>
+                    </div>
+                    <div class="input-group mt-1">
+                        <span class="input-group-text">$</span>
+                        <input type="number" step="0.01" class="form-control" asp-for="PrecioCambioAceite" placeholder="Precio" />
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-6">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" asp-for="CambioDeNeumaticos" id="CambioDeNeumaticos" />
+                        <label class="form-check-label" for="CambioDeNeumaticos">
+                            <i class="fas fa-tools me-1 text-warning"></i>
+                            <strong>Cambio de Neumáticos</strong>
+                            <br>
+                            <small class="text-muted">Servicio de recambio de neumáticos</small>
+                        </label>
+                    </div>
+                    <div class="input-group mt-1">
+                        <span class="input-group-text">$</span>
+                        <input type="number" step="0.01" class="form-control" asp-for="PrecioCambioNeumaticos" placeholder="Precio" />
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="form-group">
-        <label for="Departamento">Departamento</label>
-        <input type="text" name="Departamento" class="form-control" required />
+    <div class="form-group mt-4">
+        <button type="submit" class="btn btn-success btn-lg">
+            <i class="fas fa-plus me-2"></i>
+            Crear Ubicación
+        </button>
+        @if (isAdminTenant)
+        {
+            <a asp-action="Administrar" class="btn btn-secondary btn-lg">
+                <i class="fas fa-times me-2"></i>
+                Cancelar
+            </a>
+        }
+        else
+        {
+            <a asp-action="Index" class="btn btn-secondary btn-lg">
+                <i class="fas fa-times me-2"></i>
+                Cancelar
+            </a>
+        }
     </div>
-
-    <div class="form-group">
-        <label for="TelefonoContacto">Teléfono</label>
-        <input type="text" name="TelefonoContacto" class="form-control" />
-    </div>
-
-    <div class="form-group">
-        <label for="HoraApertura">Hora Apertura</label>
-        <input type="time" name="HoraApertura" class="form-control" required />
-    </div>
-
-    <div class="form-group">
-        <label for="HoraCierre">Hora Cierre</label>
-        <input type="time" name="HoraCierre" class="form-control" required />
-    </div>
-
-    <div class="form-check">
-        <input type="checkbox" name="Lavado" class="form-check-input" />
-        <label class="form-check-label" for="Lavado">Servicio de Lavado</label>
-    </div>
-
-    <div class="form-check">
-        <input type="checkbox" name="CambioAceite" class="form-check-input" />
-        <label class="form-check-label" for="CambioAceite">Cambio de Aceite</label>
-    </div>
-
-    <div class="form-group">
-        <label for="PrecioNaftaSuper">Precio Nafta Súper</label>
-        <input type="number" step="0.01" name="PrecioNaftaSuper" class="form-control" required />
-    </div>
-
-    <div class="form-group">
-        <label for="PrecioNaftaPremium">Precio Nafta Premium</label>
-        <input type="number" step="0.01" name="PrecioNaftaPremium" class="form-control" required />
-    </div>
-
-    <div class="form-group">
-        <label for="PrecioDiesel">Precio Diesel</label>
-        <input type="number" step="0.01" name="PrecioDiesel" class="form-control" required />
-    </div>
-
-    <div class="form-group">
-        <label for="TenantId">Tenant</label>
-        <select name="TenantId" class="form-control" required>
-            <option value="">-- Seleccione Tenant --</option>
-            @foreach (var t in tenants)
-            {
-                <option value="@t.Id">@t.Nombre</option>
-            }
-        </select>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Crear</button>
-    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
 </form>
 
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Validación de horarios
+             const horaApertura = document.getElementById('HoraApertura');
+            const horaCierre = document.getElementById('HoraCierre');
+            
+            function validarHorarios() {
+                if (horaApertura.value && horaCierre.value) {
+                    if (horaApertura.value >= horaCierre.value) {
+                        horaCierre.setCustomValidity('La hora de cierre debe ser posterior a la hora de apertura');
+                    } else {
+                        horaCierre.setCustomValidity('');
+                    }
+                }
+            }
+            
+            horaApertura.addEventListener('change', validarHorarios);
+            horaCierre.addEventListener('change', validarHorarios); 
+            
+            // Validación de precios
+            const precios = document.querySelectorAll('input[type="number"][step="0.01"]');
+            precios.forEach(function(precio) {
+                precio.addEventListener('input', function() {
+                    if (this.value < 0) {
+                        this.setCustomValidity('El precio no puede ser negativo');
+                    } else if (this.value > 1000) {
+                        this.setCustomValidity('El precio parece demasiado alto. Por favor verificar.');
+                    } else {
+                        this.setCustomValidity('');
+                    }
+                });
+            });
+            
+            // Formateo automático de teléfono (opcional)
+             const telefono = document.getElementById('Telefono');
+            telefono.addEventListener('input', function() {
+                // Remover caracteres no numéricos
+                let value = this.value.replace(/\D/g, '');
+                
+                // Formatear como XXX XXX XXX
+                if (value.length >= 6) {
+                    value = value.substring(0, 3) + ' ' + value.substring(3, 6) + ' ' + value.substring(6, 9);
+                } else if (value.length >= 3) {
+                    value = value.substring(0, 3) + ' ' + value.substring(3);
+                }
+                
+                this.value = value;
+            });
+            
+            // Capitalizar primera letra de ciudad y departamento
+            const ciudad = document.getElementById('Ciudad');
+            const departamento = document.getElementById('Departamento');
+            
+            function capitalizarPrimeraLetra(input) {
+                input.addEventListener('blur', function() {
+                    if (this.value) {
+                        this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1).toLowerCase();
+                    }
+                });
+            }
+            
+            capitalizarPrimeraLetra(ciudad);
+            capitalizarPrimeraLetra(departamento);
+            
+            // Validación de formulario antes de enviar
+            document.querySelector('form').addEventListener('submit', function(e) {
+                // Verificar que al menos un precio esté ingresado
+                const precioSuper = parseFloat(document.getElementById('PrecioNaftaSuper').value) || 0;
+                const precioPremium = parseFloat(document.getElementById('PrecioNaftaPremium').value) || 0;
+                const precioDiesel = parseFloat(document.getElementById('PrecioDiesel').value) || 0;
+                
+                if (precioSuper === 0 && precioPremium === 0 && precioDiesel === 0) {
+                    e.preventDefault();
+                    alert('Debe ingresar al menos un precio de combustible.');
+                    return false;
+                }
+                return true;
+            });
+        });
+    </script>
+}

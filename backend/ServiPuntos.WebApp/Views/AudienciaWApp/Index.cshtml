@@ -1,0 +1,450 @@
+@model IEnumerable<ServiPuntos.Core.Entities.Audiencia>
+
+@{
+    ViewData["Title"] = "Gestión de Audiencias";
+    var tenants = (IEnumerable<ServiPuntos.Core.Entities.Tenant>)ViewBag.Tenants;
+    var tenantSeleccionado = (Guid?)ViewBag.TenantSeleccionado;
+}
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-5">
+                        <i class="fas fa-users me-3"></i>
+                        Gestión de Audiencias
+                    </h1>
+                    <p class="lead text-muted">
+                        Administra las audiencias y segmentación de usuarios
+                    </p>
+                </div>
+                <div>
+                    <a asp-action="Crear" class="btn btn-success btn-lg">
+                        <i class="fas fa-plus me-2"></i>
+                        Nueva Audiencia
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Selector de Tenant (solo para AdminPlataforma) -->
+    @if (User.IsInRole("AdminPlataforma") && tenants != null && tenants.Any())
+    {
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-building me-2"></i>
+                            Seleccionar Tenant
+                        </h5>
+                        <form method="get" asp-action="Index">
+                            <div class="input-group">
+                                <select name="tenantId" class="form-control" onchange="this.form.submit()">
+                                    <option value="">-- Seleccione Tenant --</option>
+                                    @foreach (var tenant in tenants)
+                                    {
+                                        <option value="@tenant.Id" selected="@(tenantSeleccionado == tenant.Id)">
+                                            @tenant.Nombre
+                                        </option>
+                                    }
+                                </select>
+                                <button type="submit" class="btn btn-outline-primary">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Acciones Rápidas -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-sync-alt me-2"></i>
+                        Recalcular Segmentos
+                    </h5>
+                    <p class="card-text">Actualiza la clasificación de todos los usuarios</p>
+                    <form asp-action="RecalcularSegmentos" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-light btn-sm" 
+                                onclick="return confirm('¿Está seguro de recalcular todos los segmentos?')">
+                            <i class="fas fa-play me-1"></i>
+                            Recalcular
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Estadísticas
+                    </h5>
+                    <p class="card-text">Ver métricas y distribución de audiencias</p>
+                    <a asp-action="Estadisticas" class="btn btn-light btn-sm">
+                        <i class="fas fa-eye me-1"></i>
+                        Ver Estadísticas
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-secondary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-cogs me-2"></i>
+                        Herramientas
+                    </h5>
+                    <p class="card-text">Acceso a herramientas avanzadas</p>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-light btn-sm" onclick="mostrarFormularioClasificar()">
+                            <i class="fas fa-user-tag me-1"></i>
+                            Clasificar Usuario
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Audiencias -->
+    <div class="row">
+        <div class="col-12">
+            @if (Model.Any())
+            {
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list me-2"></i>
+                            Audiencias Definidas
+                            <span class="badge bg-primary ms-2">@Model.Count()</span>
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>
+                                            <i class="fas fa-tag me-1"></i>
+                                            Nombre Único
+                                        </th>
+                                        <th>
+                                            <i class="fas fa-signature me-1"></i>
+                                            Nombre Descriptivo
+                                        </th>
+                                        <th>
+                                            <i class="fas fa-align-left me-1"></i>
+                                            Descripción
+                                        </th>
+                                        <th>
+                                            <i class="fas fa-sort-numeric-up me-1"></i>
+                                            Prioridad
+                                        </th>
+                                        <th>
+                                            <i class="fas fa-toggle-on me-1"></i>
+                                            Estado
+                                        </th>
+                                        <th>
+                                            <i class="fas fa-rules me-1"></i>
+                                            Reglas
+                                        </th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var audiencia in Model.OrderBy(a => a.Prioridad))
+                                    {
+                                        <tr class="@(audiencia.Activa ? "" : "table-secondary")">
+                                            <td>
+                                                <strong>@audiencia.NombreUnicoInterno</strong>
+                                            </td>
+                                            <td>
+                                                @audiencia.NombreDescriptivo
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">
+                                                    @(string.IsNullOrEmpty(audiencia.Descripcion) ? "Sin descripción" : 
+                                                      (audiencia.Descripcion.Length > 50 ? audiencia.Descripcion.Substring(0, 50) + "..." : audiencia.Descripcion))
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">@audiencia.Prioridad</span>
+                                            </td>
+                                            <td>
+                                                @if (audiencia.Activa)
+                                                {
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-check me-1"></i>Activa
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning">
+                                                        <i class="fas fa-pause me-1"></i>Inactiva
+                                                    </span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">
+                                                    @(audiencia.Reglas?.Count ?? 0) reglas
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a asp-action="Detalles" asp-route-id="@audiencia.Id" 
+                                                       class="btn btn-sm btn-outline-info">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a asp-action="Editar" asp-route-id="@audiencia.Id" 
+                                                       class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <button type="button" class="btn btn-sm btn-outline-success" 
+                                                            onclick="verUsuariosAudiencia('@audiencia.NombreUnicoInterno')">
+                                                        <i class="fas fa-users"></i>
+                                                    </button>
+                                                    <a asp-action="Borrar" asp-route-id="@audiencia.Id" 
+                                                       class="btn btn-sm btn-outline-danger">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card">
+                    <div class="card-body">
+                        <div class="text-center py-5">
+                            <i class="fas fa-users text-muted mb-3" style="font-size: 4rem;"></i>
+                            <h4 class="text-muted mb-3">No hay audiencias definidas</h4>
+                            <p class="text-muted mb-4">
+                                Comienza creando tu primera audiencia para segmentar usuarios
+                            </p>
+                            <a asp-action="Crear" class="btn btn-primary btn-lg">
+                                <i class="fas fa-plus me-2"></i>
+                                Crear Primera Audiencia
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Clasificar Usuario -->
+<div class="modal fade" id="clasificarUsuarioModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Clasificar Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="clasificarUsuarioForm">
+                    <div class="mb-3">
+                        <label for="usuarioIdSelect" class="form-label">Usuario</label>
+                        <select id="usuarioIdSelect" class="form-select" required></select>
+                        <div class="form-text">Seleccione el usuario a clasificar</div>
+                    </div>
+                </form>
+                <div id="clasificacionResult" class="mt-3"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="ejecutarClasificacion()">
+                    <i class="fas fa-user-tag me-1"></i>
+                    Clasificar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Ver Usuarios de Audiencia -->
+<div class="modal fade" id="usuariosAudienciaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Usuarios de Audiencia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="usuariosAudienciaContent">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        async function cargarUsuarios() {
+            const select = document.getElementById('usuarioIdSelect');
+            select.innerHTML = '<option value="">Cargando...</option>';
+            try {
+                const response = await fetch('@Url.Action("GetUsuariosTenant")');
+                const result = await response.json();
+                if (result.success) {
+                    let options = '<option value="">-- Seleccione Usuario --</option>';
+                    result.usuarios.forEach(u => {
+                        const nombre = u.nombre || u.id;
+                        options += `<option value="${u.id}">${nombre}</option>`;
+                    });
+                    select.innerHTML = options;
+                } else {
+                    select.innerHTML = '<option value="">Error al cargar</option>';
+                }
+            } catch {
+                select.innerHTML = '<option value="">Error al cargar</option>';
+            }
+        }
+
+        async function mostrarFormularioClasificar() {
+            const modal = new bootstrap.Modal(document.getElementById('clasificarUsuarioModal'));
+            await cargarUsuarios();
+            modal.show();
+        }
+
+        async function ejecutarClasificacion() {
+            const usuarioId = document.getElementById('usuarioIdSelect').value;
+            const resultDiv = document.getElementById('clasificacionResult');
+            
+            if (!usuarioId) {
+                resultDiv.innerHTML = '<div class="alert alert-warning">Seleccione un usuario válido</div>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm" role="status"></div> Clasificando...</div>';
+
+            try {
+                const response = await fetch('@Url.Action("ClasificarUsuario")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `usuarioId=${encodeURIComponent(usuarioId)}&__RequestVerificationToken=${document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''}`
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <strong>Clasificación exitosa:</strong><br>
+                            Usuario: ${result.usuarioId}<br>
+                            Audiencia asignada: <strong>${result.audienciaAsignada}</strong>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="alert alert-danger">Error: ${result.message}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = '<div class="alert alert-danger">Error de conexión</div>';
+            }
+        }
+
+        async function verUsuariosAudiencia(nombreUnicoAudiencia) {
+            const modal = new bootstrap.Modal(document.getElementById('usuariosAudienciaModal'));
+            const contentDiv = document.getElementById('usuariosAudienciaContent');
+            
+            contentDiv.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div> Cargando usuarios...</div>';
+            modal.show();
+
+            try {
+                const response = await fetch(`@Url.Action("GetUsuariosAudiencia")?nombreUnicoAudiencia=${encodeURIComponent(nombreUnicoAudiencia)}`);
+                const result = await response.json();
+                
+                if (result.success && result.usuarios.length > 0) {
+                    let html = `
+                        <h6>Audiencia: <strong>${nombreUnicoAudiencia}</strong></h6>
+                        <p class="text-muted">${result.usuarios.length} usuarios encontrados</p>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Email</th>
+                                        <th>Puntos</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    result.usuarios.forEach(usuario => {
+                        html += `
+                            <tr>
+                                <td>${usuario.nombre || 'N/A'}</td>
+                                <td>${usuario.email}</td>
+                                <td><span class="badge bg-primary">${usuario.puntos}</span></td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += '</tbody></table></div>';
+                    contentDiv.innerHTML = html;
+                } else {
+                    contentDiv.innerHTML = `
+                        <div class="alert alert-info">
+                            <strong>Audiencia: ${nombreUnicoAudiencia}</strong><br>
+                            No hay usuarios asignados a esta audiencia.
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                contentDiv.innerHTML = '<div class="alert alert-danger">Error al cargar usuarios</div>';
+            }
+        }
+
+        // Auto-dismiss alerts
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert-dismissible');
+            alerts.forEach(function(alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+
+    @Html.AntiForgeryToken()
+}

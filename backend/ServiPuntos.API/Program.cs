@@ -30,7 +30,12 @@ builder.Logging.SetMinimumLevel(LogLevel.Trace);
 builder.Logging.AddFilter("Microsoft.AspNetCore.Authentication", LogLevel.Trace);
 
 // Agregar controladores a la aplicaci�n
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(opts =>
+    {
+        opts.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        opts.JsonSerializerOptions.DictionaryKeyPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
 
 // Agregar servicios de Swagger para documentaci�n de API
 builder.Services.AddEndpointsApiExplorer();
@@ -167,13 +172,16 @@ builder.Services.AddCors(options =>
 
 
 
+
 builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
 builder.Services.AddScoped<JwtTokenService>();
 builder.Services.AddHttpClient();
-// Servicios Multi-Tenant
+builder.Services.AddScoped<IConfigPlataformaRepository, ConfigPlataformaRepository>();
+builder.Services.AddScoped<IConfigPlataformaService, ConfigPlataformaService>();
+
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ITenantRepository, TenantRepository>();
@@ -189,6 +197,7 @@ builder.Services.AddScoped<ITransaccionRepository, TransaccionRepository>();
 builder.Services.AddScoped<ICanjeRepository, CanjeRepository>();
 builder.Services.AddScoped<IProductoCanjeableRepository, ProductoCanjeableRepository>();
 builder.Services.AddScoped<IUbicacionRepository, UbicacionRepository>();
+builder.Services.AddScoped<IProductoUbicacionRepository, ProductoUbicacionRepository>();
 
 // Registra los servicios de NAFTA
 builder.Services.AddScoped<ITransaccionService, TransaccionService>();
@@ -198,6 +207,8 @@ builder.Services.AddScoped<ICanjeService, CanjeService>();
 builder.Services.AddScoped<IPointsRuleEngine, PointsRuleEngine>();
 builder.Services.AddScoped<INAFTAService, NAFTAService>();
 builder.Services.AddScoped<IUbicacionService, UbicacionService>();
+builder.Services.AddScoped<IProductoUbicacionService, ProductoUbicacionService>();
+builder.Services.AddScoped<IPayPalService, PayPalService>();
 
 // Construye la aplicaci�n web
 var app = builder.Build();

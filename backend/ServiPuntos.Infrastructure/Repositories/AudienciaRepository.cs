@@ -9,9 +9,10 @@ using Microsoft.EntityFrameworkCore; // Necesario para EF Core
 using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
 // Asume que tienes un DbContext llamado AppDbContext
-// using ServiPuntos.Infrastructure.Data; 
 
-namespace ServiPuntos.Infrastructure.Data.Repositories
+using ServiPuntos.Infrastructure.Data; 
+
+namespace ServiPuntos.Infrastructure.Repositories
 {
     public class AudienciaRepository : IAudienciaRepository // Implementa tu interfaz
     {
@@ -34,7 +35,7 @@ namespace ServiPuntos.Infrastructure.Data.Repositories
             return await _dbContext.Audiencias
                                  .Include(a => a.Reglas)
                                  .FirstOrDefaultAsync(a => a.TenantId == tenantId &&
-                                                           a.NombreUnicoInterno.Equals(nombreUnicoInterno, StringComparison.OrdinalIgnoreCase));
+                                                           a.NombreUnicoInterno.ToLower() == nombreUnicoInterno.ToLower());
         }
 
         public async Task<IEnumerable<Audiencia>> ListByTenantIdWithReglasAsync(Guid tenantId, bool soloActivas = false, bool ordenarPorPrioridad = false)
@@ -136,7 +137,7 @@ namespace ServiPuntos.Infrastructure.Data.Repositories
         {
             var query = _dbContext.Audiencias
                 .Where(a => a.TenantId == tenantId &&
-                            a.NombreUnicoInterno.Equals(nombreUnicoInterno, StringComparison.OrdinalIgnoreCase));
+                            a.NombreUnicoInterno.ToLower() == nombreUnicoInterno.ToLower());
 
             if (excluirAudienciaId.HasValue)
             {
