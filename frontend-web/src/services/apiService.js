@@ -661,7 +661,9 @@ getProductosByUbicacion: async (ubicacionId, categoria) => {
     try {
       const params = { limit };
       if (cursor) params.cursor = cursor;
+      console.log('Llamando a /usuario/historial-transacciones', params); // Added log
       const response = await apiClient.get(`usuario/historial-transacciones`, { params });
+      console.log('Respuesta de historial-transacciones', response.data); // Added log
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Error al obtener el historial de transacciones');
