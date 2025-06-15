@@ -38,6 +38,8 @@ namespace ServiPuntos.Infrastructure.Repositories
 
         public async Task<IEnumerable<Transaccion>> GetByUsuarioIdPaginatedAsync(Guid usuarioId, Guid? cursor, int limit)
         {
+            Console.WriteLine($"[TransaccionRepository] Cargando transacciones para usuario {usuarioId} con cursor {cursor} y limit {limit}");
+
             var query = _context.Transacciones
                 .Where(t => t.UsuarioId == usuarioId)
                 .Include(t => t.Ubicacion)
@@ -55,7 +57,9 @@ namespace ServiPuntos.Infrastructure.Repositories
                 }
             }
 
-            return await query.Take(limit).ToListAsync();
+            var result = await query.Take(limit).ToListAsync();
+            Console.WriteLine($"[TransaccionRepository] Transacciones obtenidas: {result.Count}");
+            return result;
         }
         public async Task<IEnumerable<Transaccion>> GetByUbicacionIdAsync(Guid ubicacionId)
         {

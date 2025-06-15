@@ -172,7 +172,10 @@ namespace ServiPuntos.Application.Services
 
         public async Task<IEnumerable<Transaccion>> GetTransaccionesByUsuarioIdPaginatedAsync(Guid usuarioId, Guid? cursor, int limit)
         {
-            return await _transaccionRepository.GetByUsuarioIdPaginatedAsync(usuarioId, cursor, limit);
+            Console.WriteLine($"[TransaccionService] Solicitando transacciones para usuario {usuarioId}");
+            var result = await _transaccionRepository.GetByUsuarioIdPaginatedAsync(usuarioId, cursor, limit);
+            Console.WriteLine($"[TransaccionService] Recibidas {result.Count()} transacciones");
+            return result;
         }
         
         private async Task ActualizarStockAsync(Guid ubicacionId, string detallesJson)

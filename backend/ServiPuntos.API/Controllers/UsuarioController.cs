@@ -316,6 +316,7 @@ namespace ServiPuntos.API.Controllers
         {
             try
             {
+                Console.WriteLine($"[UsuarioController] Solicitando historial de transacciones. Cursor: {cursor} Limit: {limit}");
                 var emailClaim = User.FindFirst(ClaimTypes.Email) ?? User.FindFirst("email");
                 if (emailClaim == null)
                 {
@@ -329,6 +330,7 @@ namespace ServiPuntos.API.Controllers
                 }
 
                 var transacciones = await _transaccionService.GetTransaccionesByUsuarioIdPaginatedAsync(usuario.Id, cursor, limit);
+                Console.WriteLine($"[UsuarioController] Transacciones recibidas: {transacciones.Count()}");
 
                 var lastId = transacciones.LastOrDefault()?.Id;
 
