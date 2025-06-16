@@ -4,6 +4,7 @@ import Breadcrumb from "../layout/Breadcrumb";
 import { QRCodeSVG } from "qrcode.react";
 import apiService from "../../services/apiService";
 import ComprarOfertaModal from "./ComprarOfertaModal";
+import ConfirmarCanjeModal from "./ConfirmarCanjeModal";
 
 const PromocionesList = () => {
   const [promos, setPromos] = useState([]);
@@ -15,6 +16,7 @@ const PromocionesList = () => {
   const [canjeLoading, setCanjeLoading] = useState(false);
   const [canjeError, setCanjeError] = useState("");
   const [ofertaSeleccionada, setOfertaSeleccionada] = useState(null);
+  const [promocionAConfirmar, setPromocionAConfirmar] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -29,7 +31,7 @@ const PromocionesList = () => {
     if (promo.tipo === "Oferta") {
       setOfertaSeleccionada(promo);
     } else {
-      handleCanjear(promo);
+      setPromocionAConfirmar(promo);
     }
     navigate(location.pathname, { replace: true, state: {} });
   }, [promos, location.state]);
@@ -81,6 +83,10 @@ const PromocionesList = () => {
     setOfertaSeleccionada(promo);
   };
 
+  const openConfirmarCanje = (promo) => {
+    setPromocionAConfirmar(promo);
+  };
+
   const handleCanjear = async (promo) => {
     setCanjeLoading(true);
     setCanjeError("");
@@ -97,6 +103,13 @@ const PromocionesList = () => {
       setCanjeError(err.message);
     } finally {
       setCanjeLoading(false);
+    }
+  };
+
+  const confirmarCanje = () => {
+    if (promocionAConfirmar) {
+      handleCanjear(promocionAConfirmar);
+      setPromocionAConfirmar(null);
     }
   };
 
@@ -173,7 +186,7 @@ const PromocionesList = () => {
                   ) : (
                     <button
                       className="btn btn-primary w-100"
-                      onClick={() => handleCanjear(p)}
+                      onClick={() => openConfirmarCanje(p)}
                     >
                       Canjear
                     </button>
@@ -231,6 +244,14 @@ const PromocionesList = () => {
           isOpen={!!ofertaSeleccionada}
           onClose={() => setOfertaSeleccionada(null)}
           oferta={ofertaSeleccionada}
+        />
+      )}
+      {promocionAConfirmar && (
+        <ConfirmarCanjeModal
+          isOpen={!!promocionAConfirmar}
+          onClose={() => setPromocionAConfirmar(null)}
+          onConfirm={confirmarCanje}
+          promo={promocionAConfirmar}
         />
       )}
     </div>
