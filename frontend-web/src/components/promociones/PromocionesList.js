@@ -67,6 +67,13 @@ const PromocionesList = () => {
       const ubicacionId = promo.ubicaciones?.[0];
       if (!ubicacionId) throw new Error("Ubicaci\u00f3n no disponible");
 
+      const precioBase =
+        promo.precioEnPesos != null ? Number(promo.precioEnPesos) : null;
+      const precioFinal =
+        precioBase != null
+          ? Math.max(precioBase - (Number(promo.descuentoEnPesos) || 0), 0)
+          : Number(promo.descuentoEnPesos) || 0;
+
       const productoUbicacion = {
         id: promo.id,
         productoCanjeable: {
@@ -74,7 +81,7 @@ const PromocionesList = () => {
           nombre: promo.titulo,
         },
         categoria: "Promocion",
-        precio: promo.precioEnPesos || 0,
+        precio: precioFinal,
       };
 
       const result = await apiService.procesarTransaccion(
