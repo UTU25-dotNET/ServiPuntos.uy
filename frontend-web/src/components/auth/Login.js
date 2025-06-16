@@ -144,7 +144,8 @@ const Login = () => {
     };
 
     const handleGoogleLogin = async () => {
-        window.location.href = "https://localhost:5019/api/auth/google-login";
+        //window.location.href = "https://localhost:5019/api/auth/google-login";
+        window.location.href = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth/google-login";
     };
 
 
