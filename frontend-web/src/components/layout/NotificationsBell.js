@@ -75,12 +75,13 @@ const NotificationsBell = ({ textColor, user }) => {
   };
 
   const handleItemClick = async (item) => {
+    try {
+      await apiService.borrarNotificacion(item.id);
+      setItems((prev) => prev.filter((i) => i.id !== item.id));
+    } catch {}
+
     const mensaje = `${item.titulo} ${item.mensaje}`.toLowerCase();
     if (mensaje.includes('promo') || mensaje.includes('oferta')) {
-      try {
-        await apiService.marcarNotificacionLeida(item.id);
-        setItems((prev) => prev.map((i) => i.id === item.id ? { ...i, leida: true } : i));
-      } catch {}
       navigate('/promociones', { state: { selectedPromoTitle: item.titulo } });
       setOpen(false);
     }
