@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import apiService from '../../services/apiService';
+import authService from '../../services/authService';
 
 const NotificationsBell = ({ textColor }) => {
   const [open, setOpen] = useState(false);
@@ -7,11 +8,14 @@ const NotificationsBell = ({ textColor }) => {
 
   useEffect(() => {
     const load = async () => {
+      // Evitar llamadas si no hay token (por ejemplo al volver de OAuth)
+      if (!authService.getToken()) return;
+
       try {
         const data = await apiService.getMisNotificaciones();
         setItems(data);
       } catch (err) {
-        // ignore
+        // ignorar errores de carga inicial
       }
     };
     load();
