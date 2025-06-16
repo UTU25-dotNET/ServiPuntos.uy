@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import apiService from "../../services/apiService";
+import { parseDecimal } from "../../utils/numberUtils";
 
 const ComprarOfertaModal = ({ isOpen, onClose, oferta }) => {
   const [producto, setProducto] = useState(null);
@@ -29,8 +30,8 @@ const ComprarOfertaModal = ({ isOpen, onClose, oferta }) => {
 
   if (!isOpen || !oferta) return null;
 
-  const precioBase = oferta.precioEnPesos != null ? Number(oferta.precioEnPesos) : 0;
-  const descuento = Number(oferta.descuentoEnPesos) || 0;
+  const precioBase = parseDecimal(oferta.precioEnPesos);
+  const descuento = parseDecimal(oferta.descuentoEnPesos);
   const precioFinal = Math.max(precioBase - descuento, 0);
   const porcentaje = precioBase > 0 ? Math.round((descuento / precioBase) * 100) : 0;
 
@@ -103,10 +104,10 @@ const ComprarOfertaModal = ({ isOpen, onClose, oferta }) => {
                   </div>
                 )}
                 {producto && producto.descripcion && <p>{producto.descripcion}</p>}
-                <p>Precio: ${precioBase}</p>
-                <p>Descuento: {porcentaje}% (${descuento})</p>
+                <p>Precio: ${precioBase.toFixed(2)}</p>
+                <p>Descuento: {porcentaje}% (${descuento.toFixed(2)})</p>
                 <p>
-                  <strong>Precio final: ${precioFinal}</strong>
+                  <strong>Precio final: ${precioFinal.toFixed(2)}</strong>
                 </p>
               </>
             )}
