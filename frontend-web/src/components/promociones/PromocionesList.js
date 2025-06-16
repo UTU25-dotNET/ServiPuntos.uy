@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import Breadcrumb from "../layout/Breadcrumb";
+import { QRCodeSVG } from "qrcode.react";
 import apiService from "../../services/apiService";
 
 const PromocionesList = () => {
@@ -8,6 +9,11 @@ const PromocionesList = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("todas");
+  const [canjeQR, setCanjeQR] = useState(null);
+  const [canjeLoading, setCanjeLoading] = useState(false);
+  const [canjeError, setCanjeError] = useState("");
+  const [compraLoading, setCompraLoading] = useState(false);
+  const [compraError, setCompraError] = useState("");
 
   const loadedRef = useRef(false);
 
@@ -54,12 +60,58 @@ const PromocionesList = () => {
 
   const formatDate = (d) => new Date(d).toLocaleDateString();
 
-  const handleComprar = (promo) => {
-    alert(`Comprar ${promo.titulo}`);
+  const handleComprar = async (promo) => {
+    setCompraLoading(true);
+    setCompraError("");
+    try {
+      const ubicacionId = promo.ubicaciones?.[0];
+      if (!ubicacionId) throw new Error("Ubicaci\u00f3n no disponible");
+
+      const productoUbicacion = {
+        id: promo.id,
+        productoCanjeable: {
+          id: promo.productoIds?.[0] || promo.id,
+          nombre: promo.titulo,
+        },
+        categoria: "Promocion",
+        precio: promo.precioEnPesos || 0,
+      };
+
+      const result = await apiService.procesarTransaccion(
+        productoUbicacion,
+        ubicacionId,
+        0,
+        0
+      );
+      if (result?.codigo === "PENDING_PAYMENT" && result.datos?.approvalUrl) {
+        window.location.href = result.datos.approvalUrl;
+      } else if (result?.codigo !== "OK") {
+        setCompraError(result?.mensaje || "Error en la compra");
+      }
+    } catch (err) {
+      setCompraError(err.message);
+    } finally {
+      setCompraLoading(false);
+    }
   };
 
-  const handleCanjear = (promo) => {
-    alert(`Canjear ${promo.titulo}`);
+  const handleCanjear = async (promo) => {
+    setCanjeLoading(true);
+    setCanjeError("");
+    try {
+      const ubicacionId = promo.ubicaciones?.[0];
+      const productoId = promo.productoIds?.[0];
+      if (!ubicacionId || !productoId) {
+        throw new Error("Datos incompletos para canjear");
+      }
+
+      const result = await apiService.generarCanje(productoId, ubicacionId);
+      setCanjeQR(result?.datos?.codigoQR || null);
+    } catch (err) {
+      setCanjeError(err.message);
+    } finally {
+      setCanjeLoading(false);
+    }
   };
 
   const getCardClasses = (tipo) =>
@@ -146,6 +198,49 @@ const PromocionesList = () => {
           </div>
         ))}
       </div>
+      {compraError && <p className="text-danger mt-2">{compraError}</p>}
+      {canjeError && <p className="text-danger mt-2">{canjeError}</p>}
+      {canjeQR && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.6)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 2000,
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              padding: "2rem",
+              borderRadius: "12px",
+              textAlign: "center",
+            }}
+          >
+            <h3 style={{ marginTop: 0 }}>Código de Canje</h3>
+            {canjeLoading ? (
+              <p>Generando código...</p>
+            ) : (
+              <>
+                <QRCodeSVG value={canjeQR} size={180} />
+                <p style={{ wordBreak: "break-all" }}>{canjeQR}</p>
+              </>
+            )}
+            <button
+              onClick={() => setCanjeQR(null)}
+              style={{ marginTop: "1rem", padding: "0.5rem 1rem" }}
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
