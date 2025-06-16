@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace ServiPuntos.API.Controllers
@@ -37,7 +38,7 @@ namespace ServiPuntos.API.Controllers
             try
             {
                 var tenantId = _tenantContext.TenantId;
-                if (tenantId == null)
+                if (tenantId == Guid.Empty)
                 {
                     return Unauthorized(new { message = "Tenant no válido" });
                 }
@@ -226,7 +227,7 @@ namespace ServiPuntos.API.Controllers
             try
             {
                 var tenantId = _tenantContext.TenantId;
-                if (tenantId == null)
+                if (tenantId == Guid.Empty)
                 {
                     return Unauthorized(new { message = "Tenant no válido" });
                 }
@@ -270,7 +271,7 @@ namespace ServiPuntos.API.Controllers
             try
             {
                 var tenantId = _tenantContext.TenantId;
-                if (tenantId == null)
+                if (tenantId == Guid.Empty)
                 {
                     return Unauthorized(new { message = "Tenant no válido" });
                 }

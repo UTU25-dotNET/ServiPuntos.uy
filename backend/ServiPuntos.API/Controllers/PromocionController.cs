@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -31,7 +32,29 @@ public class PromocionController : ControllerBase
         public async Task<ActionResult<IEnumerable<object>>> Get()
         {
             var tenantId = _tenantContext.TenantId;
-            if (tenantId == null) return Unauthorized(new { message = "Tenant no válido" });
+            if (tenantId == Guid.Empty) return Unauthorized(new { message = "Tenant no válido" });
+            var promos = await _promocionService.GetPromocionesByTenantAsync(tenantId);
+            var result = promos.Select(p => new
+            {
+                id = p.Id,
+                titulo = p.Titulo,
+                descripcion = p.Descripcion,
+                fechaInicio = p.FechaInicio,
+                fechaFin = p.FechaFin,
+                tipo = p.Tipo.ToString(),
+                precioEnPuntos = p.PrecioEnPuntos,
+                precioEnPesos = p.PrecioEnPesos,
+                descuentoEnPesos = p.DescuentoEnPesos,
+                productoIds = p.Productos?.Select(pp => pp.ProductoCanjeableId).ToList()
+            });
+            return Ok(result);
+        }
+
+        [HttpGet("tenant/{tenantId}")]
+        [AllowAnonymous]
+        public async Task<ActionResult<IEnumerable<object>>> GetByTenant(Guid tenantId)
+        {
+            if (tenantId == Guid.Empty) return BadRequest(new { message = "Tenant no válido" });
             var promos = await _promocionService.GetPromocionesByTenantAsync(tenantId);
             var result = promos.Select(p => new
             {
@@ -77,7 +100,7 @@ public class PromocionController : ControllerBase
         public async Task<ActionResult<object>> Create([FromBody] CreatePromocionRequest request)
         {
             var tenantId = _tenantContext.TenantId;
-            if (tenantId == null) return Unauthorized(new { message = "Tenant no válido" });
+            if (tenantId == Guid.Empty) return Unauthorized(new { message = "Tenant no válido" });
             var ubicaciones = new List<Ubicacion>();
             if (request.UbicacionIds != null && request.UbicacionIds.Count > 0)
             {
