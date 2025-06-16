@@ -18,6 +18,7 @@ const ComprarOfertaModal = ({ isOpen, onClose, oferta }) => {
       setError("");
       try {
         const prod = await apiService.getProductoCanjeable(prodId);
+        console.log("Producto cargado", prod);
         setProducto(prod);
       } catch (err) {
         setError(err.message);
@@ -30,10 +31,14 @@ const ComprarOfertaModal = ({ isOpen, onClose, oferta }) => {
 
   if (!isOpen || !oferta) return null;
 
+  console.log("Oferta recibida", oferta);
+
   const precioBase = parseDecimal(oferta.precioEnPesos);
   const descuento = parseDecimal(oferta.descuentoEnPesos);
   const precioFinal = Math.max(precioBase - descuento, 0);
   const porcentaje = precioBase > 0 ? Math.round((descuento / precioBase) * 100) : 0;
+
+  console.log("Calculos", { precioBase, descuento, precioFinal, porcentaje });
 
   const handlePagar = async () => {
     if (!oferta) return;
