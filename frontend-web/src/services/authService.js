@@ -137,6 +137,14 @@ register: async (name, email, password, ci, tenantId) => {
     }
   },
 
+  // Guardar un token ya obtenido (por ejemplo, tras login con Google)
+  loginWithToken: (token) => {
+    if (token) {
+      localStorage.setItem('token', token);
+      scheduleAutoLogout();
+    }
+  },
+
   verifyPassword: async (email, password) => {
     try {
       await axios.post(`${API_URL}verify-password`, { email, password });
