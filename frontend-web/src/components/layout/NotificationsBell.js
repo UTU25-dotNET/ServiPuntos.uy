@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import apiService from '../../services/apiService';
 import authService from '../../services/authService';
 
@@ -6,30 +6,30 @@ const NotificationsBell = ({ textColor, user }) => {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([]);
 
-  useEffect(() => {
-    const load = async () => {
-      // Evitar llamadas si no hay token
-      if (!authService.getToken()) return;
+  const loadNotifications = async () => {
+    if (!authService.getToken()) return;
 
-      // Asegurarse de que el usuario exista en el backend
-      try {
-        await apiService.getUserProfile();
-      } catch {
-        // Si falla obtener el perfil, no intentar cargar notificaciones
-        return;
-      }
+    try {
+      await apiService.getUserProfile();
+    } catch {
+      return;
+    }
 
-      try {
-        const data = await apiService.getMisNotificaciones();
-        setItems(data);
-      } catch (err) {
-        // ignorar errores de carga inicial
-      }
-    };
-    load();
-  }, [user]);
+    try {
+      const data = await apiService.getMisNotificaciones();
+      setItems(data);
+    } catch {
+      // Ignorar errores en carga inicial
+    }
+  };
 
-  const toggle = () => setOpen(!open);
+  const toggle = async () => {
+    const newOpen = !open;
+    setOpen(newOpen);
+    if (newOpen && items.length === 0) {
+      await loadNotifications();
+    }
+  };
 
   const handleDelete = async (id) => {
     try {
