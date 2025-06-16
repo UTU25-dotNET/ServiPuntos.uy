@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import apiService from '../../services/apiService';
 import authService from '../../services/authService';
 
@@ -6,6 +7,7 @@ const NotificationsBell = ({ textColor, user }) => {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([]);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
   const loadNotifications = async () => {
     if (!authService.getToken()) return;
@@ -72,6 +74,18 @@ const NotificationsBell = ({ textColor, user }) => {
     } catch {}
   };
 
+  const handleItemClick = async (item) => {
+    const mensaje = `${item.titulo} ${item.mensaje}`.toLowerCase();
+    if (mensaje.includes('promo') || mensaje.includes('oferta')) {
+      try {
+        await apiService.marcarNotificacionLeida(item.id);
+        setItems((prev) => prev.map((i) => i.id === item.id ? { ...i, leida: true } : i));
+      } catch {}
+      navigate('/promociones', { state: { selectedPromoTitle: item.titulo } });
+      setOpen(false);
+    }
+  };
+
   const unread = items.filter(n => !n.leida).length;
 
   return (
@@ -99,7 +113,11 @@ const NotificationsBell = ({ textColor, user }) => {
           <>
             {items.map((n) => (
               <div key={n.id} className="dropdown-item d-flex justify-content-between align-items-start">
-                <div className="me-2" style={{ maxWidth: '200px' }}>
+                <div
+                  className="me-2"
+                  style={{ maxWidth: '200px', cursor: 'pointer' }}
+                  onClick={() => handleItemClick(n)}
+                >
                   <div className="fw-bold">{n.titulo}</div>
                   <small className="text-muted">{n.mensaje}</small>
                 </div>

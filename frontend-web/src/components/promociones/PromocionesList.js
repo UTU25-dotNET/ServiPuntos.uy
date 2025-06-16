@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Breadcrumb from "../layout/Breadcrumb";
 import { QRCodeSVG } from "qrcode.react";
 import apiService from "../../services/apiService";
@@ -14,8 +15,24 @@ const PromocionesList = () => {
   const [canjeLoading, setCanjeLoading] = useState(false);
   const [canjeError, setCanjeError] = useState("");
   const [ofertaSeleccionada, setOfertaSeleccionada] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const loadedRef = useRef(false);
+
+  useEffect(() => {
+    if (!promos.length) return;
+    const title = location.state?.selectedPromoTitle;
+    if (!title) return;
+    const promo = promos.find((p) => p.titulo === title);
+    if (!promo) return;
+    if (promo.tipo === "Oferta") {
+      setOfertaSeleccionada(promo);
+    } else {
+      handleCanjear(promo);
+    }
+    navigate(location.pathname, { replace: true, state: {} });
+  }, [promos, location.state]);
 
   useEffect(() => {
     const load = async () => {
