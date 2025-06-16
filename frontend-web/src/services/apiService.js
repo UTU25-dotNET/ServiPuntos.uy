@@ -374,11 +374,11 @@ updateUserProfile: async (profileData) => {
 // Obtener todos los productos canjeables disponibles
 getProductosCanjeables: async () => {
   try {
-    
+
     const response = await apiClient.get('ProductoCanjeable');
-    
+
     return response.data;
-    
+
   } catch (error) {
     
     if (error.response?.status === 404) {
@@ -388,6 +388,17 @@ getProductosCanjeables: async () => {
     } else {
       throw new Error(error.message || "Error al obtener productos canjeables");
     }
+  }
+},
+
+// Obtener un producto canjeable por ID
+getProductoCanjeable: async (id) => {
+  try {
+    if (!id) throw new Error('ID requerido');
+    const response = await apiClient.get(`ProductoCanjeable/${id}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Error al obtener el producto');
   }
 },
 
