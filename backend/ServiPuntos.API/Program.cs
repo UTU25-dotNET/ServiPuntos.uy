@@ -12,13 +12,10 @@ using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Data;
 using ServiPuntos.Infrastructure.Middleware;
 using ServiPuntos.Infrastructure.MultiTenancy;
-using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Repositories;
-using ServiPuntos.Infrastructure.Middleware;
 
 using System.Text;
 using System.Security.Claims;
-using System.Text;
 
 // Creaci�n de la aplicaci�n web ASP.NET Core
 var builder = WebApplication.CreateBuilder(args);
