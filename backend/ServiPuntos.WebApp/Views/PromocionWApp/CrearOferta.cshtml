@@ -33,6 +33,7 @@
                     <label asp-for="DescuentoEnPesos" class="form-label">Descuento</label>
                     <input asp-for="DescuentoEnPesos" class="form-control" type="number" step="0.01" />
                 </div>
+                <input type="hidden" asp-for="PrecioEnPesos" id="PrecioEnPesos" />
             </div>
             <div class="mb-3">
                 <label class="form-label">Ubicación</label>
@@ -81,13 +82,19 @@
             function actualizarCard() {
                 const card = document.querySelector('#productoSeleccionado');
                 const id = document.getElementById('ProductoId').value;
-                if (!id) { card.style.display = 'none'; card.innerHTML = ''; return; }
+                if (!id) {
+                    card.style.display = 'none';
+                    card.innerHTML = '';
+                    document.getElementById('PrecioEnPesos').value = '';
+                    return;
+                }
                 const selected = document.querySelector(`.seleccionar-producto[data-id="${id}"]`);
                 const nombre = selected.dataset.nombre;
                 const foto = selected.dataset.foto;
                 const precio = parseFloat(selected.dataset.precio || '0');
                 const descuento = parseFloat(document.getElementById('DescuentoEnPesos').value || '0');
                 const final = Math.max(precio - (precio * descuento / 100), 0);
+                document.getElementById('PrecioEnPesos').value = final.toFixed(2);
                 card.innerHTML = `<div class="card" style="max-width: 18rem;">
                         <img src="${foto}" class="card-img-top" style="height:150px; object-fit:cover;" />
                         <div class="card-body">
