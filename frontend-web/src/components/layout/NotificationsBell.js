@@ -24,6 +24,19 @@ const NotificationsBell = ({ textColor, user }) => {
     }
   };
 
+  useEffect(() => {
+    const handleLoad = () => {
+      loadNotifications();
+    };
+
+    if (document.readyState === 'complete') {
+      handleLoad();
+    } else {
+      window.addEventListener('load', handleLoad);
+      return () => window.removeEventListener('load', handleLoad);
+    }
+  }, []);
+
   const toggle = async () => {
     const newOpen = !open;
     setOpen(newOpen);
