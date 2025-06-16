@@ -372,25 +372,35 @@ const Home = () => {
                 </div>
               </div>
 
-              <div
+              <Link
+                to="/promociones"
                 style={{
                   display: "flex",
                   alignItems: "center",
                   gap: "0.75rem",
                   padding: "1rem",
-                  backgroundColor: "#f8f9fa",
+                  backgroundColor: "#e8f0fe",
                   borderRadius: "8px",
-                  color: "#6c757d",
-                  border: "1px dashed #dee2e6",
-                  opacity: 0.7
+                  textDecoration: "none",
+                  color: "#1a73e8",
+                  border: "1px solid #c3dafe",
+                  transition: "transform 0.2s ease, box-shadow 0.2s ease"
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = "translateY(-2px)";
+                  e.target.style.boxShadow = "0 4px 12px rgba(26,115,232,0.2)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = "translateY(0)";
+                  e.target.style.boxShadow = "none";
                 }}
               >
                 <span style={{ fontSize: "1.5rem" }}>🎁</span>
                 <div>
                   <strong>Promociones</strong>
-                  <div style={{ fontSize: "0.8rem" }}>Próximamente</div>
+                  <div style={{ fontSize: "0.8rem", color: "#6c757d" }}>Ofertas y beneficios</div>
                 </div>
-              </div>
+              </Link>
             </div>
           </div>
 

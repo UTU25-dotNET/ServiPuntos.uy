@@ -307,6 +307,7 @@ public class AuthController : ControllerBase
                 await _context.SaveChangesAsync();
 
                 claims.Add(new Claim("tenantId", usuario.TenantId.ToString() ?? string.Empty));
+                claims.Add(new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()));
             }
 
             // Guardar la información importante en la sesión para usarla cuando el usuario regrese
@@ -495,7 +496,8 @@ public class AuthController : ControllerBase
             claims.Add(new Claim(ClaimTypes.Email, usuario.Email ?? string.Empty));
             claims.Add(new Claim("is_adult", isAdult.ToString().ToLower()));
             claims.Add(new Claim("role", usuario.Rol.ToString()));
-            claims.Add(new Claim("TenantId", usuario.TenantId.ToString() ?? string.Empty));
+            claims.Add(new Claim("tenantId", usuario.TenantId.ToString() ?? string.Empty));
+            claims.Add(new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()));
 
             Console.WriteLine($"[SignIn] Claims creados: {claims.Count}");
 

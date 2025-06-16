@@ -30,7 +30,11 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     // Si recibimos un 401 (Unauthorized)
-    if (error.response && error.response.status === 401) {
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      !(error.config && error.config.skipAuthError)
+    ) {
       // Redirijo al login
       authService.logout();
       window.location.href = "/login";
@@ -42,7 +46,7 @@ apiClient.interceptors.response.use(
 // Cliente HTTP
 const apiService = {
   // Obtener perfil del usuario actual
-  getUserProfile: async () => {
+  getUserProfile: async (config = {}) => {
     try {
       // Obtener email del usuario desde el token
       const user = authService.getCurrentUser();
@@ -53,7 +57,10 @@ const apiService = {
 
       try {
         // Intentar usar el endpoint específico por email
-        const response = await apiClient.get(`usuario/email/${encodeURIComponent(user.email)}`);
+        const response = await apiClient.get(
+          `usuario/email/${encodeURIComponent(user.email)}`,
+          config
+        );
         
         return {
           // Información básica
@@ -101,7 +108,7 @@ const apiService = {
       } catch (endpointError) {
         
         // Fallback: Obtener todos los usuarios y filtrar por email
-        const allUsersResponse = await apiClient.get('usuario');
+        const allUsersResponse = await apiClient.get('usuario', config);
         const currentUser = allUsersResponse.data.find(
           (u) => u.email.toLowerCase() === user.email.toLowerCase()
         );
@@ -740,6 +747,50 @@ getProductosByUbicacion: async (ubicacionId, categoria) => {
     }
   },
 
+  getMisNotificaciones: async (config = {}) => {
+    try {
+      const response = await apiClient.get('notificacion/mine', config);
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || 'Error al obtener las notificaciones'
+      );
+    }
+  },
+
+  crearNotificacion: async (titulo, mensaje, audienciaId) => {
+    try {
+      const response = await apiClient.post('notificacion', { titulo, mensaje, audienciaId });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error al crear la notificacion');
+    }
+  },
+
+  marcarNotificacionLeida: async (id) => {
+    try {
+      await apiClient.put(`notificacion/leida/${id}`);
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error al marcar la notificacion');
+    }
+  },
+
+  borrarNotificacion: async (id) => {
+    try {
+      await apiClient.delete(`notificacion/${id}`);
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error al borrar la notificacion');
+    }
+  },
+
+  borrarTodasMisNotificaciones: async () => {
+    try {
+      await apiClient.delete('notificacion/mine');
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error al borrar las notificaciones');
+    }
+  },
+  
   post: async (endpoint, data) => {
     try {
       const response = await apiClient.post(endpoint, data);

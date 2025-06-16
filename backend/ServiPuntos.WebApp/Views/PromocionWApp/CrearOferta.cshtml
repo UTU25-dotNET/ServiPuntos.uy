@@ -46,6 +46,16 @@
                 </select>
                 <div class="form-text">Seleccione la estación para cargar sus productos.</div>
             </div>
+            <div class="mb-3">
+                <label asp-for="AudienciaId" class="form-label">Audiencia</label>
+                <select asp-for="AudienciaId" class="form-select">
+                    <option value="">Todos los usuarios</option>
+                    @foreach (var a in (IEnumerable<ServiPuntos.Core.Entities.Audiencia>)ViewBag.Audiencias)
+                    {
+                        <option value="@a.Id">@a.NombreDescriptivo</option>
+                    }
+                </select>
+            </div>
             <div class="mb-3" id="productoSection" style="display:none;">
                 <label class="form-label">Producto</label>
                 <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#productoModal">Seleccionar Producto</button>
