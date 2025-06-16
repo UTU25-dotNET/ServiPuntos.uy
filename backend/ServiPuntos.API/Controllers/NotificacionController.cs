@@ -27,8 +27,8 @@ namespace ServiPuntos.API.Controllers
             // asegurar compatibilidad con distintos flujos de autenticación
             var claim =
                 User.FindFirst(ClaimTypes.NameIdentifier) ??
-                User.FindFirst("nameid") ?? // Por si la librería no mapea el claim
-                User.FindFirst("sub");
+                User.FindFirst("nameid"); // Por si la librería no mapea el claim
+                //User.FindFirst("sub");
 
             return claim != null && Guid.TryParse(claim.Value, out var id)
                 ? id
