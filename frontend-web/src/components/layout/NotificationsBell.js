@@ -41,27 +41,38 @@ const NotificationsBell = ({ textColor, user }) => {
   const unread = items.filter(n => !n.leida).length;
 
   return (
-    <div style={{ position: 'relative' }}>
-      <span onClick={toggle} style={{ cursor: 'pointer', color: textColor }}>
-        🔔{unread > 0 && <span style={{ marginLeft: '4px', color: 'red' }}>{unread}</span>}
-      </span>
-      {open && (
-        <div style={{ position: 'absolute', right: 0, top: '120%', background: 'white', color: '#000', border: '1px solid #ddd', borderRadius: '6px', padding: '0.5rem', zIndex: 999, minWidth: '250px' }}>
-          {items.length === 0 ? (
-            <div style={{ padding: '0.5rem' }}>Sin notificaciones</div>
-          ) : (
-            items.map(n => (
-              <div key={n.id} style={{ borderBottom: '1px solid #eee', padding: '0.25rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                <div style={{ maxWidth: '200px' }}>
-                  <strong>{n.titulo}</strong>
-                  <div style={{ fontSize: '0.85rem' }}>{n.mensaje}</div>
-                </div>
-                <button onClick={() => handleDelete(n.id)} style={{ background: 'transparent', border: 'none', color: '#dc3545' }}>x</button>
+    <div className="dropdown">
+      <button
+        type="button"
+        className="btn btn-link p-0 position-relative text-decoration-none"
+        style={{ color: textColor }}
+        onClick={toggle}
+      >
+        <span role="img" aria-label="notificaciones">🔔</span>
+        {unread > 0 && (
+          <span className="badge bg-danger ms-1 position-absolute top-0 start-100 translate-middle">
+            {unread}
+          </span>
+        )}
+      </button>
+      <div
+        className={`dropdown-menu dropdown-menu-end${open ? ' show' : ''}`}
+        style={{ minWidth: '250px' }}
+      >
+        {items.length === 0 ? (
+          <div className="px-3 py-2 text-muted">Sin notificaciones</div>
+        ) : (
+          items.map((n) => (
+            <div key={n.id} className="dropdown-item d-flex justify-content-between align-items-start">
+              <div className="me-2" style={{ maxWidth: '200px' }}>
+                <div className="fw-bold">{n.titulo}</div>
+                <small className="text-muted">{n.mensaje}</small>
               </div>
-            ))
-          )}
-        </div>
-      )}
+              <button type="button" className="btn-close" aria-label="Eliminar" onClick={() => handleDelete(n.id)}></button>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 };
