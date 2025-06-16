@@ -29,9 +29,9 @@ const scheduleAutoLogout = () => {
   } catch (err) {
   }
 };
+const API_URL = "https:localhost:5019/api/auth/";
+// const API_URL = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth/";
 
-const API_URL = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth/";
-//https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth
 const authService = {
   // Registro de usuario
 

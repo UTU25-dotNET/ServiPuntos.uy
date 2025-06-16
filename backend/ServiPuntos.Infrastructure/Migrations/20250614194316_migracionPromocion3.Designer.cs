@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServiPuntos.Infrastructure.Data;
@@ -12,9 +13,11 @@ using ServiPuntos.Infrastructure.Data;
 namespace ServiPuntos.Infrastructure.Migrations
 {
     [DbContext(typeof(ServiPuntosDbContext))]
-    partial class ServiPuntosDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250614194316_migracionPromocion3")]
+    partial class migracionPromocion3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -222,9 +225,8 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.Property<string>("Descripcion")
                         .HasColumnType("text");
 
-                    b.Property<decimal?>("DescuentoEnPesos")
-                        .HasColumnType("numeric")
-                        .HasColumnName("DescuentoEnPuntos");
+                    b.Property<int?>("DescuentoEnPuntos")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("FechaFin")
                         .HasColumnType("timestamp with time zone");

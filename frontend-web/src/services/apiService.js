@@ -1,9 +1,9 @@
 import axios from "axios";
 import authService from "./authService";
 
-//const API_URL = "https://localhost:5019/api/";
-//https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth
-const API_URL = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/";
+const API_URL = "https://localhost:5019/api/";
+
+//const API_URL = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/";
 const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
@@ -375,11 +375,11 @@ updateUserProfile: async (profileData) => {
 // Obtener todos los productos canjeables disponibles
 getProductosCanjeables: async () => {
   try {
-    
+
     const response = await apiClient.get('ProductoCanjeable');
-    
+
     return response.data;
-    
+
   } catch (error) {
     
     if (error.response?.status === 404) {
@@ -389,6 +389,17 @@ getProductosCanjeables: async () => {
     } else {
       throw new Error(error.message || "Error al obtener productos canjeables");
     }
+  }
+},
+
+// Obtener un producto canjeable por ID
+getProductoCanjeable: async (id) => {
+  try {
+    if (!id) throw new Error('ID requerido');
+    const response = await apiClient.get(`ProductoCanjeable/${id}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Error al obtener el producto');
   }
 },
 
@@ -662,7 +673,9 @@ getProductosByUbicacion: async (ubicacionId, categoria) => {
     try {
       const params = { limit };
       if (cursor) params.cursor = cursor;
+      console.log('Llamando a /usuario/historial-transacciones', params); // Added log
       const response = await apiClient.get(`usuario/historial-transacciones`, { params });
+      console.log('Respuesta de historial-transacciones', response.data); // Added log
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Error al obtener el historial de transacciones');
@@ -674,6 +687,31 @@ getProductosByUbicacion: async (ubicacionId, categoria) => {
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Error al obtener la transacci\u00f3n');
+    }
+  },
+
+  getPromociones: async () => {
+    try {
+      const response = await apiClient.get('Promocion');
+      console.log('Respuesta de Promocion', response.data); // Added log
+      return response.data;
+    } catch (error) {
+      console.error('Error en getPromociones', error); // Added log
+      throw new Error(error.response?.data?.message || 'Error al obtener las promociones');
+    }
+  },
+
+  getPromocionesByUserTenant: async () => {
+    try {
+      const user = await apiService.getUserProfile();
+      if (!user.tenantId) {
+        throw new Error('Usuario no tiene tenant asociado');
+      }
+      const response = await apiClient.get(`Promocion/tenant/${user.tenantId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en getPromocionesByUserTenant', error);
+      throw new Error(error.response?.data?.message || 'Error al obtener las promociones');
     }
   },
 

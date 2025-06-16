@@ -122,9 +122,9 @@ public class AuthController : ControllerBase
         {
             throw new InvalidOperationException("Google ClientId is not configured.");
         }
-        // var redirectUri = "https://localhost:5019/api/auth/google-callback";
+         var redirectUri = "https://localhost:5019/api/auth/google-callback";
         //var redirectUri = "https://servipuntos-api.duckdns.org/api/auth/google-callback";
-        var redirectUri = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth/google-callback";
+        //var redirectUri = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth/google-callback";
 
         var scope = "email profile openid";
 
@@ -224,9 +224,9 @@ public class AuthController : ControllerBase
             {
                 throw new InvalidOperationException("Google ClientId or ClientSecret is not configured.");
             }
-            //var redirectUri = "https://localhost:5019/api/auth/google-callback";
+            var redirectUri = "https://localhost:5019/api/auth/google-callback";
             //var redirectUri = " https://servipuntos-api.duckdns.org:5019/api/auth/google-callback";
-            var redirectUri = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth/google-callback";
+            //var redirectUri = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth/google-callback";
             var code_verifier = HttpContext.Session.GetString("CodeVerifier");
             Console.WriteLine($"[GoogleCallback] Code Verifier recuperado de sesión: {code_verifier}");
             if (string.IsNullOrEmpty(code_verifier))
@@ -306,7 +306,7 @@ public class AuthController : ControllerBase
                 _context.Usuarios.Update(usuario);
                 await _context.SaveChangesAsync();
 
-                claims.Add(new Claim("TenantId", usuario.TenantId.ToString() ?? string.Empty));
+                claims.Add(new Claim("tenantId", usuario.TenantId.ToString() ?? string.Empty));
             }
 
             // Guardar la información importante en la sesión para usarla cuando el usuario regrese

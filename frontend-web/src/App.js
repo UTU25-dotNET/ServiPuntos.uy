@@ -7,6 +7,7 @@ import AuthCallback from "./components/auth/AuthCallback";
 import Perfil from "./components/perfil/Perfil";
 import TokenDisplay from "./components/TokenDisplay";
 import EstacionesList from "./components/estaciones/EstacionesList";
+import PromocionesList from "./components/promociones/PromocionesList";
 import PrivateRoute from "./components/PrivateRoute";
 import DocumentVerification from "./components/auth/DocumentVerification";
 import PayPalResult from "./components/PayPalResult";
@@ -36,6 +37,7 @@ function App() {
             <Route path="/perfil" element={<Perfil />} />
             <Route path="/token" element={<TokenDisplay />} />
             <Route path="/estaciones" element={<EstacionesList />} />
+            <Route path="/promociones" element={<PromocionesList />} />
           </Route>
         </Routes>
       </Router>
