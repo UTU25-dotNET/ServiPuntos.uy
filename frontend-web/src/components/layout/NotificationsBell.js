@@ -10,13 +10,13 @@ const NotificationsBell = ({ textColor, user }) => {
     if (!authService.getToken()) return;
 
     try {
-      await apiService.getUserProfile();
+      await apiService.getUserProfile({ skipAuthError: true });
     } catch {
       return;
     }
 
     try {
-      const data = await apiService.getMisNotificaciones();
+      const data = await apiService.getMisNotificaciones({ skipAuthError: true });
       setItems(data);
     } catch {
       // Ignorar errores en carga inicial
