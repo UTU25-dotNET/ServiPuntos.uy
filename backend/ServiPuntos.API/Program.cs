@@ -199,6 +199,7 @@ builder.Services.AddScoped<IProductoCanjeableRepository, ProductoCanjeableReposi
 builder.Services.AddScoped<IUbicacionRepository, UbicacionRepository>();
 builder.Services.AddScoped<IProductoUbicacionRepository, ProductoUbicacionRepository>();
 builder.Services.AddScoped<IPromocionRepository, PromocionRepository>();
+builder.Services.AddScoped<INotificacionRepository, NotificacionRepository>();
 
 // Registra los servicios de NAFTA
 builder.Services.AddScoped<ITransaccionService, TransaccionService>();
@@ -211,6 +212,7 @@ builder.Services.AddScoped<IUbicacionService, UbicacionService>();
 builder.Services.AddScoped<IProductoUbicacionService, ProductoUbicacionService>();
 builder.Services.AddScoped<IPayPalService, PayPalService>();
 builder.Services.AddScoped<IPromocionService, PromocionService>();
+builder.Services.AddScoped<INotificacionService, NotificacionService>();
 
 // Construye la aplicaci�n web
 var app = builder.Build();

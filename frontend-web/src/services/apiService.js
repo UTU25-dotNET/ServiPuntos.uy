@@ -740,6 +740,40 @@ getProductosByUbicacion: async (ubicacionId, categoria) => {
     }
   },
 
+  getMisNotificaciones: async () => {
+    try {
+      const response = await apiClient.get('notificacion/mine');
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error al obtener las notificaciones');
+    }
+  },
+
+  crearNotificacion: async (titulo, mensaje, audienciaId) => {
+    try {
+      const response = await apiClient.post('notificacion', { titulo, mensaje, audienciaId });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error al crear la notificacion');
+    }
+  },
+
+  marcarNotificacionLeida: async (id) => {
+    try {
+      await apiClient.put(`notificacion/leida/${id}`);
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error al marcar la notificacion');
+    }
+  },
+
+  borrarNotificacion: async (id) => {
+    try {
+      await apiClient.delete(`notificacion/${id}`);
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error al borrar la notificacion');
+    }
+  },
+
   post: async (endpoint, data) => {
     try {
       const response = await apiClient.post(endpoint, data);

@@ -46,6 +46,16 @@
             <select asp-for="Tipo" class="form-select" asp-items="Html.GetEnumSelectList<TipoPromocion>()"></select>
         </div>
         <div class="mb-3">
+            <label asp-for="AudienciaId" class="form-label">Audiencia</label>
+            <select asp-for="AudienciaId" class="form-select">
+                <option value="">Todos los usuarios</option>
+                @foreach (var a in (IEnumerable<ServiPuntos.Core.Entities.Audiencia>)ViewBag.Audiencias)
+                {
+                    <option value="@a.Id" selected="@(Model.AudienciaId == a.Id ? "selected" : null)">@a.NombreDescriptivo</option>
+                }
+            </select>
+        </div>
+        <div class="mb-3">
             <label class="form-label">Ubicaciones</label>
             <select asp-for="UbicacionIds" class="form-select" multiple>
                 @foreach (var u in (IEnumerable<ServiPuntos.Core.Entities.Ubicacion>)ViewBag.Ubicaciones)
