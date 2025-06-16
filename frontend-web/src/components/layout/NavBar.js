@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import authService from "../../services/authService";
 import apiService from "../../services/apiService";
+import NotificationsBell from "./NotificationsBell";
 
 const NavBar = () => {
   const isAuthenticated = authService.isAuthenticated();
@@ -171,8 +172,9 @@ const NavBar = () => {
             >
               🎁 Promociones
             </Link>
-            <Link 
-              to="/perfil" 
+            <NotificationsBell textColor={textColor} />
+            <Link
+              to="/perfil"
               style={{ 
                 color: textColor,
                 textDecoration: 'none',
