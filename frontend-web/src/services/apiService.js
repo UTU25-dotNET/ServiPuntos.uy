@@ -783,6 +783,14 @@ getProductosByUbicacion: async (ubicacionId, categoria) => {
     }
   },
 
+  borrarTodasMisNotificaciones: async () => {
+    try {
+      await apiClient.delete('notificacion/mine');
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error al borrar las notificaciones');
+    }
+  },
+  
   post: async (endpoint, data) => {
     try {
       const response = await apiClient.post(endpoint, data);

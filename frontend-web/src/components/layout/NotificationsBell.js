@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import apiService from '../../services/apiService';
 import authService from '../../services/authService';
 
 const NotificationsBell = ({ textColor, user }) => {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([]);
+  const dropdownRef = useRef(null);
 
   const loadNotifications = async () => {
     if (!authService.getToken()) return;
@@ -31,6 +32,19 @@ const NotificationsBell = ({ textColor, user }) => {
     }
   };
 
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (open && dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [open]);
+
   const handleDelete = async (id) => {
     try {
       await apiService.borrarNotificacion(id);
@@ -38,10 +52,17 @@ const NotificationsBell = ({ textColor, user }) => {
     } catch {}
   };
 
+  const handleClearAll = async () => {
+    try {
+      await apiService.borrarTodasMisNotificaciones();
+      setItems([]);
+    } catch {}
+  };
+
   const unread = items.filter(n => !n.leida).length;
 
   return (
-    <div className="dropdown">
+    <div className="dropdown" ref={dropdownRef}>
       <button
         type="button"
         className="btn btn-link p-0 position-relative text-decoration-none"
@@ -62,15 +83,21 @@ const NotificationsBell = ({ textColor, user }) => {
         {items.length === 0 ? (
           <div className="px-3 py-2 text-muted">Sin notificaciones</div>
         ) : (
-          items.map((n) => (
-            <div key={n.id} className="dropdown-item d-flex justify-content-between align-items-start">
-              <div className="me-2" style={{ maxWidth: '200px' }}>
-                <div className="fw-bold">{n.titulo}</div>
-                <small className="text-muted">{n.mensaje}</small>
+          <>
+            {items.map((n) => (
+              <div key={n.id} className="dropdown-item d-flex justify-content-between align-items-start">
+                <div className="me-2" style={{ maxWidth: '200px' }}>
+                  <div className="fw-bold">{n.titulo}</div>
+                  <small className="text-muted">{n.mensaje}</small>
+                </div>
+                <button type="button" className="btn-close" aria-label="Eliminar" onClick={() => handleDelete(n.id)}></button>
               </div>
-              <button type="button" className="btn-close" aria-label="Eliminar" onClick={() => handleDelete(n.id)}></button>
-            </div>
-          ))
+            ))}
+            <div className="dropdown-divider"></div>
+            <button type="button" className="dropdown-item text-center" onClick={handleClearAll}>
+              Limpiar todas las notificaciones
+            </button>
+          </>
         )}
       </div>
     </div>
