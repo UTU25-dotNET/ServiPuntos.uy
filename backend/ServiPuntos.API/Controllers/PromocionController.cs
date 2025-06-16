@@ -45,6 +45,7 @@ public class PromocionController : ControllerBase
                 precioEnPuntos = p.PrecioEnPuntos,
                 precioEnPesos = p.PrecioEnPesos,
                 descuentoEnPesos = p.DescuentoEnPesos,
+                ubicaciones = p.Ubicaciones?.Select(u => u.Id).ToList(),
                 productoIds = p.Productos?.Select(pp => pp.ProductoCanjeableId).ToList()
             });
             return Ok(result);
@@ -67,6 +68,7 @@ public class PromocionController : ControllerBase
                 precioEnPuntos = p.PrecioEnPuntos,
                 precioEnPesos = p.PrecioEnPesos,
                 descuentoEnPesos = p.DescuentoEnPesos,
+                ubicaciones = p.Ubicaciones?.Select(u => u.Id).ToList(),
                 productoIds = p.Productos?.Select(pp => pp.ProductoCanjeableId).ToList()
             });
             return Ok(result);
