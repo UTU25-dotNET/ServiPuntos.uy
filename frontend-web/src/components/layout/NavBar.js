@@ -172,7 +172,7 @@ const NavBar = () => {
             >
               🎁 Promociones
             </Link>
-            <NotificationsBell textColor={textColor} />
+            <NotificationsBell textColor={textColor} user={user} />
             <Link
               to="/perfil"
               style={{ 

@@ -2,14 +2,22 @@ import { useEffect, useState } from 'react';
 import apiService from '../../services/apiService';
 import authService from '../../services/authService';
 
-const NotificationsBell = ({ textColor }) => {
+const NotificationsBell = ({ textColor, user }) => {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([]);
 
   useEffect(() => {
     const load = async () => {
-      // Evitar llamadas si no hay token (por ejemplo al volver de OAuth)
+      // Evitar llamadas si no hay token
       if (!authService.getToken()) return;
+
+      // Asegurarse de que el usuario exista en el backend
+      try {
+        await apiService.getUserProfile();
+      } catch {
+        // Si falla obtener el perfil, no intentar cargar notificaciones
+        return;
+      }
 
       try {
         const data = await apiService.getMisNotificaciones();
@@ -19,7 +27,7 @@ const NotificationsBell = ({ textColor }) => {
       }
     };
     load();
-  }, []);
+  }, [user]);
 
   const toggle = () => setOpen(!open);
 
