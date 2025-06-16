@@ -14,31 +14,52 @@ namespace ServiPuntos.API.Controllers
     {
         private readonly INotificacionService _service;
         private readonly ITenantContext _tenantContext;
+        private readonly IUsuarioRepository _usuarioRepository;
 
-        public NotificacionController(INotificacionService service, ITenantContext tenantContext)
+        public NotificacionController(INotificacionService service, ITenantContext tenantContext, IUsuarioRepository usuarioRepository)
         {
             _service = service;
             _tenantContext = tenantContext;
+            _usuarioRepository = usuarioRepository;
         }
 
-        private Guid GetUserId()
+        private async Task<Guid> GetUserIdAsync()
         {
             // Buscar el identificador de usuario en diferentes claims para
             // asegurar compatibilidad con distintos flujos de autenticación
             var claim =
                 User.FindFirst(ClaimTypes.NameIdentifier) ??
-                User.FindFirst("nameid"); // Por si la librería no mapea el claim
-                //User.FindFirst("sub");
+                User.FindFirst("nameid");
 
-            return claim != null && Guid.TryParse(claim.Value, out var id)
-                ? id
-                : Guid.Empty;
+            if (claim != null && Guid.TryParse(claim.Value, out var guid))
+            {
+                return guid;
+            }
+
+            // Fallback: intentar obtenerlo por email si solo tenemos 'sub' u otro identificador
+            var emailClaim = User.FindFirst(ClaimTypes.Email) ?? User.FindFirst("email");
+            if (emailClaim != null)
+            {
+                var user = await _usuarioRepository.GetByEmailAsync(emailClaim.Value);
+                if (user != null)
+                {
+                    return user.Id;
+                }
+            }
+
+            var subClaim = User.FindFirst("sub");
+            if (subClaim != null && Guid.TryParse(subClaim.Value, out guid))
+            {
+                return guid;
+            }
+
+            return Guid.Empty;
         }
 
         [HttpGet("mine")]
         public async Task<IActionResult> GetMine()
         {
-            var userId = GetUserId();
+            var userId = await GetUserIdAsync();
             if (userId == Guid.Empty) return Unauthorized();
             var list = await _service.ObtenerPorUsuarioAsync(userId);
             var result = list.Select(n => new
@@ -87,7 +108,7 @@ namespace ServiPuntos.API.Controllers
         [HttpDelete("mine")]
         public async Task<IActionResult> EliminarTodas()
         {
-            var userId = GetUserId();
+            var userId = await GetUserIdAsync();
             if (userId == Guid.Empty) return Unauthorized();
             await _service.DeleteAllByUsuarioAsync(userId);
             return NoContent();
