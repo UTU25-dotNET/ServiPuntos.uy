@@ -18,8 +18,8 @@ const PromocionesList = () => {
       setLoading(true);
       setError("");
       try {
-        // Obtener siempre las promociones
-        const promosData = await apiService.getPromociones();
+        // Obtener siempre las promociones del tenant del usuario
+        const promosData = await apiService.getPromocionesByUserTenant();
         console.log("Promociones cargadas", promosData); // Added log
         setPromos(promosData);
 
