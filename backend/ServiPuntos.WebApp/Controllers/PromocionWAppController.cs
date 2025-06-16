@@ -4,6 +4,7 @@ using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Enums;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.WebApp.Models;
+using System.Threading.Tasks;
 
 namespace ServiPuntos.WebApp.Controllers
 {
@@ -13,17 +14,23 @@ namespace ServiPuntos.WebApp.Controllers
         private readonly IPromocionService _promocionService;
         private readonly IUbicacionService _ubicacionService;
         private readonly IProductoCanjeableService _productoService;
+        private readonly IAudienciaService _audienciaService;
+        private readonly INotificacionService _notificacionService;
         private readonly ITenantContext _tenantContext;
 
         public PromocionWAppController(
             IPromocionService promocionService,
             IUbicacionService ubicacionService,
             IProductoCanjeableService productoService,
+            IAudienciaService audienciaService,
+            INotificacionService notificacionService,
             ITenantContext tenantContext)
         {
             _promocionService = promocionService;
             _ubicacionService = ubicacionService;
             _productoService = productoService;
+            _audienciaService = audienciaService;
+            _notificacionService = notificacionService;
             _tenantContext = tenantContext;
         }
 
@@ -229,6 +236,57 @@ namespace ServiPuntos.WebApp.Controllers
             await _promocionService.DeletePromocionAsync(id);
             TempData["Success"] = "Promoción eliminada";
             return RedirectToAction(nameof(Index), nameof(PromocionWAppController).Replace("Controller", ""));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Notificar(Guid id)
+        {
+            var tenantId = _tenantContext.TenantId;
+            if (tenantId == null) return Unauthorized();
+            var promo = await _promocionService.GetPromocionAsync(id);
+            if (promo == null || promo.TenantId != tenantId) return NotFound();
+
+            ViewBag.Promocion = promo;
+            ViewBag.Audiencias = await _audienciaService.GetDefinicionesAudienciaAsync(tenantId);
+
+            var model = new CreateNotificacionViewModel
+            {
+                Titulo = $"{promo.Titulo}",
+                Mensaje = "Nueva promoción disponible"
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Notificar(Guid id, CreateNotificacionViewModel model)
+        {
+            var tenantId = _tenantContext.TenantId;
+            if (tenantId == null) return Unauthorized();
+            var promo = await _promocionService.GetPromocionAsync(id);
+            if (promo == null || promo.TenantId != tenantId) return NotFound();
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Promocion = promo;
+                ViewBag.Audiencias = await _audienciaService.GetDefinicionesAudienciaAsync(tenantId);
+                return View(model);
+            }
+
+            var notif = new Notificacion
+            {
+                Id = Guid.NewGuid(),
+                TenantId = tenantId,
+                AudienciaId = model.AudienciaId,
+                Titulo = model.Titulo,
+                Mensaje = model.Mensaje,
+                FechaCreacion = DateTime.UtcNow
+            };
+
+            await _notificacionService.CrearNotificacionAsync(notif, model.AudienciaId);
+
+            TempData["Success"] = "Notificación enviada";
+            return RedirectToAction(nameof(Index));
         }
     }
 }
