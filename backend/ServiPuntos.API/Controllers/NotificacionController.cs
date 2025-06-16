@@ -83,6 +83,15 @@ namespace ServiPuntos.API.Controllers
             await _service.EliminarParaUsuarioAsync(id);
             return NoContent();
         }
+
+        [HttpDelete("mine")]
+        public async Task<IActionResult> EliminarTodas()
+        {
+            var userId = GetUserId();
+            if (userId == Guid.Empty) return Unauthorized();
+            await _service.DeleteAllByUsuarioAsync(userId);
+            return NoContent();
+        }
     }
 
     public class CreateNotificacionRequest

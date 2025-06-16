@@ -55,5 +55,11 @@ namespace ServiPuntos.Infrastructure.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+        public async Task DeleteAllByUsuarioAsync(Guid usuarioId)
+        {
+            var items = _context.NotificacionUsuarios.Where(nu => nu.UsuarioId == usuarioId);
+            _context.NotificacionUsuarios.RemoveRange(items);
+            await _context.SaveChangesAsync();
+        }
     }
 }

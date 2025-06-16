@@ -9,5 +9,6 @@ namespace ServiPuntos.Core.Interfaces
         Task<IEnumerable<NotificacionUsuario>> GetByUsuarioAsync(Guid usuarioId);
         Task MarkAsLeidaAsync(Guid notificacionUsuarioId);
         Task DeleteUsuarioAsync(Guid notificacionUsuarioId);
+        Task DeleteAllByUsuarioAsync(Guid usuarioId);
     }
 }

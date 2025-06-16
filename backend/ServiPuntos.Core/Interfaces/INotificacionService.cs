@@ -8,5 +8,6 @@ namespace ServiPuntos.Core.Interfaces
         Task CrearNotificacionAsync(Notificacion notificacion, Guid? audienciaId);
         Task MarcarComoLeidaAsync(Guid notificacionUsuarioId);
         Task EliminarParaUsuarioAsync(Guid notificacionUsuarioId);
+        Task DeleteAllByUsuarioAsync(Guid usuarioId);
     }
 }

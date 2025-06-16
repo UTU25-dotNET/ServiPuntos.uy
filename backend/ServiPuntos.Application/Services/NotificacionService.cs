@@ -50,5 +50,11 @@ namespace ServiPuntos.Application.Services
 
         public Task EliminarParaUsuarioAsync(Guid notificacionUsuarioId)
             => _repository.DeleteUsuarioAsync(notificacionUsuarioId);
+
+        public Task EliminarTodasParaUsuarioAsync(Guid usuarioId)
+            => _repository.DeleteAllByUsuarioAsync(usuarioId);
+
+        public Task DeleteAllByUsuarioAsync(Guid usuarioId)
+            => _repository.DeleteAllByUsuarioAsync(usuarioId);
     }
 }
