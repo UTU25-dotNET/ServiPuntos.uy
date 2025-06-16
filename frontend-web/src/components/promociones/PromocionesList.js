@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Breadcrumb from "../layout/Breadcrumb";
 import { QRCodeSVG } from "qrcode.react";
 import apiService from "../../services/apiService";
+import ComprarOfertaModal from "./ComprarOfertaModal";
 
 const PromocionesList = () => {
   const [promos, setPromos] = useState([]);
@@ -12,8 +13,7 @@ const PromocionesList = () => {
   const [canjeQR, setCanjeQR] = useState(null);
   const [canjeLoading, setCanjeLoading] = useState(false);
   const [canjeError, setCanjeError] = useState("");
-  const [compraLoading, setCompraLoading] = useState(false);
-  const [compraError, setCompraError] = useState("");
+  const [ofertaSeleccionada, setOfertaSeleccionada] = useState(null);
 
   const loadedRef = useRef(false);
 
@@ -60,46 +60,8 @@ const PromocionesList = () => {
 
   const formatDate = (d) => new Date(d).toLocaleDateString();
 
-  const handleComprar = async (promo) => {
-    setCompraLoading(true);
-    setCompraError("");
-    try {
-      const ubicacionId = promo.ubicaciones?.[0];
-      if (!ubicacionId) throw new Error("Ubicaci\u00f3n no disponible");
-
-      const precioBase =
-        promo.precioEnPesos != null ? Number(promo.precioEnPesos) : null;
-      const precioFinal =
-        precioBase != null
-          ? Math.max(precioBase - (Number(promo.descuentoEnPesos) || 0), 0)
-          : Number(promo.descuentoEnPesos) || 0;
-
-      const productoUbicacion = {
-        id: promo.id,
-        productoCanjeable: {
-          id: promo.productoIds?.[0] || promo.id,
-          nombre: promo.titulo,
-        },
-        categoria: "Promocion",
-        precio: precioFinal,
-      };
-
-      const result = await apiService.procesarTransaccion(
-        productoUbicacion,
-        ubicacionId,
-        0,
-        0
-      );
-      if (result?.codigo === "PENDING_PAYMENT" && result.datos?.approvalUrl) {
-        window.location.href = result.datos.approvalUrl;
-      } else if (result?.codigo !== "OK") {
-        setCompraError(result?.mensaje || "Error en la compra");
-      }
-    } catch (err) {
-      setCompraError(err.message);
-    } finally {
-      setCompraLoading(false);
-    }
+  const handleComprar = (promo) => {
+    setOfertaSeleccionada(promo);
   };
 
   const handleCanjear = async (promo) => {
@@ -205,7 +167,6 @@ const PromocionesList = () => {
           </div>
         ))}
       </div>
-      {compraError && <p className="text-danger mt-2">{compraError}</p>}
       {canjeError && <p className="text-danger mt-2">{canjeError}</p>}
       {canjeQR && (
         <div
@@ -247,6 +208,13 @@ const PromocionesList = () => {
             </button>
           </div>
         </div>
+      )}
+      {ofertaSeleccionada && (
+        <ComprarOfertaModal
+          isOpen={!!ofertaSeleccionada}
+          onClose={() => setOfertaSeleccionada(null)}
+          oferta={ofertaSeleccionada}
+        />
       )}
     </div>
   );
