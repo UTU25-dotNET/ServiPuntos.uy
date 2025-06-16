@@ -54,6 +54,17 @@ const PromocionesList = () => {
 
   const formatDate = (d) => new Date(d).toLocaleDateString();
 
+  const handleComprar = (promo) => {
+    alert(`Comprar ${promo.titulo}`);
+  };
+
+  const handleCanjear = (promo) => {
+    alert(`Canjear ${promo.titulo}`);
+  };
+
+  const getCardClasses = (tipo) =>
+    tipo === "Oferta" ? "card h-100 border-success" : "card h-100 border-primary";
+
   return (
     <div className="container my-4">
       <Breadcrumb current="Promociones" />
@@ -74,9 +85,16 @@ const PromocionesList = () => {
       <div className="row">
         {filteredPromos.map((p) => (
           <div className="col-md-4 mb-3" key={p.id}>
-            <div className="card h-100">
-              <div className="card-body">
-                <h5 className="card-title">{p.titulo}</h5>
+            <div className={getCardClasses(p.tipo)}>
+              <div className="card-body d-flex flex-column">
+                <div className="d-flex justify-content-between align-items-start mb-2">
+                  <h5 className="card-title mb-0">{p.titulo}</h5>
+                  <span className={
+                    p.tipo === "Oferta" ? "badge bg-success" : "badge bg-primary"
+                  }>
+                    {p.tipo}
+                  </span>
+                </div>
                 <p className="card-text">{p.descripcion}</p>
                 <p className="card-text">
                   <small className="text-muted">Inicio: {formatDate(p.fechaInicio)}</small>
@@ -106,6 +124,23 @@ const PromocionesList = () => {
                     </ul>
                   </div>
                 )}
+                <div className="mt-auto">
+                  {p.tipo === "Oferta" ? (
+                    <button
+                      className="btn btn-success w-100"
+                      onClick={() => handleComprar(p)}
+                    >
+                      Comprar
+                    </button>
+                  ) : (
+                    <button
+                      className="btn btn-primary w-100"
+                      onClick={() => handleCanjear(p)}
+                    >
+                      Canjear
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
