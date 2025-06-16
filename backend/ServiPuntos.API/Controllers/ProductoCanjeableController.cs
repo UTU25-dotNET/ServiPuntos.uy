@@ -4,12 +4,13 @@ using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
 using System;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace ServiPuntos.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize] // Ajusta según tu sistema de autenticación
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)] // Ajusta según tu sistema de autenticación
     public class ProductoCanjeableController : ControllerBase
     {
         private readonly IProductoCanjeableService _productoCanjeableService;
