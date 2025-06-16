@@ -2,13 +2,15 @@
 using Microsoft.AspNetCore.Authorization;
 using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Interfaces;
+using System;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace ServiPuntos.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize] // Ajusta según tu sistema de autenticación
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)] // Ajusta según tu sistema de autenticación
     public class ProductoCanjeableController : ControllerBase
     {
         private readonly IProductoCanjeableService _productoCanjeableService;
@@ -37,7 +39,7 @@ namespace ServiPuntos.API.Controllers
             try
             {
                 var tenantId = _tenantContext.TenantId;
-                if (tenantId == null)
+                if (tenantId == Guid.Empty)
                 {
                     return Unauthorized(new { message = "Tenant no válido" });
                 }
@@ -226,7 +228,7 @@ namespace ServiPuntos.API.Controllers
             try
             {
                 var tenantId = _tenantContext.TenantId;
-                if (tenantId == null)
+                if (tenantId == Guid.Empty)
                 {
                     return Unauthorized(new { message = "Tenant no válido" });
                 }
@@ -270,7 +272,7 @@ namespace ServiPuntos.API.Controllers
             try
             {
                 var tenantId = _tenantContext.TenantId;
-                if (tenantId == null)
+                if (tenantId == Guid.Empty)
                 {
                     return Unauthorized(new { message = "Tenant no válido" });
                 }

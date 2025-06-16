@@ -31,7 +31,12 @@ const Historial = ({ usuarioId }) => {
       try {
         const [c, t] = await Promise.all([
           apiService.getCanjesByUsuario(usuarioId),
-          apiService.getTransaccionesByUsuario()
+          (async () => {
+            console.log('Solicitando transacciones iniciales'); // Added log
+            const data = await apiService.getTransaccionesByUsuario();
+            console.log('Transacciones iniciales recibidas', data); // Added log
+            return data;
+          })()
         ]);
         setCanjePages([{ items: c.items }]);
         setCanjeCursor(c.nextCursor);
@@ -72,7 +77,9 @@ const Historial = ({ usuarioId }) => {
   const cargarMasTrans = async () => {
     if (!transCursorState) return;
     try {
+      console.log('Solicitando más transacciones', transCursorState); // Added log
       const res = await apiService.getTransaccionesByUsuario(transCursorState);
+      console.log('Más transacciones recibidas', res); // Added log
       setTransPages(prev => [...prev, { items: res.items }]);
       setTransCursorState(res.nextCursor);
       setTransPageIndex(prev => prev + 1);
