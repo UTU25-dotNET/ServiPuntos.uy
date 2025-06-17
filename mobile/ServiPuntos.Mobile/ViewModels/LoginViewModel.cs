@@ -7,6 +7,10 @@ namespace ServiPuntos.Mobile.ViewModels
     public class LoginViewModel : BindableObject
     {
         private readonly IAuthService _authService;
+        // private string _username = string.Empty;
+        // private string _password = string.Empty;
+        // private string _errorMessage = string.Empty;
+
 
         public TenantConfig Tenant { get; set; }
 
