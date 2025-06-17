@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import authService from "../../services/authService";
 import apiService from "../../services/apiService";
+import NotificationsBell from "./NotificationsBell";
 
 const NavBar = () => {
   const isAuthenticated = authService.isAuthenticated();
@@ -118,36 +119,9 @@ const NavBar = () => {
               </div>
             )}
             
-            {/* Navigation Links */}
-            <Link 
-              to="/estaciones" 
-              style={{ 
-                color: textColor,
-                textDecoration: 'none',
-                padding: '0.5rem 1rem',
-                borderRadius: '6px',
-                transition: 'background-color 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                backgroundColor: 'rgba(255,255,255,0.1)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                fontWeight: '500'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = 'rgba(255,255,255,0.2)';
-                e.target.style.borderColor = 'rgba(255,255,255,0.3)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
-                e.target.style.borderColor = 'rgba(255,255,255,0.2)';
-              }}
-            >
-              🏪 Estaciones
-            </Link>
-
-            <Link 
-              to="/perfil" 
+            <NotificationsBell textColor={textColor} user={user} />
+            <Link
+              to="/perfil"
               style={{ 
                 color: textColor,
                 textDecoration: 'none',

@@ -24,10 +24,13 @@ namespace ServiPuntos.Infrastructure.Data
         public DbSet<ProductoCanjeable> ProductosCanjeables { get; set; }
         public DbSet<ProductoUbicacion> ProductoUbicaciones { get; set; }
         public DbSet<Promocion> Promociones { get; set; }
+         public DbSet<PromocionProducto> PromocionProductos { get; set; }
         public DbSet<Ubicacion> Ubicaciones { get; set; }
         public DbSet<Tenant> Tenants { get; set; }
         public DbSet<Transaccion> Transacciones { get; set; }
         public DbSet<Canje> Canjes { get; set; }
+        public DbSet<Notificacion> Notificaciones { get; set; }
+        public DbSet<NotificacionUsuario> NotificacionUsuarios { get; set; }
 
         public DbSet<ConfigPlataforma> ConfigPlataformas { get; set; }
 
@@ -81,10 +84,30 @@ namespace ServiPuntos.Infrastructure.Data
                 .HasMany(u => u.Promociones)
                 .WithMany(p => p.Ubicaciones);
 
+             modelBuilder.Entity<PromocionProducto>()
+                .HasKey(pp => new { pp.PromocionId, pp.ProductoCanjeableId });
+
+            modelBuilder.Entity<PromocionProducto>()
+                .HasOne(pp => pp.Promocion)
+                .WithMany(p => p.Productos)
+                .HasForeignKey(pp => pp.PromocionId);
+
+            modelBuilder.Entity<PromocionProducto>()
+                .HasOne(pp => pp.ProductoCanjeable)
+                .WithMany()
+                .HasForeignKey(pp => pp.ProductoCanjeableId);
             // Filtro global por TenantId para las entidades que lo tienen
             //modelBuilder.Entity<Usuario>()
             //.HasQueryFilter(u => u.TenantId == _iTenantContext.TenantId);
+            modelBuilder.Entity<NotificacionUsuario>()
+                .HasOne(nu => nu.Notificacion)
+                .WithMany(n => n.Destinatarios)
+                .HasForeignKey(nu => nu.NotificacionId);
 
+            modelBuilder.Entity<NotificacionUsuario>()
+                .HasOne(nu => nu.Usuario)
+                .WithMany()
+                .HasForeignKey(nu => nu.UsuarioId);
             //modelBuilder.Entity<Ubicacion>() // si corresponde
             //.HasQueryFilter(u => u.TenantId == _tenantProvider.CurrentTenant.Id);
 

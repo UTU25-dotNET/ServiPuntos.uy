@@ -1,0 +1,102 @@
+@model ServiPuntos.WebApp.Models.EditPromocionViewModel
+@using ServiPuntos.Core.Enums
+@{
+    ViewData["Title"] = "Editar Promoción";
+}
+<div class="container">
+    <h3 class="mb-4">@ViewData["Title"]</h3>
+    <form asp-action="Editar" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <div class="mb-3">
+            <label asp-for="Titulo" class="form-label">Título</label>
+            <input asp-for="Titulo" class="form-control" />
+            <span asp-validation-for="Titulo" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Descripcion" class="form-label">Descripción</label>
+            <textarea asp-for="Descripcion" class="form-control" rows="3"></textarea>
+        </div>
+        <div class="row mb-3">
+            <div class="col">
+                <label asp-for="FechaInicio" class="form-label">Inicio</label>
+                <input asp-for="FechaInicio" class="form-control" type="date" />
+            </div>
+            <div class="col">
+                <label asp-for="FechaFin" class="form-label">Fin</label>
+                <input asp-for="FechaFin" class="form-control" type="date" />
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col" id="precioPuntosField">
+                <label asp-for="PrecioEnPuntos" class="form-label">Precio Puntos</label>
+                <input asp-for="PrecioEnPuntos" class="form-control" type="number" />
+            </div>
+            <div class="col" id="precioPesosField">
+                <label asp-for="PrecioEnPesos" class="form-label">Precio Pesos</label>
+                <input asp-for="PrecioEnPesos" class="form-control" type="number" step="0.01" />
+            </div>
+            <div class="col" id="descuentoField">
+                <label asp-for="DescuentoEnPesos" class="form-label">Descuento</label>
+                <input asp-for="DescuentoEnPesos" class="form-control" type="number" step="0.01" />
+            </div>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Tipo" class="form-label">Tipo</label>
+            <select asp-for="Tipo" class="form-select" asp-items="Html.GetEnumSelectList<TipoPromocion>()"></select>
+        </div>
+        <div class="mb-3">
+            <label asp-for="AudienciaId" class="form-label">Audiencia</label>
+            <select asp-for="AudienciaId" class="form-select">
+                <option value="">Todos los usuarios</option>
+                @foreach (var a in (IEnumerable<ServiPuntos.Core.Entities.Audiencia>)ViewBag.Audiencias)
+                {
+                    <option value="@a.Id" selected="@(Model.AudienciaId == a.Id ? "selected" : null)">@a.NombreDescriptivo</option>
+                }
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Ubicaciones</label>
+            <select asp-for="UbicacionIds" class="form-select" multiple>
+                @foreach (var u in (IEnumerable<ServiPuntos.Core.Entities.Ubicacion>)ViewBag.Ubicaciones)
+                {
+                    <option value="@u.Id" selected="@(Model.UbicacionIds.Contains(u.Id) ? "selected" : null)">@u.Nombre</option>
+                }
+            </select>
+            <div class="form-text">Dejar vacío para que sea global.</div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Productos</label>
+            <select asp-for="ProductoIds" class="form-select" multiple>
+                @foreach (var p in (IEnumerable<ServiPuntos.Core.Entities.ProductoCanjeable>)ViewBag.Productos)
+                {
+                    <option value="@p.Id" selected="@(Model.ProductoIds.Contains(p.Id) ? "selected" : null)">@p.Nombre</option>
+                }
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a asp-action="Index" class="btn btn-secondary">Volver</a>
+    </form>
+</div>
+@section Scripts{
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function toggleFields() {
+            const tipo = document.getElementById("Tipo").value;
+            const descuento = document.getElementById("descuentoField");
+            const precio = document.getElementById("precioPuntosField");
+            const precioPesos = document.getElementById("precioPesosField");
+            if (tipo === 'Promocion') {
+                descuento.style.display = 'none';
+                precio.style.display = '';
+                precioPesos.style.display = '';
+            } else if (tipo === 'Oferta') {
+                precio.style.display = 'none';
+                precioPesos.style.display = 'none';
+                descuento.style.display = '';
+            }
+        }
+        document.getElementById("Tipo").addEventListener('change', toggleFields);
+        document.addEventListener('DOMContentLoaded', toggleFields);
+    </script>
+}
