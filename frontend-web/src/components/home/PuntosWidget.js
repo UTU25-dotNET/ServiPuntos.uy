@@ -329,7 +329,7 @@ const PuntosWidget = ({ userProfile, tenantInfo }) => {
               <div
                 style={{
                   fontSize: "0.9rem",
-                  color: "#7B3F00",
+                  color: "#007BFF",
                   fontWeight: "500"
                 }}
               >

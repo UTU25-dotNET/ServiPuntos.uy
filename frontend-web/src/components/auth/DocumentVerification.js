@@ -114,7 +114,7 @@ const DocumentVerification = () => {
     return (
         <div style={{ maxWidth: "400px", margin: "0 auto", padding: "1rem" }}>
             <Breadcrumb current="Verificar edad" />
-            <h2 style={{ color: "#7B3F00" }}>Servipuntos.uy</h2>
+            <h2 style={{ color: "#007BFF" }}>Servipuntos.uy</h2>
             <h3>Verificacion de identidad</h3>
 
             {userData && (

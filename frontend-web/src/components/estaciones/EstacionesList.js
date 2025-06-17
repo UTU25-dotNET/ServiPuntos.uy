@@ -147,7 +147,7 @@ const EstacionesList = () => {
       {/* Header con breadcrumb */}
       <div style={{ marginBottom: "2rem" }}>
         <Breadcrumb current="Estaciones" />
-        <h1 style={{ color: "#7B3F00", fontSize: "2.5rem", marginBottom: "0.5rem", margin: 0 }}>
+        <h1 style={{ color: "#007BFF", fontSize: "2.5rem", marginBottom: "0.5rem", margin: 0 }}>
           Estaciones de Servicio
         </h1>
         <p style={{ fontSize: "1.2rem", color: "#6c757d", margin: 0 }}>
@@ -168,14 +168,14 @@ const EstacionesList = () => {
           <div style={{ textAlign: "center", padding: "3rem" }}>
             <div style={{
               border: "4px solid #f3f3f3",
-              borderTop: "4px solid #7B3F00",
+              borderTop: "4px solid #007BFF",
               borderRadius: "50%",
               width: "60px",
               height: "60px",
               animation: "spin 1s linear infinite",
               margin: "0 auto 1rem"
             }} />
-            <p style={{ color: "#7B3F00", fontSize: "1.1rem" }}>Cargando estaciones...</p>
+            <p style={{ color: "#007BFF", fontSize: "1.1rem" }}>Cargando estaciones...</p>
             
             <style>{`
               @keyframes spin {
