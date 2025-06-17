@@ -17,7 +17,7 @@ namespace ServiPuntos.Infrastructure.MultiTenancy
             var tenantClaim = _httpContextAccessor.HttpContext?.User?.FindFirst("tenantId");
 
             if (tenantClaim == null || !Guid.TryParse(tenantClaim.Value, out var tenantId))
-                throw new UnauthorizedAccessException("TenantId inválido o ausente.");
+                throw new UnauthorizedAccessException("tenantId inválido o ausente.");
 
             return tenantId;
         }

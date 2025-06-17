@@ -12,13 +12,10 @@ using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Data;
 using ServiPuntos.Infrastructure.Middleware;
 using ServiPuntos.Infrastructure.MultiTenancy;
-using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Repositories;
-using ServiPuntos.Infrastructure.Middleware;
 
 using System.Text;
 using System.Security.Claims;
-using System.Text;
 
 // Creaci�n de la aplicaci�n web ASP.NET Core
 var builder = WebApplication.CreateBuilder(args);
@@ -198,6 +195,8 @@ builder.Services.AddScoped<ICanjeRepository, CanjeRepository>();
 builder.Services.AddScoped<IProductoCanjeableRepository, ProductoCanjeableRepository>();
 builder.Services.AddScoped<IUbicacionRepository, UbicacionRepository>();
 builder.Services.AddScoped<IProductoUbicacionRepository, ProductoUbicacionRepository>();
+builder.Services.AddScoped<IPromocionRepository, PromocionRepository>();
+builder.Services.AddScoped<INotificacionRepository, NotificacionRepository>();
 
 // Registra los servicios de NAFTA
 builder.Services.AddScoped<ITransaccionService, TransaccionService>();
@@ -209,6 +208,8 @@ builder.Services.AddScoped<INAFTAService, NAFTAService>();
 builder.Services.AddScoped<IUbicacionService, UbicacionService>();
 builder.Services.AddScoped<IProductoUbicacionService, ProductoUbicacionService>();
 builder.Services.AddScoped<IPayPalService, PayPalService>();
+builder.Services.AddScoped<IPromocionService, PromocionService>();
+builder.Services.AddScoped<INotificacionService, NotificacionService>();
 
 // Construye la aplicaci�n web
 var app = builder.Build();

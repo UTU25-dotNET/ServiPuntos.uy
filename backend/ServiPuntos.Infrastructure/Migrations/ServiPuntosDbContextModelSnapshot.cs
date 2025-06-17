@@ -222,14 +222,27 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.Property<string>("Descripcion")
                         .HasColumnType("text");
 
-                    b.Property<int?>("DescuentoEnPuntos")
-                        .HasColumnType("integer");
+                    b.Property<decimal?>("DescuentoEnPesos")
+                        .HasColumnType("numeric")
+                        .HasColumnName("DescuentoEnPuntos");
 
                     b.Property<DateTime>("FechaFin")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("FechaInicio")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal?>("PrecioEnPesos")
+                        .HasColumnType("numeric");
+
+                    b.Property<int?>("PrecioEnPuntos")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Titulo")
                         .IsRequired()
@@ -240,6 +253,21 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.HasIndex("AudienciaId");
 
                     b.ToTable("Promociones");
+                });
+
+            modelBuilder.Entity("ServiPuntos.Core.Entities.PromocionProducto", b =>
+                {
+                    b.Property<Guid>("PromocionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ProductoCanjeableId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("PromocionId", "ProductoCanjeableId");
+
+                    b.HasIndex("ProductoCanjeableId");
+
+                    b.ToTable("PromocionProductos");
                 });
 
             modelBuilder.Entity("ServiPuntos.Core.Entities.ReglaAudiencia", b =>
@@ -661,9 +689,30 @@ namespace ServiPuntos.Infrastructure.Migrations
 
             modelBuilder.Entity("ServiPuntos.Core.Entities.Promocion", b =>
                 {
-                    b.HasOne("ServiPuntos.Core.Entities.Audiencia", null)
+                    b.HasOne("ServiPuntos.Core.Entities.Audiencia", "Audiencia")
                         .WithMany("Promociones")
                         .HasForeignKey("AudienciaId");
+
+                    b.Navigation("Audiencia");
+                });
+
+            modelBuilder.Entity("ServiPuntos.Core.Entities.PromocionProducto", b =>
+                {
+                    b.HasOne("ServiPuntos.Core.Entities.ProductoCanjeable", "ProductoCanjeable")
+                        .WithMany()
+                        .HasForeignKey("ProductoCanjeableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ServiPuntos.Core.Entities.Promocion", "Promocion")
+                        .WithMany("Productos")
+                        .HasForeignKey("PromocionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ProductoCanjeable");
+
+                    b.Navigation("Promocion");
                 });
 
             modelBuilder.Entity("ServiPuntos.Core.Entities.ReglaAudiencia", b =>
@@ -743,6 +792,11 @@ namespace ServiPuntos.Infrastructure.Migrations
             modelBuilder.Entity("ServiPuntos.Core.Entities.ProductoCanjeable", b =>
                 {
                     b.Navigation("DisponibilidadesPorUbicacion");
+                });
+
+            modelBuilder.Entity("ServiPuntos.Core.Entities.Promocion", b =>
+                {
+                    b.Navigation("Productos");
                 });
 
             modelBuilder.Entity("ServiPuntos.Core.Entities.Tenant", b =>

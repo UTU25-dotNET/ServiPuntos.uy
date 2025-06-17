@@ -1,0 +1,38 @@
+@model ServiPuntos.WebApp.Models.CreateNotificacionViewModel
+@{
+    ViewData["Title"] = "Enviar Notificación";
+    var promo = ViewBag.Promocion as ServiPuntos.Core.Entities.Promocion;
+    var audiencias = ViewBag.Audiencias as IEnumerable<ServiPuntos.Core.Entities.Audiencia>;
+}
+<div class="container">
+    <h3 class="mb-4">@ViewData["Title"]</h3>
+    <p class="mb-3"><strong>Promoción:</strong> @promo?.Titulo</p>
+    <form asp-action="Notificar" method="post">
+        @Html.AntiForgeryToken()
+        <div class="mb-3">
+            <label asp-for="Titulo" class="form-label">Título</label>
+            <input asp-for="Titulo" class="form-control" />
+            <span asp-validation-for="Titulo" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Mensaje" class="form-label">Mensaje</label>
+            <textarea asp-for="Mensaje" class="form-control" rows="3"></textarea>
+            <span asp-validation-for="Mensaje" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="AudienciaId" class="form-label">Audiencia</label>
+            <select asp-for="AudienciaId" class="form-select">
+                <option value="">Todos los usuarios</option>
+                @foreach (var a in audiencias ?? Enumerable.Empty<ServiPuntos.Core.Entities.Audiencia>())
+                {
+                    <option value="@a.Id">@a.NombreDescriptivo</option>
+                }
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Enviar</button>
+        <a asp-action="Index" class="btn btn-secondary">Volver</a>
+    </form>
+</div>
+@section Scripts{
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
