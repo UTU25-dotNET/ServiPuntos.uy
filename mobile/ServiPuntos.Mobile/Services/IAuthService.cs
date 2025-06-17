@@ -1,3 +1,5 @@
+using ServiPuntos.Mobile.Models;
+
 namespace ServiPuntos.Mobile.Services
 {
     public interface IAuthService
@@ -9,7 +11,11 @@ namespace ServiPuntos.Mobile.Services
         Task LogoutAsync();
         Task<UserInfo?> GetUserInfoAsync();
         Task SaveTokenAsync(string token);
+
+        Task<List<TenantResponse>> GetTenantsAsync();
+        Task<bool> RegisterAsync(RegisterRequest request);
     }
+
     public class SignInRequest
     {
         public string Email { get; set; } = string.Empty;

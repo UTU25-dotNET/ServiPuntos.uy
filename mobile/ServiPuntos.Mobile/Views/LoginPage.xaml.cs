@@ -44,12 +44,40 @@ namespace ServiPuntos.Mobile.Views
             }
         }
 
+        private async void OnRegisterTapped(object sender, EventArgs e)
+        {
+            try
+            {
+                LogInfo("[LoginPage] Navegando a página de registro...");
+                
+                // Obtener RegisterPage del contenedor de dependencias
+                var registerPage = Handler?.MauiContext?.Services.GetService<RegisterPage>();
+                if (registerPage != null)
+                {
+                    LogInfo("[LoginPage] RegisterPage obtenida del contenedor DI");
+                    await Navigation.PushAsync(registerPage);
+                    LogInfo("[LoginPage] Navegación a RegisterPage completada");
+                }
+                else
+                {
+                    LogInfo("[LoginPage] Error: RegisterPage no pudo ser obtenida del contenedor DI");
+                    await DisplayAlert("Error", "No se pudo cargar la página de registro", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogInfo($"[LoginPage] Error navegando a registro: {ex.Message}");
+                LogInfo($"[LoginPage] StackTrace: {ex.StackTrace}");
+                await DisplayAlert("Error", "Error al navegar a la página de registro", "OK");
+            }
+        }
+
         private async void OnGoogleLoginClicked(object sender, EventArgs e)
         {
             try
             {
                 LogInfo("[LoginPage] Boton Google clickeado");
-                
+
                 // DESACTIVAR EL BOTON MIENTRAS PROCESA
                 var button = sender as Button;
                 if (button != null)
@@ -57,11 +85,11 @@ namespace ServiPuntos.Mobile.Views
                     button.IsEnabled = false;
                     button.Text = "Autenticando...";
                 }
-                
+
                 var success = await _authService.LoginWithGoogleAsync();
-                
+
                 LogInfo($"[LoginPage] Navegador abierto: {success}");
-                
+
                 if (!success)
                 {
                     await DisplayAlert("Error", "Error al abrir el navegador", "OK");
