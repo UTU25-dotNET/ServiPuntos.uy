@@ -77,7 +77,7 @@ const NavBar = () => {
           {tenantInfo?.logoUrl ? (
             <img src={tenantInfo.logoUrl} alt="Logo" style={{ height: "40px" }} />
           ) : (
-            <img src="/logo192.png" alt="Logo" style={{ height: "40px" }} />
+            <span role="img" aria-label="Estación" style={{ fontSize: "1.5rem" }}>⛽</span>
           )}
           {isAuthenticated && tenantInfo ? (
             <>
