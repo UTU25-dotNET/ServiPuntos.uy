@@ -102,8 +102,18 @@ const PayPalResult = () => {
             {isSuccess && transaccion && (
               <div className="text-start mt-3">
                 <p className="mb-1">
-                  <strong>Monto:</strong> ${" "}{transaccion.monto}
+                  <strong>Monto pagado:</strong> ${" "}
+                  {transaccion.montoPagado ?? transaccion.monto}
                 </p>
+                {transaccion.esTransaccionMixta && (
+                  <p className="mb-1 text-muted">
+                    <small>
+                      Total: ${" "}
+                      {transaccion.monto} - Puntos utilizados: {" "}
+                      {transaccion.puntosUtilizados}
+                    </small>
+                  </p>
+                )}
                 <p className="mb-3">
                   <strong>Fecha:</strong> {new Date(transaccion.fecha).toLocaleString()}
                 </p>
