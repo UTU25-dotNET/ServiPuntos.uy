@@ -136,7 +136,7 @@
                 // ruta relativa se intentaba resolver contra este mismo WebApp
                 // (puerto 5240) y se obtenía un 404. Por eso construimos la URL
                 // completa hacia la API para cargar correctamente los productos.
-                const apiBase = 'https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019';
+                const apiBase = 'https://localhost:5019';
                 const resp = await fetch(`${apiBase}/api/ProductoUbicacion/ubicacion/${ubicacionId}`);
                 if (!resp.ok) return;
                 const productos = await resp.json();
