@@ -3,7 +3,7 @@ import { QRCodeSVG } from "qrcode.react";
 import apiService from "../../services/apiService";
 import SeleccionarPuntosModal from "./SeleccionarPuntosModal";
 
-const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
+const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile, onProfileUpdated }) => {
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("");
@@ -24,6 +24,44 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
   const [maxPuntosMixto, setMaxPuntosMixto] = useState(0);
   const [mostrarPuntosCarrito, setMostrarPuntosCarrito] = useState(false);
   const [maxPuntosCarrito, setMaxPuntosCarrito] = useState(0);
+
+  const categorias18 = [
+    'cigarros',
+    'cigarrillos',
+    'bebidas alcoholicas',
+    'bebidas alcohólicas'
+  ];
+
+  const esCategoriaRestringida = (cat) => {
+    if (!cat) return false;
+    const c = cat.toLowerCase();
+    return categorias18.some((v) => c.includes(v));
+  };
+
+  const ensureAgeVerified = async (categoria) => {
+    if (!esCategoriaRestringida(categoria)) return true;
+    if (userProfile?.ci && userProfile?.verificadoVEAI) return true;
+
+    let ci = userProfile?.ci;
+    if (!ci) {
+      ci = prompt('Ingresa tu cédula para continuar:');
+      if (!ci) return false;
+    }
+
+    try {
+      const result = await apiService.verifyAge(ci);
+      if (!result.isAllowed) {
+        alert('Debes ser mayor de edad para acceder a este producto.');
+        return false;
+      }
+      await apiService.updateUserProfile({ ci, verificadoVEAI: true });
+      if (onProfileUpdated) await onProfileUpdated();
+      return true;
+    } catch (err) {
+      alert(err.message || 'Error al verificar la edad');
+      return false;
+    }
+  };
 
   useEffect(() => {
     const loadProductos = async () => {
@@ -79,11 +117,15 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
     }
   }, []);
 
-  const handleCanjear = async (productoId) => {
+  const handleCanjear = async (productoUbicacion) => {
+    if (!(await ensureAgeVerified(productoUbicacion.categoria))) return;
     setCanjeLoading(true);
     setCanjeError("");
     try {
-      const result = await apiService.generarCanje(productoId, ubicacion.id);
+      const result = await apiService.generarCanje(
+        productoUbicacion.productoCanjeable.id,
+        ubicacion.id
+      );
       setCanjeQR(result?.datos?.codigoQR || null);
     } catch (err) {
       setCanjeError(err.message);
@@ -93,6 +135,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
   };
 
   const handleComprar = async (productoUbicacion, puntos = 0) => {
+    if (!(await ensureAgeVerified(productoUbicacion.categoria))) return;
     setCompraLoading(true);
     setCompraError("");
     try {
@@ -114,8 +157,9 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
     }
   };
 
-  const handleComprarMixto = (productoUbicacion) => {
+  const handleComprarMixto = async (productoUbicacion) => {
     if (!tenantInfo || !userProfile) return;
+    if (!(await ensureAgeVerified(productoUbicacion.categoria))) return;
     const valorPunto = tenantInfo.valorPunto || 0;
     const puntosUsuario = userProfile.puntos || 0;
     const maxPuntos = Math.min(
@@ -152,6 +196,10 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
   };
 
   const handleCanjearCarrito = async () => {
+    if (carrito.some((p) => esCategoriaRestringida(p.categoria))) {
+      const first = carrito.find((p) => esCategoriaRestringida(p.categoria));
+      if (!(await ensureAgeVerified(first.categoria))) return;
+    }
     setCarritoLoading(true);
     setCarritoError("");
     try {
@@ -167,6 +215,10 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
   };
 
   const handleComprarCarrito = async (puntos = 0) => {
+    if (carrito.some((p) => esCategoriaRestringida(p.categoria))) {
+      const first = carrito.find((p) => esCategoriaRestringida(p.categoria));
+      if (!(await ensureAgeVerified(first.categoria))) return;
+    }
     setCompraLoading(true);
     setCompraError("");
     try {
@@ -195,8 +247,12 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
     }
   };
 
-  const handleComprarCarritoMixto = () => {
+  const handleComprarCarritoMixto = async () => {
     if (!tenantInfo || !userProfile || carrito.length === 0) return;
+    if (carrito.some((p) => esCategoriaRestringida(p.categoria))) {
+      const first = carrito.find((p) => esCategoriaRestringida(p.categoria));
+      if (!(await ensureAgeVerified(first.categoria))) return;
+    }
     const valorPunto = tenantInfo.valorPunto || 0;
     const puntosUsuario = userProfile.puntos || 0;
     const total = carrito.reduce((sum, p) => sum + (p.precio || 0), 0);
@@ -812,7 +868,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                               {`Comprar con Dinero + ${tenantInfo?.nombrePuntos || "Puntos"}`}
                             </button>
                             <button
-                              onClick={() => handleCanjear(producto.id)}
+                              onClick={() => handleCanjear(productoUbicacion)}
                               disabled={!userProfile || (userProfile.puntos || 0) < producto.costoEnPuntos || canjeLoading}
                               style={{
                                 width: "100%",
