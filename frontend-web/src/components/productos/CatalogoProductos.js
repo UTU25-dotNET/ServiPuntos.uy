@@ -24,6 +24,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile, onProfileU
   const [maxPuntosMixto, setMaxPuntosMixto] = useState(0);
   const [mostrarPuntosCarrito, setMostrarPuntosCarrito] = useState(false);
   const [maxPuntosCarrito, setMaxPuntosCarrito] = useState(0);
+  const [esMayorDeEdad, setEsMayorDeEdad] = useState(true);
 
   const categorias18 = [
     'cigarros',
@@ -43,10 +44,6 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile, onProfileU
     if (userProfile?.ci && userProfile?.verificadoVEAI) return true;
 
     let ci = userProfile?.ci;
-    if (!ci) {
-      ci = prompt('Ingresa tu cédula para continuar:');
-      if (!ci) return false;
-    }
 
     try {
       const result = await apiService.verifyAge(ci);
@@ -69,8 +66,13 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile, onProfileU
       setError("");
 
       try {
-        const productosData = await apiService.getProductosByUbicacion(ubicacion.id);
+        let productosData = await apiService.getProductosByUbicacion(ubicacion.id);
+
+        if (!esMayorDeEdad) {
+          productosData = productosData.filter(p => !esCategoriaRestringida(p.categoria));
+        }
         setProductos(productosData);
+
         const cats = [...new Set(productosData.map(p => p.categoria))];
         setCategorias(cats);
       } catch (err) {
@@ -84,7 +86,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile, onProfileU
     if (isOpen && ubicacion) {
       loadProductos();
     }
-  }, [isOpen, ubicacion]);
+  }, [isOpen, ubicacion, esMayorDeEdad]);
 
   // Cargar información del tenant cuando se abre el catálogo
   useEffect(() => {
@@ -101,6 +103,25 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile, onProfileU
       loadTenantInfo();
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    const verificarEdad = async () => {
+      if (!userProfile?.ci) {
+        setEsMayorDeEdad(true);
+        return;
+      }
+      try {
+        const result = await apiService.verifyAge(userProfile.ci);
+        setEsMayorDeEdad(result.isAllowed);
+      } catch {
+        setEsMayorDeEdad(true);
+      }
+    };
+
+    if (isOpen) {
+      verificarEdad();
+    }
+  }, [isOpen, userProfile]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
