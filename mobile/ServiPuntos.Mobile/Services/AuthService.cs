@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text;
 using ServiPuntos.Mobile.Views;
+using ServiPuntos.Mobile.Models;
 using static ServiPuntos.Mobile.Services.AppLogger;
 
 namespace ServiPuntos.Mobile.Services
@@ -8,7 +9,9 @@ namespace ServiPuntos.Mobile.Services
     public class AuthService : IAuthService
     {
         private readonly HttpClient _httpClient;
-         private const string API_BASE_URL = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth";
+
+        private const string API_BASE_URL = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth";
+
         //private const string API_BASE_URL = "https://localhost:5019/api/auth";
 
         private const string TOKEN_KEY = "auth_token";
@@ -24,28 +27,28 @@ namespace ServiPuntos.Mobile.Services
             try
             {
                 var authUrl = $"{API_BASE_URL}/google-login?mobile=true";
-                
+
                 LogInfo($"[AuthService] Abriendo navegador con URL: {authUrl}");
-                
+
                 await Browser.OpenAsync(authUrl, BrowserLaunchMode.SystemPreferred);
-                
+
                 LogInfo("[AuthService] Navegador abierto, esperando callback...");
-                
+
                 return true;
             }
             catch (Exception ex)
             {
                 LogInfo($"[AuthService] Error abriendo navegador: {ex.Message}");
-                
+
                 await MainThread.InvokeOnMainThreadAsync(async () =>
                 {
                     await Application.Current.MainPage.DisplayAlert("Error", $"Error abriendo navegador: {ex.Message}", "OK");
                 });
-                
+
                 return false;
             }
         }
-        
+
 
         public async Task<SignInResponse?> SignInAsync(string email, string password)
         {
@@ -95,11 +98,11 @@ namespace ServiPuntos.Mobile.Services
                 var root = doc.RootElement;
                 var signinResponse = new SignInResponse
                 {
-                    Token    = root.GetProperty("token").GetString()!,
-                    UserId   = root.GetProperty("userId").GetString()!,
+                    Token = root.GetProperty("token").GetString()!,
+                    UserId = root.GetProperty("userId").GetString()!,
                     Username = root.GetProperty("username").GetString()!,
-                    Email    = root.GetProperty("email").GetString()!,
-                    Role     = root.GetProperty("role").GetInt32().ToString(),        // ahora int
+                    Email = root.GetProperty("email").GetString()!,
+                    Role = root.GetProperty("role").GetInt32().ToString(),        // ahora int
                     TenantId = root.GetProperty("tenantId").GetString()!
                 };
 
@@ -204,6 +207,103 @@ namespace ServiPuntos.Mobile.Services
         {
             LogInfo("[AuthService] GetUserInfoAsync no implementado");
             return null;
+        }
+
+        // Este método obtiene la lista de tenants disponibles asi los listamos en un combobox como en frontend-web
+        public async Task<List<TenantResponse>> GetTenantsAsync()
+        {
+            try
+            {
+                Console.WriteLine("[AuthService] Obteniendo lista de tenants...");
+
+                var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback =
+                        HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                };
+                using var client = new HttpClient(handler);
+
+                var response = await client.GetAsync($"{API_BASE_URL}/tenants");
+                var content = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"[AuthService] Error al obtener tenants: {response.StatusCode}");
+                    return new List<TenantResponse>();
+                }
+
+                var tenants = JsonSerializer.Deserialize<List<TenantResponse>>(content, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                Console.WriteLine($"[AuthService] Se obtuvieron {tenants?.Count ?? 0} tenants");
+                return tenants ?? new List<TenantResponse>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[AuthService] Error obteniendo tenants: {ex.Message}");
+                return new List<TenantResponse>();
+            }
+        }
+
+        public async Task<bool> RegisterAsync(RegisterRequest request)
+        {
+            try
+            {
+                Console.WriteLine($"[AuthService] === INICIO REGISTRO ===");
+                Console.WriteLine($"[AuthService] Email: {request.Email}");
+                Console.WriteLine($"[AuthService] Nombre: {request.Nombre}");
+                Console.WriteLine($"[AuthService] CI: {request.Ci}");
+                Console.WriteLine($"[AuthService] TenantId: {request.TenantId}");
+
+                var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback =
+                        HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                };
+                using var client = new HttpClient(handler);
+
+                // Serializar payload
+                var json = JsonSerializer.Serialize(request);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                // Llamada POST
+                var response = await client.PostAsync($"{API_BASE_URL}/register", content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                Console.WriteLine($"[AuthService] Response Status: {response.StatusCode}");
+                Console.WriteLine($"[AuthService] Response Content: {responseContent}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("[AuthService] Registro exitoso");
+                    return true;
+                }
+                else
+                {
+                    // Parsear el error del servidor
+                    try
+                    {
+                        using var doc = JsonDocument.Parse(responseContent);
+                        var errorMessage = doc.RootElement.GetProperty("message").GetString();
+                        throw new HttpRequestException($"Error de registro: {errorMessage}");
+                    }
+                    catch (JsonException)
+                    {
+                        throw new HttpRequestException($"Error de registro: {response.StatusCode}");
+                    }
+                }
+            }
+            catch (HttpRequestException)
+            {
+                throw; // Re-lanzar errores HTTP
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[AuthService] Error en registro: {ex.Message}");
+                throw new HttpRequestException("Error de conexión durante el registro");
+            }
         }
     }
 }
