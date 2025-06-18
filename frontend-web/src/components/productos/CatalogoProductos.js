@@ -455,14 +455,14 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
               <div
                 style={{
                   border: "4px solid #f3f3f3",
-                  borderTop: "4px solid #007bff",
+                  borderTop: "4px solid var(--primary-color)",
                   borderRadius: "50%",
                   width: "50px",
                   height: "50px",
                   animation: "spin 1s linear infinite",
                   margin: "0 auto 1rem"
                 }} />
-              <p style={{ color: "#007bff", fontSize: "1.1rem" }}>Cargando catálogo...</p>
+              <p style={{ color: "var(--primary-color)", fontSize: "1.1rem" }}>Cargando catálogo...</p>
 
               <style>{`
                 @keyframes spin {
@@ -632,7 +632,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                           if (productoUbicacion.activo) {
                             e.currentTarget.style.transform = "translateY(-2px)";
                             e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.15)";
-                            e.currentTarget.style.borderColor = "#007bff";
+                            e.currentTarget.style.borderColor = "var(--primary-color)";
                           }
                         } }
                         onMouseLeave={(e) => {
@@ -817,7 +817,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                               style={{
                                 width: "100%",
                                 padding: "0.5rem",
-                                backgroundColor: "#007bff",
+                                backgroundColor: "var(--primary-color)",
                                 color: "white",
                                 border: "none",
                                 borderRadius: "6px",

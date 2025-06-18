@@ -116,7 +116,7 @@ const PreciosWidget = ({ tenantInfo }) => {
           <span style={{ fontSize: "1.5rem" }}>⛽</span>
           <h3 style={{
             margin: "0",
-            color: "#007BFF",
+            color: "var(--primary-color)",
             fontSize: "1.2rem",
             fontWeight: "600"
           }}>
@@ -132,7 +132,7 @@ const PreciosWidget = ({ tenantInfo }) => {
         }}>
           <div style={{
             border: "3px solid #f3f3f3",
-            borderTop: "3px solid #007BFF",
+            borderTop: "3px solid var(--primary-color)",
             borderRadius: "50%",
             width: "30px",
             height: "30px",
@@ -168,7 +168,7 @@ const PreciosWidget = ({ tenantInfo }) => {
           <span style={{ fontSize: "1.5rem" }}>⛽</span>
           <h3 style={{
             margin: "0",
-            color: "#007BFF",
+            color: "var(--primary-color)",
             fontSize: "1.2rem",
             fontWeight: "600"
           }}>
@@ -213,7 +213,7 @@ const PreciosWidget = ({ tenantInfo }) => {
         <span style={{ fontSize: "1.5rem" }}>⛽</span>
         <h3 style={{
           margin: "0",
-          color: "#007BFF",
+          color: "var(--primary-color)",
           fontSize: "1.2rem",
           fontWeight: "600"
         }}>
