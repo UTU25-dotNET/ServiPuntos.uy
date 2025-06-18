@@ -118,13 +118,13 @@
         <div class="card-header">
             <h5 class="mb-0">
                 <i class="fas fa-map me-2"></i>
-                Ubicación en el Mapa
+                Ubicación en el mapa
             </h5>
         </div>
         <div class="card-body">
-            <div id="map" style="height:300px;"></div>
-            <input type="hidden" asp-for="Latitud" id="Latitud" />
-            <input type="hidden" asp-for="Longitud" id="Longitud" />
+            <div id="map" style="height: 300px;"></div>
+            <input type="hidden" id="Latitud" name="Latitud" />
+            <input type="hidden" id="Longitud" name="Longitud" />
         </div>
     </div>
 
@@ -338,6 +338,22 @@
             
             capitalizarPrimeraLetra(ciudad);
             capitalizarPrimeraLetra(departamento);
+
+            // Inicializar mapa Leaflet
+            const map = L.map('map').setView([-34.9011, -56.1645], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+            let marker;
+            map.on('click', function(e) {
+                if (marker) {
+                    marker.setLatLng(e.latlng);
+                } else {
+                    marker = L.marker(e.latlng).addTo(map);
+                }
+                document.getElementById('Latitud').value = e.latlng.lat;
+                document.getElementById('Longitud').value = e.latlng.lng;
+            });
             
             // Validación de formulario antes de enviar
             document.querySelector('form').addEventListener('submit', function(e) {
