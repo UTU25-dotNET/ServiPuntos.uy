@@ -66,6 +66,7 @@ public static class MauiProgram
         // Pages
         builder.Services.AddTransient<TokenDisplayPage>();
         builder.Services.AddTransient<LoginPage>();
+        builder.Services.AddTransient<RegisterPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();
