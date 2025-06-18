@@ -1,5 +1,8 @@
+using System;
+using System.Linq;
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.ApplicationModel;
 using ServiPuntos.Mobile.Services;
 
 namespace ServiPuntos.Mobile.Views
@@ -15,7 +18,6 @@ namespace ServiPuntos.Mobile.Views
             _authService = authService;
         }
 
-        // Método para configurar el token recibido
         public void SetToken(string token)
         {
             _currentToken = token;
@@ -24,78 +26,37 @@ namespace ServiPuntos.Mobile.Views
 
         private void DisplayTokenInfo(string token)
         {
-            try
-            {
-                // Mostrar el token completo
-                TokenLabel.Text = token;
-
-                // Decodificar el JWT para mostrar información del usuario
-                var handler = new JwtSecurityTokenHandler();
-                var jsonToken = handler.ReadJwtToken(token);
-
-                // Extraer información del usuario
-                var name = jsonToken.Claims.FirstOrDefault(c => c.Type == "name")?.Value ?? "No disponible";
-                var email = jsonToken.Claims.FirstOrDefault(c => c.Type == "email")?.Value ?? "No disponible";
-                var tenantId = jsonToken.Claims.FirstOrDefault(c => c.Type == "TenantId")?.Value ?? "No disponible";
-
-                // Actualizar labels
-                UserNameLabel.Text = $"Nombre: {name}";
-                UserEmailLabel.Text = $"Email: {email}";
-                TenantLabel.Text = $"Tenant ID: {tenantId}";
-
-                Console.WriteLine($"[TokenDisplay] Token decodificado exitosamente");
-                Console.WriteLine($"[TokenDisplay] Usuario: {name} ({email})");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[TokenDisplay] Error al decodificar token: {ex.Message}");
-                
-                // Mostrar información básica sin decodificar
-                UserNameLabel.Text = "Error al decodificar información del usuario";
-                UserEmailLabel.Text = "";
-                TenantLabel.Text = "";
-            }
+            TokenLabel.Text = token;
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadJwtToken(token);
+            var name = jsonToken.Claims.FirstOrDefault(c => c.Type == "name")?.Value ?? "No disponible";
+            var email = jsonToken.Claims.FirstOrDefault(c => c.Type == "email")?.Value ?? "No disponible";
+            var tenantId = jsonToken.Claims.FirstOrDefault(c => c.Type == "TenantId")?.Value ?? "No disponible";
+            UserNameLabel.Text = $"Nombre: {name}";
+            UserEmailLabel.Text = $"Email: {email}";
+            TenantLabel.Text = $"Tenant ID: {tenantId}";
         }
 
         private async void OnCopyTokenClicked(object sender, EventArgs e)
         {
-            try
-            {
-                await Clipboard.SetTextAsync(_currentToken);
-                await DisplayAlert("Éxito", "Token copiado al portapapeles", "OK");
-            }
-            catch (Exception ex)
-            {
-                await DisplayAlert("Error", $"No se pudo copiar el token: {ex.Message}", "OK");
-            }
+            await Clipboard.SetTextAsync(_currentToken);
+            await DisplayAlert("Éxito", "Token copiado al portapapeles", "OK");
         }
 
         private async void OnHomeClicked(object sender, EventArgs e)
         {
-            try
-            {
-                // Navegar al dashboard o página principal
-                await Shell.Current.GoToAsync("//main");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[TokenDisplay] Error navegando al home: {ex.Message}");
-                await DisplayAlert("Error", "No se pudo navegar al dashboard", "OK");
-            }
+            await Shell.Current.GoToAsync("//MainPage");
+        }
+
+        private async void OnViewPointsClicked(object sender, EventArgs e)
+        {
+            await Shell.Current.GoToAsync("//PointsPage");
         }
 
         private async void OnLogoutClicked(object sender, EventArgs e)
         {
-            try
-            {
-                await _authService.LogoutAsync();
-                await Shell.Current.GoToAsync("//login");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[TokenDisplay] Error en logout: {ex.Message}");
-                await DisplayAlert("Error", "No se pudo cerrar sesión", "OK");
-            }
+            await _authService.LogoutAsync();
+            await Shell.Current.GoToAsync("//MainPage");
         }
     }
 }
