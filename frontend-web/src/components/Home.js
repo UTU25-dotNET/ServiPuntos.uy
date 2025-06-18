@@ -300,7 +300,8 @@ const Home = () => {
                 </div>
               </Link>
 
-              <div
+              <Link
+                to="/mapa"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -308,17 +309,26 @@ const Home = () => {
                   padding: "1rem",
                   backgroundColor: "#f8f9fa",
                   borderRadius: "8px",
+                  textDecoration: "none",
                   color: "#6c757d",
                   border: "1px dashed #dee2e6",
-                  opacity: 0.7
+                  transition: "transform 0.2s ease, box-shadow 0.2s ease"
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = "translateY(-2px)";
+                  e.target.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = "translateY(0)";
+                  e.target.style.boxShadow = "none";
                 }}
               >
                 <span style={{ fontSize: "1.5rem" }}>🗺️</span>
                 <div>
                   <strong>Mapa</strong>
-                  <div style={{ fontSize: "0.8rem" }}>Próximamente</div>
+                  <div style={{ fontSize: "0.8rem" }}>Ver ubicaciones</div>
                 </div>
-              </div>
+              </Link>
 
               <Link
                 to="/promociones"
