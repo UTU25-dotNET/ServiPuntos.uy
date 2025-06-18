@@ -259,8 +259,6 @@
 </form>
 
 @section Scripts {
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-o7H5khF1urY+zYap3IixSeKuuNHYsYAGC2xMriKaa9c=" crossorigin="" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-o9N1j1kY+7P/91tIbp/BK+f5pFwchAuC8W9kFbw0j6w=" crossorigin=""></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const map = L.map('map').setView([-34.9011, -56.1645], 13);
@@ -338,22 +336,6 @@
             
             capitalizarPrimeraLetra(ciudad);
             capitalizarPrimeraLetra(departamento);
-
-            // Inicializar mapa Leaflet
-            const map = L.map('map').setView([-34.9011, -56.1645], 13);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(map);
-            let marker;
-            map.on('click', function(e) {
-                if (marker) {
-                    marker.setLatLng(e.latlng);
-                } else {
-                    marker = L.marker(e.latlng).addTo(map);
-                }
-                document.getElementById('Latitud').value = e.latlng.lat;
-                document.getElementById('Longitud').value = e.latlng.lng;
-            });
             
             // Validación de formulario antes de enviar
             document.querySelector('form').addEventListener('submit', function(e) {
