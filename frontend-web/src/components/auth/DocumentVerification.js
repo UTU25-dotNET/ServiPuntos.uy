@@ -95,7 +95,7 @@ const DocumentVerification = () => {
 
         try {
             // Construir la URL con todos los parámetros necesarios
-            let callbackUrl = `https://localhost:5019/api/auth/google-callback?cedula=${encodeURIComponent(cedula)}`;
+            let callbackUrl = `https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth/google-callback?cedula=${encodeURIComponent(cedula)}`;
 
             // Añadir code y state si están disponibles
             if (code) callbackUrl += `&code=${encodeURIComponent(code)}`;
