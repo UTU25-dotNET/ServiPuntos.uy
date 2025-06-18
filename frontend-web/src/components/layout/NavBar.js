@@ -37,6 +37,14 @@ const NavBar = () => {
     loadTenantInfo();
   }, [isAuthenticated]);
 
+  // Aplicar color principal del tenant al tema
+  useEffect(() => {
+    const color = isAuthenticated && tenantInfo?.color ? tenantInfo.color : "#7B3F00";
+    document.documentElement.style.setProperty("--primary-color", color);
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) metaTheme.setAttribute('content', color);
+  }, [isAuthenticated, tenantInfo]);
+
   useEffect(() => {
     if (tenantInfo?.nombre) {
       document.title = `${tenantInfo.nombre} - Servipuntos`;
@@ -77,7 +85,7 @@ const NavBar = () => {
           {tenantInfo?.logoUrl ? (
             <img src={tenantInfo.logoUrl} alt="Logo" style={{ height: "40px" }} />
           ) : (
-            <img src="/logo192.png" alt="Logo" style={{ height: "40px" }} />
+            <span role="img" aria-label="Estación" style={{ fontSize: "1.5rem" }}>⛽</span>
           )}
           {isAuthenticated && tenantInfo ? (
             <>
@@ -166,20 +174,20 @@ const NavBar = () => {
             {/* Login button for non-authenticated users */}
             <Link 
               to="/login" 
-              style={{ 
+              style={{
                 color: textColor,
                 textDecoration: 'none',
                 padding: '0.75rem 1.5rem',
                 borderRadius: '6px',
-                backgroundColor: '#007bff',
-                transition: 'background-color 0.2s',
+                backgroundColor: 'var(--primary-color)',
+                transition: 'opacity 0.2s',
                 fontWeight: '600',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem'
               }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#0056b3'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#007bff'}
+              onMouseEnter={(e) => e.target.style.opacity = '0.85'}
+              onMouseLeave={(e) => e.target.style.opacity = '1'}
             >
               🔑 Iniciar Sesión
             </Link>
