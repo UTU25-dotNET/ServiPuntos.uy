@@ -294,7 +294,7 @@ const Login = () => {
                             style={{
                                 background: "none",
                                 border: "none",
-                                color: "#007bff",
+                                color: "var(--primary-color)",
                                 textDecoration: "underline",
                                 cursor: "pointer",
                                 fontSize: "14px"

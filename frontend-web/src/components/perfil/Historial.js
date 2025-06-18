@@ -170,7 +170,12 @@ const Historial = ({ usuarioId }) => {
                         {new Date(t.fecha || t.fechaGeneracion).toLocaleDateString('es-ES')}
                       </td>
                       <td>{t.ubicacion || "-"}</td>
-                      <td>${t.monto}</td>
+                      <td>
+                        ${t.montoPagado ?? t.monto}
+                        {t.esTransaccionMixta && (
+                          <small className="text-muted"> (Total ${t.monto})</small>
+                        )}
+                      </td>
                       <td>{t.tipo}</td>
                       <td>{t.puntosOtorgados}</td>
                       <td>{t.puntosUtilizados}</td>

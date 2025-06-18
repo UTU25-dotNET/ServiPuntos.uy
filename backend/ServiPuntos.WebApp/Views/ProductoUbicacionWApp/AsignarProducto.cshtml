@@ -36,18 +36,19 @@
                                             Deseleccionar Todos
                                         </button>
                                     </div>
-
                                     <div style="max-height: 400px; overflow-y: auto;">
                                         @for (int i = 0; i < Model.Productos.Count; i++)
                                         {
-                                            <div class="form-check mb-2">
+                                            <div class="form-check mb-2 d-flex align-items-center">
                                                 @Html.CheckBoxFor(m => m.Productos[i].Selected, new { @class = "form-check-input", id = $"producto_{i}" })
                                                 @Html.HiddenFor(m => m.Productos[i].Id)
                                                 @Html.HiddenFor(m => m.Productos[i].Nombre)
                                                 @Html.HiddenFor(m => m.Productos[i].CostoEnPuntos)
-                                                <label class="form-check-label" for="producto_@i">
+                                                @Html.HiddenFor(m => m.Productos[i].FotoUrl)
+                                                <label class="form-check-label ms-2" for="producto_@i">
+                                                    <img src="@(string.IsNullOrEmpty(Model.Productos[i].FotoUrl) ? Url.Content("~/images/placeholder-logo.png") : Model.Productos[i].FotoUrl)" class="rounded me-2" style="width:40px;height:40px;object-fit:cover;" />
                                                     <strong>@Model.Productos[i].Nombre</strong>
-                                                    <br>
+                                                    <br />
                                                     <small class="text-muted">
                                                         <i class="fas fa-coins"></i> @Model.Productos[i].CostoEnPuntos puntos
                                                     </small>
@@ -68,49 +69,61 @@
                     </div>
 
                     <!-- Selección de Ubicaciones -->
-                    <div class="col-md-6">
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5 class="mb-0">
-                                    <i class="fas fa-map-marker-alt"></i> Seleccionar Ubicaciones
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                @if (Model.Ubicaciones != null && Model.Ubicaciones.Any())
-                                {
-                                    <div class="mb-3">
-                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="toggleAllUbicaciones(true)">
-                                            Seleccionar Todas
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleAllUbicaciones(false)">
-                                            Deseleccionar Todas
-                                        </button>
-                                    </div>
+                    @if (!User.IsInRole("AdminUbicacion"))
+                    {
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-map-marker-alt"></i> Seleccionar Ubicaciones
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    @if (Model.Ubicaciones != null && Model.Ubicaciones.Any())
+                                    {
+                                        <div class="mb-3">
+                                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="toggleAllUbicaciones(true)">
+                                                Seleccionar Todas
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleAllUbicaciones(false)">
+                                                Deseleccionar Todas
+                                            </button>
+                                        </div>
 
-                                    <div style="max-height: 400px; overflow-y: auto;">
-                                        @for (int i = 0; i < Model.Ubicaciones.Count; i++)
-                                        {
-                                            <div class="form-check mb-2">
-                                                @Html.CheckBoxFor(m => m.Ubicaciones[i].Selected, new { @class = "form-check-input", id = $"ubicacion_{i}" })
-                                                @Html.HiddenFor(m => m.Ubicaciones[i].Id)
-                                                @Html.HiddenFor(m => m.Ubicaciones[i].Nombre)
-                                                <label class="form-check-label" for="ubicacion_@i">
-                                                    <strong>@Model.Ubicaciones[i].Nombre</strong>
-                                                </label>
-                                            </div>
-                                        }
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="text-center py-3">
-                                        <i class="fas fa-exclamation-triangle text-warning fa-2x mb-2"></i>
-                                        <p class="text-muted">No hay ubicaciones disponibles</p>
-                                    </div>
-                                }
+                                        <div style="max-height: 400px; overflow-y: auto;">
+                                            @for (int i = 0; i < Model.Ubicaciones.Count; i++)
+                                            {
+                                                <div class="form-check mb-2">
+                                                    @Html.CheckBoxFor(m => m.Ubicaciones[i].Selected, new { @class = "form-check-input", id = $"ubicacion_{i}" })
+                                                    @Html.HiddenFor(m => m.Ubicaciones[i].Id)
+                                                    @Html.HiddenFor(m => m.Ubicaciones[i].Nombre)
+                                                    <label class="form-check-label" for="ubicacion_@i">
+                                                        <strong>@Model.Ubicaciones[i].Nombre</strong>
+                                                    </label>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-center py-3">
+                                            <i class="fas fa-exclamation-triangle text-warning fa-2x mb-2"></i>
+                                            <p class="text-muted">No hay ubicaciones disponibles</p>
+                                        </div>
+                                    }
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    }
+                    else
+                    {
+                        @for (int i = 0; i < Model.Ubicaciones.Count; i++)
+                        {
+                            @Html.HiddenFor(m => m.Ubicaciones[i].Id)
+                            @Html.HiddenFor(m => m.Ubicaciones[i].Nombre)
+                            @Html.HiddenFor(m => m.Ubicaciones[i].Selected)
+                        }
+                    }
                 </div>
 
                 <!-- Stock Inicial -->
@@ -126,12 +139,19 @@
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="form-group">
+                                            <label asp-for="Precio" class="form-label">Precio</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input asp-for="Precio" class="form-control" min="0" step="0.01" />
+                                            </div>
+                                            <span asp-validation-for="Precio" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
                                             <label asp-for="StockInicial" class="form-label">Stock Inicial</label>
                                             <input asp-for="StockInicial" class="form-control" min="0" />
                                             <span asp-validation-for="StockInicial" class="text-danger"></span>
-                                            <small class="form-text text-muted">
-                                                Este será el stock inicial para todos los productos en todas las ubicaciones seleccionadas
-                                            </small>
                                         </div>
                                     </div>
                                 </div>
@@ -191,7 +211,11 @@
         // Validación del formulario antes de enviar
         document.querySelector('form').addEventListener('submit', function(e) {
             const productosSeleccionados = document.querySelectorAll('input[name*="Productos"][name*="Selected"]:checked').length;
-            const ubicacionesSeleccionadas = document.querySelectorAll('input[name*="Ubicaciones"][name*="Selected"]:checked').length;
+            const ubicacionCheckboxes = document.querySelectorAll('input[name*="Ubicaciones"][type="checkbox"]');
+            let ubicacionesSeleccionadas = 1;
+            if (ubicacionCheckboxes.length > 0) {
+                ubicacionesSeleccionadas = document.querySelectorAll('input[name*="Ubicaciones"][name*="Selected"]:checked').length;
+            }
 
             if (productosSeleccionados === 0) {
                 e.preventDefault();

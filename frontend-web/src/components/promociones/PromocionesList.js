@@ -34,7 +34,7 @@ const PromocionesList = () => {
       setPromocionAConfirmar(promo);
     }
     navigate(location.pathname, { replace: true, state: {} });
-  }, [promos, location.state]);
+  }, [promos, location.state, location.pathname, navigate]);
 
   useEffect(() => {
     const load = async () => {
