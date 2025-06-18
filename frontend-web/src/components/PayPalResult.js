@@ -154,7 +154,9 @@ const PayPalResult = () => {
             )}
             <button className="btn btn-primary mt-4" onClick={() => navigate("/")}>Volver al inicio</button>
           </div>
+        
         </div>
+       
       </div>
     </div>
   );

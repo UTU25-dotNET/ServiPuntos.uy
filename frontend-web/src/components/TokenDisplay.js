@@ -92,7 +92,7 @@ const TokenDisplay = () => {
         <button
           onClick={() => handleTokenDecode(token)}
           style={{
-            backgroundColor: "#007bff",
+            backgroundColor: "var(--primary-color)",
             color: "white",
             border: "none",
             borderRadius: "4px",

@@ -113,7 +113,7 @@ const AuthCallback = () => {
         <button
           onClick={() => navigate("/login")}
           style={{
-            backgroundColor: "#007bff",
+            backgroundColor: "var(--primary-color)",
             color: "white",
             border: "none",
             borderRadius: "4px",
