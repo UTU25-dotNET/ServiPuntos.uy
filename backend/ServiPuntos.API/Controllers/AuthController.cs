@@ -122,7 +122,7 @@ public class AuthController : ControllerBase
         {
             throw new InvalidOperationException("Google ClientId is not configured.");
         }
-        // var redirectUri = "https://localhost:5019/api/auth/google-callback";
+
         //var redirectUri = "https://servipuntos-api.duckdns.org/api/auth/google-callback";
         var redirectUri = "https://localhost:5019/api/auth/google-callback";
 
