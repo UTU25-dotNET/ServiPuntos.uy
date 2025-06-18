@@ -96,6 +96,12 @@ const EstacionesList = () => {
   const cerrarModalServicio = () => {
     setModalServicio({ abierto: false, servicio: "", precio: 0, ubicacion: null });
   };
+  const refreshUserProfile = async () => {
+    try {
+        const profile = await apiService.getUserProfile();
+        setUserProfile(profile);
+    } catch {}
+};
 
   if (!isAuthenticated) {
     return (
@@ -503,6 +509,7 @@ const EstacionesList = () => {
         isOpen={modalAbierto}
         onClose={cerrarCatalogoProductos}
         userProfile={userProfile}
+        onProfileUpdated={refreshUserProfile}
       />
       <ComprarCombustibleModal
         isOpen={modalCombustible.abierto}

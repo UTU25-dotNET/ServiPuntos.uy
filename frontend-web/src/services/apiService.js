@@ -790,6 +790,19 @@ getProductosByUbicacion: async (ubicacionId, categoria) => {
       throw new Error(error.response?.data?.message || 'Error al borrar las notificaciones');
     }
   },
+
+  // Verificar la edad de un usuario usando el servicio mock del backend
+  verifyAge: async (cedula) => {
+    try {
+      const response = await apiClient.get('verify/age_verify', {
+        params: { cedula },
+        skipAuthError: true
+      });
+      return response.data; // { isAllowed, edad }
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error al verificar la edad');
+    }
+  },
   
   post: async (endpoint, data) => {
     try {
