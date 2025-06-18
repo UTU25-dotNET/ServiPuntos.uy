@@ -4,13 +4,16 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:ServiPuntos.Mobile.Views"
-    Title="ServiPuntos.Mobile">
+    Title="ServiPuntos">
 
-    <!-- ASEGÚRATE DE QUE ESTO DIGA LoginPage, NO TenantSelectorPage -->
     <ShellContent
         Title="Login"
-        ContentTemplate="{DataTemplate local:LoginPage}"
-        Route="MainPage" />
-        
+        Route="MainPage"
+        ContentTemplate="{DataTemplate local:LoginPage}"/>
+
+    <ShellContent
+        Title="Saldo"
+        Route="PointsPage"
+        ContentTemplate="{DataTemplate local:PointsPage}"/>
 
 </Shell>
