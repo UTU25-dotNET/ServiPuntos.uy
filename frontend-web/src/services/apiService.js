@@ -291,6 +291,8 @@ updateUserProfile: async (profileData) => {
   //   "ciudad": "string",
   //   "departamento": "string", 
   //   "telefono": "string|null",
+  //   "latitud": number,
+  //   "longitud": number,
   //   "fechaCreacion": "datetime",
   //   "fechaModificacion": "datetime",
   //   "horaApertura": "time", // formato "HH:mm:ss"
