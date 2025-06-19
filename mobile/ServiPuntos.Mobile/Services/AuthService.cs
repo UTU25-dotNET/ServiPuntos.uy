@@ -16,7 +16,13 @@ namespace ServiPuntos.Mobile.Services
     public class AuthService : IAuthService, IDisposable
     {
         private readonly HttpClient _httpClient;
+
         private const string API_BASE_URL = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth";
+
+
+        //private const string API_BASE_URL = "https://localhost:5019/api/auth";
+
+
         private const string TOKEN_KEY = "auth_token";
         private const string USERID_KEY = "userId";
 

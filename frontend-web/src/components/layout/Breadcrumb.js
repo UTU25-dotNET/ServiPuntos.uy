@@ -12,7 +12,7 @@ const Breadcrumb = ({ current }) => (
       gap: '0.5rem'
     }}
   >
-    <Link to="/" style={{ color: '#007bff', textDecoration: 'none' }}>🏠 Inicio</Link>
+    <Link to="/" style={{ color: 'var(--primary-color)', textDecoration: 'none' }}>🏠 Inicio</Link>
     <span>›</span>
     <span>{current}</span>
   </div>

@@ -33,7 +33,11 @@ const scheduleAutoLogout = () => {
 // Nota: se corrige la URL para incluir "//" después de "https:".
 // De lo contrario, las peticiones se realizan al dominio actual en vez del backend.
 //const API_URL = "https://localhost:5019/api/auth/";
+
+ const API_URL = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth/";
+
 const API_URL = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth/";
+
 
 const authService = {
   // Registro de usuario

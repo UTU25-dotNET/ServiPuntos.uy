@@ -73,7 +73,7 @@ const Home = () => {
         }}
       >
         <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>⛽</div>
-        <h1 style={{ color: "#7B3F00", fontSize: "3rem", marginBottom: "1rem" }}>
+        <h1 style={{ color: "var(--primary-color)", fontSize: "3rem", marginBottom: "1rem" }}>
           Servipuntos
         </h1>
         <p style={{ fontSize: "1.3rem", color: "#6c757d", marginBottom: "2rem", lineHeight: "1.6" }}>
@@ -83,7 +83,7 @@ const Home = () => {
           to="/login"
           style={{
             display: "inline-block",
-            backgroundColor: "#7B3F00",
+            backgroundColor: "var(--primary-color)",
             color: "white",
             padding: "1rem 2rem",
             borderRadius: "8px",
@@ -116,17 +116,17 @@ const Home = () => {
         >
           <div>
             <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>💰</div>
-            <h4 style={{ color: "#7B3F00", marginBottom: "0.5rem" }}>Puntos y Recompensas</h4>
+            <h4 style={{ color: "var(--primary-color)", marginBottom: "0.5rem" }}>Puntos y Recompensas</h4>
             <p style={{ color: "#6c757d", fontSize: "0.9rem" }}>Acumula puntos y canjea productos</p>
           </div>
           <div>
             <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>📊</div>
-            <h4 style={{ color: "#7B3F00", marginBottom: "0.5rem" }}>Precios en Tiempo Real</h4>
+            <h4 style={{ color: "var(--primary-color)", marginBottom: "0.5rem" }}>Precios en Tiempo Real</h4>
             <p style={{ color: "#6c757d", fontSize: "0.9rem" }}>Consulta precios actualizados</p>
           </div>
           <div>
             <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>🗺️</div>
-            <h4 style={{ color: "#7B3F00", marginBottom: "0.5rem" }}>Red de Estaciones</h4>
+            <h4 style={{ color: "var(--primary-color)", marginBottom: "0.5rem" }}>Red de Estaciones</h4>
             <p style={{ color: "#6c757d", fontSize: "0.9rem" }}>Encuentra estaciones cerca tuyo</p>
           </div>
         </div>
@@ -149,7 +149,7 @@ const Home = () => {
         <div
           style={{
             border: "4px solid #f3f3f3",
-            borderTop: "4px solid #7B3F00",
+            borderTop: "4px solid var(--primary-color)",
             borderRadius: "50%",
             width: "60px",
             height: "60px",
@@ -157,7 +157,7 @@ const Home = () => {
             marginBottom: "1rem"
           }}
         />
-        <p style={{ color: "#7B3F00", fontSize: "1.1rem" }}>Cargando tu dashboard...</p>
+        <p style={{ color: "var(--primary-color)", fontSize: "1.1rem" }}>Cargando tu dashboard...</p>
         
         <style>{`
           @keyframes spin {
@@ -198,7 +198,7 @@ const Home = () => {
         <button
           onClick={loadUserData}
           style={{
-            backgroundColor: "#7B3F00",
+            backgroundColor: "var(--primary-color)",
             color: "white",
             border: "none",
             borderRadius: "8px",
@@ -226,9 +226,9 @@ const Home = () => {
           
           {/* Header del Dashboard */}
           <div style={{ marginBottom: "2rem" }}>
-            <h1 style={{ 
-              fontSize: "2.5rem", 
-              color: "#7B3F00", 
+            <h1 style={{
+              fontSize: "2.5rem",
+              color: "var(--primary-color)",
               margin: "0 0 0.5rem 0",
               fontWeight: "700"
             }}>
@@ -276,7 +276,7 @@ const Home = () => {
           }}>
             <h3 style={{
               margin: "0 0 1.5rem 0",
-              color: "#7B3F00",
+              color: "var(--primary-color)",
               fontSize: "1.2rem",
               fontWeight: "600",
               display: "flex",
