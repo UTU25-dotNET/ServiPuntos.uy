@@ -23,10 +23,15 @@ const MapaView = () => {
   useEffect(() => {
     const fetchUbicaciones = async () => {
       try {
-        const data = await apiService.getAllUbicaciones();
+        const data = await apiService.getUbicacionesByUserTenant();
         setUbicaciones(data);
       } catch {
-        setUbicaciones([]);
+        try {
+          const data = await apiService.getAllUbicaciones();
+          setUbicaciones(data);
+        } catch {
+          setUbicaciones([]);
+        }
       }
     };
     fetchUbicaciones();
