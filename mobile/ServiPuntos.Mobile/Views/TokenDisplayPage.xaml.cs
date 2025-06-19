@@ -45,7 +45,7 @@ namespace ServiPuntos.Mobile.Views
 
         private async void OnHomeClicked(object sender, EventArgs e)
         {
-            await Shell.Current.GoToAsync("//MainPage");
+            await Shell.Current.GoToAsync("//PointsPage");
         }
 
         private async void OnViewPointsClicked(object sender, EventArgs e)
