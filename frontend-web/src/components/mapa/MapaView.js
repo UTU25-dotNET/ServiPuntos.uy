@@ -56,14 +56,13 @@ const MapaView = () => {
   };
 
   return (
-    <div className="d-flex" style={{ height: "80vh" }}>
-      <div className="flex-fill">
-        <MapContainer
-          center={[-34.9011, -56.1645]}
-          zoom={12}
-          style={{ height: "100%", width: "100%" }}
-          whenCreated={(map) => (mapRef.current = map)}
-        >
+    <div className="position-relative" style={{ height: "100vh", width: "100%" }}>
+      <MapContainer
+        center={[-34.9011, -56.1645]}
+        zoom={12}
+        style={{ height: "100%", width: "100%" }}
+        whenCreated={(map) => (mapRef.current = map)}
+      >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             {ubicaciones.map((u) => (
               <Marker
@@ -74,12 +73,11 @@ const MapaView = () => {
                 {selectedUbicacion?.id === u.id && <Popup>{u.nombre}</Popup>}
               </Marker>
             ))}
-          </MapContainer>
-        </div>
-        <div
-          className="list-group overflow-auto border-start"
-          style={{ width: "300px" }}
-        >
+      </MapContainer>
+      <div
+        className="list-group overflow-auto border position-absolute top-0 end-0 bg-white"
+        style={{ width: "300px", maxHeight: "100vh", margin: "1rem" }}
+      >
           {ubicaciones.map((u) => (
             <button
               key={u.id}
@@ -96,7 +94,7 @@ const MapaView = () => {
           onClose={() => setShowModal(false)}
           ubicacion={selectedUbicacion}
         />
-      </div>
+    </div>
   );
 };
 
