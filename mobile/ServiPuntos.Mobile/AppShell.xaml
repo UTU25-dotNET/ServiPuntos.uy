@@ -16,4 +16,9 @@
         Route="PointsPage"
         ContentTemplate="{DataTemplate local:PointsPage}"/>
 
+    <ShellContent
+        Title="Historial"
+        Route="HistoryPage"
+        ContentTemplate="{DataTemplate local:HistoryPage}"/>
+
 </Shell>
