@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ServiPuntos.Mobile.Views.HistoryPage"
+             Title="Historial de Transacciones">
+    <StackLayout Padding="10"
+            Spacing="10">
+
+
+        <Label Text="No tienes transacciones aún."
+               IsVisible="{Binding HasAny, Converter={StaticResource InverseBooleanConverter}}"
+               HorizontalOptions="Center"
+               FontAttributes="Italic"
+               TextColor="Gray"/>
+
+
+        <CollectionView ItemsSource="{Binding Transactions}"
+                        IsVisible="{Binding HasAny}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Frame Margin="0,5">
+                        <StackLayout>
+                            <Label Text="{Binding Fecha, StringFormat='{0:dd/MM/yyyy HH:mm}'}"/>
+                            <Label Text="{Binding Tipo}"/>
+                            <Label Text="{Binding Monto, StringFormat='Monto: {0:C}'}"/>
+                            <Label Text="{Binding PuntosOtorgados, StringFormat='Puntos: {0}'}"/>
+                        </StackLayout>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+
+        <Button Text="Cargar más"
+                Command="{Binding LoadMoreCommand}"
+                IsVisible="{Binding HasMore}"
+                IsEnabled="{Binding LoadMoreCommand.CanExecute, Source={RelativeSource Self}}"/>
+
+
+        <ActivityIndicator IsRunning="{Binding IsBusy}"
+                           IsVisible="{Binding IsBusy}"
+                           HorizontalOptions="Center"/>
+    </StackLayout>
+</ContentPage>
