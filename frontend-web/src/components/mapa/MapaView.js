@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import apiService from "../../services/apiService";
+import UbicacionModal from "./UbicacionModal";
 
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
@@ -17,7 +18,8 @@ L.Icon.Default.mergeOptions({
 
 const MapaView = () => {
   const [ubicaciones, setUbicaciones] = useState([]);
-  const [selectedId, setSelectedId] = useState(null);
+  const [selectedUbicacion, setSelectedUbicacion] = useState(null);
+  const [showModal, setShowModal] = useState(false);
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -38,22 +40,24 @@ const MapaView = () => {
   }, []);
 
   const handleItemClick = (ubicacion) => {
-    setSelectedId(ubicacion.id);
+    setSelectedUbicacion(ubicacion);
+    setShowModal(true);
     if (mapRef.current) {
       mapRef.current.flyTo([ubicacion.latitud, ubicacion.longitud], 15);
     }
   };
 
   const handleMarkerClick = (ubicacion) => {
-    setSelectedId(ubicacion.id);
+    setSelectedUbicacion(ubicacion);
+    setShowModal(true);
     if (mapRef.current) {
       mapRef.current.flyTo([ubicacion.latitud, ubicacion.longitud], 15);
     }
   };
 
   return (
-    <div style={{ display: "flex", height: "80vh" }}>
-      <div style={{ flex: 1 }}>
+    <div className="d-flex" style={{ height: "80vh" }}>
+      <div className="flex-fill">
         <MapContainer
           center={[-34.9011, -56.1645]}
           zoom={12}
@@ -61,43 +65,38 @@ const MapaView = () => {
           whenCreated={(map) => (mapRef.current = map)}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            {ubicaciones.map((u) => (
+              <Marker
+                key={u.id}
+                position={[u.latitud, u.longitud]}
+                eventHandlers={{ click: () => handleMarkerClick(u) }}
+              >
+                {selectedUbicacion?.id === u.id && <Popup>{u.nombre}</Popup>}
+              </Marker>
+            ))}
+          </MapContainer>
+        </div>
+        <div
+          className="list-group overflow-auto border-start"
+          style={{ width: "300px" }}
+        >
           {ubicaciones.map((u) => (
-            <Marker
+            <button
               key={u.id}
-              position={[u.latitud, u.longitud]}
-              eventHandlers={{ click: () => handleMarkerClick(u) }}
+              type="button"
+              onClick={() => handleItemClick(u)}
+              className={`list-group-item list-group-item-action ${selectedUbicacion?.id === u.id ? 'active' : ''}`}
             >
-              {selectedId === u.id && <Popup>{u.nombre}</Popup>}
-            </Marker>
+              {u.nombre}
+            </button>
           ))}
-        </MapContainer>
+        </div>
+        <UbicacionModal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          ubicacion={selectedUbicacion}
+        />
       </div>
-      <div
-        style={{
-          width: "300px",
-          overflowY: "auto",
-          padding: "1rem",
-          background: "#f8f9fa",
-        }}
-      >
-        {ubicaciones.map((u) => (
-          <div
-            key={u.id}
-            onClick={() => handleItemClick(u)}
-            style={{
-              cursor: "pointer",
-              padding: "0.5rem",
-              marginBottom: "0.5rem",
-              borderRadius: "4px",
-              border: "1px solid #ccc",
-              background: selectedId === u.id ? "#e2e6ea" : "#fff",
-            }}
-          >
-            {u.nombre}
-          </div>
-        ))}
-      </div>
-    </div>
   );
 };
 
