@@ -120,19 +120,7 @@ register: async (name, email, password, ci, tenantId) => {
       }
       return response.data;
 
-      // // Descomentar cuando tengas el backend listo
-      
-      //       const response = await axios.post(`${API_URL}signin`, {
-      //         email,
-      //         password
-      //       });
-            
-      //       if (response.data.token) {
-      //         localStorage.setItem('token', response.data.token);
-      //       }
-            
-      //       return response.data;
-            
+
     } catch (error) {
       const message =
         error.response?.data?.message || error.message || "Error en el inicio de sesión";
