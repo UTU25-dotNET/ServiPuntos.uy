@@ -20,6 +20,7 @@ const MapaView = () => {
   const [ubicaciones, setUbicaciones] = useState([]);
   const [selectedUbicacion, setSelectedUbicacion] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [tenantInfo, setTenantInfo] = useState(null);
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -37,6 +38,10 @@ const MapaView = () => {
       }
     };
     fetchUbicaciones();
+  }, []);
+
+  useEffect(() => {
+    apiService.getTenantInfo().then(setTenantInfo).catch(() => {});
   }, []);
 
   const handleItemClick = (ubicacion) => {
@@ -75,14 +80,17 @@ const MapaView = () => {
             ))}
       </MapContainer>
       <div
-        className="list-group overflow-auto border position-absolute top-0 end-0 bg-white"
-        style={{ width: "300px", maxHeight: "100vh", margin: "1rem" }}
+        className="list-group overflow-auto border position-fixed top-0 end-0 bg-white"
+        style={{ width: "300px", maxHeight: "100vh", margin: "1rem", zIndex: 1000 }}
       >
-          {ubicaciones.map((u) => (
-            <button
-              key={u.id}
-              type="button"
-              onClick={() => handleItemClick(u)}
+        <div className="list-group-item active fw-bold text-center sticky-top">
+          {tenantInfo ? `Ubicaciones de ${tenantInfo.nombre}` : "Ubicaciones"}
+        </div>
+        {ubicaciones.map((u) => (
+          <button
+            key={u.id}
+            type="button"
+            onClick={() => handleItemClick(u)}
               className={`list-group-item list-group-item-action ${selectedUbicacion?.id === u.id ? 'active' : ''}`}
             >
               {u.nombre}
