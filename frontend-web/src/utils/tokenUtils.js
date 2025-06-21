@@ -35,7 +35,31 @@ const tokenUtils = {
   // Obtener información del usuario desde el token
   getUserFromToken: (token) => {
     try {
-      return jwtDecode(token);
+      const decoded = jwtDecode(token);
+
+      // Normalizar nombre de los claims para mayor compatibilidad
+      if (!decoded.email && decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"]) {
+        decoded.email = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"];
+      }
+
+      if (!decoded.name && decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"]) {
+        decoded.name = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"];
+      }
+
+      // Asegurar consistencia en el identificador de usuario
+      if (!decoded.id) {
+        decoded.id =
+          decoded["nameid"] ||
+          decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] ||
+          decoded.sub || null;
+      }
+
+      // Unificar claim de tenant
+      if (!decoded.tenantId) {
+        decoded.tenantId = decoded.tenantId || decoded.TenantId;
+      }
+
+      return decoded;
     } catch (error) {
       return null;
     }

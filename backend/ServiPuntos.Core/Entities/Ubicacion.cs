@@ -15,6 +15,9 @@ namespace ServiPuntos.Core.Entities
         public string? Departamento { get; set; }
         public string? Telefono { get; set; }
 
+        public double Latitud { get; set; }
+        public double Longitud { get; set; }
+
         public DateTime FechaCreacion { get; set; }
         public DateTime FechaModificacion { get; set; }
 
@@ -41,7 +44,8 @@ namespace ServiPuntos.Core.Entities
         //Constructor
         public Ubicacion() { }
         [SetsRequiredMembers]
-        public Ubicacion(Guid tenantId, string nombre, string direccion, string ciudad, string departamento, string telefono, TimeSpan horaApertura, TimeSpan horaCierre)
+        public Ubicacion(Guid tenantId, string nombre, string direccion, string ciudad, string departamento, string telefono,
+            TimeSpan horaApertura, TimeSpan horaCierre, double latitud, double longitud)
         {
             TenantId = tenantId;
             Nombre = nombre;
@@ -51,6 +55,8 @@ namespace ServiPuntos.Core.Entities
             Telefono = telefono;
             HoraApertura = horaApertura;
             HoraCierre = horaCierre;
+            Latitud = latitud;
+            Longitud = longitud;
         }
     }
 }

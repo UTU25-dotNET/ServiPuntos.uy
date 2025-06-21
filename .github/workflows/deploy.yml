@@ -1,0 +1,24 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [ dev ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Deploy to EC2
+      uses: appleboy/ssh-action@v0.1.8
+      with:
+        host: ec2-18-220-251-96.us-east-2.compute.amazonaws.com
+        username: ubuntu
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          cd /opt/servipuntos-api/ServiPuntos.uy
+          git pull origin dev
+          sudo systemctl restart servipuntos-dev.service
+          sudo systemctl restart servipuntos-webapp.service
+          echo "✅ Deploy completed!"
+

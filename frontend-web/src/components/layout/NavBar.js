@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import authService from "../../services/authService";
 import apiService from "../../services/apiService";
+import NotificationsBell from "./NotificationsBell";
 
 const NavBar = () => {
   const isAuthenticated = authService.isAuthenticated();
@@ -35,6 +36,14 @@ const NavBar = () => {
 
     loadTenantInfo();
   }, [isAuthenticated]);
+
+  // Aplicar color principal del tenant al tema
+  useEffect(() => {
+    const color = isAuthenticated && tenantInfo?.color ? tenantInfo.color : "#7B3F00";
+    document.documentElement.style.setProperty("--primary-color", color);
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) metaTheme.setAttribute('content', color);
+  }, [isAuthenticated, tenantInfo]);
 
   useEffect(() => {
     if (tenantInfo?.nombre) {
@@ -76,7 +85,7 @@ const NavBar = () => {
           {tenantInfo?.logoUrl ? (
             <img src={tenantInfo.logoUrl} alt="Logo" style={{ height: "40px" }} />
           ) : (
-            <img src="/logo192.png" alt="Logo" style={{ height: "40px" }} />
+            <span role="img" aria-label="Estación" style={{ fontSize: "1.5rem" }}>⛽</span>
           )}
           {isAuthenticated && tenantInfo ? (
             <>
@@ -118,36 +127,9 @@ const NavBar = () => {
               </div>
             )}
             
-            {/* Navigation Links */}
-            <Link 
-              to="/estaciones" 
-              style={{ 
-                color: textColor,
-                textDecoration: 'none',
-                padding: '0.5rem 1rem',
-                borderRadius: '6px',
-                transition: 'background-color 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                backgroundColor: 'rgba(255,255,255,0.1)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                fontWeight: '500'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = 'rgba(255,255,255,0.2)';
-                e.target.style.borderColor = 'rgba(255,255,255,0.3)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
-                e.target.style.borderColor = 'rgba(255,255,255,0.2)';
-              }}
-            >
-              🏪 Estaciones
-            </Link>
-
-            <Link 
-              to="/perfil" 
+            <NotificationsBell textColor={textColor} user={user} />
+            <Link
+              to="/perfil"
               style={{ 
                 color: textColor,
                 textDecoration: 'none',
@@ -192,20 +174,20 @@ const NavBar = () => {
             {/* Login button for non-authenticated users */}
             <Link 
               to="/login" 
-              style={{ 
+              style={{
                 color: textColor,
                 textDecoration: 'none',
                 padding: '0.75rem 1.5rem',
                 borderRadius: '6px',
-                backgroundColor: '#007bff',
-                transition: 'background-color 0.2s',
+                backgroundColor: 'var(--primary-color)',
+                transition: 'opacity 0.2s',
                 fontWeight: '600',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem'
               }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#0056b3'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#007bff'}
+              onMouseEnter={(e) => e.target.style.opacity = '0.85'}
+              onMouseLeave={(e) => e.target.style.opacity = '1'}
             >
               🔑 Iniciar Sesión
             </Link>

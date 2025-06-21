@@ -22,11 +22,13 @@ namespace ServiPuntos.API.Controllers
 
         // GET api/canje/usuario/{usuarioId}
         [HttpGet("usuario/{usuarioId}")]
-        public async Task<IActionResult> GetCanjesByUsuario(Guid usuarioId)
+        public async Task<IActionResult> GetCanjesByUsuario(Guid usuarioId, [FromQuery] Guid? cursor, [FromQuery] int limit = 10)
         {
             try
             {
-                var canjes = await _canjeService.GetCanjesByUsuarioIdAsync(usuarioId);
+                var canjes = await _canjeService.GetCanjesByUsuarioIdPaginatedAsync(usuarioId, cursor, limit);
+
+                var lastId = canjes.LastOrDefault()?.Id;
 
                 var response = canjes.Select(c => new
                 {
@@ -37,9 +39,9 @@ namespace ServiPuntos.API.Controllers
                     fechaCanje = c.FechaCanje,
                     estado = c.Estado.ToString(),
                     puntos = c.PuntosCanjeados
-                });
+                }).ToList();
 
-                return Ok(response);
+                return Ok(new { items = response, nextCursor = lastId });
             }
             catch (Exception ex)
             {

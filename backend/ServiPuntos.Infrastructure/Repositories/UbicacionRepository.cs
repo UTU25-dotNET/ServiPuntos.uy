@@ -66,8 +66,36 @@ namespace ServiPuntos.Infrastructure.Repositories
         {
             var ubicacion = await _dbContext.Ubicaciones
                 .FirstOrDefaultAsync(u => u.TenantId == tenantId && u.Id == idUbicacion);
+
             if (ubicacion != null)
             {
+                // Eliminar canjes asociados
+                var canjes = await _dbContext.Canjes
+                    .Where(c => c.UbicacionId == ubicacion.Id)
+                    .ToListAsync();
+                if (canjes.Count > 0)
+                {
+                    _dbContext.Canjes.RemoveRange(canjes);
+                }
+
+                // Eliminar transacciones asociadas
+                var transacciones = await _dbContext.Transacciones
+                    .Where(t => t.UbicacionId == ubicacion.Id)
+                    .ToListAsync();
+                if (transacciones.Count > 0)
+                {
+                    _dbContext.Transacciones.RemoveRange(transacciones);
+                }
+
+                // Desasociar a los usuarios
+                var usuarios = await _dbContext.Usuarios
+                    .Where(u => u.UbicacionId == ubicacion.Id)
+                    .ToListAsync();
+                foreach (var usuario in usuarios)
+                {
+                    usuario.UbicacionId = null;
+                }
+
                 _dbContext.Ubicaciones.Remove(ubicacion);
                 await _dbContext.SaveChangesAsync();
             }

@@ -9,7 +9,9 @@
 <form asp-action="Editar" method="post">
     <input type="hidden" asp-for="Id" />
     <input type="hidden" asp-for="TenantId" />
-     <input type="hidden" asp-for="FechaCreacion" /> 
+     <input type="hidden" asp-for="FechaCreacion" />
+    <input type="hidden" asp-for="Latitud" />
+    <input type="hidden" asp-for="Longitud" />
     
     <div class="row">
         <div class="col-md-6">
@@ -45,6 +47,21 @@
             <div class="form-group mb-3">
                 <label for="Departamento">Departamento *</label>
                 <input type="text" class="form-control" asp-for="Departamento" required />
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label>Latitud</label>
+                <input type="text" class="form-control" asp-for="Latitud" readonly />
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label>Longitud</label>
+                <input type="text" class="form-control" asp-for="Longitud" readonly />
             </div>
         </div>
     </div>

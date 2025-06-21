@@ -17,22 +17,25 @@ namespace ServiPuntos.Application.Services
         private readonly IPointsRuleEngine _pointsRuleEngine;
         private readonly IUsuarioService _usuarioService;
         private readonly IProductoUbicacionService _productoUbicacionService;
+        private readonly IAudienciaService _audienciaService;
 
         public TransaccionService(
             ITransaccionRepository transaccionRepository,
             IPuntosService puntosService,
             IPointsRuleEngine pointsRuleEngine,
             IUsuarioService usuarioService,
-            IProductoUbicacionService productoUbicacionService)
+            IProductoUbicacionService productoUbicacionService,
+            IAudienciaService audienciaService)
         {
             _transaccionRepository = transaccionRepository;
             _puntosService = puntosService;
             _pointsRuleEngine = pointsRuleEngine;
             _usuarioService = usuarioService;
             _productoUbicacionService = productoUbicacionService;
+            _audienciaService = audienciaService;
         }
 
-        public async Task<Transaccion> GetTransaccionByIdAsync(Guid id)
+        public async Task<Transaccion?> GetTransaccionByIdAsync(Guid id)
         {
             return await _transaccionRepository.GetByIdAsync(id);
         }
@@ -109,8 +112,15 @@ namespace ServiPuntos.Application.Services
             // Registrar la transacción
             await _transaccionRepository.AddAsync(transaccion);
 
-            // Actualizar el saldo de puntos del usuario
+            // Actualizar el saldo de puntos del usuario y reflejarlo en la instancia local
             await _puntosService.ActualizarSaldoAsync(usuario.Id, puntosOtorgados);
+            usuario.Puntos += puntosOtorgados;
+
+            // Actualizar métricas de usuario y reclasificarlo en audiencias
+            usuario.ActualizarMetricasCompra(transaccion.Monto, string.Empty, ubicacionId);
+            await _usuarioService.UpdateUsuarioAsync(usuario);
+
+            await _audienciaService.ActualizarSegmentosUsuariosAsync(tenantId, new List<Usuario> { usuario });
 
             // Descontar stock de los productos involucrados
             await ActualizarStockAsync(ubicacionId, transaccion.Detalles);
@@ -161,6 +171,14 @@ namespace ServiPuntos.Application.Services
             if (puntos > 0)
             {
                 await _puntosService.ActualizarSaldoAsync(transaccion.UsuarioId, puntos);
+                var usuario = await _usuarioService.GetUsuarioAsync(transaccion.UsuarioId);
+                if (usuario != null)
+                {
+                    usuario.Puntos += puntos;
+                    usuario.ActualizarMetricasCompra(transaccion.Monto, string.Empty, transaccion.UbicacionId);
+                    await _usuarioService.UpdateUsuarioAsync(usuario);
+                    await _audienciaService.ActualizarSegmentosUsuariosAsync(transaccion.TenantId, new List<Usuario> { usuario });
+                }
             }
 
              // Ajustar stock de la ubicación por los productos comprados
@@ -170,6 +188,14 @@ namespace ServiPuntos.Application.Services
         
             }
 
+        public async Task<IEnumerable<Transaccion>> GetTransaccionesByUsuarioIdPaginatedAsync(Guid usuarioId, Guid? cursor, int limit)
+        {
+            Console.WriteLine($"[TransaccionService] Solicitando transacciones para usuario {usuarioId}");
+            var result = await _transaccionRepository.GetByUsuarioIdPaginatedAsync(usuarioId, cursor, limit);
+            Console.WriteLine($"[TransaccionService] Recibidas {result.Count()} transacciones");
+            return result;
+        }
+        
         private async Task ActualizarStockAsync(Guid ubicacionId, string detallesJson)
         {
             if (string.IsNullOrWhiteSpace(detallesJson))
@@ -180,7 +206,7 @@ namespace ServiPuntos.Application.Services
             try
             {
                 var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                 List<LineaTransaccionNAFTA>? productos = null;
+                List<LineaTransaccionNAFTA>? productos = null;
 
                 if (detallesJson.TrimStart().StartsWith("["))
                 {

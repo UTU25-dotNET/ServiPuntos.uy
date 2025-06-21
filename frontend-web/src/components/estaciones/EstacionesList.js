@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import Breadcrumb from "../layout/Breadcrumb";
 import authService from "../../services/authService";
 import apiService from "../../services/apiService";
 import CatalogoProductos from "../productos/CatalogoProductos";
@@ -95,6 +96,12 @@ const EstacionesList = () => {
   const cerrarModalServicio = () => {
     setModalServicio({ abierto: false, servicio: "", precio: 0, ubicacion: null });
   };
+  const refreshUserProfile = async () => {
+    try {
+        const profile = await apiService.getUserProfile();
+        setUserProfile(profile);
+    } catch {}
+};
 
   if (!isAuthenticated) {
     return (
@@ -120,14 +127,17 @@ const EstacionesList = () => {
           to="/login"
           style={{
             display: "inline-block",
-            backgroundColor: "#007bff",
+            backgroundColor: "var(--primary-color)",
             color: "white",
             padding: "0.75rem 1.5rem",
             borderRadius: "6px",
             textDecoration: "none",
             fontSize: "1rem",
-            fontWeight: "500"
+            fontWeight: "500",
+            transition: "opacity 0.2s"
           }}
+          onMouseEnter={(e) => (e.target.style.opacity = "0.85")}
+          onMouseLeave={(e) => (e.target.style.opacity = "1")}
         >
           Iniciar Sesión
         </Link>
@@ -145,19 +155,8 @@ const EstacionesList = () => {
     >
       {/* Header con breadcrumb */}
       <div style={{ marginBottom: "2rem" }}>
-        <div style={{ 
-          fontSize: "0.9rem", 
-          color: "#6c757d", 
-          marginBottom: "0.5rem",
-          display: "flex",
-          alignItems: "center",
-          gap: "0.5rem"
-        }}>
-          <Link to="/" style={{ color: "#007bff", textDecoration: "none" }}>🏠 Inicio</Link>
-          <span>›</span>
-          <span>Estaciones</span>
-        </div>
-        <h1 style={{ color: "#7B3F00", fontSize: "2.5rem", marginBottom: "0.5rem", margin: 0 }}>
+        <Breadcrumb current="Estaciones" />
+        <h1 style={{ color: "var(--primary-color)", fontSize: "2.5rem", marginBottom: "0.5rem", margin: 0 }}>
           Estaciones de Servicio
         </h1>
         <p style={{ fontSize: "1.2rem", color: "#6c757d", margin: 0 }}>
@@ -178,14 +177,14 @@ const EstacionesList = () => {
           <div style={{ textAlign: "center", padding: "3rem" }}>
             <div style={{
               border: "4px solid #f3f3f3",
-              borderTop: "4px solid #7B3F00",
+              borderTop: "4px solid var(--primary-color)",
               borderRadius: "50%",
               width: "60px",
               height: "60px",
               animation: "spin 1s linear infinite",
               margin: "0 auto 1rem"
             }} />
-            <p style={{ color: "#7B3F00", fontSize: "1.1rem" }}>Cargando estaciones...</p>
+            <p style={{ color: "var(--primary-color)", fontSize: "1.1rem" }}>Cargando estaciones...</p>
             
             <style>{`
               @keyframes spin {
@@ -334,43 +333,70 @@ const EstacionesList = () => {
                     style={{
                       marginBottom: "1.25rem",
                       display: "grid",
-                      gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
                       gap: "0.5rem",
                     }}
                   >
                     {[
-                      { label: "Nafta Súper", precio: ubicacion.precioNaftaSuper },
-                      { label: "Nafta Premium", precio: ubicacion.precioNaftaPremium },
-                      { label: "Diesel", precio: ubicacion.precioDiesel },
+                      {
+                        label: "Nafta Súper",
+                        precio: ubicacion.precioNaftaSuper,
+                        color: "#2d5a2d",
+                        bg: "#e8f5e8",
+                        border: "#c3e6c3",
+                        emoji: "🚗",
+                      },
+                      {
+                        label: "Nafta Premium",
+                        precio: ubicacion.precioNaftaPremium,
+                        color: "#b8860b",
+                        bg: "#fff9c4",
+                        border: "#f9c74f",
+                        emoji: "⭐",
+                      },
+                      {
+                        label: "Diesel",
+                        precio: ubicacion.precioDiesel,
+                        color: "#1565c0",
+                        bg: "#e3f2fd",
+                        border: "#90caf9",
+                        emoji: "🚛",
+                      },
                     ].map((c) => (
                       <div
                         key={c.label}
                         style={{
-                          backgroundColor: "#fff9c4",
-                          border: "1px solid #f9c74f",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "0.75rem",
+                          backgroundColor: c.bg,
                           borderRadius: "8px",
-                          padding: "0.5rem",
-                          textAlign: "center",
+                          border: `1px solid ${c.border}`,
                         }}
                       >
-                        <strong style={{ fontSize: "0.9rem", color: "#7B3F00" }}>{c.label}</strong>
-                        <p style={{ margin: "0.25rem 0", color: "#d68910", fontWeight: "bold" }}>
-                          ${formatPrice(c.precio)}
-                        </p>
-                        <button
-                          style={{
-                            width: "100%",
-                            padding: "0.25rem",
-                            backgroundColor: "#ffc107",
-                            color: "#212529",
-                            border: "none",
-                            borderRadius: "6px",
-                            cursor: "pointer",
-                          }}
-                          onClick={() => abrirModalCombustible(ubicacion, c.label, c.precio)}
-                        >
-                          Comprar
-                        </button>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                          <span style={{ fontSize: "1rem" }}>{c.emoji}</span>
+                          <span style={{ fontWeight: "600", color: c.color }}>{c.label}</span>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ fontWeight: "bold", color: c.color }}>
+                            ${formatPrice(c.precio)}
+                          </div>
+                          <button
+                            style={{
+                              marginTop: "0.25rem",
+                              padding: "0.25rem 0.5rem",
+                              backgroundColor: c.color,
+                              color: "white",
+                              border: "none",
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                            }}
+                            onClick={() => abrirModalCombustible(ubicacion, c.label, c.precio)}
+                          >
+                            Comprar
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -381,7 +407,7 @@ const EstacionesList = () => {
                       onClick={() => abrirCatalogoProductos(ubicacion)}
                       style={{
                         width: "100%",
-                        backgroundColor: "#007bff",
+                        backgroundColor: "var(--primary-color)",
                         color: "white",
                         border: "none",
                         borderRadius: "8px",
@@ -389,14 +415,14 @@ const EstacionesList = () => {
                         fontSize: "1rem",
                         fontWeight: "500",
                         cursor: "pointer",
-                        transition: "background-color 0.2s ease",
+                        transition: "opacity 0.2s",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         gap: "0.5rem"
                       }}
-                      onMouseEnter={(e) => e.target.style.backgroundColor = "#0056b3"}
-                      onMouseLeave={(e) => e.target.style.backgroundColor = "#007bff"}
+                      onMouseEnter={(e) => e.target.style.opacity = "0.85"}
+                      onMouseLeave={(e) => e.target.style.opacity = "1"}
                     >
                       🛒 Ver Catálogo de Productos
                     </button>
@@ -483,6 +509,7 @@ const EstacionesList = () => {
         isOpen={modalAbierto}
         onClose={cerrarCatalogoProductos}
         userProfile={userProfile}
+        onProfileUpdated={refreshUserProfile}
       />
       <ComprarCombustibleModal
         isOpen={modalCombustible.abierto}

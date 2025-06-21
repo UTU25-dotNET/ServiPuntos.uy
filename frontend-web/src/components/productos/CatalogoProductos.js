@@ -1,9 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import apiService from "../../services/apiService";
 import SeleccionarPuntosModal from "./SeleccionarPuntosModal";
 
-const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
+const categorias18 = [
+  'cigarros',
+  'cigarrillos',
+  'bebidas alcoholicas',
+  'bebidas alcohólicas'
+];
+
+const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile, onProfileUpdated }) => {
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("");
@@ -22,6 +29,36 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
   const [mostrarPuntosModal, setMostrarPuntosModal] = useState(false);
   const [productoMixto, setProductoMixto] = useState(null);
   const [maxPuntosMixto, setMaxPuntosMixto] = useState(0);
+  const [mostrarPuntosCarrito, setMostrarPuntosCarrito] = useState(false);
+  const [maxPuntosCarrito, setMaxPuntosCarrito] = useState(0);
+  const [esMayorDeEdad, setEsMayorDeEdad] = useState(true);
+
+  const esCategoriaRestringida = useCallback((cat) => {
+    if (!cat) return false;
+    const c = cat.toLowerCase();
+    return categorias18.some((v) => c.includes(v));
+  }, []);
+
+  const ensureAgeVerified = async (categoria) => {
+    if (!esCategoriaRestringida(categoria)) return true;
+    if (userProfile?.ci && userProfile?.verificadoVEAI) return true;
+
+    let ci = userProfile?.ci;
+
+    try {
+      const result = await apiService.verifyAge(ci);
+      if (!result.isAllowed) {
+        alert('Debes ser mayor de edad para acceder a este producto.');
+        return false;
+      }
+      await apiService.updateUserProfile({ ci, verificadoVEAI: true });
+      if (onProfileUpdated) await onProfileUpdated();
+      return true;
+    } catch (err) {
+      alert(err.message || 'Error al verificar la edad');
+      return false;
+    }
+  };
 
   useEffect(() => {
     const loadProductos = async () => {
@@ -29,8 +66,13 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
       setError("");
 
       try {
-        const productosData = await apiService.getProductosByUbicacion(ubicacion.id);
+        let productosData = await apiService.getProductosByUbicacion(ubicacion.id);
+
+        if (!esMayorDeEdad) {
+          productosData = productosData.filter(p => !esCategoriaRestringida(p.categoria));
+        }
         setProductos(productosData);
+
         const cats = [...new Set(productosData.map(p => p.categoria))];
         setCategorias(cats);
       } catch (err) {
@@ -44,7 +86,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
     if (isOpen && ubicacion) {
       loadProductos();
     }
-  }, [isOpen, ubicacion]);
+  }, [isOpen, ubicacion, esMayorDeEdad, esCategoriaRestringida]);
 
   // Cargar información del tenant cuando se abre el catálogo
   useEffect(() => {
@@ -63,6 +105,25 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
   }, [isOpen]);
 
   useEffect(() => {
+    const verificarEdad = async () => {
+      if (!userProfile?.ci) {
+        setEsMayorDeEdad(true);
+        return;
+      }
+      try {
+        const result = await apiService.verifyAge(userProfile.ci);
+        setEsMayorDeEdad(result.isAllowed);
+      } catch {
+        setEsMayorDeEdad(true);
+      }
+    };
+
+    if (isOpen) {
+      verificarEdad();
+    }
+  }, [isOpen, userProfile]);
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const paymentId = params.get('paymentId');
     const payerId = params.get('PayerID');
@@ -77,11 +138,15 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
     }
   }, []);
 
-  const handleCanjear = async (productoId) => {
+  const handleCanjear = async (productoUbicacion) => {
+    if (!(await ensureAgeVerified(productoUbicacion.categoria))) return;
     setCanjeLoading(true);
     setCanjeError("");
     try {
-      const result = await apiService.generarCanje(productoId, ubicacion.id);
+      const result = await apiService.generarCanje(
+        productoUbicacion.productoCanjeable.id,
+        ubicacion.id
+      );
       setCanjeQR(result?.datos?.codigoQR || null);
     } catch (err) {
       setCanjeError(err.message);
@@ -91,6 +156,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
   };
 
   const handleComprar = async (productoUbicacion, puntos = 0) => {
+    if (!(await ensureAgeVerified(productoUbicacion.categoria))) return;
     setCompraLoading(true);
     setCompraError("");
     try {
@@ -112,8 +178,9 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
     }
   };
 
-  const handleComprarMixto = (productoUbicacion) => {
+  const handleComprarMixto = async (productoUbicacion) => {
     if (!tenantInfo || !userProfile) return;
+    if (!(await ensureAgeVerified(productoUbicacion.categoria))) return;
     const valorPunto = tenantInfo.valorPunto || 0;
     const puntosUsuario = userProfile.puntos || 0;
     const maxPuntos = Math.min(
@@ -140,10 +207,20 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
   };
 
   const quitarDelCarrito = (productoId) => {
-    setCarrito((prev) => prev.filter((p) => p.id !== productoId));
+    setCarrito((prev) => {
+      const index = prev.findIndex((p) => p.id === productoId);
+      if (index === -1) return prev;
+      const updated = [...prev];
+      updated.splice(index, 1);
+      return updated;
+    });
   };
 
   const handleCanjearCarrito = async () => {
+    if (carrito.some((p) => esCategoriaRestringida(p.categoria))) {
+      const first = carrito.find((p) => esCategoriaRestringida(p.categoria));
+      if (!(await ensureAgeVerified(first.categoria))) return;
+    }
     setCarritoLoading(true);
     setCarritoError("");
     try {
@@ -158,11 +235,25 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
     }
   };
 
-  const handleComprarCarrito = async () => {
+  const handleComprarCarrito = async (puntos = 0) => {
+    if (carrito.some((p) => esCategoriaRestringida(p.categoria))) {
+      const first = carrito.find((p) => esCategoriaRestringida(p.categoria));
+      if (!(await ensureAgeVerified(first.categoria))) return;
+    }
     setCompraLoading(true);
     setCompraError("");
     try {
-      const result = await apiService.procesarTransaccionMultiple(carrito, ubicacion.id);
+      let result;
+      if (puntos > 0) {
+        result = await apiService.procesarTransaccionMultipleMixto(
+          carrito,
+          ubicacion.id,
+          puntos,
+          tenantInfo?.valorPunto || 0
+        );
+      } else {
+        result = await apiService.procesarTransaccionMultiple(carrito, ubicacion.id);
+      }
       if (result?.codigo === "PENDING_PAYMENT" && result.datos?.approvalUrl) {
         window.location.href = result.datos.approvalUrl;
       } else if (result?.codigo !== "OK") {
@@ -175,6 +266,26 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
     } finally {
       setCompraLoading(false);
     }
+  };
+
+  const handleComprarCarritoMixto = async () => {
+    if (!tenantInfo || !userProfile || carrito.length === 0) return;
+    if (carrito.some((p) => esCategoriaRestringida(p.categoria))) {
+      const first = carrito.find((p) => esCategoriaRestringida(p.categoria));
+      if (!(await ensureAgeVerified(first.categoria))) return;
+    }
+    const valorPunto = tenantInfo.valorPunto || 0;
+    const puntosUsuario = userProfile.puntos || 0;
+    const total = carrito.reduce((sum, p) => sum + (p.precio || 0), 0);
+    const max = Math.min(puntosUsuario, Math.floor(total / valorPunto));
+    if (max <= 0) return handleComprarCarrito();
+    setMaxPuntosCarrito(max);
+    setMostrarPuntosCarrito(true);
+  };
+
+  const confirmarCompraCarritoMixto = async (puntos) => {
+    setMostrarPuntosCarrito(false);
+    await handleComprarCarrito(puntos);
   };
 
   const totalCarrito = carrito.reduce((sum, p) => sum + (p.precio || 0), 0);
@@ -421,14 +532,14 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
               <div
                 style={{
                   border: "4px solid #f3f3f3",
-                  borderTop: "4px solid #007bff",
+                  borderTop: "4px solid var(--primary-color)",
                   borderRadius: "50%",
                   width: "50px",
                   height: "50px",
                   animation: "spin 1s linear infinite",
                   margin: "0 auto 1rem"
                 }} />
-              <p style={{ color: "#007bff", fontSize: "1.1rem" }}>Cargando catálogo...</p>
+              <p style={{ color: "var(--primary-color)", fontSize: "1.1rem" }}>Cargando catálogo...</p>
 
               <style>{`
                 @keyframes spin {
@@ -478,28 +589,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
 
           {!loading && productos.length > 0 && (
             <>
-              {/* Información resumida */}
-              <div
-                style={{
-                  marginBottom: "1.5rem",
-                  padding: "1rem",
-                  backgroundColor: "#e3f2fd",
-                  borderRadius: "8px",
-                  border: "1px solid #bbdefb",
-                  textAlign: "center"
-                }}
-              >
-                <p
-                  style={{
-                    margin: "0",
-                    color: "#1976d2",
-                    fontWeight: "600",
-                    fontSize: "1.1rem"
-                  }}
-                >
-                  🏅 {productos.length} producto{productos.length !== 1 ? "s" : ""} disponible{productos.length !== 1 ? "s" : ""} para canje
-                </p>
-              </div>
+            
 
               {categorias.length > 0 && (
                 <div className="mb-3 text-center">
@@ -525,15 +615,33 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                   <div className="card-body">
                     <h5 className="card-title">Carrito ({carrito.length})</h5>
                     <ul className="list-group list-group-flush">
-                      {carrito.map((p) => (
-                        <li key={p.id} className="list-group-item d-flex justify-content-between align-items-center">
-                          <span>{p.productoCanjeable.nombre}</span>
-                          <button
-                            className="btn btn-sm btn-outline-danger"
-                            onClick={() => quitarDelCarrito(p.id)}
-                          >
-                            ✕
-                          </button>
+                      {Object.values(
+                        carrito.reduce((acc, item) => {
+                          const key = item.id;
+                          if (!acc[key]) {
+                            acc[key] = { ...item, cantidad: 0 };
+                          }
+                          acc[key].cantidad += 1;
+                          return acc;
+                        }, {})
+                      ).map((p) => (
+                        <li
+                          key={p.id}
+                          className="list-group-item d-flex justify-content-between align-items-center"
+                        >
+                          <div>
+                            {p.productoCanjeable.nombre}
+                            <span className="badge bg-secondary ms-2">{p.cantidad}</span>
+                          </div>
+                          <div className="d-flex align-items-center gap-2">
+                            <small className="text-muted">{formatPrecio(p.precio * p.cantidad)}</small>
+                            <button
+                              className="btn btn-sm btn-outline-danger"
+                              onClick={() => quitarDelCarrito(p.id)}
+                            >
+                              ✕
+                            </button>
+                          </div>
                         </li>
                       ))}
                     </ul>
@@ -547,6 +655,15 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                         >
                           Comprar carrito
                         </button>
+                        {tenantInfo && (
+                          <button
+                            className="btn btn-info"
+                            onClick={handleComprarCarritoMixto}
+                            disabled={compraLoading}
+                          >
+                            {`Dinero + ${tenantInfo.nombrePuntos || "Puntos"}`}
+                          </button>
+                        )}
                         <button
                           className="btn btn-success"
                           onClick={handleCanjearCarrito}
@@ -592,7 +709,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                           if (productoUbicacion.activo) {
                             e.currentTarget.style.transform = "translateY(-2px)";
                             e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.15)";
-                            e.currentTarget.style.borderColor = "#007bff";
+                            e.currentTarget.style.borderColor = "var(--primary-color)";
                           }
                         } }
                         onMouseLeave={(e) => {
@@ -772,12 +889,12 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
                               {`Comprar con Dinero + ${tenantInfo?.nombrePuntos || "Puntos"}`}
                             </button>
                             <button
-                              onClick={() => handleCanjear(producto.id)}
+                              onClick={() => handleCanjear(productoUbicacion)}
                               disabled={!userProfile || (userProfile.puntos || 0) < producto.costoEnPuntos || canjeLoading}
                               style={{
                                 width: "100%",
                                 padding: "0.5rem",
-                                backgroundColor: "#007bff",
+                                backgroundColor: "var(--primary-color)",
                                 color: "white",
                                 border: "none",
                                 borderRadius: "6px",
@@ -847,14 +964,24 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile }) => {
           </button>
         </div>
       </div>
-    </div><SeleccionarPuntosModal
+    </div>
+    <SeleccionarPuntosModal
         isOpen={mostrarPuntosModal}
         onClose={() => setMostrarPuntosModal(false)}
         maxPuntos={maxPuntosMixto}
         valorPunto={tenantInfo?.valorPunto || 0}
         precio={productoMixto?.precio || 0}
         nombrePuntos={tenantInfo?.nombrePuntos}
-        onConfirm={confirmarCompraMixta} /></>
+        onConfirm={confirmarCompraMixta} />
+    <SeleccionarPuntosModal
+        isOpen={mostrarPuntosCarrito}
+        onClose={() => setMostrarPuntosCarrito(false)}
+        maxPuntos={maxPuntosCarrito}
+        valorPunto={tenantInfo?.valorPunto || 0}
+        precio={totalCarrito}
+        nombrePuntos={tenantInfo?.nombrePuntos}
+        onConfirm={confirmarCompraCarritoMixto} />
+    </>
   );
 };
 

@@ -3,14 +3,14 @@
     x:Class="ServiPuntos.Mobile.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:views="clr-namespace:ServiPuntos.Mobile.Views"
+    xmlns:local="clr-namespace:ServiPuntos.Mobile.Views"
     Title="ServiPuntos.Mobile">
 
+    <!-- ASEGÚRATE DE QUE ESTO DIGA LoginPage, NO TenantSelectorPage -->
     <ShellContent
-        Title="Inicio"
-        ContentTemplate="{DataTemplate views:TenantSelectorPage}"
-        Route="TenantSelectorPage"/>
+        Title="Login"
+        ContentTemplate="{DataTemplate local:LoginPage}"
+        Route="MainPage" />
+        
 
 </Shell>
-
-

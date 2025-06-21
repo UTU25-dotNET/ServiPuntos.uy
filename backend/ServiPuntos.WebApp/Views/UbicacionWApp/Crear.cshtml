@@ -117,6 +117,20 @@
     <div class="card mb-4">
         <div class="card-header">
             <h5 class="mb-0">
+                <i class="fas fa-map me-2"></i>
+                Ubicación en el mapa
+            </h5>
+        </div>
+        <div class="card-body">
+            <div id="map" style="height: 300px;"></div>
+            <input type="hidden" id="Latitud" name="Latitud" />
+            <input type="hidden" id="Longitud" name="Longitud" />
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
                 <i class="fas fa-gas-pump me-2"></i>
                 Precios de Combustible
             </h5>
@@ -246,6 +260,20 @@
 
 @section Scripts {
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const map = L.map('map').setView([-34.9011, -56.1645], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+            const marker = L.marker(map.getCenter(), { draggable: true }).addTo(map);
+            function setCoords(latlng) {
+                document.getElementById('Latitud').value = latlng.lat;
+                document.getElementById('Longitud').value = latlng.lng;
+            }
+            setCoords(marker.getLatLng());
+            map.on('click', function (e) { marker.setLatLng(e.latlng); setCoords(e.latlng); });
+            marker.on('dragend', function () { setCoords(marker.getLatLng()); });
+        });
         document.addEventListener('DOMContentLoaded', function() {
             // Validación de horarios
              const horaApertura = document.getElementById('HoraApertura');

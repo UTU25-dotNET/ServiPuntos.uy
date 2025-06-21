@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import authService from "../../services/authService";
+import Breadcrumb from "../layout/Breadcrumb";
 
 const AuthCallback = () => {
   const [loading, setLoading] = useState(true);
@@ -29,9 +30,8 @@ const AuthCallback = () => {
           return;
         }
 
-        // Guardar el token en localStorage y programar cierre automático
-        localStorage.setItem("token", token);
-        authService.scheduleAutoLogout();
+        // Guardar el token y configurar cierre automático
+        authService.loginWithToken(token);
 
         // Verificar que el token sea válido
         if (!authService.isAuthenticated()) {
@@ -93,6 +93,7 @@ const AuthCallback = () => {
       borderRadius: "8px",
       border: "1px solid #dee2e6"
     }}>
+      <Breadcrumb current="Callback" />
       <h2 style={{ color: "#dc3545", marginBottom: "1rem" }}>
         Error de Autenticación
       </h2>
@@ -112,7 +113,7 @@ const AuthCallback = () => {
         <button
           onClick={() => navigate("/login")}
           style={{
-            backgroundColor: "#007bff",
+            backgroundColor: "var(--primary-color)",
             color: "white",
             border: "none",
             borderRadius: "4px",

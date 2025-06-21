@@ -19,7 +19,7 @@ namespace ServiPuntos.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Canje> GetByIdAsync(Guid id)
+        public async Task<Canje?> GetByIdAsync(Guid id)
         {
             return await _context.Canjes
                 .Include(c => c.Usuario)
@@ -29,7 +29,7 @@ namespace ServiPuntos.Infrastructure.Repositories
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public async Task<Canje> GetByCodigoQRAsync(string codigoQR)
+        public async Task<Canje?> GetByCodigoQRAsync(string codigoQR)
         {
             return await _context.Canjes
                 .Include(c => c.Usuario)
@@ -37,6 +37,29 @@ namespace ServiPuntos.Infrastructure.Repositories
                 .Include(c => c.Tenant)
                 .Include(c => c.ProductoCanjeable)
                 .FirstOrDefaultAsync(c => c.CodigoQR == codigoQR);
+        }
+
+        public async Task<IEnumerable<Canje>> GetByUsuarioIdPaginatedAsync(Guid usuarioId, Guid? cursor, int limit)
+        {
+            var query = _context.Canjes
+                .Where(c => c.UsuarioId == usuarioId)
+                .Include(c => c.Ubicacion)
+                .Include(c => c.ProductoCanjeable)
+                .OrderByDescending(c => c.FechaGeneracion)
+                .ThenByDescending(c => c.Id)
+                .AsQueryable();
+
+            if (cursor.HasValue)
+            {
+                var cursorObj = await _context.Canjes.AsNoTracking().FirstOrDefaultAsync(c => c.Id == cursor.Value);
+                if (cursorObj != null)
+                {
+                    query = query.Where(c => c.FechaGeneracion < cursorObj.FechaGeneracion ||
+                        (c.FechaGeneracion == cursorObj.FechaGeneracion && c.Id.CompareTo(cursor.Value) < 0));
+                }
+            }
+
+            return await query.Take(limit).ToListAsync();
         }
 
         public async Task<IEnumerable<Canje>> GetByUsuarioIdAsync(Guid usuarioId)

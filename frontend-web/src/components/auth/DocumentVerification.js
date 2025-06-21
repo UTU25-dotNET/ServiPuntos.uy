@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import authService from "../../services/authService";
+import Breadcrumb from "../layout/Breadcrumb";
 
 // Renombra el componente a DocumentVerification para mantener consistencia con el nombre del archivo
 const DocumentVerification = () => {
@@ -94,7 +95,7 @@ const DocumentVerification = () => {
 
         try {
             // Construir la URL con todos los parámetros necesarios
-            let callbackUrl = `https://localhost:5019/api/auth/google-callback?cedula=${encodeURIComponent(cedula)}`;
+            let callbackUrl = `https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth/google-callback?cedula=${encodeURIComponent(cedula)}`;
 
             // Añadir code y state si están disponibles
             if (code) callbackUrl += `&code=${encodeURIComponent(code)}`;
@@ -112,7 +113,8 @@ const DocumentVerification = () => {
     // Mostrar el formulario incluso si no tenemos datos de usuario, pero con menos personalización
     return (
         <div style={{ maxWidth: "400px", margin: "0 auto", padding: "1rem" }}>
-            <h2 style={{ color: "#7B3F00" }}>Servipuntos.uy</h2>
+            <Breadcrumb current="Verificar edad" />
+            <h2 style={{ color: "var(--primary-color)" }}>Servipuntos.uy</h2>
             <h3>Verificacion de identidad</h3>
 
             {userData && (
@@ -176,7 +178,7 @@ const DocumentVerification = () => {
                     type="submit"
                     disabled={loading}
                     style={{
-                        backgroundColor: "#007bff",
+                        backgroundColor: "var(--primary-color)",
                         color: "white",
                         border: "none",
                         borderRadius: "4px",

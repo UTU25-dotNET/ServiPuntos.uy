@@ -16,6 +16,9 @@ namespace ServiPuntos.WebApp.Models
         public List<ProductoSelectionViewModel> Productos { get; set; } = new();
         public List<UbicacionSelectionViewModel> Ubicaciones { get; set; } = new();
 
+        [Range(0, double.MaxValue, ErrorMessage = "El precio no puede ser negativo")]
+        public double Precio { get; set; }
+
         [Required(ErrorMessage = "El stock inicial es obligatorio")]
         [Range(0, int.MaxValue, ErrorMessage = "El stock inicial no puede ser negativo")]
         public int StockInicial { get; set; } = 10;
@@ -26,6 +29,7 @@ namespace ServiPuntos.WebApp.Models
         public Guid Id { get; set; }
         public string Nombre { get; set; } = string.Empty;
         public int CostoEnPuntos { get; set; }
+        public string? FotoUrl { get; set; }
         public bool Selected { get; set; }
     }
 
