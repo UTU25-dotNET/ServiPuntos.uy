@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import apiService from "../../services/apiService";
-import UbicacionModal from "./UbicacionModal";
+import UbicacionDetails from "./UbicacionDetails";
 
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
@@ -19,7 +19,6 @@ L.Icon.Default.mergeOptions({
 const MapaView = () => {
   const [ubicaciones, setUbicaciones] = useState([]);
   const [selectedUbicacion, setSelectedUbicacion] = useState(null);
-  const [showModal, setShowModal] = useState(false);
   const [tenantInfo, setTenantInfo] = useState(null);
   const mapRef = useRef(null);
 
@@ -46,7 +45,6 @@ const MapaView = () => {
 
   const handleItemClick = (ubicacion) => {
     setSelectedUbicacion(ubicacion);
-    setShowModal(true);
     if (mapRef.current) {
       mapRef.current.flyTo([ubicacion.latitud, ubicacion.longitud], 15);
     }
@@ -54,7 +52,6 @@ const MapaView = () => {
 
   const handleMarkerClick = (ubicacion) => {
     setSelectedUbicacion(ubicacion);
-    setShowModal(true);
     if (mapRef.current) {
       mapRef.current.flyTo([ubicacion.latitud, ubicacion.longitud], 15);
     }
@@ -80,28 +77,34 @@ const MapaView = () => {
             ))}
       </MapContainer>
       <div
-        className="list-group overflow-auto border position-fixed top-0 end-0 bg-white"
+        className="overflow-auto border position-fixed top-0 end-0 bg-white"
         style={{ width: "300px", maxHeight: "100vh", margin: "1rem", zIndex: 1000 }}
       >
         <div className="list-group-item active fw-bold text-center sticky-top">
           {tenantInfo ? `Ubicaciones de ${tenantInfo.nombre}` : "Ubicaciones"}
         </div>
-        {ubicaciones.map((u) => (
-          <button
-            key={u.id}
-            type="button"
-            onClick={() => handleItemClick(u)}
-              className={`list-group-item list-group-item-action ${selectedUbicacion?.id === u.id ? 'active' : ''}`}
-            >
-              {u.nombre}
-            </button>
+        <div className="accordion" id="ubicacionesAccordion">
+          {ubicaciones.map((u) => (
+            <div className="accordion-item" key={u.id}>
+              <h2 className="accordion-header">
+                <button
+                  className={`accordion-button ${selectedUbicacion?.id === u.id ? '' : 'collapsed'}`}
+                  type="button"
+                  onClick={() => handleItemClick(u)}
+                >
+                  {u.nombre}
+                </button>
+              </h2>
+              <div className={`accordion-collapse collapse ${selectedUbicacion?.id === u.id ? 'show' : ''}`}
+              >
+                <div className="accordion-body p-0">
+                  <UbicacionDetails ubicacion={u} expanded={selectedUbicacion?.id === u.id} />
+                </div>
+              </div>
+            </div>
           ))}
         </div>
-        <UbicacionModal
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
-          ubicacion={selectedUbicacion}
-        />
+      </div>
     </div>
   );
 };
