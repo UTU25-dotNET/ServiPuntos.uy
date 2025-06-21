@@ -36,12 +36,12 @@ namespace ServiPuntos.Application.Services
             _audienciaService = audienciaService;
         }
 
-        public async Task<Canje> GetCanjeByIdAsync(Guid id)
+        public async Task<Canje?> GetCanjeByIdAsync(Guid id)
         {
             return await _canjeRepository.GetByIdAsync(id);
         }
 
-        public async Task<Canje> GetCanjeByCodigoQRAsync(string codigoQR)
+        public async Task<Canje?> GetCanjeByCodigoQRAsync(string codigoQR)
         {
             return await _canjeRepository.GetByCodigoQRAsync(codigoQR);
         }
@@ -179,7 +179,7 @@ namespace ServiPuntos.Application.Services
             }
 
             // Verificar que la ubicación coincide (si se especifica)
-            if (canjeNAFTA.UbicacionId != null && (canjeNAFTA.UbicacionId) != canje.UbicacionId)
+            if (canjeNAFTA.UbicacionId.HasValue && canjeNAFTA.UbicacionId.Value != canje.UbicacionId)
             {
                 throw new Exception("El canje debe realizarse en la ubicación especificada");
             }

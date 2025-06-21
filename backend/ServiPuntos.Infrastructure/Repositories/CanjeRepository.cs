@@ -19,7 +19,7 @@ namespace ServiPuntos.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Canje> GetByIdAsync(Guid id)
+        public async Task<Canje?> GetByIdAsync(Guid id)
         {
             return await _context.Canjes
                 .Include(c => c.Usuario)
@@ -29,7 +29,7 @@ namespace ServiPuntos.Infrastructure.Repositories
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public async Task<Canje> GetByCodigoQRAsync(string codigoQR)
+        public async Task<Canje?> GetByCodigoQRAsync(string codigoQR)
         {
             return await _context.Canjes
                 .Include(c => c.Usuario)

@@ -19,7 +19,7 @@ namespace ServiPuntos.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Transaccion> GetByIdAsync(Guid id)
+        public async Task<Transaccion?> GetByIdAsync(Guid id)
         {
             return await _context.Transacciones
                 .Include(t => t.Usuario)
@@ -116,7 +116,7 @@ namespace ServiPuntos.Infrastructure.Repositories
             int result = await _context.SaveChangesAsync();
             return result > 0;
         }
-        public async Task<Transaccion> GetByPayPalPaymentIdAsync(string pagoPayPalId)
+        public async Task<Transaccion?> GetByPayPalPaymentIdAsync(string pagoPayPalId)
         {
             return await _context.Transacciones
                 .Include(t => t.Usuario)
