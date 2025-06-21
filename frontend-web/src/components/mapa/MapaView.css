@@ -1,0 +1,24 @@
+.gas-marker {
+  position: relative;
+  width: 32px;
+  height: 32px;
+}
+.gas-marker img {
+  width: 100%;
+  height: 100%;
+}
+.gas-marker .status-dot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+.gas-marker .status-dot.open {
+  background-color: #28a745;
+}
+.gas-marker .status-dot.closed {
+  background-color: #dc3545;
+}
