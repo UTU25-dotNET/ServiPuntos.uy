@@ -250,7 +250,7 @@ namespace ServiPuntos.WebApp.Controllers
         public async Task<IActionResult> GestionarStock(Guid ubicacionId)
         {
             var tenantId = _tenantContext.TenantId;
-            if (tenantId == null)
+            if (tenantId == Guid.Empty)
             {
                 return Unauthorized();
             }
@@ -294,7 +294,7 @@ namespace ServiPuntos.WebApp.Controllers
             }
 
             var tenantId = _tenantContext.TenantId;
-            if (tenantId != null)
+            if (tenantId != Guid.Empty)
             {
                 var ubicacion = await _ubicacionService.GetUbicacionAsync(productoUbicacion.UbicacionId);
                 if (ubicacion?.TenantId != tenantId)
@@ -336,7 +336,7 @@ namespace ServiPuntos.WebApp.Controllers
             }
 
             var tenantId = _tenantContext.TenantId;
-            if (tenantId != null)
+            if (tenantId != Guid.Empty)
             {
                 var ubicacion = await _ubicacionService.GetUbicacionAsync(productoUbicacion.UbicacionId);
                 if (ubicacion?.TenantId != tenantId)
@@ -387,7 +387,7 @@ namespace ServiPuntos.WebApp.Controllers
                 }
 
                 var tenantId = _tenantContext.TenantId;
-                if (tenantId != null)
+                if (tenantId != Guid.Empty)
                 {
                     var ubicacion = await _ubicacionService.GetUbicacionAsync(productoUbicacion.UbicacionId);
                     if (ubicacion?.TenantId != tenantId)
@@ -440,7 +440,7 @@ namespace ServiPuntos.WebApp.Controllers
             }
 
             var tenantId = _tenantContext.TenantId;
-            if (tenantId != null)
+            if (tenantId != Guid.Empty)
             {
                 var ubicacion = await _ubicacionService.GetUbicacionAsync(productoUbicacion.UbicacionId);
                 if (ubicacion?.TenantId != tenantId)
@@ -474,7 +474,7 @@ namespace ServiPuntos.WebApp.Controllers
             }
 
             var tenantId = _tenantContext.TenantId;
-            if (tenantId != null)
+            if (tenantId != Guid.Empty)
             {
                 var ubicacion = await _ubicacionService.GetUbicacionAsync(productoUbicacion.UbicacionId);
                 if (ubicacion?.TenantId != tenantId)

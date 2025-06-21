@@ -27,13 +27,13 @@ namespace ServiPuntos.Application.Services.Rules
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<Guid?> ClasificarUsuarioAsync(Usuario usuario,IEnumerable<Audiencia> audienciasDefinidas,DatosTransaccionesUsuario datosTransacciones)
+        public Task<Guid?> ClasificarUsuarioAsync(Usuario usuario,IEnumerable<Audiencia> audienciasDefinidas,DatosTransaccionesUsuario datosTransacciones)
         {
-            if (usuario == null) { _logger.LogWarning("RuleEngine: Usuario nulo."); return null; } // Devuelve null
+            if (usuario == null) { _logger.LogWarning("RuleEngine: Usuario nulo."); return Task.FromResult<Guid?>(null); } // Devuelve null
             if (audienciasDefinidas == null || !audienciasDefinidas.Any())
             {
                 _logger.LogInformation("RuleEngine: No hay audiencias definidas para UsuarioId {UsuarioId}.", usuario.Id);
-                return null; // Devuelve null (o el AudienciaComunConocidaId si lo tienes)
+                return Task.FromResult<Guid?>(null); // Devuelve null (o el AudienciaComunConocidaId si lo tienes)
             }
 
             var datosDelUsuario = PrepararDatosDelUsuarioParaEvaluacion(usuario, datosTransacciones);
@@ -62,12 +62,12 @@ namespace ServiPuntos.Application.Services.Rules
                 {
                     _logger.LogDebug("UsuarioId {UsuarioId} clasificado en Audiencia (RuleEngine): '{AudId}' ({AudNombre}).",
                         usuario.Id, audienciaDef.Id, audienciaDef.NombreDescriptivo);
-                    return audienciaDef.Id; // CAMBIO: Devuelve el Guid de la Audiencia
+                    return Task.FromResult<Guid?>(audienciaDef.Id); // CAMBIO: Devuelve el Guid de la Audiencia
                 }
             }
 
             _logger.LogInformation("UsuarioId {UsuarioId} no coincidió con ninguna audiencia (RuleEngine).", usuario.Id);
-            return null; // CAMBIO: Devuelve null (o el AudienciaComunConocidaId)
+            return Task.FromResult<Guid?>(null); // CAMBIO: Devuelve null (o el AudienciaComunConocidaId)
         }
 
         // --- MÉTODOS PRIVADOS DEL MOTOR DE REGLAS ---

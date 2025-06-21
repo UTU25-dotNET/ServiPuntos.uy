@@ -61,5 +61,12 @@ namespace ServiPuntos.Infrastructure.Repositories
             _context.NotificacionUsuarios.RemoveRange(items);
             await _context.SaveChangesAsync();
         }
+
+        public async Task ClearAudienciaAsync(Guid audienciaId)
+        {
+            var notificaciones = _context.Notificaciones.Where(n => n.AudienciaId == audienciaId);
+            await notificaciones.ForEachAsync(n => n.AudienciaId = null);
+            await _context.SaveChangesAsync();
+        }
     }
 }

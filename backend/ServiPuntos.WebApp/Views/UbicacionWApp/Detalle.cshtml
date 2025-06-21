@@ -34,6 +34,11 @@
             <dt class="col-sm-3">Departamento:</dt>
             <dd class="col-sm-9">@Model.Departamento</dd>
 
+            <dt class="col-sm-3">Ubicación:</dt>
+            <dd class="col-sm-9">
+                <div id="map" style="height:200px;"></div>
+            </dd>
+
             <dt class="col-sm-3">Teléfono:</dt>
             <dd class="col-sm-9">
                  @if (!string.IsNullOrEmpty(Model.Telefono))
@@ -176,3 +181,17 @@
         <i class="fas fa-arrow-left me-2"></i>Volver al Listado
     </a>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var lat = @Model.Latitud.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var lng = @Model.Longitud.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var map = L.map('map').setView([lat, lng], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+            L.marker([lat, lng]).addTo(map);
+        });
+    </script>
+}

@@ -31,7 +31,7 @@ namespace ServiPuntos.Infrastructure.Repositories
         public async Task<IEnumerable<ProductoCanjeable>> GetAllAsync(Ubicacion ubicacion)
             => await _dbContext.ProductosCanjeables
                 .Include(p => p.DisponibilidadesPorUbicacion)
-                .Where(p => p.DisponibilidadesPorUbicacion.Any(d => d.UbicacionId == ubicacion.Id))
+                .Where(p => p.DisponibilidadesPorUbicacion != null && p.DisponibilidadesPorUbicacion.Any(d => d.UbicacionId == ubicacion.Id))
                 .ToListAsync();
         public Task AddAsync(ProductoCanjeable producto)
         {
