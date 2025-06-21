@@ -219,5 +219,18 @@ namespace ServiPuntos.Application.Services
 
             return string.Empty;
         }
+
+         private string GetCallbackUrl(string configKey, string path)
+        {
+            var url = _configuration[configKey];
+            var baseEnv = Environment.GetEnvironmentVariable("API_BASE_URL") ?? _configuration["API_BASE_URL"];
+
+            if (!string.IsNullOrEmpty(baseEnv))
+            {
+                url = baseEnv.TrimEnd('/') + path;
+            }
+
+            return url;
+        }
     }
 }
