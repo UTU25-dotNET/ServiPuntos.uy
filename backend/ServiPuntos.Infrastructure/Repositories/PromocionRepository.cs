@@ -53,5 +53,12 @@ namespace ServiPuntos.Infrastructure.Repositories
                 await _dbContext.SaveChangesAsync();
             }
         }
+
+        public async Task ClearAudienciaAsync(Guid audienciaId)
+        {
+            var promos = _dbContext.Promociones.Where(p => p.AudienciaId == audienciaId);
+            await promos.ForEachAsync(p => p.AudienciaId = null);
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }

@@ -17,6 +17,8 @@ namespace ServiPuntos.Application.Services
         // private readonly ITenantRepository _tenantRepository; // No es estrictamente necesario si el TenantId se pasa o se obtiene del contexto
         private readonly IAudienciaRepository _audienciaRepository;
         private readonly ITransaccionRepository _transaccionRepository; // Opcional
+        private readonly IPromocionRepository _promocionRepository;
+        private readonly INotificacionRepository _notificacionRepository;
         private readonly IAudienciaRuleEngine _ruleEngine;
         private readonly ITenantContext _tenantContext; // Para obtener el TenantId si no se pasa
         private readonly ILogger<AudienciaService> _logger;
@@ -32,7 +34,9 @@ namespace ServiPuntos.Application.Services
             IAudienciaRuleEngine ruleEngine,
             ITenantContext tenantContext,
             ILogger<AudienciaService> logger,
-            ITransaccionRepository transaccionRepository)
+            ITransaccionRepository transaccionRepository,
+            IPromocionRepository promocionRepository,
+            INotificacionRepository notificacionRepository)
         {
             _usuarioRepository = usuarioRepository ?? throw new ArgumentNullException(nameof(usuarioRepository));
             // _tenantRepository = tenantRepository;
@@ -41,6 +45,8 @@ namespace ServiPuntos.Application.Services
             _tenantContext = tenantContext ?? throw new ArgumentNullException(nameof(tenantContext));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _transaccionRepository = transaccionRepository;
+            _promocionRepository = promocionRepository ?? throw new ArgumentNullException(nameof(promocionRepository));
+            _notificacionRepository = notificacionRepository ?? throw new ArgumentNullException(nameof(notificacionRepository));
         }
 
         private Guid GetCurrentTenantId(Guid? tenantIdParam)
@@ -169,6 +175,10 @@ namespace ServiPuntos.Application.Services
                 _logger.LogWarning("Eliminar Audiencia: AudienciaId {AudienciaId} no encontrada o no pertenece al TenantId {TenantId}.", audienciaId, tenantId);
                 throw new KeyNotFoundException("Audiencia no encontrada o no pertenece al tenant.");
             }
+
+            // Limpiar referencias en promociones y notificaciones
+            await _promocionRepository.ClearAudienciaAsync(audienciaId);
+            await _notificacionRepository.ClearAudienciaAsync(audienciaId);
 
             await _audienciaRepository.DeleteAsync(audienciaId);
             _logger.LogInformation("Audiencia Id: {AudienciaId} eliminada. Reclasificando usuarios para TenantId: {TenantId}.", audienciaId, tenantId);

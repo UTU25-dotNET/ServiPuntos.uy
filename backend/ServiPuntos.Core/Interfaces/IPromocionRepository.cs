@@ -10,5 +10,9 @@ namespace ServiPuntos.Core.Interfaces
         Task AddAsync(Promocion promocion);
         Task UpdateAsync(Promocion promocion);
         Task DeleteAsync(Guid id);
+        /// <summary>
+        /// Establece en null la referencia de Audiencia en todas las promociones asociadas.
+        /// </summary>
+        Task ClearAudienciaAsync(Guid audienciaId);
     }
 }
