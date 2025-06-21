@@ -295,7 +295,7 @@ public class AuthController : ControllerBase
             {
                 // Redirigir al login con un parametro en la URL que diga que el usuario no existe y debe registrarse
                 Console.WriteLine("[GoogleCallback] Usuario no encontrado en la base de datos, redirigiendo al registro...");
-                return Redirect($"http://servipuntosuy.up.railway.app:3000/login?error=Usuario+no+registrado&email={Uri.EscapeDataString(userInfoJson.RootElement.GetProperty("email").GetString() ?? string.Empty)}");
+                return Redirect($"http://servipuntosuy.up.railway.app/login?error=Usuario+no+registrado&email={Uri.EscapeDataString(userInfoJson.RootElement.GetProperty("email").GetString() ?? string.Empty)}");
             }
             else
             {
@@ -342,7 +342,7 @@ public class AuthController : ControllerBase
             {
                 Console.WriteLine("[GoogleCallback] Redirigiendo a web app...");
                 // Redirigir a la web app como antes
-                return Redirect($"http://servipuntosuy.up.railway.app:3000/auth-callback?token={Uri.EscapeDataString(tempToken)}&state={Uri.EscapeDataString(state)}&returnUrl=/auth-callback");
+                return Redirect($"http://servipuntosuy.up.railway.app/auth-callback?token={Uri.EscapeDataString(tempToken)}&state={Uri.EscapeDataString(state)}&returnUrl=/auth-callback");
             }
         }
         catch (Exception ex)
