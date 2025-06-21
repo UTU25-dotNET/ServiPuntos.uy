@@ -44,16 +44,24 @@ const MapaView = () => {
   }, []);
 
   const handleItemClick = (ubicacion) => {
-    setSelectedUbicacion(ubicacion);
-    if (mapRef.current) {
-      mapRef.current.flyTo([ubicacion.latitud, ubicacion.longitud], 15);
+    if (selectedUbicacion?.id === ubicacion.id) {
+      setSelectedUbicacion(null);
+    } else {
+      setSelectedUbicacion(ubicacion);
+      if (mapRef.current) {
+        mapRef.current.flyTo([ubicacion.latitud, ubicacion.longitud], 15);
+      }
     }
   };
 
   const handleMarkerClick = (ubicacion) => {
-    setSelectedUbicacion(ubicacion);
-    if (mapRef.current) {
-      mapRef.current.flyTo([ubicacion.latitud, ubicacion.longitud], 15);
+    if (selectedUbicacion?.id === ubicacion.id) {
+      setSelectedUbicacion(null);
+    } else {
+      setSelectedUbicacion(ubicacion);
+      if (mapRef.current) {
+        mapRef.current.flyTo([ubicacion.latitud, ubicacion.longitud], 15);
+      }
     }
   };
 
@@ -77,8 +85,16 @@ const MapaView = () => {
             ))}
       </MapContainer>
       <div
-        className="overflow-auto border position-fixed top-0 end-0 bg-white"
-        style={{ width: "300px", maxHeight: "100vh", margin: "1rem", zIndex: 1000 }}
+        className="overflow-auto border position-fixed bg-white"
+        style={{
+          width: "300px",
+          maxHeight: "90vh",
+          top: "50%",
+          right: 0,
+          transform: "translateY(-50%)",
+          margin: "1rem",
+          zIndex: 1000,
+        }}
       >
         <div className="list-group-item active fw-bold text-center sticky-top">
           {tenantInfo ? `Ubicaciones de ${tenantInfo.nombre}` : "Ubicaciones"}
