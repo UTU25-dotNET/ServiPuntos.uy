@@ -112,8 +112,9 @@ namespace ServiPuntos.Application.Services
             // Registrar la transacción
             await _transaccionRepository.AddAsync(transaccion);
 
-            // Actualizar el saldo de puntos del usuario
+            // Actualizar el saldo de puntos del usuario y reflejarlo en la instancia local
             await _puntosService.ActualizarSaldoAsync(usuario.Id, puntosOtorgados);
+            usuario.Puntos += puntosOtorgados;
 
             // Actualizar métricas de usuario y reclasificarlo en audiencias
             usuario.ActualizarMetricasCompra(transaccion.Monto, string.Empty, ubicacionId);
@@ -173,6 +174,7 @@ namespace ServiPuntos.Application.Services
                 var usuario = await _usuarioService.GetUsuarioAsync(transaccion.UsuarioId);
                 if (usuario != null)
                 {
+                    usuario.Puntos += puntos;
                     usuario.ActualizarMetricasCompra(transaccion.Monto, string.Empty, transaccion.UbicacionId);
                     await _usuarioService.UpdateUsuarioAsync(usuario);
                     await _audienciaService.ActualizarSegmentosUsuariosAsync(transaccion.TenantId, new List<Usuario> { usuario });
