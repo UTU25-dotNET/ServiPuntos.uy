@@ -8,6 +8,7 @@ import UbicacionDetails from "./UbicacionDetails";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
+import "./MapaView.css";
 
 // Fix default icon paths in Leaflet when using webpack
 L.Icon.Default.mergeOptions({
@@ -16,20 +17,20 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-const openIcon = new L.Icon({
-  iconUrl: "/markers/marker-icon-green.png",
-  iconRetinaUrl: "/markers/marker-icon-2x-green.png",
-  shadowUrl: markerShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
+const openIcon = new L.DivIcon({
+  html:
+    '<div class="gas-marker"><img src="/markers/gas-station.svg" alt="open"/><span class="status-dot open"></span></div>',
+  className: '',
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
 });
 
-const closedIcon = new L.Icon({
-  iconUrl: "/markers/marker-icon-red.png",
-  iconRetinaUrl: "/markers/marker-icon-2x-red.png",
-  shadowUrl: markerShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
+const closedIcon = new L.DivIcon({
+  html:
+    '<div class="gas-marker"><img src="/markers/gas-station.svg" alt="closed"/><span class="status-dot closed"></span></div>',
+  className: '',
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
 });
 
 const MapaView = () => {
