@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import authService from "../../services/authService";
 import '../../App.css';
+import Breadcrumb from "../layout/Breadcrumb";
 
 const Login = () => {
     const [credentials, setCredentials] = useState({ email: "", password: "" });
@@ -143,7 +144,8 @@ const Login = () => {
     };
 
     const handleGoogleLogin = async () => {
-        window.location.href = "https://localhost:5019/api/auth/google-login";
+        //window.location.href = "https://localhost:5019/api/auth/google-login";
+        window.location.href = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth/google-login";
     };
 
 
@@ -162,6 +164,7 @@ const Login = () => {
             </div>
 
             <div className="login-form">
+                <Breadcrumb current={isRegisterMode ? "Registro" : "Login"} />
                 <h2 className="title">Servipuntos</h2>
                 <h3>{isRegisterMode ? "Registro" : "Iniciar Sesión"}</h3>
                 <p>¡La app donde tus compras sí rinden!</p>
@@ -291,7 +294,7 @@ const Login = () => {
                             style={{
                                 background: "none",
                                 border: "none",
-                                color: "#007bff",
+                                color: "var(--primary-color)",
                                 textDecoration: "underline",
                                 cursor: "pointer",
                                 fontSize: "14px"

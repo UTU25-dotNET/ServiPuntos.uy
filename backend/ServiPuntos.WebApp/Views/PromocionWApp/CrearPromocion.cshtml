@@ -1,0 +1,166 @@
+@model ServiPuntos.WebApp.Models.CreatePromocionViewModel
+@using ServiPuntos.Core.Enums
+@{
+    ViewData["Title"] = "Crear Promoción";
+}
+<div class="container">
+    <h3 class="mb-4">@ViewData["Title"]</h3>
+    <form asp-action="CrearPromocion" method="post">
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(m => m.Tipo, new { Value = TipoPromocion.Promocion })
+        <div id="formFields">
+            <div class="mb-3">
+                <label asp-for="Titulo" class="form-label">Título</label>
+                <input asp-for="Titulo" class="form-control" />
+                <span asp-validation-for="Titulo" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Descripcion" class="form-label">Descripción</label>
+                <textarea asp-for="Descripcion" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="row mb-3">
+                <div class="col">
+                    <label asp-for="FechaInicio" class="form-label">Inicio</label>
+                    <input asp-for="FechaInicio" class="form-control" type="date" />
+                </div>
+                <div class="col">
+                    <label asp-for="FechaFin" class="form-label">Fin</label>
+                    <input asp-for="FechaFin" class="form-control" type="date" />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col">
+                    <label asp-for="PrecioEnPuntos" class="form-label">Precio Puntos</label>
+                    <input asp-for="PrecioEnPuntos" class="form-control" type="number" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Ubicaciones</label>
+                <div class="list-group" style="max-height: 250px; overflow-y: auto;">
+                    @foreach (var u in (IEnumerable<ServiPuntos.Core.Entities.Ubicacion>)ViewBag.Ubicaciones)
+                    {
+                        <label class="list-group-item">
+                            <input class="form-check-input me-1" type="checkbox" name="UbicacionIds" value="@u.Id" />
+                            @u.Nombre
+                        </label>
+                    }
+                </div>
+                <div class="form-text">Dejar vacío para que sea global.</div>
+            </div>
+            <div class="mb-3">
+                <label asp-for="AudienciaId" class="form-label">Audiencia</label>
+                <select asp-for="AudienciaId" class="form-select">
+                    <option value="">Todos los usuarios</option>
+                    @foreach (var a in (IEnumerable<ServiPuntos.Core.Entities.Audiencia>)ViewBag.Audiencias)
+                    {
+                        <option value="@a.Id">@a.NombreDescriptivo</option>
+                    }
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Producto</label>
+                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#productoModal">Seleccionar Producto</button>
+                <div id="productoInputs"></div>
+                <div id="productoSeleccionado" class="mt-3" style="display:none;"></div>
+            </div>
+            <button type="submit" class="btn btn-primary">Crear</button>
+            <a asp-action="Index" class="btn btn-secondary">Volver</a>
+        </div>
+    </form>
+</div>
+
+<!-- Modal selección de producto -->
+<div class="modal fade" id="productoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Seleccionar Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3" id="productosContainer">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts{
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let seleccionados = [];
+
+            function actualizarLista() {
+                const cont = document.querySelector('#productoSeleccionado');
+                const inputsCont = document.getElementById('productoInputs');
+                inputsCont.innerHTML = '';
+                seleccionados.forEach(id => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'ProductoIds';
+                    input.value = id;
+                    inputsCont.appendChild(input);
+                });
+                if (seleccionados.length === 0) { cont.style.display = 'none'; cont.innerHTML = ''; return; }
+                cont.innerHTML = seleccionados.map(id => {
+                    const card = document.querySelector(`.seleccionar-producto[data-id="${id}"]`);
+                    return `<span class="badge bg-secondary me-1">${card.dataset.nombre}</span>`;
+                }).join(' ');
+                cont.style.display = '';
+            }
+
+            function attachSelectHandlers() {
+                document.querySelectorAll('.seleccionar-producto').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const id = card.dataset.id;
+                        if (seleccionados.includes(id)) {
+                            seleccionados = seleccionados.filter(x => x !== id);
+                            card.classList.remove('border-primary');
+                        } else {
+                            seleccionados.push(id);
+                            card.classList.add('border-primary');
+                        }
+                        actualizarLista();
+                    });
+                });
+            }
+
+            const API_BASE = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019";
+
+            async function cargarProductos() {
+                const cont = document.getElementById('productosContainer');
+                cont.innerHTML = '';
+                const ubicaciones = Array.from(document.querySelectorAll('input[name="UbicacionIds"]:checked')).map(cb => cb.value);
+                if (ubicaciones.length === 0) return;
+                const productosMap = {};
+                for (const uid of ubicaciones) {
+                    const resp = await fetch(`${API_BASE}/api/ProductoUbicacion/ubicacion/${uid}`);
+                    if (!resp.ok) continue;
+                    const prods = await resp.json();
+                    prods.forEach(p => { productosMap[p.productoCanjeableId] = p; });
+                }
+                Object.values(productosMap).forEach(p => {
+                    const foto = p.productoCanjeable?.fotoUrl || '/images/placeholder-logo.png';
+                    const nombre = p.productoCanjeable?.nombre || '';
+                    const isSelected = seleccionados.includes(p.productoCanjeableId.toString());
+                    const col = document.createElement('div');
+                    col.className = 'col';
+                    col.innerHTML = `<div class="card h-100 producto-card seleccionar-producto ${isSelected ? 'border-primary' : ''}" data-id="${p.productoCanjeableId}" data-nombre="${nombre}" data-foto="${foto}" data-precio="${p.precio}">
+                            <img src="${foto}" class="card-img-top" style="height:150px; object-fit:cover;" />
+                            <div class="card-body p-2">
+                                <h6 class="card-title">${nombre}</h6>
+                                <p class="mb-0"><small>${p.precio}</small></p>
+                            </div>
+                        </div>`;
+                    cont.appendChild(col);
+                });
+                attachSelectHandlers();
+            }
+
+            document.querySelectorAll('input[name="UbicacionIds"]').forEach(cb => cb.addEventListener('change', cargarProductos));
+
+            cargarProductos();
+            actualizarLista();
+        });
+    </script>
+}

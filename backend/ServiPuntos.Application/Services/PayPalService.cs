@@ -168,10 +168,16 @@ namespace ServiPuntos.Application.Services
 
             var paymentResponse = JsonSerializer.Deserialize<JsonElement>(content);
 
+             var amountElement = paymentResponse.GetProperty("transactions")[0].GetProperty("amount");
+            var amount = decimal.Parse(amountElement.GetProperty("total").GetString(), System.Globalization.CultureInfo.InvariantCulture);
+            var currency = amountElement.GetProperty("currency").GetString();
+
             return new TransaccionPayPalDto
             {
                 PaymentId = paymentId,
                 Status = paymentResponse.GetProperty("state").GetString(),
+                Amount = amount,
+                Currency = currency,
                 CreatedTime = DateTime.Parse(paymentResponse.GetProperty("create_time").GetString()),
                 AdditionalData = new Dictionary<string, object>
                 {
@@ -187,8 +193,11 @@ namespace ServiPuntos.Application.Services
                 var paymentDetails = await GetPaymentDetailsAsync(paymentId);
 
                 // Validar que el pago esté completado y el monto sea correcto
-                return paymentDetails.Status == "approved" &&
-                       Math.Abs(paymentDetails.Amount - expectedAmount) < 0.01m;
+                  var statusOk = paymentDetails.Status.Equals("approved", StringComparison.OrdinalIgnoreCase) ||
+                               paymentDetails.Status.Equals("completed", StringComparison.OrdinalIgnoreCase) ||
+                               paymentDetails.Status.Equals("captured", StringComparison.OrdinalIgnoreCase);
+
+                return statusOk && Math.Abs(paymentDetails.Amount - expectedAmount) < 0.01m;
             }
             catch
             {

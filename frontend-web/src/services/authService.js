@@ -29,8 +29,14 @@ const scheduleAutoLogout = () => {
   } catch (err) {
   }
 };
+// Dirección base de la API de autenticación
+// Nota: se corrige la URL para incluir "//" después de "https:".
+// De lo contrario, las peticiones se realizan al dominio actual en vez del backend.
+//const API_URL = "https://localhost:5019/api/auth/";
+ const API_URL = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth/";
 
-const API_URL = "https://localhost:5019/api/auth/";
+//const API_URL = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth/";
+
 
 const authService = {
   // Registro de usuario
@@ -114,23 +120,19 @@ register: async (name, email, password, ci, tenantId) => {
       }
       return response.data;
 
-      // // Descomentar cuando tengas el backend listo
-      
-      //       const response = await axios.post(`${API_URL}signin`, {
-      //         email,
-      //         password
-      //       });
-            
-      //       if (response.data.token) {
-      //         localStorage.setItem('token', response.data.token);
-      //       }
-            
-      //       return response.data;
-            
+
     } catch (error) {
       const message =
         error.response?.data?.message || error.message || "Error en el inicio de sesión";
       throw new Error(message);
+    }
+  },
+
+  // Guardar un token ya obtenido (por ejemplo, tras login con Google)
+  loginWithToken: (token) => {
+    if (token) {
+      localStorage.setItem('token', token);
+      scheduleAutoLogout();
     }
   },
 

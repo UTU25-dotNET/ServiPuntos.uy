@@ -11,12 +11,12 @@ namespace ServiPuntos.Core.Interfaces
         /// <summary>
         /// Obtiene una audiencia por su ID, incluyendo sus reglas.
         /// </summary>
-        Task<Audiencia> GetByIdWithReglasAsync(Guid audienciaId);
+        Task<Audiencia?> GetByIdWithReglasAsync(Guid audienciaId);
 
         /// <summary>
         /// Obtiene una audiencia por su NombreUnicoInterno para un tenant específico, incluyendo sus reglas.
         /// </summary>
-        Task<Audiencia> GetByNombreUnicoWithReglasAsync(Guid tenantId, string nombreUnicoInterno);
+        Task<Audiencia?> GetByNombreUnicoWithReglasAsync(Guid tenantId, string nombreUnicoInterno);
 
         /// <summary>
         /// Lista todas las audiencias para un tenant, incluyendo sus reglas.

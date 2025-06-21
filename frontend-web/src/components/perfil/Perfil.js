@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Breadcrumb from "../layout/Breadcrumb";
 import authService from "../../services/authService";
 import apiService from "../../services/apiService";
 import Historial from "./Historial";
@@ -238,6 +239,7 @@ if (loading) {
 
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "1rem" }}>
+      <Breadcrumb current="Mi Perfil" />
       <h2>Mi Perfil</h2>
 
       {/* Mensajes de error y éxito */}
@@ -279,9 +281,9 @@ if (loading) {
           style={{
             padding: "0.75rem 1.5rem",
             border: "none",
-            borderBottom: activeTab === "personal" ? "2px solid #007bff" : "2px solid transparent",
+            borderBottom: activeTab === "personal" ? "2px solid var(--primary-color)" : "2px solid transparent",
             backgroundColor: "transparent",
-            color: activeTab === "personal" ? "#007bff" : "#6c757d",
+            color: activeTab === "personal" ? "var(--primary-color)" : "#6c757d",
             cursor: "pointer",
             fontWeight: activeTab === "personal" ? "bold" : "normal",
             fontSize: "1rem"
@@ -295,9 +297,9 @@ if (loading) {
           style={{
             padding: "0.75rem 1.5rem",
             border: "none",
-            borderBottom: activeTab === "stats" ? "2px solid #007bff" : "2px solid transparent",
+            borderBottom: activeTab === "stats" ? "2px solid var(--primary-color)" : "2px solid transparent",
             backgroundColor: "transparent",
-            color: activeTab === "stats" ? "#007bff" : "#6c757d",
+            color: activeTab === "stats" ? "var(--primary-color)" : "#6c757d",
             cursor: "pointer",
             fontWeight: activeTab === "stats" ? "bold" : "normal",
             fontSize: "1rem"
@@ -357,11 +359,11 @@ if (loading) {
                       fontSize: "1rem",
                       transition: "border-color 0.3s ease",
                       "&:focus": {
-                        borderColor: "#007bff",
+                        borderColor: "var(--primary-color)",
                         outline: "none"
                       }
                     }}
-                    onFocus={(e) => e.target.style.borderColor = "#007bff"}
+                    onFocus={(e) => e.target.style.borderColor = "var(--primary-color)"}
                     onBlur={(e) => e.target.style.borderColor = "#e9ecef"}
                   />
                 </div>
@@ -389,7 +391,7 @@ if (loading) {
                       borderRadius: "8px",
                       fontSize: "1rem"
                     }}
-                    onFocus={(e) => e.target.style.borderColor = "#007bff"}
+                    onFocus={(e) => e.target.style.borderColor = "var(--primary-color)"}
                     onBlur={(e) => e.target.style.borderColor = "#e9ecef"}
                   />
                 </div>
@@ -419,7 +421,7 @@ if (loading) {
                     borderRadius: "8px",
                     fontSize: "1rem"
                   }}
-                  onFocus={(e) => e.target.style.borderColor = "#007bff"}
+                  onFocus={(e) => e.target.style.borderColor = "var(--primary-color)"}
                   onBlur={(e) => e.target.style.borderColor = "#e9ecef"}
                 />
               </div>
@@ -449,7 +451,7 @@ if (loading) {
                       borderRadius: "8px",
                       fontSize: "1rem"
                     }}
-                    onFocus={(e) => e.target.style.borderColor = "#007bff"}
+                    onFocus={(e) => e.target.style.borderColor = "var(--primary-color)"}
                     onBlur={(e) => e.target.style.borderColor = "#e9ecef"}
                   />
                 </div>
@@ -478,7 +480,7 @@ if (loading) {
                       borderRadius: "8px",
                       fontSize: "1rem"
                     }}
-                    onFocus={(e) => e.target.style.borderColor = "#007bff"}
+                    onFocus={(e) => e.target.style.borderColor = "var(--primary-color)"}
                     onBlur={(e) => e.target.style.borderColor = "#e9ecef"}
                   />
                 </div>
@@ -507,7 +509,7 @@ if (loading) {
                     fontSize: "1rem",
                     backgroundColor: "white"
                   }}
-                  onFocus={(e) => e.target.style.borderColor = "#007bff"}
+                  onFocus={(e) => e.target.style.borderColor = "var(--primary-color)"}
                   onBlur={(e) => e.target.style.borderColor = "#e9ecef"}
                 >
                   <option value="">Seleccionar combustible...</option>
@@ -821,13 +823,16 @@ if (loading) {
               type="button"
               onClick={() => setShowHistorial(!showHistorial)}
               style={{
-                backgroundColor: "#007bff",
+                backgroundColor: "var(--primary-color)",
                 color: "white",
                 border: "none",
                 borderRadius: "6px",
                 padding: "0.5rem 1rem",
-                cursor: "pointer"
+                cursor: "pointer",
+                transition: "opacity 0.2s"
               }}
+              onMouseEnter={(e) => (e.target.style.opacity = "0.85")}
+              onMouseLeave={(e) => (e.target.style.opacity = "1")}
             >
               {showHistorial ? "Ocultar historial" : "Ver historial"}
             </button>

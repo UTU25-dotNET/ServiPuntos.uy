@@ -136,15 +136,17 @@ namespace ServiPuntos.WebApp.Controllers
                     Id = p.Id,
                     Nombre = p.Nombre,
                     CostoEnPuntos = p.CostoEnPuntos,
+                    FotoUrl = p.FotoUrl,
                     Selected = false
                 }).ToList(),
                 Ubicaciones = ubicaciones.Select(u => new UbicacionSelectionViewModel
                 {
                     Id = u.Id,
                     Nombre = u.Nombre,
-                    Selected = false
+                    Selected = User.IsInRole("AdminUbicacion") ? true : false
                 }).ToList(),
-                StockInicial = 10
+                StockInicial = 10,
+                Precio = 0
             };
 
             return View(viewModel);
@@ -159,6 +161,12 @@ namespace ServiPuntos.WebApp.Controllers
             {
                 var productosSeleccionados = model.Productos?.Where(p => p.Selected).ToList() ?? new List<ProductoSelectionViewModel>();
                 var ubicacionesSeleccionadas = model.Ubicaciones?.Where(u => u.Selected).ToList() ?? new List<UbicacionSelectionViewModel>();
+
+                if (model.Precio < 0)
+                {
+                    ModelState.AddModelError("Precio", "El precio no puede ser negativo.");
+                    return await RecargarDatosAsignacion(model);
+                }
 
                 if (User.IsInRole("AdminUbicacion"))
                 {
@@ -190,7 +198,8 @@ namespace ServiPuntos.WebApp.Controllers
                                 model.StockInicial
                             )
                             {
-                                Activo = true
+                                Activo = true,
+                                Precio = model.Precio
                             };
 
                             await _productoUbicacionService.AddAsync(productoUbicacion);
@@ -225,7 +234,8 @@ namespace ServiPuntos.WebApp.Controllers
                         ProductoCanjeableId = producto.Id,
                         UbicacionId = ubicacion.Id,
                         StockDisponible = model.StockInicial,
-                        Activo = true
+                        Activo = true,
+                        Precio = model.Precio
                     };
 
                     // Guardar en la base de datos
@@ -240,7 +250,7 @@ namespace ServiPuntos.WebApp.Controllers
         public async Task<IActionResult> GestionarStock(Guid ubicacionId)
         {
             var tenantId = _tenantContext.TenantId;
-            if (tenantId == null)
+            if (tenantId == Guid.Empty)
             {
                 return Unauthorized();
             }
@@ -284,7 +294,7 @@ namespace ServiPuntos.WebApp.Controllers
             }
 
             var tenantId = _tenantContext.TenantId;
-            if (tenantId != null)
+            if (tenantId != Guid.Empty)
             {
                 var ubicacion = await _ubicacionService.GetUbicacionAsync(productoUbicacion.UbicacionId);
                 if (ubicacion?.TenantId != tenantId)
@@ -326,7 +336,7 @@ namespace ServiPuntos.WebApp.Controllers
             }
 
             var tenantId = _tenantContext.TenantId;
-            if (tenantId != null)
+            if (tenantId != Guid.Empty)
             {
                 var ubicacion = await _ubicacionService.GetUbicacionAsync(productoUbicacion.UbicacionId);
                 if (ubicacion?.TenantId != tenantId)
@@ -377,7 +387,7 @@ namespace ServiPuntos.WebApp.Controllers
                 }
 
                 var tenantId = _tenantContext.TenantId;
-                if (tenantId != null)
+                if (tenantId != Guid.Empty)
                 {
                     var ubicacion = await _ubicacionService.GetUbicacionAsync(productoUbicacion.UbicacionId);
                     if (ubicacion?.TenantId != tenantId)
@@ -430,7 +440,7 @@ namespace ServiPuntos.WebApp.Controllers
             }
 
             var tenantId = _tenantContext.TenantId;
-            if (tenantId != null)
+            if (tenantId != Guid.Empty)
             {
                 var ubicacion = await _ubicacionService.GetUbicacionAsync(productoUbicacion.UbicacionId);
                 if (ubicacion?.TenantId != tenantId)
@@ -464,7 +474,7 @@ namespace ServiPuntos.WebApp.Controllers
             }
 
             var tenantId = _tenantContext.TenantId;
-            if (tenantId != null)
+            if (tenantId != Guid.Empty)
             {
                 var ubicacion = await _ubicacionService.GetUbicacionAsync(productoUbicacion.UbicacionId);
                 if (ubicacion?.TenantId != tenantId)
@@ -517,6 +527,7 @@ namespace ServiPuntos.WebApp.Controllers
                     Id = p.Id,
                     Nombre = p.Nombre,
                     CostoEnPuntos = p.CostoEnPuntos,
+                    FotoUrl = p.FotoUrl,
                     Selected = model.Productos?.Any(mp => mp.Id == p.Id && mp.Selected) ?? false
                 }).ToList();
 
@@ -524,7 +535,7 @@ namespace ServiPuntos.WebApp.Controllers
                 {
                     Id = u.Id,
                     Nombre = u.Nombre,
-                    Selected = model.Ubicaciones?.Any(mu => mu.Id == u.Id && mu.Selected) ?? false
+                    Selected = User.IsInRole("AdminUbicacion") ? true : (model.Ubicaciones?.Any(mu => mu.Id == u.Id && mu.Selected) ?? false)
                 }).ToList();
             }
 

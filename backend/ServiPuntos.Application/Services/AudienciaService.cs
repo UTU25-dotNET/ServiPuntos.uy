@@ -17,6 +17,8 @@ namespace ServiPuntos.Application.Services
         // private readonly ITenantRepository _tenantRepository; // No es estrictamente necesario si el TenantId se pasa o se obtiene del contexto
         private readonly IAudienciaRepository _audienciaRepository;
         private readonly ITransaccionRepository _transaccionRepository; // Opcional
+        private readonly IPromocionRepository _promocionRepository;
+        private readonly INotificacionRepository _notificacionRepository;
         private readonly IAudienciaRuleEngine _ruleEngine;
         private readonly ITenantContext _tenantContext; // Para obtener el TenantId si no se pasa
         private readonly ILogger<AudienciaService> _logger;
@@ -32,7 +34,9 @@ namespace ServiPuntos.Application.Services
             IAudienciaRuleEngine ruleEngine,
             ITenantContext tenantContext,
             ILogger<AudienciaService> logger,
-            ITransaccionRepository transaccionRepository)
+            ITransaccionRepository transaccionRepository,
+            IPromocionRepository promocionRepository,
+            INotificacionRepository notificacionRepository)
         {
             _usuarioRepository = usuarioRepository ?? throw new ArgumentNullException(nameof(usuarioRepository));
             // _tenantRepository = tenantRepository;
@@ -41,6 +45,8 @@ namespace ServiPuntos.Application.Services
             _tenantContext = tenantContext ?? throw new ArgumentNullException(nameof(tenantContext));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _transaccionRepository = transaccionRepository;
+            _promocionRepository = promocionRepository ?? throw new ArgumentNullException(nameof(promocionRepository));
+            _notificacionRepository = notificacionRepository ?? throw new ArgumentNullException(nameof(notificacionRepository));
         }
 
         private Guid GetCurrentTenantId(Guid? tenantIdParam)
@@ -75,7 +81,7 @@ namespace ServiPuntos.Application.Services
         public async Task<IEnumerable<Audiencia>> GetAllAudienciasAsync(Guid tenantId)
         {
             tenantId = GetCurrentTenantId(tenantId); // Asegurar TenantId
-            _logger.LogInformation("Obteniendo todas las audiencias para TenantId: {TenantId}, SoloActivas: {SoloActivas}", tenantId);
+            _logger.LogInformation("Obteniendo todas las audiencias para TenantId: {TenantId}", tenantId);
             return await _audienciaRepository.ListByTenantIdWithReglasAsync(tenantId, ordenarPorPrioridad: true);
         }
 
@@ -170,6 +176,10 @@ namespace ServiPuntos.Application.Services
                 throw new KeyNotFoundException("Audiencia no encontrada o no pertenece al tenant.");
             }
 
+            // Limpiar referencias en promociones y notificaciones
+            await _promocionRepository.ClearAudienciaAsync(audienciaId);
+            await _notificacionRepository.ClearAudienciaAsync(audienciaId);
+
             await _audienciaRepository.DeleteAsync(audienciaId);
             _logger.LogInformation("Audiencia Id: {AudienciaId} eliminada. Reclasificando usuarios para TenantId: {TenantId}.", audienciaId, tenantId);
             await ActualizarSegmentosUsuariosAsync(tenantId,null);
@@ -251,6 +261,14 @@ namespace ServiPuntos.Application.Services
                 : new DatosTransaccionesUsuario();
 
             Guid? segmentoGuid = await _ruleEngine.ClasificarUsuarioAsync(usuario, audienciasDefinidas, datosTransacciones);
+
+            // Actualizar el segmento del usuario si cambió
+            if (usuario.SegmentoDinamicoId != segmentoGuid)
+            {
+                usuario.SegmentoDinamicoId = segmentoGuid;
+                usuario.FechaModificacion = DateTime.UtcNow;
+                await _usuarioRepository.UpdateAsync(usuario);
+            }
 
             if (segmentoGuid.HasValue)
             {
@@ -372,9 +390,7 @@ namespace ServiPuntos.Application.Services
             }
             try
             {
-                // Ejemplo: return await _transaccionRepository.GetAggregatedDataByUserIdAsync(usuarioId);
-                _logger.LogTrace("_ObtenerDatosTransaccionesUsuarioAsync: Placeholder para UsuarioId {UsuarioId}. Implementar con _transaccionRepository.", usuarioId);
-                return await Task.FromResult(new DatosTransaccionesUsuario());
+                return await _transaccionRepository.GetAggregatesByUsuarioIdAsync(usuarioId);
             }
             catch (Exception ex)
             {

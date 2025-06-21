@@ -8,8 +8,10 @@ namespace ServiPuntos.Core.Interfaces
 {
     public interface ITransaccionService
     {
-        Task<Transaccion> GetTransaccionByIdAsync(Guid id);
+        Task<Transaccion?> GetTransaccionByIdAsync(Guid id);
         Task<IEnumerable<Transaccion>> GetTransaccionesByUsuarioIdAsync(Guid usuarioId);
+
+        Task<IEnumerable<Transaccion>> GetTransaccionesByUsuarioIdPaginatedAsync(Guid usuarioId, Guid? cursor, int limit);
         Task<IEnumerable<Transaccion>> GetTransaccionesByUbicacionIdAsync(Guid ubicacionId);
         Task<IEnumerable<Transaccion>> GetTransaccionesByTenantIdAsync(Guid tenantId);
         Task<IEnumerable<Transaccion>> GetTransaccionesByDateRangeAsync(DateTime fechaInicio, DateTime fechaFin);

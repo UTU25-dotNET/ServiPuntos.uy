@@ -102,6 +102,52 @@ namespace ServiPuntos.API.Controllers
             }
         }
 
+        [HttpGet("transaccion/{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<IActionResult> GetTransaccion(Guid id)
+        {
+            try
+            {
+                var emailClaim = User.FindFirst(ClaimTypes.Email) ?? User.FindFirst("email");
+                if (emailClaim == null)
+                {
+                    return Unauthorized(new { message = "Email no disponible" });
+                }
+
+                var usuario = await _iUsuarioService.GetUsuarioAsync(emailClaim.Value);
+                if (usuario == null)
+                {
+                    return NotFound(new { message = "Usuario no encontrado" });
+                }
+
+                var transaccion = await _transaccionService.GetTransaccionByIdAsync(id);
+                if (transaccion == null || transaccion.UsuarioId != usuario.Id)
+                {
+                    return NotFound(new { message = "Transacción no encontrada" });
+                }
+
+                var response = new
+                {
+                    id = transaccion.Id,
+                    fecha = transaccion.FechaTransaccion,
+                    monto = transaccion.Monto,
+                    montoPagado = transaccion.MontoPayPal,
+                    esTransaccionMixta = transaccion.EsTransaccionMixta,
+                    tipo = transaccion.TipoTransaccion.ToString(),
+                    ubicacion = transaccion.Ubicacion?.Nombre,
+                    puntosOtorgados = transaccion.PuntosOtorgados,
+                    puntosUtilizados = transaccion.PuntosUtilizados,
+                    detalles = transaccion.Detalles
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al obtener transacción", error = ex.Message });
+            }
+        }
+
         // Obtener un usuario por ID.
 
         [HttpGet("{id}")]
@@ -268,10 +314,11 @@ namespace ServiPuntos.API.Controllers
         }
         [HttpGet("historial-transacciones")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public async Task<IActionResult> GetHistorialTransacciones()
+        public async Task<IActionResult> GetHistorialTransacciones([FromQuery] Guid? cursor, [FromQuery] int limit = 10)
         {
             try
             {
+                Console.WriteLine($"[UsuarioController] Solicitando historial de transacciones. Cursor: {cursor} Limit: {limit}");
                 var emailClaim = User.FindFirst(ClaimTypes.Email) ?? User.FindFirst("email");
                 if (emailClaim == null)
                 {
@@ -284,21 +331,26 @@ namespace ServiPuntos.API.Controllers
                     return NotFound(new { message = "Usuario no encontrado" });
                 }
 
-                var transacciones = await _transaccionService.GetTransaccionesByUsuarioIdAsync(usuario.Id);
+                var transacciones = await _transaccionService.GetTransaccionesByUsuarioIdPaginatedAsync(usuario.Id, cursor, limit);
+                Console.WriteLine($"[UsuarioController] Transacciones recibidas: {transacciones.Count()}");
 
-                var response = transacciones.Select(t => new
+                var lastId = transacciones.LastOrDefault()?.Id;
+
+                var items = transacciones.Select(t => new
                 {
                     id = t.Id,
                     fecha = t.FechaTransaccion,
                     monto = t.Monto,
+                    montoPagado = t.MontoPayPal,
+                    esTransaccionMixta = t.EsTransaccionMixta,
                     tipo = t.TipoTransaccion.ToString(),
                     ubicacion = t.Ubicacion?.Nombre,
                     puntosOtorgados = t.PuntosOtorgados,
                     puntosUtilizados = t.PuntosUtilizados,
                     detalles = t.Detalles
-                });
+                }).ToList();
 
-                return Ok(response);
+                return Ok(new { items, nextCursor = lastId });
             }
             catch (Exception ex)
             {

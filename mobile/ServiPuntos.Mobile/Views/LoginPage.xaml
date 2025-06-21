@@ -55,5 +55,24 @@
             BackgroundColor="#512BD4"
             TextColor="White"
             CornerRadius="12"/>
+
+        <Label Text="¿Aún no tienes cuenta? Regístrate aquí"
+            HorizontalOptions="Center"
+            TextColor="#007ACC"
+            FontSize="14"
+            Margin="0,20,0,0"
+            TextDecorations="Underline">
+            <Label.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnRegisterTapped"/>
+            </Label.GestureRecognizers>
+        </Label>
+
+        <Button x:Name="GoogleLoginButton"
+                Text="Iniciar sesión con Google"
+                BackgroundColor="#4285F4"
+                TextColor="White"
+                Clicked="OnGoogleLoginClicked"
+                Margin="20,10" />
+
     </StackLayout>
 </ContentPage>

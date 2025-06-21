@@ -183,8 +183,29 @@ namespace ServiPuntos.WebApp.Controllers
                 return View(ubicacion);
             }
 
-            ubicacion.FechaModificacion = DateTime.UtcNow;
-            await _ubicacionRepository.UpdateAsync(ubicacion.TenantId, ubicacion);
+            var existente = await _ubicacionRepository.GetAsync(ubicacion.Id);
+            if (existente == null)
+                return NotFound();
+
+            existente.Nombre = ubicacion.Nombre;
+            existente.Direccion = ubicacion.Direccion;
+            existente.Ciudad = ubicacion.Ciudad;
+            existente.Departamento = ubicacion.Departamento;
+            existente.Telefono = ubicacion.Telefono;
+            existente.HoraApertura = ubicacion.HoraApertura;
+            existente.HoraCierre = ubicacion.HoraCierre;
+            existente.Lavado = ubicacion.Lavado;
+            existente.CambioDeAceite = ubicacion.CambioDeAceite;
+            existente.CambioDeNeumaticos = ubicacion.CambioDeNeumaticos;
+            existente.PrecioLavado = ubicacion.PrecioLavado;
+            existente.PrecioCambioAceite = ubicacion.PrecioCambioAceite;
+            existente.PrecioCambioNeumaticos = ubicacion.PrecioCambioNeumaticos;
+            existente.PrecioNaftaSuper = ubicacion.PrecioNaftaSuper;
+            existente.PrecioNaftaPremium = ubicacion.PrecioNaftaPremium;
+            existente.PrecioDiesel = ubicacion.PrecioDiesel;
+            existente.FechaModificacion = DateTime.UtcNow;
+
+            await _ubicacionRepository.UpdateAsync(existente.TenantId, existente);
 
             // Si es AdminTenant, redirigir a Administrar, sino a Index
             if (User.IsInRole("AdminTenant"))

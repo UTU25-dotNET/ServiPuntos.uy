@@ -1,92 +1,162 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import Breadcrumb from "./layout/Breadcrumb";
+import apiService from "../services/apiService";
 
 const PayPalResult = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const [transaccion, setTransaccion] = useState(null);
+  const [productosInfo, setProductosInfo] = useState([]);
 
-  const status = searchParams.get("status") || (window.location.pathname.includes("paypal-cancel") ? "cancel" : "success");
+  const status =
+    searchParams.get("status") ||
+    (window.location.pathname.includes("paypal-cancel") ? "cancel" : "success");
   const paymentId = searchParams.get("paymentId");
-  const payerId = searchParams.get("payerId");
+  const payerId = searchParams.get("payerId") || searchParams.get("PayerID");
   const token = searchParams.get("token");
+  const transaccionId = searchParams.get("transaccionId");
 
   const isSuccess = status !== "cancel";
 
+  useEffect(() => {
+    if (isSuccess && transaccionId) {
+      apiService
+        .getTransaccionById(transaccionId)
+        .then((data) => setTransaccion(data))
+        .catch(() => {});
+    }
+  }, [isSuccess, transaccionId]);
+
+  useEffect(() => {
+    const cargarProductos = async () => {
+      if (!isSuccess || !transaccion || !transaccion.detalles) return;
+      let arr = [];
+      try {
+        const obj = JSON.parse(transaccion.detalles);
+        if (Array.isArray(obj)) arr = obj;
+        else if (obj.productos) arr = obj.productos;
+        else if (obj.Productos) arr = obj.Productos;
+      } catch {
+        arr = [];
+      }
+      const grouped = Object.values(
+        arr.reduce((acc, item) => {
+          const id = item.idProducto || item.IdProducto;
+          const nombre = item.nombreProducto || item.NombreProducto;
+          const cantidad = item.cantidad || item.Cantidad || 0;
+          if (!acc[id]) acc[id] = { id, nombre, cantidad };
+          else acc[id].cantidad += cantidad;
+          return acc;
+        }, {})
+      );
+      try {
+        const detalles = await Promise.all(
+          grouped.map(async (p) => {
+            try {
+              const info = await apiService.getProductoCanjeable(p.id);
+              return { ...p, ...info };
+            } catch {
+              return p;
+            }
+          })
+        );
+        setProductosInfo(detalles);
+      } catch {
+        setProductosInfo(grouped);
+      }
+    };
+    cargarProductos();
+  }, [isSuccess, transaccion]);
+
   return (
-    <div
-      style={{
-        minHeight: "80vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#f8f9fa"
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "500px",
-          backgroundColor: "white",
-          padding: "2rem",
-          borderRadius: "16px",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
-          border: "1px solid #e9ecef",
-          textAlign: "center"
-        }}
-      >
-        <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>
-          {isSuccess ? "✅" : "❌"}
+    <div className="container py-5">
+      <div className="row justify-content-center">
+        <div className="col-lg-6">
+          <Breadcrumb current="Pago" />
+          <div className="bg-white p-4 rounded shadow text-center">
+            <div className="display-4 mb-3">
+              {isSuccess ? "✅" : "❌"}
+            </div>
+            <h2 className={isSuccess ? "text-success" : "text-danger"}>
+              {isSuccess ? "Pago aprobado" : "Pago cancelado"}
+            </h2>
+            <p className="text-muted">
+              {isSuccess ? "El pago se completó con éxito." : "El pago fue cancelado por el usuario."}
+            </p>
+            {paymentId && (
+              <p className="small text-muted mb-0">
+                <strong>paymentId:</strong> {paymentId}
+              </p>
+            )}
+            {payerId && (
+              <p className="small text-muted mb-0">
+                <strong>payerId:</strong> {payerId}
+              </p>
+            )}
+            {token && (
+              <p className="small text-muted mb-0">
+                <strong>token:</strong> {token}
+              </p>
+            )}
+            {isSuccess && transaccion && (
+              <div className="text-start mt-3">
+                <p className="mb-1">
+                  <strong>Monto pagado:</strong> ${" "}
+                  {transaccion.montoPagado ?? transaccion.monto}
+                </p>
+                {transaccion.esTransaccionMixta && (
+                  <p className="mb-1 text-muted">
+                    <small>
+                      Total: ${" "}
+                      {transaccion.monto} - Puntos utilizados: {" "}
+                      {transaccion.puntosUtilizados}
+                    </small>
+                  </p>
+                )}
+                <p className="mb-3">
+                  <strong>Fecha:</strong> {new Date(transaccion.fecha).toLocaleString()}
+                </p>
+                {productosInfo.length > 0 && (
+                  <div className="mt-3">
+                    <h5 className="mb-3">Productos</h5>
+                    <ul className="list-group list-group-flush">
+                      {productosInfo.map((p, idx) => (
+                        <li
+                          key={idx}
+                          className="list-group-item d-flex align-items-start"
+                        >
+                          {p.fotoUrl && (
+                            <img
+                              src={p.fotoUrl}
+                              alt={p.nombre || p.nombreProducto}
+                              className="rounded me-3"
+                              style={{ width: "60px", height: "60px", objectFit: "cover" }}
+                            />
+                          )}
+                          <div className="flex-grow-1">
+                            <div className="fw-bold">
+                              {p.nombre || p.nombreProducto}
+                            </div>
+                            {p.descripcion && (
+                              <small className="text-muted">{p.descripcion}</small>
+                            )}
+                          </div>
+                          <span className="badge bg-primary rounded-pill ms-3">
+                            x{p.cantidad}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+            <button className="btn btn-primary mt-4" onClick={() => navigate("/")}>Volver al inicio</button>
+          </div>
+        
         </div>
-        <h2
-          style={{
-            color: isSuccess ? "#28a745" : "#dc3545",
-            marginBottom: "1rem"
-          }}
-        >
-          {isSuccess ? "Pago aprobado" : "Pago cancelado"}
-        </h2>
-        {isSuccess ? (
-          <p style={{ marginBottom: "1rem", color: "#6c757d" }}>
-            El pago se completó con éxito.
-          </p>
-        ) : (
-          <p style={{ marginBottom: "1rem", color: "#6c757d" }}>
-            El pago fue cancelado por el usuario.
-          </p>
-        )}
-        {paymentId && (
-          <p style={{ margin: "0.25rem 0", fontSize: "0.9rem", color: "#6c757d" }}>
-            <strong>paymentId:</strong> {paymentId}
-          </p>
-        )}
-        {payerId && (
-          <p style={{ margin: "0.25rem 0", fontSize: "0.9rem", color: "#6c757d" }}>
-            <strong>payerId:</strong> {payerId}
-          </p>
-        )}
-        {token && (
-          <p style={{ margin: "0.25rem 0", fontSize: "0.9rem", color: "#6c757d" }}>
-            <strong>token:</strong> {token}
-          </p>
-        )}
-        <button
-          onClick={() => navigate("/")}
-          style={{
-            marginTop: "2rem",
-            padding: "0.75rem 1.5rem",
-            backgroundColor: "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-            fontSize: "1rem",
-            fontWeight: "600"
-          }}
-          onMouseEnter={(e) => (e.target.style.backgroundColor = "#0056b3")}
-          onMouseLeave={(e) => (e.target.style.backgroundColor = "#007bff")}
-        >
-          Volver al inicio
-        </button>
+       
       </div>
     </div>
   );

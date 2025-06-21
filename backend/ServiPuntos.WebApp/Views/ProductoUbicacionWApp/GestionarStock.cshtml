@@ -47,6 +47,7 @@
                                     <tr>
                                         <th>Producto</th>
                                         <th>Costo en Puntos</th>
+                                        <th>Precio</th>
                                         <th>Stock Actual</th>
                                         <th>Estado</th>
                                         <th>Acciones</th>
@@ -63,6 +64,9 @@
                                                 <span class="badge bg-info">
                                                     <i class="fas fa-coins"></i> @item.ProductoCanjeable?.CostoEnPuntos
                                                 </span>
+                                            </td>
+                                            <td>
+                                                $@item.Precio.ToString("F2")
                                             </td>
                                             <td>
                                                 <span class="badge @(item.StockDisponible > 0 ? "bg-success" : "bg-warning") fs-6">
@@ -82,7 +86,7 @@
                                             </td>
                                         </tr>
                                         <tr id="form-row-@item.Id" style="display: none;">
-                                            <td colspan="5">
+                                            <td colspan="6">
                                                 <form method="post" asp-action="ActualizarStock" class="p-3 bg-light rounded">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="productoUbicacionId" value="@item.Id" />

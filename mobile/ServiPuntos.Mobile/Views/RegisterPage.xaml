@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ServiPuntos.Mobile.Views.RegisterPage"
+             Title="Registro">
+    
+    <ScrollView>
+        <VerticalStackLayout Spacing="20" Padding="30">
+            
+            <!-- Logo o título -->
+            <Label Text="Crear Nueva Cuenta"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   Margin="0,20,0,30"/>
+
+            <!-- Selector de Tenant -->
+            <Label Text="Organización" FontAttributes="Bold"/>
+            <Picker x:Name="TenantPicker"
+                    ItemsSource="{Binding Tenants}"
+                    ItemDisplayBinding="{Binding Nombre}"
+                    SelectedItem="{Binding SelectedTenant}"
+                    Title="Selecciona una organización"/>
+
+            <!-- Nombre completo -->
+            <Label Text="Nombre Completo" FontAttributes="Bold"/>
+            <Entry x:Name="NombreEntry"
+                   Text="{Binding Nombre}"
+                   Placeholder="Ingresa tu nombre completo"
+                   Keyboard="Text"/>
+
+            <!-- Cédula de Identidad -->
+            <Label Text="Cédula de Identidad" FontAttributes="Bold"/>
+            <Entry x:Name="CiEntry"
+                   Text="{Binding Ci}"
+                   Placeholder="12345678"
+                   Keyboard="Numeric"
+                   MaxLength="8"/>
+
+            <!-- Email -->
+            <Label Text="Email" FontAttributes="Bold"/>
+            <Entry x:Name="EmailEntry"
+                   Text="{Binding Email}"
+                   Placeholder="tu@email.com"
+                   Keyboard="Email"/>
+
+            <!-- Contraseña -->
+            <Label Text="Contraseña" FontAttributes="Bold"/>
+            <Entry x:Name="PasswordEntry"
+                   Text="{Binding Password}"
+                   Placeholder="Mínimo 6 caracteres"
+                   IsPassword="True"/>
+
+            <!-- Confirmar contraseña -->
+            <Label Text="Confirmar Contraseña" FontAttributes="Bold"/>
+            <Entry x:Name="ConfirmPasswordEntry"
+                   Text="{Binding ConfirmPassword}"
+                   Placeholder="Repite tu contraseña"
+                   IsPassword="True"/>
+
+            <!-- Mensaje de error -->
+            <Label Text="{Binding ErrorMessage}"
+                   TextColor="Red"
+                   IsVisible="{Binding HasError}"
+                   HorizontalOptions="Center"/>
+
+            <!-- Botón de registro -->
+            <Button Text="Registrarse"
+                    Command="{Binding RegisterCommand}"
+                    IsEnabled="{Binding IsRegisterEnabled}"
+                    BackgroundColor="#007ACC"
+                    TextColor="White"
+                    CornerRadius="5"
+                    Margin="0,20,0,0"/>
+
+            <!-- Indicador de carga -->
+            <ActivityIndicator IsRunning="{Binding IsLoading}"
+                               IsVisible="{Binding IsLoading}"
+                               Color="#007ACC"/>
+
+            <!-- Link para volver al login -->
+            <Label Text="¿Ya tienes cuenta? Inicia sesión"
+                   HorizontalOptions="Center"
+                   TextColor="#007ACC"
+                   Margin="0,20,0,0">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnBackToLoginTapped"/>
+                </Label.GestureRecognizers>
+            </Label>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
