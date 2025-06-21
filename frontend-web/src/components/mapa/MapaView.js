@@ -21,16 +21,16 @@ const openIcon = new L.DivIcon({
   html:
     '<div class="gas-marker"><img src="/markers/gas-station.svg" alt="open"/><span class="status-dot open"></span></div>',
   className: '',
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
+  iconSize: [64, 64],
+  iconAnchor: [32, 64],
 });
 
 const closedIcon = new L.DivIcon({
   html:
     '<div class="gas-marker"><img src="/markers/gas-station.svg" alt="closed"/><span class="status-dot closed"></span></div>',
   className: '',
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
+  iconSize: [64, 64],
+  iconAnchor: [32, 64],
 });
 
 const MapaView = () => {
