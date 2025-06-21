@@ -53,81 +53,29 @@ const Home = () => {
 
   // Renderizado para usuarios no autenticados
   const renderWelcomeScreen = () => (
-    <div
-      style={{
-        minHeight: "80vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#f8f9fa"
-      }}
-    >
-      <div
-        style={{
-          textAlign: "center",
-          maxWidth: "600px",
-          padding: "3rem",
-          backgroundColor: "white",
-          borderRadius: "16px",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.1)"
-        }}
-      >
-        <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>⛽</div>
-        <h1 style={{ color: "var(--primary-color)", fontSize: "3rem", marginBottom: "1rem" }}>
-          Servipuntos
-        </h1>
-        <p style={{ fontSize: "1.3rem", color: "#6c757d", marginBottom: "2rem", lineHeight: "1.6" }}>
-          Tu plataforma para gestionar puntos, consultar precios y canjear productos en toda nuestra red de estaciones.
+    <div className="bg-light min-vh-100 d-flex align-items-center py-5">
+      <div className="container text-center bg-white rounded shadow-sm p-5" style={{ maxWidth: "600px" }}>
+        <div className="display-4 mb-3" role="img" aria-label="Estación" style={{ fontSize: "3rem" }}>⛽</div>
+        <h1 className="mb-3" style={{ color: "#007BFF" }}>Servipuntos</h1>
+        <p className="lead text-muted mb-4">
+          Tu plataforma para gestionar puntos y consultar precios en toda nuestra red de estaciones.
         </p>
-        <Link
-          to="/login"
-          style={{
-            display: "inline-block",
-            backgroundColor: "var(--primary-color)",
-            color: "white",
-            padding: "1rem 2rem",
-            borderRadius: "8px",
-            textDecoration: "none",
-            fontSize: "1.1rem",
-            fontWeight: "600",
-            transition: "transform 0.2s ease, box-shadow 0.2s ease"
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.transform = "translateY(-2px)";
-            e.target.style.boxShadow = "0 8px 20px rgba(123,63,0,0.3)";
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.transform = "translateY(0)";
-            e.target.style.boxShadow = "none";
-          }}
-        >
+        <Link to="/login" className="btn btn-primary btn-lg mb-5" style={{ backgroundColor: "#007BFF" }}>
           Iniciar Sesión
         </Link>
         
-        {/* Características destacadas */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-            gap: "1.5rem",
-            marginTop: "3rem",
-            textAlign: "center"
-          }}
-        >
-          <div>
-            <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>💰</div>
-            <h4 style={{ color: "var(--primary-color)", marginBottom: "0.5rem" }}>Puntos y Recompensas</h4>
-            <p style={{ color: "#6c757d", fontSize: "0.9rem" }}>Acumula puntos y canjea productos</p>
+        <div className="row justify-content-center">
+          <div className="col-6 col-md-4 mb-4">
+            <h5 style={{ color: "#007BFF" }}>Puntos y Recompensas</h5>
+            <p className="text-muted small">Acumula puntos y canjea productos</p>
           </div>
-          <div>
-            <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>📊</div>
-            <h4 style={{ color: "var(--primary-color)", marginBottom: "0.5rem" }}>Precios en Tiempo Real</h4>
-            <p style={{ color: "#6c757d", fontSize: "0.9rem" }}>Consulta precios actualizados</p>
+          <div className="col-6 col-md-4 mb-4">
+            <h5 style={{ color: "#007BFF" }}>Precios Actualizados</h5>
+            <p className="text-muted small">Consulta valores en tiempo real</p>
           </div>
-          <div>
-            <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>🗺️</div>
-            <h4 style={{ color: "var(--primary-color)", marginBottom: "0.5rem" }}>Red de Estaciones</h4>
-            <p style={{ color: "#6c757d", fontSize: "0.9rem" }}>Encuentra estaciones cerca tuyo</p>
+          <div className="col-6 col-md-4 mb-4">
+            <h5 style={{ color: "#007BFF" }}>Estaciones Cercanas</h5>
+            <p className="text-muted small">Encuentra ubicaciones en tu ruta</p>
           </div>
         </div>
       </div>
@@ -352,7 +300,8 @@ const Home = () => {
                 </div>
               </Link>
 
-              <div
+              <Link
+                to="/mapa"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -360,17 +309,26 @@ const Home = () => {
                   padding: "1rem",
                   backgroundColor: "#f8f9fa",
                   borderRadius: "8px",
+                  textDecoration: "none",
                   color: "#6c757d",
                   border: "1px dashed #dee2e6",
-                  opacity: 0.7
+                  transition: "transform 0.2s ease, box-shadow 0.2s ease"
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = "translateY(-2px)";
+                  e.target.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = "translateY(0)";
+                  e.target.style.boxShadow = "none";
                 }}
               >
                 <span style={{ fontSize: "1.5rem" }}>🗺️</span>
                 <div>
                   <strong>Mapa</strong>
-                  <div style={{ fontSize: "0.8rem" }}>Próximamente</div>
+                  <div style={{ fontSize: "0.8rem" }}>Ver ubicaciones</div>
                 </div>
-              </div>
+              </Link>
 
               <Link
                 to="/promociones"

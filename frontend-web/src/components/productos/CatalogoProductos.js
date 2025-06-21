@@ -1,7 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import apiService from "../../services/apiService";
 import SeleccionarPuntosModal from "./SeleccionarPuntosModal";
+
+const categorias18 = [
+  'cigarros',
+  'cigarrillos',
+  'bebidas alcoholicas',
+  'bebidas alcohólicas'
+];
 
 const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile, onProfileUpdated }) => {
   const [productos, setProductos] = useState([]);
@@ -26,18 +33,11 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile, onProfileU
   const [maxPuntosCarrito, setMaxPuntosCarrito] = useState(0);
   const [esMayorDeEdad, setEsMayorDeEdad] = useState(true);
 
-  const categorias18 = [
-    'cigarros',
-    'cigarrillos',
-    'bebidas alcoholicas',
-    'bebidas alcohólicas'
-  ];
-
-  const esCategoriaRestringida = (cat) => {
+  const esCategoriaRestringida = useCallback((cat) => {
     if (!cat) return false;
     const c = cat.toLowerCase();
     return categorias18.some((v) => c.includes(v));
-  };
+  }, []);
 
   const ensureAgeVerified = async (categoria) => {
     if (!esCategoriaRestringida(categoria)) return true;
@@ -86,7 +86,7 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile, onProfileU
     if (isOpen && ubicacion) {
       loadProductos();
     }
-  }, [isOpen, ubicacion, esMayorDeEdad]);
+  }, [isOpen, ubicacion, esMayorDeEdad, esCategoriaRestringida]);
 
   // Cargar información del tenant cuando se abre el catálogo
   useEffect(() => {

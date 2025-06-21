@@ -7,8 +7,8 @@ namespace ServiPuntos.Core.Interfaces
 {
     public interface ICanjeRepository
     {
-        Task<Canje> GetByIdAsync(Guid id);
-        Task<Canje> GetByCodigoQRAsync(string codigoQR);
+        Task<Canje?> GetByIdAsync(Guid id);
+        Task<Canje?> GetByCodigoQRAsync(string codigoQR);
         Task<IEnumerable<Canje>> GetByUsuarioIdPaginatedAsync(Guid usuarioId, Guid? cursor, int limit);
         Task<IEnumerable<Canje>> GetByUsuarioIdAsync(Guid usuarioId);
         Task<IEnumerable<Canje>> GetByUbicacionIdAsync(Guid ubicacionId);

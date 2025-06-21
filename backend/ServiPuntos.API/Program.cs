@@ -8,6 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using ServiPuntos.Application.Services;
+using ServiPuntos.Application.Services.Rules;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Data;
 using ServiPuntos.Infrastructure.Middleware;
@@ -31,7 +32,8 @@ builder.Services.AddControllersWithViews()
     .AddJsonOptions(opts =>
     {
         opts.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
-        opts.JsonSerializerOptions.DictionaryKeyPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    opts.JsonSerializerOptions.DictionaryKeyPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    opts.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     });
 
 // Agregar servicios de Swagger para documentaci�n de API
@@ -129,6 +131,7 @@ builder.Services.AddScoped<IUbicacionRepository, UbicacionRepository>();
 builder.Services.AddScoped<IProductoUbicacionRepository, ProductoUbicacionRepository>();
 builder.Services.AddScoped<IPromocionRepository, PromocionRepository>();
 builder.Services.AddScoped<INotificacionRepository, NotificacionRepository>();
+builder.Services.AddScoped<IAudienciaRepository, AudienciaRepository>();
 
 // Registra los servicios de NAFTA
 builder.Services.AddScoped<ITransaccionService, TransaccionService>();
@@ -142,6 +145,8 @@ builder.Services.AddScoped<IProductoUbicacionService, ProductoUbicacionService>(
 builder.Services.AddScoped<IPayPalService, PayPalService>();
 builder.Services.AddScoped<IPromocionService, PromocionService>();
 builder.Services.AddScoped<INotificacionService, NotificacionService>();
+builder.Services.AddScoped<IAudienciaRuleEngine, AudienciaRuleEngine>();
+builder.Services.AddScoped<IAudienciaService, AudienciaService>();
 
 // Construye la aplicaci�n web
 var app = builder.Build();
@@ -159,8 +164,8 @@ app.UseCors("AllowReactApp");
 app.UseRouting();
 app.UseSession(); 
 app.UseAuthentication();
-app.UseAuthorization();
 //app.UseMiddleware<TenantMiddleware>();
+app.UseAuthorization();
 app.MapControllers();
 
 

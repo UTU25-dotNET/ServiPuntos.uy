@@ -124,8 +124,8 @@ public class AuthController : ControllerBase
         }
 
         //var redirectUri = "https://servipuntos-api.duckdns.org/api/auth/google-callback";
+        //var redirectUri = "https://localhost:5019/api/auth/google-callback";
         var redirectUri = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth/google-callback";
-
         var scope = "email profile openid";
 
         var pkceValues = PKCE.Create(64, "S256");
@@ -224,6 +224,7 @@ public class AuthController : ControllerBase
             {
                 throw new InvalidOperationException("Google ClientId or ClientSecret is not configured.");
             }
+            //var redirectUri = "https://localhost:5019/api/auth/google-callback";
             //var redirectUri = " https://servipuntos-api.duckdns.org:5019/api/auth/google-callback";
             var redirectUri = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth/google-callback";
             var code_verifier = HttpContext.Session.GetString("CodeVerifier");

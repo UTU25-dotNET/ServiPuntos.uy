@@ -1,0 +1,123 @@
+.container {
+  background-color: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border: 1px solid #e9ecef;
+}
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+.header-title {
+  margin: 0;
+  color: var(--primary-color);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+.description {
+  margin: 0 0 1.5rem 0;
+  color: #6c757d;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+.list {
+  display: grid;
+  gap: 1rem;
+}
+.loader,
+.error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+.error-box {
+  background-color: #fff2cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+}
+.error-text {
+  margin: 0;
+  color: #856404;
+  font-size: 0.9rem;
+}
+.footer {
+  margin-top: 1.5rem;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  text-align: center;
+}
+.footer-text {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.spinner {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid var(--primary-color);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+}
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+.price-info { flex: 1; }
+.price-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+.price-icon { font-size: 1.1rem; }
+.price-name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+.price-location { font-size: 0.8rem; color: #6c757d; }
+.price-value {
+  text-align: right;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.price-super {
+  background-color: #e8f5e8;
+  border-color: #c3e6c3;
+  color: #2d5a2d;
+}
+.price-super .price-name,
+.price-super .price-value { color: #2d5a2d; }
+
+.price-premium {
+  background-color: #fff9c4;
+  border-color: #f9c74f;
+  color: #b8860b;
+}
+.price-premium .price-name,
+.price-premium .price-value { color: #b8860b; }
+
+.price-diesel {
+  background-color: #e3f2fd;
+  border-color: #90caf9;
+  color: #1565c0;
+}
+.price-diesel .price-name,
+.price-diesel .price-value { color: #1565c0; }

@@ -37,7 +37,7 @@ namespace ServiPuntos.WebApp.Controllers
         public async Task<IActionResult> Index()
         {
             var tenantId = _tenantContext.TenantId;
-            if (tenantId == null) return Unauthorized();
+            if (tenantId == Guid.Empty) return Unauthorized();
 
             var promos = await _promocionService.GetPromocionesByTenantAsync(tenantId);
             return View(promos);
@@ -47,9 +47,10 @@ namespace ServiPuntos.WebApp.Controllers
         public async Task<IActionResult> CrearPromocion()
         {
             var tenantId = _tenantContext.TenantId;
-            if (tenantId == null) return Unauthorized();
+            if (tenantId == Guid.Empty) return Unauthorized();
             ViewBag.Ubicaciones = await _ubicacionService.GetAllUbicacionesAsync(tenantId);
             ViewBag.Productos = await _productoService.GetAllProductosAsync();
+            ViewBag.Audiencias = await _audienciaService.GetDefinicionesAudienciaAsync(tenantId);
             return View("CrearPromocion", new CreatePromocionViewModel { Tipo = TipoPromocion.Promocion });
         }
 
@@ -57,9 +58,10 @@ namespace ServiPuntos.WebApp.Controllers
         public async Task<IActionResult> CrearOferta()
         {
             var tenantId = _tenantContext.TenantId;
-            if (tenantId == null) return Unauthorized();
+            if (tenantId == Guid.Empty) return Unauthorized();
             ViewBag.Ubicaciones = await _ubicacionService.GetAllUbicacionesAsync(tenantId);
             ViewBag.Productos = new List<ProductoCanjeable>();
+            ViewBag.Audiencias = await _audienciaService.GetDefinicionesAudienciaAsync(tenantId);
             return View("CrearOferta", new CreatePromocionViewModel { Tipo = TipoPromocion.Oferta });
         }
 
@@ -81,13 +83,14 @@ namespace ServiPuntos.WebApp.Controllers
         private async Task<IActionResult> CrearInterno(CreatePromocionViewModel model)
         {
             var tenantId = _tenantContext.TenantId;
-            if (tenantId == null) return Unauthorized();
+            if (tenantId == Guid.Empty) return Unauthorized();
             if (!ModelState.IsValid)
             {
                 ViewBag.Ubicaciones = await _ubicacionService.GetAllUbicacionesAsync(tenantId);
                 ViewBag.Productos = model.Tipo == TipoPromocion.Oferta
                     ? new List<ProductoCanjeable>()
                     : await _productoService.GetAllProductosAsync();
+                ViewBag.Audiencias = await _audienciaService.GetDefinicionesAudienciaAsync(tenantId);
                 return View(model.Tipo == TipoPromocion.Oferta ? "CrearOferta" : "CrearPromocion", model);
             }
 
@@ -139,7 +142,7 @@ namespace ServiPuntos.WebApp.Controllers
         public async Task<IActionResult> Editar(Guid id)
         {
             var tenantId = _tenantContext.TenantId;
-            if (tenantId == null) return Unauthorized();
+            if (tenantId == Guid.Empty) return Unauthorized();
             var promo = await _promocionService.GetPromocionAsync(id);
             if (promo == null || promo.TenantId != tenantId) return NotFound();
             var model = new EditPromocionViewModel
@@ -159,6 +162,7 @@ namespace ServiPuntos.WebApp.Controllers
             };
             ViewBag.Ubicaciones = await _ubicacionService.GetAllUbicacionesAsync(tenantId);
             ViewBag.Productos = await _productoService.GetAllProductosAsync();
+            ViewBag.Audiencias = await _audienciaService.GetDefinicionesAudienciaAsync(tenantId);
             return View(model);
         }
 
@@ -167,12 +171,13 @@ namespace ServiPuntos.WebApp.Controllers
         public async Task<IActionResult> Editar(Guid id, EditPromocionViewModel model)
         {
             var tenantId = _tenantContext.TenantId;
-            if (tenantId == null) return Unauthorized();
+            if (tenantId == Guid.Empty) return Unauthorized();
             if (id != model.Id) return NotFound();
             if (!ModelState.IsValid)
             {
                 ViewBag.Ubicaciones = await _ubicacionService.GetAllUbicacionesAsync(tenantId);
                 ViewBag.Productos = await _productoService.GetAllProductosAsync();
+                ViewBag.Audiencias = await _audienciaService.GetDefinicionesAudienciaAsync(tenantId);
                 return View(model);
             }
 
@@ -218,7 +223,7 @@ namespace ServiPuntos.WebApp.Controllers
         public async Task<IActionResult> Borrar(Guid id)
         {
             var tenantId = _tenantContext.TenantId;
-            if (tenantId == null) return Unauthorized();
+            if (tenantId == Guid.Empty) return Unauthorized();
             var promo = await _promocionService.GetPromocionAsync(id);
             if (promo == null || promo.TenantId != tenantId) return NotFound();
             return View(promo);
@@ -229,7 +234,7 @@ namespace ServiPuntos.WebApp.Controllers
         public async Task<IActionResult> BorrarConfirmed(Guid id)
         {
             var tenantId = _tenantContext.TenantId;
-            if (tenantId == null) return Unauthorized();
+            if (tenantId == Guid.Empty) return Unauthorized();
             var promo = await _promocionService.GetPromocionAsync(id);
             if (promo == null || promo.TenantId != tenantId) return NotFound();
 
@@ -242,7 +247,7 @@ namespace ServiPuntos.WebApp.Controllers
         public async Task<IActionResult> Notificar(Guid id)
         {
             var tenantId = _tenantContext.TenantId;
-            if (tenantId == null) return Unauthorized();
+            if (tenantId == Guid.Empty) return Unauthorized();
             var promo = await _promocionService.GetPromocionAsync(id);
             if (promo == null || promo.TenantId != tenantId) return NotFound();
 
@@ -262,7 +267,7 @@ namespace ServiPuntos.WebApp.Controllers
         public async Task<IActionResult> Notificar(Guid id, CreateNotificacionViewModel model)
         {
             var tenantId = _tenantContext.TenantId;
-            if (tenantId == null) return Unauthorized();
+            if (tenantId == Guid.Empty) return Unauthorized();
             var promo = await _promocionService.GetPromocionAsync(id);
             if (promo == null || promo.TenantId != tenantId) return NotFound();
 
