@@ -10,5 +10,9 @@ namespace ServiPuntos.Core.Interfaces
         Task MarkAsLeidaAsync(Guid notificacionUsuarioId);
         Task DeleteUsuarioAsync(Guid notificacionUsuarioId);
         Task DeleteAllByUsuarioAsync(Guid usuarioId);
+        /// <summary>
+        /// Establece en null la referencia de Audiencia en todas las notificaciones asociadas.
+        /// </summary>
+        Task ClearAudienciaAsync(Guid audienciaId);
     }
 }
