@@ -81,7 +81,13 @@ const MapaView = () => {
       setSelectedUbicacion(null);
     } else {
       setSelectedUbicacion(ubicacion);
-      if (mapRef.current) {
+      if (
+        mapRef.current &&
+        ubicacion.latitud !== undefined &&
+        ubicacion.longitud !== undefined &&
+        ubicacion.latitud !== null &&
+        ubicacion.longitud !== null
+      ) {
         mapRef.current.flyTo([ubicacion.latitud, ubicacion.longitud], 15);
       }
     }
@@ -92,7 +98,13 @@ const MapaView = () => {
       setSelectedUbicacion(null);
     } else {
       setSelectedUbicacion(ubicacion);
-      if (mapRef.current) {
+      if (
+        mapRef.current &&
+        ubicacion.latitud !== undefined &&
+        ubicacion.longitud !== undefined &&
+        ubicacion.latitud !== null &&
+        ubicacion.longitud !== null
+      ) {
         mapRef.current.flyTo([ubicacion.latitud, ubicacion.longitud], 15);
       }
     }
@@ -107,16 +119,23 @@ const MapaView = () => {
         whenCreated={(map) => (mapRef.current = map)}
       >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            {ubicaciones.map((u) => (
-              <Marker
-                key={u.id}
-                position={[u.latitud, u.longitud]}
-                icon={estaAbierta(u) ? openIcon : closedIcon}
-                eventHandlers={{ click: () => handleMarkerClick(u) }}
-              >
-                {selectedUbicacion?.id === u.id && <Popup>{u.nombre}</Popup>}
-              </Marker>
-            ))}
+            {ubicaciones
+              .filter((u) =>
+                u.latitud !== undefined &&
+                u.latitud !== null &&
+                u.longitud !== undefined &&
+                u.longitud !== null
+              )
+              .map((u) => (
+                <Marker
+                  key={u.id}
+                  position={[u.latitud, u.longitud]}
+                  icon={estaAbierta(u) ? openIcon : closedIcon}
+                  eventHandlers={{ click: () => handleMarkerClick(u) }}
+                >
+                  {selectedUbicacion?.id === u.id && <Popup>{u.nombre}</Popup>}
+                </Marker>
+              ))}
       </MapContainer>
       <div
         className="overflow-auto border position-fixed bg-white"
