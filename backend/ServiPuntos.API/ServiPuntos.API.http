@@ -1,4 +1,4 @@
-@ServiPuntos.API_HostAddress = https://localhost:5019
+@ServiPuntos.API_HostAddress = https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019
 
 GET {{ServiPuntos.API_HostAddress}}/weatherforecast/
 Accept: application/json
