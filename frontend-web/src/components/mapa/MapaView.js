@@ -16,6 +16,22 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
+const openIcon = new L.Icon({
+  iconUrl: "/markers/marker-icon-green.png",
+  iconRetinaUrl: "/markers/marker-icon-2x-green.png",
+  shadowUrl: markerShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+const closedIcon = new L.Icon({
+  iconUrl: "/markers/marker-icon-red.png",
+  iconRetinaUrl: "/markers/marker-icon-2x-red.png",
+  shadowUrl: markerShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
 const MapaView = () => {
   const [ubicaciones, setUbicaciones] = useState([]);
   const [selectedUbicacion, setSelectedUbicacion] = useState(null);
@@ -42,6 +58,22 @@ const MapaView = () => {
   useEffect(() => {
     apiService.getTenantInfo().then(setTenantInfo).catch(() => {});
   }, []);
+
+  const estaAbierta = (u) => {
+    if (!u.horaApertura || !u.horaCierre) return true;
+    if (u.horaApertura === "00:00:00" && u.horaCierre === "00:00:00") return true;
+    const [hA, mA] = u.horaApertura.split(":").map(Number);
+    const [hC, mC] = u.horaCierre.split(":").map(Number);
+    const ahora = new Date();
+    const apertura = new Date();
+    apertura.setHours(hA, mA, 0, 0);
+    const cierre = new Date();
+    cierre.setHours(hC, mC, 0, 0);
+    if (cierre <= apertura) {
+      return ahora >= apertura || ahora <= cierre;
+    }
+    return ahora >= apertura && ahora <= cierre;
+  };
 
   const handleItemClick = (ubicacion) => {
     if (selectedUbicacion?.id === ubicacion.id) {
@@ -78,6 +110,7 @@ const MapaView = () => {
               <Marker
                 key={u.id}
                 position={[u.latitud, u.longitud]}
+                icon={estaAbierta(u) ? openIcon : closedIcon}
                 eventHandlers={{ click: () => handleMarkerClick(u) }}
               >
                 {selectedUbicacion?.id === u.id && <Popup>{u.nombre}</Popup>}
@@ -101,12 +134,17 @@ const MapaView = () => {
         </div>
         <div className="accordion" id="ubicacionesAccordion">
           {ubicaciones.map((u) => (
-            <div className="accordion-item" key={u.id}>
+            <div className="accordion-item" key={u.id} style={{ borderColor: 'var(--primary-color)' }}>
               <h2 className="accordion-header">
                 <button
                   className={`accordion-button ${selectedUbicacion?.id === u.id ? '' : 'collapsed'}`}
                   type="button"
                   onClick={() => handleItemClick(u)}
+                  style={{
+                    '--bs-accordion-active-bg': 'var(--primary-color)',
+                    '--bs-accordion-active-color': '#fff',
+                    color: selectedUbicacion?.id === u.id ? '#fff' : 'var(--primary-color)'
+                  }}
                 >
                   {u.nombre}
                 </button>
