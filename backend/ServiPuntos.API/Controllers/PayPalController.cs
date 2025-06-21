@@ -34,7 +34,7 @@ namespace ServiPuntos.API.Controllers
 
             var respuesta = await _naftaService.ConfirmarPagoPayPalAsync(mensaje);
              var status = respuesta.Codigo == "OK" ? "success" : "error";
-            var redirectUrl = $"http://servipuntosuy.up.railway.app/paypal-return?status={Uri.EscapeDataString(status)}&paymentId={Uri.EscapeDataString(paymentId)}&payerId={Uri.EscapeDataString(PayerID)}&token={Uri.EscapeDataString(token)}";
+            var redirectUrl = $"https://servipuntosuy.up.railway.app/paypal-return?status={Uri.EscapeDataString(status)}&paymentId={Uri.EscapeDataString(paymentId)}&payerId={Uri.EscapeDataString(PayerID)}&token={Uri.EscapeDataString(token)}";
 
             // Incluir el ID de la transacción si está disponible
             if (respuesta.Datos != null && respuesta.Datos.ContainsKey("transaccionId"))
@@ -50,7 +50,7 @@ namespace ServiPuntos.API.Controllers
         public IActionResult PayPalCancel([FromQuery] string token)
         {
             // Esta URL se llama cuando el usuario CANCELA el pago en PayPal
-            var redirectUrl = $"http://servipuntosuy.up.railway.app/paypal-cancel?token={Uri.EscapeDataString(token)}";
+            var redirectUrl = $"https://servipuntosuy.up.railway.app/paypal-cancel?token={Uri.EscapeDataString(token)}";
             return Redirect(redirectUrl);
         }
     }
