@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ServiPuntos.Core.Entities;
+using ServiPuntos.Core.DTOs;
 
 namespace ServiPuntos.Core.Interfaces
 {
@@ -17,5 +18,10 @@ namespace ServiPuntos.Core.Interfaces
         Task<bool> UpdateAsync(Transaccion transaccion);
         Task<bool> DeleteAsync(Guid id);
         Task<Transaccion> GetByPayPalPaymentIdAsync(string pagoPayPalId);
+
+        /// <summary>
+        /// Obtiene agregados de transacciones para un usuario específico.
+        /// </summary>
+        Task<DatosTransaccionesUsuario> GetAggregatesByUsuarioIdAsync(Guid usuarioId);
     }
 }

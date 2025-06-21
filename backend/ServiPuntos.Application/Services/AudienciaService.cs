@@ -380,9 +380,7 @@ namespace ServiPuntos.Application.Services
             }
             try
             {
-                // Ejemplo: return await _transaccionRepository.GetAggregatedDataByUserIdAsync(usuarioId);
-                _logger.LogTrace("_ObtenerDatosTransaccionesUsuarioAsync: Placeholder para UsuarioId {UsuarioId}. Implementar con _transaccionRepository.", usuarioId);
-                return await Task.FromResult(new DatosTransaccionesUsuario());
+                return await _transaccionRepository.GetAggregatesByUsuarioIdAsync(usuarioId);
             }
             catch (Exception ex)
             {

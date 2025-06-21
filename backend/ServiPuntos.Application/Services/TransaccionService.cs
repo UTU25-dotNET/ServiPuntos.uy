@@ -115,6 +115,10 @@ namespace ServiPuntos.Application.Services
             // Actualizar el saldo de puntos del usuario
             await _puntosService.ActualizarSaldoAsync(usuario.Id, puntosOtorgados);
 
+            // Actualizar métricas de usuario y reclasificarlo en audiencias
+            usuario.ActualizarMetricasCompra(transaccion.Monto, string.Empty, ubicacionId);
+            await _usuarioService.UpdateUsuarioAsync(usuario);
+
             await _audienciaService.ActualizarSegmentosUsuariosAsync(tenantId, new List<Usuario> { usuario });
 
             // Descontar stock de los productos involucrados
@@ -169,6 +173,8 @@ namespace ServiPuntos.Application.Services
                 var usuario = await _usuarioService.GetUsuarioAsync(transaccion.UsuarioId);
                 if (usuario != null)
                 {
+                    usuario.ActualizarMetricasCompra(transaccion.Monto, string.Empty, transaccion.UbicacionId);
+                    await _usuarioService.UpdateUsuarioAsync(usuario);
                     await _audienciaService.ActualizarSegmentosUsuariosAsync(transaccion.TenantId, new List<Usuario> { usuario });
                 }
             }
