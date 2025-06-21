@@ -19,5 +19,6 @@ jobs:
           cd /opt/servipuntos-api/ServiPuntos.uy
           git pull origin dev
           sudo systemctl restart servipuntos-dev.service
+          sudo systemctl restart servipuntos-webapp.service
           echo "✅ Deploy completed!"
 
