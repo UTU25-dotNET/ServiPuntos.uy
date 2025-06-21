@@ -252,6 +252,14 @@ namespace ServiPuntos.Application.Services
 
             Guid? segmentoGuid = await _ruleEngine.ClasificarUsuarioAsync(usuario, audienciasDefinidas, datosTransacciones);
 
+            // Actualizar el segmento del usuario si cambió
+            if (usuario.SegmentoDinamicoId != segmentoGuid)
+            {
+                usuario.SegmentoDinamicoId = segmentoGuid;
+                usuario.FechaModificacion = DateTime.UtcNow;
+                await _usuarioRepository.UpdateAsync(usuario);
+            }
+
             if (segmentoGuid.HasValue)
             {
                 var audienciaAsignada = audienciasDefinidas.FirstOrDefault(a => a.Id == segmentoGuid.Value); // audienciasDefinidas ya está en memoria
