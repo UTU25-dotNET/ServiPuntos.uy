@@ -32,7 +32,7 @@ namespace ServiPuntos.WebApp.Controllers
         {
             var tenantId = _tenantContext.TenantId;
             //var tenantId  = User.Claims.FirstOrDefault(c => c.Type == "tenantId")?.Value;
-            if (tenantId == null)
+            if (tenantId == Guid.Empty)
             {
                 return Unauthorized();
             }
@@ -162,7 +162,7 @@ namespace ServiPuntos.WebApp.Controllers
         public async Task<IActionResult> AsignarUbicacion(Guid id)
         {
             var tenantId = _tenantContext.TenantId;
-            if (tenantId == null)
+            if (tenantId == Guid.Empty)
             {
                 return Unauthorized();
             }
@@ -203,7 +203,7 @@ namespace ServiPuntos.WebApp.Controllers
             }
 
             var tenantId = _tenantContext.TenantId;
-            if (tenantId == null)
+            if (tenantId == Guid.Empty)
             {
                 return Unauthorized();
             }

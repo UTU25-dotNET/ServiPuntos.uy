@@ -81,7 +81,7 @@ namespace ServiPuntos.Application.Services
         public async Task<IEnumerable<Audiencia>> GetAllAudienciasAsync(Guid tenantId)
         {
             tenantId = GetCurrentTenantId(tenantId); // Asegurar TenantId
-            _logger.LogInformation("Obteniendo todas las audiencias para TenantId: {TenantId}, SoloActivas: {SoloActivas}", tenantId);
+            _logger.LogInformation("Obteniendo todas las audiencias para TenantId: {TenantId}", tenantId);
             return await _audienciaRepository.ListByTenantIdWithReglasAsync(tenantId, ordenarPorPrioridad: true);
         }
 

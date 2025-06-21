@@ -35,7 +35,7 @@ namespace ServiPuntos.Application.Services
             _audienciaService = audienciaService;
         }
 
-        public async Task<Transaccion> GetTransaccionByIdAsync(Guid id)
+        public async Task<Transaccion?> GetTransaccionByIdAsync(Guid id)
         {
             return await _transaccionRepository.GetByIdAsync(id);
         }
