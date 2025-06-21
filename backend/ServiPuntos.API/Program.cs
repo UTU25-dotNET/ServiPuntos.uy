@@ -228,8 +228,8 @@ app.UseCors("AllowReactApp");
 app.UseRouting();
 app.UseSession(); 
 app.UseAuthentication();
-app.UseAuthorization();
 //app.UseMiddleware<TenantMiddleware>();
+app.UseAuthorization();
 app.MapControllers();
 
 
