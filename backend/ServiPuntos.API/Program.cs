@@ -162,7 +162,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
         builder => builder
-            .WithOrigins("http://servipuntosuy.up.railway.app") // Frontend HTTP
+            .WithOrigins("http://servipuntosuy.up.railway.app", "https://servipuntosuy.up.railway.app") // Frontend HTTP
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials() // Importante para enviar cookies
