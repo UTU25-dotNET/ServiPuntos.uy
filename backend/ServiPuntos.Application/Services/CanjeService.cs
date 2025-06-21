@@ -18,19 +18,22 @@ namespace ServiPuntos.Application.Services
         private readonly IUsuarioService _usuarioService;
         private readonly IProductoCanjeableService _productoCanjeableService;
         private readonly IProductoUbicacionService _productoUbicacionService;
+        private readonly IAudienciaService _audienciaService;
 
         public CanjeService(
             ICanjeRepository canjeRepository,
             IPuntosService puntosService,
             IUsuarioService usuarioService,
             IProductoCanjeableService productoCanjeableService,
-            IProductoUbicacionService productoUbicacionService)
+            IProductoUbicacionService productoUbicacionService,
+            IAudienciaService audienciaService)
         {
             _canjeRepository = canjeRepository;
             _puntosService = puntosService;
             _usuarioService = usuarioService;
             _productoCanjeableService = productoCanjeableService;
             _productoUbicacionService = productoUbicacionService;
+            _audienciaService = audienciaService;
         }
 
         public async Task<Canje> GetCanjeByIdAsync(Guid id)
@@ -92,7 +95,18 @@ namespace ServiPuntos.Application.Services
                 await _productoUbicacionService.UpdateAsync(prodUbic);
             }
 
-            return await _canjeRepository.UpdateAsync(canje);
+            var actualizado = await _canjeRepository.UpdateAsync(canje);
+
+            if (actualizado)
+            {
+                var usuario = await _usuarioService.GetUsuarioAsync(canje.UsuarioId);
+                if (usuario != null)
+                {
+                    await _audienciaService.ActualizarSegmentosUsuariosAsync(canje.TenantId, new List<Usuario> { usuario });
+                }
+            }
+
+            return actualizado;
         }
 
         public async Task<string> GenerarCodigoCanjeAsync(Guid usuarioId, Guid productoCanjeableId, Guid ubicacionId, Guid tenantId)
@@ -131,6 +145,12 @@ namespace ServiPuntos.Application.Services
             // Reservar los puntos (se debitarán al completar el canje)
             await _puntosService.DebitarPuntosAsync(usuarioId, producto.CostoEnPuntos);
 
+
+            var usuario = await _usuarioService.GetUsuarioAsync(usuarioId);
+            if (usuario != null)
+            {
+                await _audienciaService.ActualizarSegmentosUsuariosAsync(tenantId, new List<Usuario> { usuario });
+            }
             // Guardar el canje
             await _canjeRepository.AddAsync(canje);
 
@@ -176,9 +196,18 @@ namespace ServiPuntos.Application.Services
                 await _productoUbicacionService.UpdateAsync(prodUbic);
             }
             // Guardar cambios
-            await _canjeRepository.UpdateAsync(canje);
+            var actualizado = await _canjeRepository.UpdateAsync(canje);
 
-            return true;
+            if (actualizado)
+            {
+                var usuario = await _usuarioService.GetUsuarioAsync(canje.UsuarioId);
+                if (usuario != null)
+                {
+                    await _audienciaService.ActualizarSegmentosUsuariosAsync(canje.TenantId, new List<Usuario> { usuario });
+                }
+            }
+
+            return actualizado;
         }
 
         public async Task<IEnumerable<Canje>> GetCanjesByUsuarioIdPaginatedAsync(Guid usuarioId, Guid? cursor, int limit)

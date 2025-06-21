@@ -17,19 +17,22 @@ namespace ServiPuntos.Application.Services
         private readonly IPointsRuleEngine _pointsRuleEngine;
         private readonly IUsuarioService _usuarioService;
         private readonly IProductoUbicacionService _productoUbicacionService;
+        private readonly IAudienciaService _audienciaService;
 
         public TransaccionService(
             ITransaccionRepository transaccionRepository,
             IPuntosService puntosService,
             IPointsRuleEngine pointsRuleEngine,
             IUsuarioService usuarioService,
-            IProductoUbicacionService productoUbicacionService)
+            IProductoUbicacionService productoUbicacionService,
+            IAudienciaService audienciaService)
         {
             _transaccionRepository = transaccionRepository;
             _puntosService = puntosService;
             _pointsRuleEngine = pointsRuleEngine;
             _usuarioService = usuarioService;
             _productoUbicacionService = productoUbicacionService;
+            _audienciaService = audienciaService;
         }
 
         public async Task<Transaccion> GetTransaccionByIdAsync(Guid id)
@@ -112,6 +115,8 @@ namespace ServiPuntos.Application.Services
             // Actualizar el saldo de puntos del usuario
             await _puntosService.ActualizarSaldoAsync(usuario.Id, puntosOtorgados);
 
+            await _audienciaService.ActualizarSegmentosUsuariosAsync(tenantId, new List<Usuario> { usuario });
+
             // Descontar stock de los productos involucrados
             await ActualizarStockAsync(ubicacionId, transaccion.Detalles);
 
@@ -161,6 +166,11 @@ namespace ServiPuntos.Application.Services
             if (puntos > 0)
             {
                 await _puntosService.ActualizarSaldoAsync(transaccion.UsuarioId, puntos);
+                var usuario = await _usuarioService.GetUsuarioAsync(transaccion.UsuarioId);
+                if (usuario != null)
+                {
+                    await _audienciaService.ActualizarSegmentosUsuariosAsync(transaccion.TenantId, new List<Usuario> { usuario });
+                }
             }
 
              // Ajustar stock de la ubicación por los productos comprados
