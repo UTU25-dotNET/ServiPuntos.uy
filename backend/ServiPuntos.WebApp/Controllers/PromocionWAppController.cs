@@ -50,6 +50,7 @@ namespace ServiPuntos.WebApp.Controllers
             if (tenantId == null) return Unauthorized();
             ViewBag.Ubicaciones = await _ubicacionService.GetAllUbicacionesAsync(tenantId);
             ViewBag.Productos = await _productoService.GetAllProductosAsync();
+            ViewBag.Audiencias = await _audienciaService.GetDefinicionesAudienciaAsync(tenantId);
             return View("CrearPromocion", new CreatePromocionViewModel { Tipo = TipoPromocion.Promocion });
         }
 
@@ -60,6 +61,7 @@ namespace ServiPuntos.WebApp.Controllers
             if (tenantId == null) return Unauthorized();
             ViewBag.Ubicaciones = await _ubicacionService.GetAllUbicacionesAsync(tenantId);
             ViewBag.Productos = new List<ProductoCanjeable>();
+            ViewBag.Audiencias = await _audienciaService.GetDefinicionesAudienciaAsync(tenantId);
             return View("CrearOferta", new CreatePromocionViewModel { Tipo = TipoPromocion.Oferta });
         }
 
@@ -88,6 +90,7 @@ namespace ServiPuntos.WebApp.Controllers
                 ViewBag.Productos = model.Tipo == TipoPromocion.Oferta
                     ? new List<ProductoCanjeable>()
                     : await _productoService.GetAllProductosAsync();
+                ViewBag.Audiencias = await _audienciaService.GetDefinicionesAudienciaAsync(tenantId);
                 return View(model.Tipo == TipoPromocion.Oferta ? "CrearOferta" : "CrearPromocion", model);
             }
 
@@ -159,6 +162,7 @@ namespace ServiPuntos.WebApp.Controllers
             };
             ViewBag.Ubicaciones = await _ubicacionService.GetAllUbicacionesAsync(tenantId);
             ViewBag.Productos = await _productoService.GetAllProductosAsync();
+            ViewBag.Audiencias = await _audienciaService.GetDefinicionesAudienciaAsync(tenantId);
             return View(model);
         }
 
@@ -173,6 +177,7 @@ namespace ServiPuntos.WebApp.Controllers
             {
                 ViewBag.Ubicaciones = await _ubicacionService.GetAllUbicacionesAsync(tenantId);
                 ViewBag.Productos = await _productoService.GetAllProductosAsync();
+                ViewBag.Audiencias = await _audienciaService.GetDefinicionesAudienciaAsync(tenantId);
                 return View(model);
             }
 
