@@ -19,7 +19,6 @@ jobs:
         username: ubuntu
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
-          set -xe
           cd /opt/servipuntos-api/ServiPuntos.uy
           echo "llegue"
           whoami
