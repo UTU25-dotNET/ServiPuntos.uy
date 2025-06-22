@@ -3,6 +3,9 @@ name: Deploy to EC2
 on:
   push:
     branches: [ dev ]
+  pull_request:
+    types: [closed]
+    branches: [ dev ]
 
 jobs:
   deploy:
@@ -20,17 +23,21 @@ jobs:
           git fetch origin
           git checkout dev
           git pull origin dev
+          
+          
           sudo systemctl stop servipuntos-dev.service
           cd backend/ServiPuntos.API
           dotnet clean
           dotnet build
-          cd ..
+          cd ../..
           sudo systemctl start servipuntos-dev.service
+
+          
           sudo systemctl stop servipuntos-webapp.service
-          cd ServiPuntos.WebApp
+          cd frontend/ServiPuntos.WebApp
           dotnet clean
           dotnet build
-          cd ..
+          cd ../..
           sudo systemctl start servipuntos-webapp.service
-          echo "✅ Deploy completed!"
 
+          echo "✅ Deploy completed!"
