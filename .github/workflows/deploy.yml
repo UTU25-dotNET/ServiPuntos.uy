@@ -20,11 +20,7 @@ jobs:
           git fetch origin
           git checkout dev
           git pull origin dev
-          sudo systemctl stop servipuntos-dev.service
-          dotnet build /ServiPuntos.API
-          sudo systemctl start servipuntos-dev.service
-          sudo systemctl stop servipuntos-webapp.service
-          dotnet build /ServiPuntos.WebApp
-          sudo systemctl start servipuntos-webapp.service
+          sudo systemctl restart servipuntos-dev.service
+          sudo systemctl restart servipuntos-webapp.service
           echo "✅ Deploy completed!"
 
