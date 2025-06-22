@@ -21,6 +21,9 @@ jobs:
         script: |
           set -xe
           cd /opt/servipuntos-api/ServiPuntos.uy
+          echo "llegue"
+          whoami
+          pwd
           git fetch origin
           git checkout dev
           git pull origin dev
