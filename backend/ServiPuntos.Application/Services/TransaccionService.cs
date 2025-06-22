@@ -60,6 +60,11 @@ namespace ServiPuntos.Application.Services
             return await _transaccionRepository.GetByDateRangeAsync(fechaInicio, fechaFin);
         }
 
+        public async Task<decimal> GetMontoTotalAsync()
+        {
+            return await _transaccionRepository.GetMontoTotalAsync();
+        }
+
         public async Task<RespuestaPuntosNAFTA> ProcesarTransaccionNAFTAAsync(TransaccionNAFTA transaccionNAFTA, Guid tenantId, Guid ubicacionId)
         {
             // Buscar el usuario por su identificador

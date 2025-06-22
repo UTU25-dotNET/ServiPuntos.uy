@@ -132,6 +132,11 @@ namespace ServiPuntos.Controllers
                     var tenants = resumenTenants.Select(t => t.Tenant).ToArray();
                     var cantidadesTenants = resumenTenants.Select(t => t.Cantidad).ToArray();
 
+                    if (User.IsInRole("AdminPlataforma"))
+                    {
+                        ViewBag.DineroGenerado = await _iTransaccionService.GetMontoTotalAsync();
+                    }
+
                     // ViewBag para gráfica por rol
                     ViewBag.Roles = roles;
                     ViewBag.Cantidades = cantidades;
@@ -154,6 +159,7 @@ namespace ServiPuntos.Controllers
                 ViewBag.Cantidades = cantidades;
                 ViewBag.Tenants = tenants;
                 ViewBag.CantidadesTenants = cantidadesTenants;
+                ViewBag.DineroGenerado = 0m;
                 ViewBag.Error = $"Error al cargar datos: {ex.Message}";
 
                 return View();
