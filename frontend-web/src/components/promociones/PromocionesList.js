@@ -200,42 +200,41 @@ const PromocionesList = () => {
       {canjeError && <p className="text-danger mt-2">{canjeError}</p>}
       {canjeQR && (
         <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0,0,0,0.6)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 2000,
-          }}
+          className="modal show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
+          onClick={() => setCanjeQR(null)}
         >
-          <div
-            style={{
-              background: "white",
-              padding: "2rem",
-              borderRadius: "12px",
-              textAlign: "center",
-            }}
-          >
-            <h3 style={{ marginTop: 0 }}>Código de Canje</h3>
-            {canjeLoading ? (
-              <p>Generando código...</p>
-            ) : (
-              <>
-                <QRCodeSVG value={canjeQR} size={180} />
-                <p style={{ wordBreak: "break-all" }}>{canjeQR}</p>
-              </>
-            )}
-            <button
-              onClick={() => setCanjeQR(null)}
-              style={{ marginTop: "1rem", padding: "0.5rem 1rem" }}
-            >
-              Cerrar
-            </button>
+          <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-content text-center">
+              <div className="modal-header border-0">
+                <h5 className="modal-title mb-0">Código de Canje</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setCanjeQR(null)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                {canjeLoading ? (
+                  <p>Generando código...</p>
+                ) : (
+                  <QRCodeSVG value={canjeQR} size={180} />
+                )}
+                {canjeError && (
+                  <p className="text-danger mt-2">{canjeError}</p>
+                )}
+              </div>
+              <div className="modal-footer border-0 justify-content-center">
+                <button
+                  className="btn text-white"
+                  style={{ backgroundColor: "var(--primary-color)" }}
+                  onClick={() => setCanjeQR(null)}
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
