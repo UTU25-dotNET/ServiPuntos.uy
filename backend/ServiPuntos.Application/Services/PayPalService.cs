@@ -80,8 +80,8 @@ namespace ServiPuntos.Application.Services
                 },
                 redirect_urls = new
                 {
-                    return_url = _configuration["PayPal:ReturnUrl"],
-                    cancel_url = _configuration["PayPal:CancelUrl"]
+                    return_url = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/paypal/return",
+                    cancel_url = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/paypal/cancel"
                 }
             };
 
