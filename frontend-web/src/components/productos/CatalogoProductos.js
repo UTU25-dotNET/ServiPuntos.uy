@@ -422,99 +422,98 @@ const CatalogoProductos = ({ ubicacion, onClose, isOpen, userProfile, onProfileU
 
         {canjeQR && (
           <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "rgba(0,0,0,0.6)",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              zIndex: 2000,
-            }}
+            className="modal show d-block"
+            tabIndex="-1"
+            style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
+            onClick={() => setCanjeQR(null)}
           >
-            <div
-              style={{
-                background: "white",
-                padding: "2rem",
-                borderRadius: "12px",
-                textAlign: "center",
-              }}
-            >
-              <h3 style={{ marginTop: 0 }}>Código de Canje</h3>
-              {canjeLoading ? (
-                <p>Generando código...</p>
-              ) : (
-                <>
-                  <QRCodeSVG value={canjeQR} size={180} />
-                  <p style={{ wordBreak: "break-all" }}>{canjeQR}</p>
-                </>
-              )}
-              {canjeError && (
-                <p style={{ color: "#dc3545" }}>{canjeError}</p>
-              )}
-              <button
-                onClick={() => setCanjeQR(null)}
-                style={{ marginTop: "1rem", padding: "0.5rem 1rem" }}
-              >
-                Cerrar
-              </button>
+            <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-content text-center">
+                <div className="modal-header border-0">
+                  <h5 className="modal-title mb-0">Código de Canje</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setCanjeQR(null)}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  {canjeLoading ? (
+                    <p>Generando código...</p>
+                  ) : (
+                    <QRCodeSVG value={canjeQR} size={180} />
+                  )}
+                  {canjeError && (
+                    <p className="text-danger mt-2">{canjeError}</p>
+                  )}
+                </div>
+                <div className="modal-footer border-0 justify-content-center">
+                  <button
+                    className="btn text-white"
+                    style={{ backgroundColor: "var(--primary-color)" }}
+                    onClick={() => setCanjeQR(null)}
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
         {qrCarrito.length > 0 && (
           <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "rgba(0,0,0,0.6)",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              zIndex: 2000,
-              overflow: "auto"
-            }}
+            className="modal show d-block"
+            tabIndex="-1"
+            style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
+            onClick={() => setQrCarrito([])}
           >
-            <div
-              style={{
-                background: "white",
-                padding: "2rem",
-                borderRadius: "12px",
-                textAlign: "center",
-                maxWidth: "90%"
-              }}
-            >
-              <h3 style={{ marginTop: 0 }}>Códigos de Canje</h3>
-              {carritoLoading ? (
-                <p>Generando códigos...</p>
-              ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem" }}>
-                  {qrCarrito.map((q) => (
-                    <div key={q.productoId} style={{ padding: "1rem", border: "1px solid #e9ecef", borderRadius: "8px" }}>
-                      {q.codigoQR ? (
-                        <>
-                          <QRCodeSVG value={q.codigoQR} size={160} />
-                          <p style={{ wordBreak: "break-all" }}>{q.codigoQR}</p>
-                        </>
-                      ) : (
-                        <p style={{ color: "#dc3545" }}>{q.error}</p>
-                      )}
-                    </div>
-                  ))}
+            <div className="modal-dialog modal-lg" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-content text-center">
+                <div className="modal-header border-0">
+                  <h5 className="modal-title mb-0">Códigos de Canje</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setQrCarrito([])}
+                  ></button>
                 </div>
-              )}
-              <button
-                onClick={() => setQrCarrito([])}
-                style={{ marginTop: "1rem", padding: "0.5rem 1rem" }}
-              >
-                Cerrar
-              </button>
+                <div className="modal-body">
+                  {carritoLoading ? (
+                    <p>Generando códigos...</p>
+                  ) : (
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                        gap: "1rem"
+                      }}
+                    >
+                      {qrCarrito.map((q) => (
+                        <div
+                          key={q.productoId}
+                          className="p-3 border rounded"
+                        >
+                          {q.codigoQR ? (
+                            <QRCodeSVG value={q.codigoQR} size={160} />
+                          ) : (
+                            <p className="text-danger">{q.error}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="modal-footer border-0 justify-content-center">
+                  <button
+                    className="btn text-white"
+                    style={{ backgroundColor: "var(--primary-color)" }}
+                    onClick={() => setQrCarrito([])}
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
