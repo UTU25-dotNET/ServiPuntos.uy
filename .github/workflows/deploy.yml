@@ -21,10 +21,10 @@ jobs:
           git checkout dev
           git pull origin dev
           sudo systemctl stop servipuntos-dev.service
-          dotnet build /ServiPuntos.API
+          backend/ServiPuntos.API/ServiPuntos.API.csproj
           sudo systemctl start servipuntos-dev.service
           sudo systemctl stop servipuntos-webapp.service
-          dotnet build /ServiPuntos.WebApp
+          backend/ServiPuntos.API/ServiPuntos.WebApp.csproj
           sudo systemctl start servipuntos-webapp.service
           echo "✅ Deploy completed!"
 
