@@ -98,7 +98,7 @@ const NavBar = () => {
             <>
               Servipuntos.uy 
               <span style={{ color: "#adb5bd", fontWeight: "normal" }}>
-                *Demo*
+                
               </span>
             </>
           )}
