@@ -27,7 +27,7 @@ jobs:
           cd ..
           sudo systemctl start servipuntos-dev.service
           sudo systemctl stop servipuntos-webapp.service
-          cd Servipuntos.WebApp
+          cd ServiPuntos.WebApp
           dotnet clean
           dotnet build
           cd ..
