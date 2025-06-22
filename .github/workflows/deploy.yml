@@ -10,7 +10,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
     steps:
     - name: Deploy to EC2
       uses: appleboy/ssh-action@v0.1.8
@@ -19,30 +18,43 @@ jobs:
         username: ubuntu
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
+          set -e  # Exit on any error
+          
           cd /opt/servipuntos-api/ServiPuntos.uy
-          echo "llegue"
-          whoami
-          pwd
-          git fetch origin
-          git checkout dev
+          echo "🔄 Pulling latest changes..."
           git pull origin dev
-      
-          echo "🔧 Reiniciando API"
-          sudo systemctl stop servipuntos-dev.service
+          
+          # Stop services before building
+          echo "⏹️ Stopping services..."
+          sudo systemctl stop servipuntos-dev.service || true
+          sudo systemctl stop servipuntos-webapp.service || true
+          
+          echo "🛠️ Building backend API..."
           cd backend/ServiPuntos.API
-          dotnet clean
+          dotnet restore
           dotnet build
-          cd ../..
+          if [ $? -ne 0 ]; then
+            echo "❌ API build failed!"
+            exit 1
+          fi
+          
+          echo "🛠️ Building webapp..."
+          cd ../ServiPuntos.WebApp
+          dotnet restore
+          dotnet build
+          if [ $? -ne 0 ]; then
+            echo "❌ WebApp build failed!"
+            exit 1
+          fi
+          
+          echo "🔄 Starting services..."
           sudo systemctl start servipuntos-dev.service
-      
-          echo "🔧 Reiniciando WebApp"
-          sudo systemctl stop servipuntos-webapp.service
-          cd frontend/ServiPuntos.WebApp
-          dotnet clean
-          dotnet build
-          cd ../..
           sudo systemctl start servipuntos-webapp.service
-      
-          echo "✅ Deploy completed!"
-        script_stop: true
-        debug: true
+          
+          # Wait a bit for services to start
+          sleep 5
+          
+          echo "✅ Deploy completed successfully!"
+          echo "📊 Service status:"
+          sudo systemctl status servipuntos-dev.service --no-pager -l
+          sudo systemctl status servipuntos-webapp.service --no-pager -l
