@@ -17,6 +17,7 @@ jobs:
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
           cd /opt/servipuntos-api/ServiPuntos.uy
+          git fetch origin
           git pull origin dev
           sudo systemctl restart servipuntos-dev.service
           sudo systemctl restart servipuntos-webapp.service
