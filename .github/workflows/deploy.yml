@@ -19,25 +19,28 @@ jobs:
         username: ubuntu
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
+          set -xe
           cd /opt/servipuntos-api/ServiPuntos.uy
           git fetch origin
           git checkout dev
           git pull origin dev
-          
-          
+      
+          echo "🔧 Reiniciando API"
           sudo systemctl stop servipuntos-dev.service
           cd backend/ServiPuntos.API
           dotnet clean
           dotnet build
           cd ../..
           sudo systemctl start servipuntos-dev.service
-
-          
+      
+          echo "🔧 Reiniciando WebApp"
           sudo systemctl stop servipuntos-webapp.service
           cd frontend/ServiPuntos.WebApp
           dotnet clean
           dotnet build
           cd ../..
           sudo systemctl start servipuntos-webapp.service
-
+      
           echo "✅ Deploy completed!"
+        script_stop: true
+        debug: true
