@@ -24,14 +24,12 @@ jobs:
           cd backend/ServiPuntos.API
           dotnet clean
           dotnet build
-          dotnet run
           cd ..
           sudo systemctl start servipuntos-dev.service
           sudo systemctl stop servipuntos-webapp.service
           cd Servipuntos.WebApp
           dotnet clean
           dotnet build
-          dotnet run
           cd ..
           sudo systemctl start servipuntos-webapp.service
           echo "✅ Deploy completed!"
