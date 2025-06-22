@@ -135,5 +135,10 @@ namespace ServiPuntos.Infrastructure.Repositories
 
             return new DatosTransaccionesUsuario(totalPuntos, totalTransacciones, montoTotal);
         }
+
+        public async Task<decimal> GetMontoTotalAsync()
+        {
+            return await _context.Transacciones.SumAsync(t => t.Monto);
+        }
     }
 }

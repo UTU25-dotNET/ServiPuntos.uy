@@ -308,14 +308,6 @@
                         <label for="largoMinimo" class="form-label">Largo mínimo de la contraseña</label>
                         <input type="number" class="form-control" id="largoMinimo" name="largoMinimo" min="1" value="@((ViewBag.ConfigPlataforma as ServiPuntos.Core.Entities.ConfigPlataforma)?.LargoMinimoPassword ?? 0)">
                     </div>
-                    <div class="mb-3">
-                        <label for="campo4" class="form-label">Campo 4</label>
-                        <input type="text" class="form-control" id="campo4" name="campo4" disabled>
-                    </div>
-                    <div class="mb-3">
-                        <label for="campo5" class="form-label">Campo 5</label>
-                        <input type="text" class="form-control" id="campo5" name="campo5" disabled>
-                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -1002,7 +994,7 @@
             const totalUsuarios = cantidadesRoles.reduce((a, b) => a + b, 0);
             const idxFinal = roles.indexOf('UsuarioFinal');
             const usuariosFinales = idxFinal !== -1 ? cantidadesRoles[idxFinal] : 0;
-            const dineroGenerado = usuariosFinales * 10;
+            const dineroGenerado = parseFloat('@(ViewBag.DineroGenerado?.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) ?? "0")');
 
             if (document.getElementById('usuariosTotales')) {
                 document.getElementById('usuariosTotales').textContent = totalUsuarios;

@@ -23,5 +23,10 @@ namespace ServiPuntos.Core.Interfaces
         /// Obtiene agregados de transacciones para un usuario específico.
         /// </summary>
         Task<DatosTransaccionesUsuario> GetAggregatesByUsuarioIdAsync(Guid usuarioId);
+
+        /// <summary>
+        /// Obtiene la suma total de dinero generado por todas las transacciones.
+        /// </summary>
+        Task<decimal> GetMontoTotalAsync();
     }
 }
