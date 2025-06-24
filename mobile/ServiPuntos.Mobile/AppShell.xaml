@@ -22,6 +22,11 @@
         ContentTemplate="{DataTemplate local:OffersPage}"/>
 
     <ShellContent
+        Title="Alertas"
+        Route="AlertsPage"
+        ContentTemplate="{DataTemplate local:AlertsPage}"/>
+
+    <ShellContent
         Title="Historial"
         Route="HistoryPage"
         ContentTemplate="{DataTemplate local:HistoryPage}"/>
