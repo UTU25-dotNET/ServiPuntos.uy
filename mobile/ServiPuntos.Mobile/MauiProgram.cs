@@ -79,6 +79,22 @@ namespace ServiPuntos.Mobile
             builder.Services.AddSingleton<FlashOffersViewModel>();
             builder.Services.AddSingleton<OffersPage>();
 
+            builder.Services
+                .AddHttpClient<INotificationService, NotificationService>(client =>
+                {
+                    client.BaseAddress = new Uri("https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/");
+                })
+                .ConfigurePrimaryHttpMessageHandler(() =>
+                    new HttpClientHandler
+                    {
+                        ServerCertificateCustomValidationCallback =
+                            HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                    })
+                .AddHttpMessageHandler<AuthMessageHandler>();
+
+            builder.Services.AddSingleton<AlertsViewModel>();
+            builder.Services.AddSingleton<AlertsPage>();
+
 #if DEBUG
             builder.Logging.AddDebug();
 #endif
