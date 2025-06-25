@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -10,14 +11,15 @@ namespace ServiPuntos.Mobile.ViewModels
     public class AlertsViewModel : BindableObject
     {
         private readonly INotificationService _notificationService;
-        public ObservableCollection<NotificationDto> Notifications { get; } = new ObservableCollection<NotificationDto>();
+        public ObservableCollection<NotificationDto> Notifications { get; } = new();
 
-        private bool _isBusy;
+        bool _isBusy;
         public bool IsBusy
         {
             get => _isBusy;
             set
             {
+                if (_isBusy == value) return;
                 _isBusy = value;
                 OnPropertyChanged();
             }
@@ -31,17 +33,37 @@ namespace ServiPuntos.Mobile.ViewModels
             RefreshCommand = new Command(async () => await LoadNotificationsAsync());
         }
 
-        private async Task LoadNotificationsAsync()
+        async Task LoadNotificationsAsync()
         {
             if (IsBusy) return;
             IsBusy = true;
-            Notifications.Clear();
-            var items = await _notificationService.GetMyNotificationsAsync();
-            foreach (var item in items)
+
+            try
             {
-                Notifications.Add(item);
+                Notifications.Clear();
+                var items = await _notificationService.GetMyNotificationsAsync();
+
+                foreach (var item in items)
+                    Notifications.Add(item);
             }
-            IsBusy = false;
+            catch (HttpRequestException)
+            {
+                await Application.Current.MainPage.DisplayAlert(
+                    "Error de red",
+                    "No se pudieron cargar las alertas. Verifica tu conexión e inténtalo de nuevo.",
+                    "OK");
+            }
+            catch (Exception)
+            {
+                await Application.Current.MainPage.DisplayAlert(
+                    "Error inesperado",
+                    "Ocurrió un error al cargar las alertas.",
+                    "OK");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
     }
 }
