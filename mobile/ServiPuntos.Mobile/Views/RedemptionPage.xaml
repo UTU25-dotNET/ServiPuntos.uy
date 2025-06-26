@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+        xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+        x:Class="ServiPuntos.Mobile.Views.RedemptionPage"
+        Title="Canjear Oferta">
+        <StackLayout Padding="20"
+                        Spacing="15">
+
+                <Label Text="Selecciona una ubicación"/>
+                <Picker
+                        ItemsSource="{Binding Locations}"
+                        ItemDisplayBinding="{Binding Nombre}"
+                        SelectedItem="{Binding SelectedLocation}"
+                        Title="Ubicación"/>
+
+                <Label Text="Selecciona un producto"/>
+                <Picker
+                        ItemsSource="{Binding Products}"
+                        ItemDisplayBinding="{Binding Nombre}"
+                        SelectedItem="{Binding SelectedProduct}"
+                        Title="Producto"
+                        IsEnabled="{Binding Products.Count, Converter={StaticResource GreaterThanZeroConverter}}"/>
+
+                <Button
+                        Text="Generar QR"
+                        Command="{Binding GenerateCommand}"
+                        IsEnabled="{Binding GenerateCommand.CanExecute, Source={RelativeSource Self}}"/>
+
+                <ActivityIndicator
+                        IsRunning="{Binding IsBusy}"
+                        IsVisible="{Binding IsBusy}"
+                        HorizontalOptions="Center"/>
+
+        </StackLayout>
+</ContentPage>
