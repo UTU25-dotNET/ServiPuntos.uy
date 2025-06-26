@@ -18,8 +18,8 @@ namespace ServiPuntos.Mobile.Services
 #endif
         private readonly HttpClient _httpClient;
 
-        public ProductService(HttpClient httpClient)
-            => _httpClient = httpClient;
+        public ProductService(HttpClient httpClient) =>
+            _httpClient = httpClient;
 
         public async Task<List<ProductDto>> GetProductsByTenantAsync(Guid tenantId)
         {
@@ -27,25 +27,14 @@ namespace ServiPuntos.Mobile.Services
             Log.Debug(TAG, $"[GetProductsByTenant] tenantId={tenantId}");
 #endif
             var url = $"/api/producto/tenant/{tenantId}";
-            var rsp = await _httpClient.GetAsync(url);
-#if ANDROID
-            Log.Debug(TAG, $"[GetProductsByTenant] HTTP {url} ⇒ {(int)rsp.StatusCode}");
-#endif
-            rsp.EnsureSuccessStatusCode();
-
-            var json = await rsp.Content.ReadAsStringAsync();
-#if ANDROID
-            Log.Debug(TAG, $"[GetProductsByTenant] Raw JSON: {json}");
-#endif
+            Console.WriteLine($"[ProductService] GET {_httpClient.BaseAddress}{url}");
+            var response = await _httpClient.GetAsync(url);
+            var content = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"[ProductService] StatusCode={(int)response.StatusCode}, Content={content}");
+            response.EnsureSuccessStatusCode();
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var list = JsonSerializer
-                .Deserialize<List<ProductDto>>(json, options)
-                ?? new List<ProductDto>();
-
-#if ANDROID
-            Log.Debug(TAG, $"[GetProductsByTenant] Deserializados list.Count={list.Count}");
-#endif
-            return list;
+            return JsonSerializer.Deserialize<List<ProductDto>>(content, options)
+                   ?? new List<ProductDto>();
         }
 
         public async Task<List<ProductDto>> GetProductsByLocationAsync(Guid locationId)
@@ -54,74 +43,78 @@ namespace ServiPuntos.Mobile.Services
             Log.Debug(TAG, $"[GetProductsByLocation] locationId={locationId}");
 #endif
             var url = $"/api/productoUbicacion/ubicacion/{locationId}";
-            var rsp = await _httpClient.GetAsync(url);
-#if ANDROID
-            Log.Debug(TAG, $"[GetProductsByLocation] HTTP {url} ⇒ {(int)rsp.StatusCode}");
-#endif
-            rsp.EnsureSuccessStatusCode();
+            Console.WriteLine($"[ProductService] GET {_httpClient.BaseAddress}{url}");
+            var response = await _httpClient.GetAsync(url);
+            var content = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"[ProductService] StatusCode={(int)response.StatusCode}, Content={content}");
+            response.EnsureSuccessStatusCode();
 
-            var json = await rsp.Content.ReadAsStringAsync();
-#if ANDROID
-            Log.Debug(TAG, $"[GetProductsByLocation] Raw JSON: {json}");
-#endif
-
-            using var doc = JsonDocument.Parse(json);
+            using var doc = JsonDocument.Parse(content);
             var root = doc.RootElement;
-            JsonElement arrayNode;
-
-            if (root.ValueKind == JsonValueKind.Object
-                && root.TryGetProperty("datos", out var datosElem)
-                && datosElem.ValueKind == JsonValueKind.Array)
+            JsonElement arrayNode = root.ValueKind switch
             {
-                arrayNode = datosElem;
-#if ANDROID
-                Log.Debug(TAG, "[GetProductsByLocation] Usando propiedad 'datos' como array");
-#endif
-            }
-            else if (root.ValueKind == JsonValueKind.Array)
-            {
-                arrayNode = root;
-#if ANDROID
-                Log.Debug(TAG, "[GetProductsByLocation] JSON raíz es ya un array");
-#endif
-            }
-            else
-            {
-#if ANDROID
-                Log.Warn(TAG, "[GetProductsByLocation] Formato de JSON inesperado");
-#endif
+                JsonValueKind.Object when root.TryGetProperty("datos", out var datosElem) && datosElem.ValueKind == JsonValueKind.Array => datosElem,
+                JsonValueKind.Array => root,
+                _ => default
+            };
+            if (arrayNode.ValueKind != JsonValueKind.Array)
                 return new List<ProductDto>();
-            }
 
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var rawList = JsonSerializer
-                .Deserialize<List<ProductoUbicacionRaw>>(arrayNode.GetRawText(), options)
-                ?? new List<ProductoUbicacionRaw>();
-
-#if ANDROID
-            Log.Debug(TAG, $"[GetProductsByLocation] Deserializados rawList.Count={rawList.Count}");
-#endif
+            var rawList = JsonSerializer.Deserialize<List<ProductoUbicacionRaw>>(arrayNode.GetRawText(), options)
+                          ?? new List<ProductoUbicacionRaw>();
 
             var result = rawList
                 .Where(x => x.ProductoCanjeable != null)
                 .Select(x => new ProductDto
                 {
-                    // Id aquí opcional: puede usarse para tracking interno
                     Id = x.Id,
                     ProductoCanjeableId = x.ProductoCanjeable.Id,
                     Nombre = x.ProductoCanjeable.Nombre,
-                    Precio = x.Precio
+                    Precio = x.Precio,
+                    Categoria = x.Categoria ?? string.Empty,
+                    StockDisponible = x.StockDisponible,
+                    Activo = x.Activo
                 })
                 .ToList();
-
 #if ANDROID
-            Log.Debug(TAG, $"[GetProductsByLocation] Mapeados result.Count={result.Count}");
+            Log.Debug(TAG, $"[GetProductsByLocation] Mapped result.Count={result.Count}");
 #endif
-
             return result;
         }
 
-        // --- Modelos internos para deserializar productoUbicacion ---
+        public async Task<List<CatalogItemDto>> GetCatalogItemsAsync(Guid locationId, string? categoria = null)
+        {
+            var url = categoria != null
+                ? $"/api/productoUbicacion/ubicacion/{locationId}?categoria={Uri.EscapeDataString(categoria)}"
+                : $"/api/productoUbicacion/ubicacion/{locationId}";
+            Console.WriteLine($"[ProductService] GET {_httpClient.BaseAddress}{url}");
+            var response = await _httpClient.GetAsync(url);
+            var content = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"[ProductService] StatusCode={(int)response.StatusCode}, Content={content}");
+            response.EnsureSuccessStatusCode();
+
+            using var doc = JsonDocument.Parse(content);
+            var root = doc.RootElement;
+            if (root.ValueKind != JsonValueKind.Array)
+                return new List<CatalogItemDto>();
+
+            var lista = new List<CatalogItemDto>();
+            foreach (var elem in root.EnumerateArray())
+            {
+                var canj = elem.GetProperty("productoCanjeable");
+                lista.Add(new CatalogItemDto
+                {
+                    Id = elem.GetProperty("id").GetGuid(),
+                    Nombre = canj.GetProperty("nombre").GetString() ?? string.Empty,
+                    Descripcion = canj.GetProperty("descripcion").GetString() ?? string.Empty,
+                    CostoEnPuntos = canj.GetProperty("costoEnPuntos").GetInt32(),
+                    FotoUrl = canj.GetProperty("fotoUrl").GetString() ?? string.Empty
+                });
+            }
+            Console.WriteLine($"[ProductService] Parsed CatalogItems count={lista.Count}");
+            return lista;
+        }
 
         private class ProductoUbicacionRaw
         {

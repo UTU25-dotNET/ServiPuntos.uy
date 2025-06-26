@@ -17,17 +17,46 @@ namespace ServiPuntos.Mobile.Services
             var url = $"/api/ubicacion/tenant/{tenantId}";
             Console.WriteLine($"[LocationService] GET {url}");
             var request = new HttpRequestMessage(HttpMethod.Get, url);
-            Console.WriteLine("[LocationService] Request headers:");
-            foreach (var header in request.Headers)
-                Console.WriteLine($"  {header.Key}: {string.Join(",", header.Value)}");
             var response = await _httpClient.SendAsync(request);
-            Console.WriteLine($"[LocationService] Response status: {response.StatusCode}");
             var json = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"[LocationService] Response content: {json}");
+            Console.WriteLine($"[LocationService] StatusCode={(int)response.StatusCode}, Content={json}");
             response.EnsureSuccessStatusCode();
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var list = JsonSerializer.Deserialize<List<LocationDto>>(json, options);
-            return list ?? new List<LocationDto>();
+            return JsonSerializer.Deserialize<List<LocationDto>>(json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                ?? new List<LocationDto>();
+        }
+
+        public async Task<List<LocationDto>> GetAllLocationsAsync()
+        {
+            var url = "/api/ubicacion";
+            Console.WriteLine($"[LocationService] GET {url}");
+            var response = await _httpClient.GetAsync(url);
+            var json = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"[LocationService] StatusCode={(int)response.StatusCode}, Content={json}");
+            response.EnsureSuccessStatusCode();
+            return JsonSerializer.Deserialize<List<LocationDto>>(json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                ?? new List<LocationDto>();
+        }
+
+        public async Task<List<LocationDto>> GetNearbyAsync(
+            double latitude,
+            double longitude,
+            string? servicio = null,
+            string? combustible = null,
+            int radioMetros = 1000)
+        {
+            var url = $"/api/ubicacion/cercanas?lat={latitude}&lon={longitude}&radioMetros={radioMetros}"
+                    + (servicio != null ? $"&servicio={Uri.EscapeDataString(servicio)}" : "")
+                    + (combustible != null ? $"&combustible={Uri.EscapeDataString(combustible)}" : "");
+            Console.WriteLine($"[LocationService] GET {_httpClient.BaseAddress}{url}");
+            var response = await _httpClient.GetAsync(url);
+            var json = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"[LocationService] StatusCode={(int)response.StatusCode}, Content={json}");
+            response.EnsureSuccessStatusCode();
+            return JsonSerializer.Deserialize<List<LocationDto>>(json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                ?? new List<LocationDto>();
         }
     }
 }

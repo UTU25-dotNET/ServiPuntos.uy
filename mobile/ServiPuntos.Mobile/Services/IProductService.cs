@@ -9,5 +9,6 @@ namespace ServiPuntos.Mobile.Services
     {
         Task<List<ProductDto>> GetProductsByTenantAsync(Guid tenantId);
         Task<List<ProductDto>> GetProductsByLocationAsync(Guid locationId);
+        Task<List<CatalogItemDto>> GetCatalogItemsAsync(Guid locationId, string? categoria = null);
     }
 }
