@@ -1,0 +1,2 @@
+respecto a code qr: con que al escanearlo se muestre el string que se genera desde back consideramos que ya esta bien.
+se dejan logs para poder comparar el string generado por backend con el que se obtiene al escanear el qr.
