@@ -6,43 +6,51 @@
     xmlns:local="clr-namespace:ServiPuntos.Mobile.Views"
     Title="ServiPuntos">
 
-    <!-- Login -->
     <ShellContent
         Title="Login"
         Route="MainPage"
         ContentTemplate="{DataTemplate local:LoginPage}"/>
 
-    <!-- Saldo de puntos -->
     <ShellContent
         Title="Saldo"
         Route="PointsPage"
         ContentTemplate="{DataTemplate local:PointsPage}"/>
 
-    <!-- Ofertas -->
     <ShellContent
         Title="Ofertas"
         Route="OffersPage"
         ContentTemplate="{DataTemplate local:OffersPage}"/>
 
-    <!-- Alertas -->
     <ShellContent
         Title="Alertas"
         Route="AlertsPage"
         ContentTemplate="{DataTemplate local:AlertsPage}"/>
 
-    <!-- Canjear -->
     <ShellContent
         Title="Canjear"
         Route="RedemptionPage"
         ContentTemplate="{DataTemplate local:RedemptionPage}"/>
 
-    <!-- Código QR -->
     <ShellContent
         Title="QR Code"
         Route="QRCodePage"
         ContentTemplate="{DataTemplate local:QRCodePage}"/>
 
-    <!-- Historial de transacciones -->
+    <ShellContent
+        Title="Estaciones"
+        Route="LocationsPage"
+        ContentTemplate="{DataTemplate local:LocationsPage}"/>
+
+    <ShellContent
+        Title="Catálogo"
+        Route="CatalogPage"
+        ContentTemplate="{DataTemplate local:CatalogPage}"/>
+
+    <ShellContent
+        Title="Mapa"
+        Route="MapPage"
+        ContentTemplate="{DataTemplate local:MapPage}"/>
+
     <ShellContent
         Title="Historial"
         Route="HistoryPage"
