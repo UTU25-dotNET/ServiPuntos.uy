@@ -1,29 +1,44 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
+        x:Class="ServiPuntos.Mobile.Views.PointsPage"
         xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
         xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-        x:Class="ServiPuntos.Mobile.Views.PointsPage"
-        Title="Saldo de Puntos">
+        Title="Saldo de Puntos"
+        BackgroundColor="{DynamicResource Background}">
 
-        <StackLayout Padding="20"
-                        Spacing="20">
+        <ContentPage.Resources>
+                <Style x:Key="TenantPointsStyle"
+                       TargetType="Label"
+                       BasedOn="{StaticResource DisplayPointsStyle}">
+                        <Setter Property="TextColor"
+                                        Value="{DynamicResource PrimaryColor}"/>
+                </Style>
+        </ContentPage.Resources>
+
+        <StackLayout
+                Padding="{StaticResource PagePadding}"
+                Spacing="{StaticResource DefaultSpacing}"
+                VerticalOptions="Center">
+
                 <Label
                         Text="Tu saldo actual:"
-                        FontSize="18"
+                        Style="{StaticResource Body}"
                         HorizontalOptions="Center"/>
 
                 <Label
                         Text="{Binding DisplayPoints}"
-                        FontSize="36"
+                        Style="{StaticResource TenantPointsStyle}"
                         HorizontalOptions="Center"/>
 
                 <Button
                         Text="Actualizar"
-                        Command="{Binding RefreshCommand}"/>
+                        Command="{Binding RefreshCommand}"
+                        Style="{StaticResource PrimaryButtonStyle}"/>
 
                 <ActivityIndicator
                         IsRunning="{Binding IsBusy}"
                         IsVisible="{Binding IsBusy}"
-                        HorizontalOptions="Center"/>
+                        Style="{StaticResource CenteredIndicatorStyle}"/>
+
         </StackLayout>
 </ContentPage>
