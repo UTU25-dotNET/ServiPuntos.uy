@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Breadcrumb from "../layout/Breadcrumb";
 import authService from "../../services/authService";
 import apiService from "../../services/apiService";
@@ -13,6 +13,8 @@ const EstacionesList = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [userProfile, setUserProfile] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
   
   // Estados para el modal de productos
   const [modalAbierto, setModalAbierto] = useState(false);
@@ -33,6 +35,17 @@ const EstacionesList = () => {
 
     checkAuth();
   }, []);
+
+  // Abrir catálogo automáticamente si viene desde el mapa
+  useEffect(() => {
+    if (location.state?.openCatalogo && ubicaciones.length > 0) {
+      const ubic = ubicaciones.find((u) => u.id === location.state.ubicacionId);
+      if (ubic) {
+        abrirCatalogoProductos(ubic);
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    }
+  }, [location.state, ubicaciones, location.pathname, navigate]);
 
   const loadUbicaciones = async () => {
     setLoading(true);
