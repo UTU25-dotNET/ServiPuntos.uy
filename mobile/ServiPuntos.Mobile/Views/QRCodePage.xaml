@@ -5,21 +5,25 @@
         x:Class="ServiPuntos.Mobile.Views.QRCodePage"
         Title="Tu Código QR">
 
+        <!-- Padding y espaciado global de Page -->
         <VerticalStackLayout
-                Padding="20"
-                Spacing="20"
+                Padding="{StaticResource PagePadding}"
+                Spacing="{StaticResource DefaultSpacing}"
                 VerticalOptions="Center">
 
+                <!-- Título destacado -->
                 <Label
                         Text="Tu código QR:"
-                        FontAttributes="Bold"
+                        Style="{StaticResource HeadlineLabelStyle}"
                         HorizontalOptions="Center"/>
 
+                <!-- Imagen del QR centrada -->
                 <Image
                         x:Name="QrImage"
                         WidthRequest="200"
                         HeightRequest="200"
                         HorizontalOptions="Center"
                         VerticalOptions="CenterAndExpand"/>
+
         </VerticalStackLayout>
 </ContentPage>
