@@ -14,6 +14,9 @@ using ServiPuntos.Infrastructure.Data;
 using ServiPuntos.Infrastructure.Middleware;
 using ServiPuntos.Infrastructure.MultiTenancy;
 using ServiPuntos.Infrastructure.Repositories;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
+using System.IO;
 
 using System.Text;
 using System.Security.Claims;
@@ -48,6 +51,15 @@ if (string.IsNullOrEmpty(secretKeyString))
     throw new InvalidOperationException("JWT SecretKey is not configured.");
 }
 var secretKey = Encoding.UTF8.GetBytes(secretKeyString);
+
+var firebasePath = builder.Configuration["Firebase:CredentialsPath"];
+if (!string.IsNullOrEmpty(firebasePath) && File.Exists(firebasePath))
+{
+    FirebaseApp.Create(new AppOptions
+    {
+        Credential = GoogleCredential.FromFile(firebasePath)
+    });
+}
 
 //Soporte de sesion
 builder.Services.AddSession(options =>
@@ -132,6 +144,7 @@ builder.Services.AddScoped<IProductoUbicacionRepository, ProductoUbicacionReposi
 builder.Services.AddScoped<IPromocionRepository, PromocionRepository>();
 builder.Services.AddScoped<INotificacionRepository, NotificacionRepository>();
 builder.Services.AddScoped<IAudienciaRepository, AudienciaRepository>();
+builder.Services.AddScoped<IDispositivoRepository, DispositivoRepository>();
 
 // Registra los servicios de NAFTA
 builder.Services.AddScoped<ITransaccionService, TransaccionService>();
@@ -147,6 +160,8 @@ builder.Services.AddScoped<IPromocionService, PromocionService>();
 builder.Services.AddScoped<INotificacionService, NotificacionService>();
 builder.Services.AddScoped<IAudienciaRuleEngine, AudienciaRuleEngine>();
 builder.Services.AddScoped<IAudienciaService, AudienciaService>();
+builder.Services.AddScoped<IDispositivoService, DispositivoService>();
+builder.Services.AddSingleton<FcmService>();
 
 // Construye la aplicaci�n web
 var app = builder.Build();

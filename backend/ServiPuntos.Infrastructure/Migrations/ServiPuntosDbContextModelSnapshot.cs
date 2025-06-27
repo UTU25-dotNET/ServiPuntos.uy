@@ -209,6 +209,29 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.ToTable("NotificacionUsuarios");
                 });
 
+            modelBuilder.Entity("ServiPuntos.Core.Entities.DispositivoFcm", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("FechaRegistro")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UsuarioId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("DispositivosFcm");
+                });
+
             modelBuilder.Entity("ServiPuntos.Core.Entities.ProductoCanjeable", b =>
                 {
                     b.Property<Guid>("Id")
@@ -758,6 +781,17 @@ namespace ServiPuntos.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Notificacion");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("ServiPuntos.Core.Entities.DispositivoFcm", b =>
+                {
+                    b.HasOne("ServiPuntos.Core.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Usuario");
                 });

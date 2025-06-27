@@ -30,6 +30,7 @@ API_BASE_URL=http://localhost:5019
 FRONTEND_URL=http://localhost:3000
 MOCK_VEAI_URL=http://localhost:5050
 NAFTA_API_URL=http://localhost:5051
+FIREBASE_CREDENTIALS_PATH=/path/al/archivo-service-account.json
 ```
 
 ## 🛠️ Funcionalidades principales
@@ -39,6 +40,7 @@ NAFTA_API_URL=http://localhost:5051
 - Integración con SQL Server
 - Seguridad JWT
 - Comunicación con servicios externos (Mock VEAI, NAFTA API)
+- Envío de notificaciones push mediante Firebase Cloud Messaging
 
 ## 📢 Notas importantes
 

@@ -31,6 +31,7 @@ namespace ServiPuntos.Infrastructure.Data
         public DbSet<Canje> Canjes { get; set; }
         public DbSet<Notificacion> Notificaciones { get; set; }
         public DbSet<NotificacionUsuario> NotificacionUsuarios { get; set; }
+        public DbSet<DispositivoFcm> DispositivosFcm { get; set; }
 
         public DbSet<ConfigPlataforma> ConfigPlataformas { get; set; }
 
@@ -108,6 +109,11 @@ namespace ServiPuntos.Infrastructure.Data
                 .HasOne(nu => nu.Usuario)
                 .WithMany()
                 .HasForeignKey(nu => nu.UsuarioId);
+
+            modelBuilder.Entity<DispositivoFcm>()
+                .HasOne(d => d.Usuario)
+                .WithMany()
+                .HasForeignKey(d => d.UsuarioId);
             //modelBuilder.Entity<Ubicacion>() // si corresponde
             //.HasQueryFilter(u => u.TenantId == _tenantProvider.CurrentTenant.Id);
 
