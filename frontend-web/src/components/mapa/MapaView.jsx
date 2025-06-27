@@ -37,6 +37,7 @@ const MapaView = () => {
   const [ubicaciones, setUbicaciones] = useState([]);
   const [selectedUbicacion, setSelectedUbicacion] = useState(null);
   const [tenantInfo, setTenantInfo] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("all");
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -106,6 +107,12 @@ const MapaView = () => {
     }
   };
 
+  const filteredUbicaciones = ubicaciones.filter((u) => {
+    if (statusFilter === "open") return estaAbierta(u);
+    if (statusFilter === "closed") return !estaAbierta(u);
+    return true;
+  });
+
   return (
     <div className="position-relative" style={{ height: "100vh", width: "100%" }}>
       <MapContainer
@@ -115,7 +122,7 @@ const MapaView = () => {
         whenCreated={(map) => (mapRef.current = map)}
       >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            {ubicaciones.map((u) => {
+            {filteredUbicaciones.map((u) => {
               const lat = parseFloat(u.latitud);
               const lng = parseFloat(u.longitud);
               if (isNaN(lat) || isNaN(lng)) return null;
@@ -146,8 +153,19 @@ const MapaView = () => {
         <div className="list-group-item active fw-bold text-center sticky-top">
           {tenantInfo ? `Ubicaciones de ${tenantInfo.nombre}` : "Ubicaciones"}
         </div>
+        <div className="p-2 border-bottom">
+          <select
+            className="form-select"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="all">Todas</option>
+            <option value="open">Abiertas</option>
+            <option value="closed">Cerradas</option>
+          </select>
+        </div>
         <div className="accordion" id="ubicacionesAccordion">
-          {ubicaciones.map((u) => (
+          {filteredUbicaciones.map((u) => (
             <div className="accordion-item" key={u.id} style={{ borderColor: 'var(--primary-color)' }}>
               <h2 className="accordion-header">
                 <button
