@@ -3,49 +3,41 @@
     x:Class="ServiPuntos.Mobile.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:ServiPuntos.Mobile.Views"
-    Title="ServiPuntos">
+    xmlns:views="clr-namespace:ServiPuntos.Mobile.Views"
+    Title="ServiPuntos"
+    Shell.TabBarBackgroundColor="{DynamicResource PrimaryColor}"
+    Shell.TabBarForegroundColor="White"
+    Shell.TabBarTitleColor="White"
+    Shell.TabBarUnselectedColor="{StaticResource Gray200}">
 
-    <!-- Login -->
-    <ShellContent
-        Title="Login"
-        Route="MainPage"
-        ContentTemplate="{DataTemplate local:LoginPage}"/>
-
-    <!-- Saldo de puntos -->
-    <ShellContent
-        Title="Saldo"
-        Route="PointsPage"
-        ContentTemplate="{DataTemplate local:PointsPage}"/>
-
-    <!-- Ofertas -->
-    <ShellContent
-        Title="Ofertas"
-        Route="OffersPage"
-        ContentTemplate="{DataTemplate local:OffersPage}"/>
-
-    <!-- Alertas -->
-    <ShellContent
-        Title="Alertas"
-        Route="AlertsPage"
-        ContentTemplate="{DataTemplate local:AlertsPage}"/>
-
-    <!-- Canjear -->
-    <ShellContent
-        Title="Canjear"
-        Route="RedemptionPage"
-        ContentTemplate="{DataTemplate local:RedemptionPage}"/>
-
-    <!-- Código QR -->
-    <ShellContent
-        Title="QR Code"
-        Route="QRCodePage"
-        ContentTemplate="{DataTemplate local:QRCodePage}"/>
-
-    <!-- Historial de transacciones -->
-    <ShellContent
-        Title="Historial"
-        Route="HistoryPage"
-        ContentTemplate="{DataTemplate local:HistoryPage}"/>
-
+    <TabBar>
+        <ShellContent Title="Login"
+                Icon="icon_login.png"
+                Route="MainPage"
+                ContentTemplate="{DataTemplate views:LoginPage}"/>
+        <ShellContent Title="Saldo"
+                Icon="icon_points.png"
+                Route="PointsPage"
+                ContentTemplate="{DataTemplate views:PointsPage}"/>
+        <ShellContent Title="Ofertas"
+                Icon="icon_offers.png"
+                Route="OffersPage"
+                ContentTemplate="{DataTemplate views:OffersPage}"/>
+        <ShellContent Title="Alertas"
+                Icon="icon_alerts.png"
+                Route="AlertsPage"
+                ContentTemplate="{DataTemplate views:AlertsPage}"/>
+        <ShellContent Title="Canjear"
+                Icon="icon_redeem.png"
+                Route="RedemptionPage"
+                ContentTemplate="{DataTemplate views:RedemptionPage}"/>
+        <ShellContent Title="QR"
+                Icon="icon_qr.png"
+                Route="QRCodePage"
+                ContentTemplate="{DataTemplate views:QRCodePage}"/>
+        <ShellContent Title="Historial"
+                Icon="icon_history.png"
+                Route="HistoryPage"
+                ContentTemplate="{DataTemplate views:HistoryPage}"/>
+    </TabBar>
 </Shell>
