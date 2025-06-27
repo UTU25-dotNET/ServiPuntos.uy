@@ -12,9 +12,6 @@ const PayPalResult = () => {
   const status =
     searchParams.get("status") ||
     (window.location.pathname.includes("paypal-cancel") ? "cancel" : "success");
-  const paymentId = searchParams.get("paymentId");
-  const payerId = searchParams.get("payerId") || searchParams.get("PayerID");
-  const token = searchParams.get("token");
   const transaccionId = searchParams.get("transaccionId");
 
   const isSuccess = status !== "cancel";
