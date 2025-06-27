@@ -84,20 +84,6 @@ const PayPalResult = () => {
             <p className="text-muted">
               {isSuccess ? "El pago se completó con éxito." : "El pago fue cancelado por el usuario."}
             </p>
-            {paymentId && (
-              <p className="small text-muted mb-0">
-                <strong>paymentId:</strong> {paymentId}
-              </p>
-            )}
-            {payerId && (
-              <p className="small text-muted mb-0">
-                <strong>payerId:</strong> {payerId}
-              </p>
-            )}
-            {token && (
-              <p className="small text-muted mb-0">
-                <strong>token:</strong> {token}
-              </p>
             )}
             {isSuccess && transaccion && (
               <div className="text-start mt-3">

@@ -1,0 +1,60 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [ dev ]
+  pull_request:
+    types: [closed]
+    branches: [ dev ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Deploy to EC2
+      uses: appleboy/ssh-action@v0.1.8
+      with:
+        host: ec2-18-220-251-96.us-east-2.compute.amazonaws.com
+        username: ubuntu
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          set -e  # Exit on any error
+          
+          cd /opt/servipuntos-api/ServiPuntos.uy
+          echo "🔄 Pulling latest changes..."
+          git pull origin dev
+          
+          # Stop services before building
+          echo "⏹️ Stopping services..."
+          sudo systemctl stop servipuntos-dev.service || true
+          sudo systemctl stop servipuntos-webapp.service || true
+          
+          echo "🛠️ Building backend API..."
+          cd backend/ServiPuntos.API
+          dotnet restore
+          dotnet build
+          if [ $? -ne 0 ]; then
+            echo "❌ API build failed!"
+            exit 1
+          fi
+          
+          echo "🛠️ Building webapp..."
+          cd ../ServiPuntos.WebApp
+          dotnet restore
+          dotnet build
+          if [ $? -ne 0 ]; then
+            echo "❌ WebApp build failed!"
+            exit 1
+          fi
+          
+          echo "🔄 Starting services..."
+          sudo systemctl start servipuntos-dev.service
+          sudo systemctl start servipuntos-webapp.service
+          
+          # Wait a bit for services to start
+          sleep 5
+          
+          echo "✅ Deploy completed successfully!"
+          echo "📊 Service status:"
+          sudo systemctl status servipuntos-dev.service --no-pager -l
+          sudo systemctl status servipuntos-webapp.service --no-pager -l
