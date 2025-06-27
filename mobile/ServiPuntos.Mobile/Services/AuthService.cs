@@ -1,20 +1,25 @@
-using System.Text.Json;
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
 using System.Text;
-using ServiPuntos.Mobile.Views;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.Storage;
 using ServiPuntos.Mobile.Models;
+using ServiPuntos.Mobile.Views;
 using static ServiPuntos.Mobile.Services.AppLogger;
 
 namespace ServiPuntos.Mobile.Services
 {
-    public class AuthService : IAuthService
+    public class AuthService : IAuthService, IDisposable
     {
         private readonly HttpClient _httpClient;
-
         private const string API_BASE_URL = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/auth";
-
-        //private const string API_BASE_URL = "https://localhost:5019/api/auth";
-
         private const string TOKEN_KEY = "auth_token";
+        private const string USERID_KEY = "userId";
+        private const string TENANT_KEY = "tenant_id";
 
         public AuthService(HttpClient httpClient)
         {
@@ -24,286 +29,119 @@ namespace ServiPuntos.Mobile.Services
 
         public async Task<bool> LoginWithGoogleAsync()
         {
-            try
-            {
-                var authUrl = $"{API_BASE_URL}/google-login?mobile=true";
-
-                LogInfo($"[AuthService] Abriendo navegador con URL: {authUrl}");
-
-                await Browser.OpenAsync(authUrl, BrowserLaunchMode.SystemPreferred);
-
-                LogInfo("[AuthService] Navegador abierto, esperando callback...");
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                LogInfo($"[AuthService] Error abriendo navegador: {ex.Message}");
-
-                await MainThread.InvokeOnMainThreadAsync(async () =>
-                {
-                    await Application.Current.MainPage.DisplayAlert("Error", $"Error abriendo navegador: {ex.Message}", "OK");
-                });
-
-                return false;
-            }
+            var authUrl = $"{API_BASE_URL}/google-login?mobile=true";
+            await Browser.OpenAsync(authUrl, BrowserLaunchMode.SystemPreferred);
+            Console.WriteLine($"[AuthService] Opened Google login URL: {authUrl}");
+            return true;
         }
-
 
         public async Task<SignInResponse?> SignInAsync(string email, string password)
         {
-            try
+            Console.WriteLine($"[AuthService] Signing in user: {email}");
+            var handler = new HttpClientHandler
             {
-                Console.WriteLine($"[AuthService] === INICIO SIGNIN ===");
-                Console.WriteLine($"[AuthService] Email: {email}");
-                Console.WriteLine($"[AuthService] Password present: {!string.IsNullOrEmpty(password)}");
-                Console.WriteLine($"[AuthService] API_BASE_URL: {API_BASE_URL}");
-
-                // Crear cliente que acepte auto-firmados en desarrollo
-                var handler = new HttpClientHandler
-                {
-                    ServerCertificateCustomValidationCallback =
-                        HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                };
-                using var client = new HttpClient(handler);
-
-                // Serializar payload
-                var data = new { email, password };
-                var json = JsonSerializer.Serialize(data);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                // Llamada POST
-                HttpResponseMessage response;
-                try
-                {
-                    response = await client.PostAsync($"{API_BASE_URL}/signin", content);
-                    var debugBody = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"STATUS: {response.StatusCode} - BODY: {debugBody}");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[AuthService] ERROR llamando al API: {ex.Message}");
-                    throw;
-                }
-
-                // Leer respuesta
-                var responseContent = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"[AuthService] Response Content: {responseContent}");
-
-                if (!response.IsSuccessStatusCode)
-                    throw new HttpRequestException($"Error de autenticación: {response.StatusCode}");
-
-                // Parseo manual para ajustar tipos
-                using var doc = JsonDocument.Parse(responseContent);
-                var root = doc.RootElement;
-                var signinResponse = new SignInResponse
-                {
-                    Token = root.GetProperty("token").GetString()!,
-                    UserId = root.GetProperty("userId").GetString()!,
-                    Username = root.GetProperty("username").GetString()!,
-                    Email = root.GetProperty("email").GetString()!,
-                    Role = root.GetProperty("role").GetInt32().ToString(),        // ahora int
-                    TenantId = root.GetProperty("tenantId").GetString()!
-                };
-
-                // Guardar token y asignar header
-                await SaveTokenAsync(signinResponse.Token);
-                _httpClient.DefaultRequestHeaders.Authorization =
-                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", signinResponse.Token);
-
-                Console.WriteLine($"[AuthService] Login exitoso para: {signinResponse.Email}");
-
-                // —— NAVEGACIÓN A TokenDisplayPage ——  
-                await MainThread.InvokeOnMainThreadAsync(async () =>
-                {
-                    var tokenDisplayPage = new TokenDisplayPage(this);
-                    tokenDisplayPage.SetToken(signinResponse.Token);
-
-                    Console.WriteLine("[AuthService] Navegando a TokenDisplayPage...");
-                    await Application.Current.MainPage.Navigation.PushAsync(tokenDisplayPage); //Esto despues hay que tocarlo y redirigir a donde queramos
-                    Console.WriteLine("[AuthService] Navegación completada");
-                });
-                return signinResponse;
-            }
-            catch (HttpRequestException httpEx)
+                ServerCertificateCustomValidationCallback =
+                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            };
+            using var client = new HttpClient(handler);
+            var payload = JsonSerializer.Serialize(new { email, password });
+            var content = new StringContent(payload, Encoding.UTF8, "application/json");
+            var response = await client.PostAsync($"{API_BASE_URL}/signin", content);
+            var body = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"[AuthService] Response status: {response.StatusCode} Body: {body}");
+            if (!response.IsSuccessStatusCode)
+                throw new HttpRequestException($"Error de autenticación: {response.StatusCode}");
+            using var doc = JsonDocument.Parse(body);
+            var root = doc.RootElement;
+            var result = new SignInResponse
             {
-                Console.WriteLine($"[AuthService] HttpRequestException: {httpEx.Message}");
-                throw;
-            }
-            catch (TaskCanceledException timeoutEx)
-            {
-                Console.WriteLine($"[AuthService] Timeout: {timeoutEx.Message}");
-                throw new HttpRequestException("Timeout al conectar con el servidor");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[AuthService] Exception general: {ex.GetType().Name} - {ex.Message}");
-                throw;
-            }
-        }
-
-        public void Dispose()
-        {
-            _httpClient?.Dispose();
-        }
-        public async Task<bool> IsAuthenticatedAsync()
-        {
-            try
-            {
-                var token = await GetTokenAsync();
-                LogInfo($"[AuthService] Verificando autenticacion: {!string.IsNullOrEmpty(token)}");
-                return !string.IsNullOrEmpty(token);
-            }
-            catch (Exception ex)
-            {
-                LogInfo($"[AuthService] Error verificando autenticacion: {ex.Message}");
-                return false;
-            }
-        }
-
-        public async Task<string?> GetTokenAsync()
-        {
-            try
-            {
-                var token = await SecureStorage.GetAsync(TOKEN_KEY);
-                LogInfo($"[AuthService] Token obtenido de SecureStorage: {(string.IsNullOrEmpty(token) ? "vacio" : "presente")}");
-                return token;
-            }
-            catch (Exception ex)
-            {
-                LogInfo($"[AuthService] Error obteniendo token: {ex.Message}");
-                return null;
-            }
-        }
-
-        public async Task LogoutAsync()
-        {
-            try
-            {
-                SecureStorage.Remove(TOKEN_KEY);
-                _httpClient.DefaultRequestHeaders.Authorization = null;
-                LogInfo("[AuthService] Logout completado");
-            }
-            catch (Exception ex)
-            {
-                LogInfo($"[AuthService] Error en logout: {ex.Message}");
-            }
+                Token = root.GetProperty("token").GetString()!,
+                UserId = root.GetProperty("userId").GetString()!,
+                Username = root.GetProperty("username").GetString()!,
+                Email = root.GetProperty("email").GetString()!,
+                Role = root.GetProperty("role").GetInt32().ToString(),
+                TenantId = root.GetProperty("tenantId").GetString()!
+            };
+            await SecureStorage.SetAsync(TOKEN_KEY, result.Token);
+            Console.WriteLine($"[AuthService] Token saved: {result.Token}");
+            await SecureStorage.SetAsync(USERID_KEY, result.UserId);
+            Console.WriteLine($"[AuthService] UserId saved: {result.UserId}");
+            await SecureStorage.SetAsync(TENANT_KEY, result.TenantId);
+            Console.WriteLine($"[AuthService] TenantId saved: {result.TenantId}");
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", result.Token);
+            var td = new TokenDisplayPage(this);
+            td.SetToken(result.Token);
+            await Application.Current.MainPage.Navigation.PushAsync(td);
+            return result;
         }
 
         public async Task SaveTokenAsync(string token)
         {
-            try
-            {
-                await SecureStorage.SetAsync(TOKEN_KEY, token);
-                LogInfo("[AuthService] Token guardado exitosamente");
-            }
-            catch (Exception ex)
-            {
-                LogInfo($"[AuthService] Error guardando token: {ex.Message}");
-            }
+            await SecureStorage.SetAsync(TOKEN_KEY, token);
+            Console.WriteLine($"[AuthService] SaveTokenAsync: {token}");
+        }
+
+        public async Task<string?> GetTokenAsync()
+        {
+            var t = await SecureStorage.GetAsync(TOKEN_KEY);
+            Console.WriteLine($"[AuthService] GetTokenAsync: {(string.IsNullOrEmpty(t) ? "null" : t)}");
+            return t;
+        }
+
+        public async Task<bool> IsAuthenticatedAsync() =>
+            !string.IsNullOrEmpty(await GetTokenAsync());
+
+        public async Task LogoutAsync()
+        {
+            SecureStorage.Remove(TOKEN_KEY);
+            SecureStorage.Remove(USERID_KEY);
+            SecureStorage.Remove(TENANT_KEY);
+            _httpClient.DefaultRequestHeaders.Authorization = null;
+            Console.WriteLine("[AuthService] LogoutAsync completed");
         }
 
         public async Task<UserInfo?> GetUserInfoAsync()
         {
-            LogInfo("[AuthService] GetUserInfoAsync no implementado");
-            return null;
+            var resp = await _httpClient.GetAsync($"{API_BASE_URL}/userinfo");
+            Console.WriteLine($"[AuthService] GetUserInfoAsync status: {resp.StatusCode}");
+            if (!resp.IsSuccessStatusCode) return null;
+            var json = await resp.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<UserInfo>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
 
-        // Este método obtiene la lista de tenants disponibles asi los listamos en un combobox como en frontend-web
         public async Task<List<TenantResponse>> GetTenantsAsync()
         {
-            try
+            var handler = new HttpClientHandler
             {
-                Console.WriteLine("[AuthService] Obteniendo lista de tenants...");
-
-                var handler = new HttpClientHandler
-                {
-                    ServerCertificateCustomValidationCallback =
-                        HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                };
-                using var client = new HttpClient(handler);
-
-                var response = await client.GetAsync($"{API_BASE_URL}/tenants");
-                var content = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    Console.WriteLine($"[AuthService] Error al obtener tenants: {response.StatusCode}");
-                    return new List<TenantResponse>();
-                }
-
-                var tenants = JsonSerializer.Deserialize<List<TenantResponse>>(content, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                Console.WriteLine($"[AuthService] Se obtuvieron {tenants?.Count ?? 0} tenants");
-                return tenants ?? new List<TenantResponse>();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[AuthService] Error obteniendo tenants: {ex.Message}");
-                return new List<TenantResponse>();
-            }
+                ServerCertificateCustomValidationCallback =
+                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            };
+            using var client = new HttpClient(handler);
+            var resp = await client.GetAsync($"{API_BASE_URL}/tenants");
+            Console.WriteLine($"[AuthService] GetTenantsAsync status: {resp.StatusCode}");
+            if (!resp.IsSuccessStatusCode) return new();
+            var json = await resp.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<List<TenantResponse>>(json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
         }
 
         public async Task<bool> RegisterAsync(RegisterRequest request)
         {
-            try
+            var handler = new HttpClientHandler
             {
-                Console.WriteLine($"[AuthService] === INICIO REGISTRO ===");
-                Console.WriteLine($"[AuthService] Email: {request.Email}");
-                Console.WriteLine($"[AuthService] Nombre: {request.Nombre}");
-                Console.WriteLine($"[AuthService] CI: {request.Ci}");
-                Console.WriteLine($"[AuthService] TenantId: {request.TenantId}");
-
-                var handler = new HttpClientHandler
-                {
-                    ServerCertificateCustomValidationCallback =
-                        HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                };
-                using var client = new HttpClient(handler);
-
-                // Serializar payload
-                var json = JsonSerializer.Serialize(request);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                // Llamada POST
-                var response = await client.PostAsync($"{API_BASE_URL}/register", content);
-                var responseContent = await response.Content.ReadAsStringAsync();
-
-                Console.WriteLine($"[AuthService] Response Status: {response.StatusCode}");
-                Console.WriteLine($"[AuthService] Response Content: {responseContent}");
-
-                if (response.IsSuccessStatusCode)
-                {
-                    Console.WriteLine("[AuthService] Registro exitoso");
-                    return true;
-                }
-                else
-                {
-                    // Parsear el error del servidor
-                    try
-                    {
-                        using var doc = JsonDocument.Parse(responseContent);
-                        var errorMessage = doc.RootElement.GetProperty("message").GetString();
-                        throw new HttpRequestException($"Error de registro: {errorMessage}");
-                    }
-                    catch (JsonException)
-                    {
-                        throw new HttpRequestException($"Error de registro: {response.StatusCode}");
-                    }
-                }
-            }
-            catch (HttpRequestException)
-            {
-                throw; // Re-lanzar errores HTTP
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[AuthService] Error en registro: {ex.Message}");
-                throw new HttpRequestException("Error de conexión durante el registro");
-            }
+                ServerCertificateCustomValidationCallback =
+                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            };
+            using var client = new HttpClient(handler);
+            var json = JsonSerializer.Serialize(request);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var resp = await client.PostAsync($"{API_BASE_URL}/register", content);
+            Console.WriteLine($"[AuthService] RegisterAsync status: {resp.StatusCode}");
+            return resp.IsSuccessStatusCode;
         }
+
+        public void Dispose() =>
+            _httpClient.Dispose();
     }
 }
