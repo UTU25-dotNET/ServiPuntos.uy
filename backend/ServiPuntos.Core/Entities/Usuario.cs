@@ -22,7 +22,7 @@ namespace ServiPuntos.Core.Entities
 
         public int Telefono { get; set; }
         public string? CiudadResidencia { get; set; } //ciudad del usuario, puede ser nulo si no se especifica
-
+        public string? TokenFcm { get; set; } //token fcm del usuario, puede ser nulo si no se especifica
         // Audiencia Segmentacion 
         public int Puntos { get; set; }
 
