@@ -312,6 +312,33 @@ namespace ServiPuntos.API.Controllers
                 });
             }
         }
+
+         [HttpPut("fcm")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<IActionResult> SetFcmToken([FromBody] UpdateFcmTokenRequest request)
+        {
+            var emailClaim = User.FindFirst(ClaimTypes.Email) ?? User.FindFirst("email");
+            if (emailClaim == null)
+            {
+                return Unauthorized();
+            }
+
+            var usuario = await _iUsuarioService.GetUsuarioAsync(emailClaim.Value);
+            if (usuario == null)
+            {
+                return NotFound();
+            }
+
+            usuario.TokenFcm = request.Token;
+            await _iUsuarioService.UpdateUsuarioAsync(usuario);
+            return NoContent();
+        }
+
+        public class UpdateFcmTokenRequest
+        {
+            public string Token { get; set; } = string.Empty;
+        }
+
         [HttpGet("historial-transacciones")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> GetHistorialTransacciones([FromQuery] Guid? cursor, [FromQuery] int limit = 10)

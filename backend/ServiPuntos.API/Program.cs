@@ -144,6 +144,7 @@ builder.Services.AddScoped<IUbicacionService, UbicacionService>();
 builder.Services.AddScoped<IProductoUbicacionService, ProductoUbicacionService>();
 builder.Services.AddScoped<IPayPalService, PayPalService>();
 builder.Services.AddScoped<IPromocionService, PromocionService>();
+builder.Services.AddScoped<IFcmService, FcmService>();
 builder.Services.AddScoped<INotificacionService, NotificacionService>();
 builder.Services.AddScoped<IAudienciaRuleEngine, AudienciaRuleEngine>();
 builder.Services.AddScoped<IAudienciaService, AudienciaService>();
