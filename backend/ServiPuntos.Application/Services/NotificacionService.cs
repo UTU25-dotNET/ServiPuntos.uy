@@ -8,11 +8,13 @@ namespace ServiPuntos.Application.Services
     {
         private readonly INotificacionRepository _repository;
         private readonly IUsuarioRepository _usuarioRepository;
+        private readonly IFcmService _fcmService;
 
-        public NotificacionService(INotificacionRepository repository, IUsuarioRepository usuarioRepository)
+        public NotificacionService(INotificacionRepository repository, IUsuarioRepository usuarioRepository, IFcmService fcmService)
         {
             _repository = repository;
             _usuarioRepository = usuarioRepository;
+            _fcmService = fcmService;
         }
 
         public Task<IEnumerable<NotificacionUsuario>> ObtenerPorUsuarioAsync(Guid usuarioId)
@@ -42,6 +44,11 @@ namespace ServiPuntos.Application.Services
                     Leida = false
                 };
                 await _repository.AddUsuarioAsync(nu);
+                
+                if (!string.IsNullOrEmpty(u.TokenFcm))
+                {
+                    await _fcmService.SendAsync(u.TokenFcm, notificacion.Titulo, notificacion.Mensaje);
+                }
             }
         }
 

@@ -13,8 +13,8 @@ using ServiPuntos.Infrastructure.Data;
 namespace ServiPuntos.Infrastructure.Migrations
 {
     [DbContext(typeof(ServiPuntosDbContext))]
-    [Migration("20250608204900_MigracionNafta")]
-    partial class MigracionNafta
+    [Migration("20250628225625_migracionNotisPush")]
+    partial class migracionNotisPush
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -155,6 +155,63 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.ToTable("ConfigPlataformas");
                 });
 
+            modelBuilder.Entity("ServiPuntos.Core.Entities.Notificacion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AudienciaId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Mensaje")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AudienciaId");
+
+                    b.ToTable("Notificaciones");
+                });
+
+            modelBuilder.Entity("ServiPuntos.Core.Entities.NotificacionUsuario", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("FechaLeida")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("Leida")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("NotificacionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UsuarioId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NotificacionId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("NotificacionUsuarios");
+                });
+
             modelBuilder.Entity("ServiPuntos.Core.Entities.ProductoCanjeable", b =>
                 {
                     b.Property<Guid>("Id")
@@ -165,6 +222,9 @@ namespace ServiPuntos.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Descripcion")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FotoUrl")
                         .HasColumnType("text");
 
                     b.Property<string>("Nombre")
@@ -184,6 +244,13 @@ namespace ServiPuntos.Infrastructure.Migrations
 
                     b.Property<bool>("Activo")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("Categoria")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<double>("Precio")
+                        .HasColumnType("double precision");
 
                     b.Property<Guid>("ProductoCanjeableId")
                         .HasColumnType("uuid");
@@ -215,14 +282,27 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.Property<string>("Descripcion")
                         .HasColumnType("text");
 
-                    b.Property<int?>("DescuentoEnPuntos")
-                        .HasColumnType("integer");
+                    b.Property<decimal?>("DescuentoEnPesos")
+                        .HasColumnType("numeric")
+                        .HasColumnName("DescuentoEnPuntos");
 
                     b.Property<DateTime>("FechaFin")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("FechaInicio")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal?>("PrecioEnPesos")
+                        .HasColumnType("numeric");
+
+                    b.Property<int?>("PrecioEnPuntos")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Titulo")
                         .IsRequired()
@@ -233,6 +313,21 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.HasIndex("AudienciaId");
 
                     b.ToTable("Promociones");
+                });
+
+            modelBuilder.Entity("ServiPuntos.Core.Entities.PromocionProducto", b =>
+                {
+                    b.Property<Guid>("PromocionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ProductoCanjeableId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("PromocionId", "ProductoCanjeableId");
+
+                    b.HasIndex("ProductoCanjeableId");
+
+                    b.ToTable("PromocionProductos");
                 });
 
             modelBuilder.Entity("ServiPuntos.Core.Entities.ReglaAudiencia", b =>
@@ -349,11 +444,9 @@ namespace ServiPuntos.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("PayPalPayerId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("PayPalToken")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int?>("ProductoId")
@@ -423,19 +516,37 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.Property<TimeSpan>("HoraCierre")
                         .HasColumnType("interval");
 
+                    b.Property<double>("Latitud")
+                        .HasColumnType("double precision");
+
                     b.Property<bool>("Lavado")
                         .HasColumnType("boolean");
+
+                    b.Property<bool>("LavadoDeAuto")
+                        .HasColumnType("boolean");
+
+                    b.Property<double>("Longitud")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("Nombre")
                         .HasColumnType("text");
 
-                    b.Property<decimal>("PrecioDiesel")
+                    b.Property<decimal?>("PrecioCambioAceite")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal>("PrecioNaftaPremium")
+                    b.Property<decimal?>("PrecioCambioNeumaticos")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal>("PrecioNaftaSuper")
+                    b.Property<decimal?>("PrecioDiesel")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("PrecioLavado")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("PrecioNaftaPremium")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("PrecioNaftaSuper")
                         .HasColumnType("numeric");
 
                     b.Property<string>("Telefono")
@@ -529,11 +640,17 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("TokenFcm")
+                        .HasColumnType("text");
+
                     b.Property<int>("TotalCompras")
                         .HasColumnType("integer");
 
                     b.Property<int>("TotalVisitas")
                         .HasColumnType("integer");
+
+                    b.Property<Guid?>("UbicacionId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("UbicacionPreferida")
                         .HasColumnType("uuid");
@@ -553,6 +670,8 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("TenantId");
+
+                    b.HasIndex("UbicacionId");
 
                     b.ToTable("Usuarios");
                 });
@@ -618,6 +737,34 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("ServiPuntos.Core.Entities.Notificacion", b =>
+                {
+                    b.HasOne("ServiPuntos.Core.Entities.Audiencia", "Audiencia")
+                        .WithMany()
+                        .HasForeignKey("AudienciaId");
+
+                    b.Navigation("Audiencia");
+                });
+
+            modelBuilder.Entity("ServiPuntos.Core.Entities.NotificacionUsuario", b =>
+                {
+                    b.HasOne("ServiPuntos.Core.Entities.Notificacion", "Notificacion")
+                        .WithMany("Destinatarios")
+                        .HasForeignKey("NotificacionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ServiPuntos.Core.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Notificacion");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("ServiPuntos.Core.Entities.ProductoUbicacion", b =>
                 {
                     b.HasOne("ServiPuntos.Core.Entities.ProductoCanjeable", "ProductoCanjeable")
@@ -639,9 +786,30 @@ namespace ServiPuntos.Infrastructure.Migrations
 
             modelBuilder.Entity("ServiPuntos.Core.Entities.Promocion", b =>
                 {
-                    b.HasOne("ServiPuntos.Core.Entities.Audiencia", null)
+                    b.HasOne("ServiPuntos.Core.Entities.Audiencia", "Audiencia")
                         .WithMany("Promociones")
                         .HasForeignKey("AudienciaId");
+
+                    b.Navigation("Audiencia");
+                });
+
+            modelBuilder.Entity("ServiPuntos.Core.Entities.PromocionProducto", b =>
+                {
+                    b.HasOne("ServiPuntos.Core.Entities.ProductoCanjeable", "ProductoCanjeable")
+                        .WithMany()
+                        .HasForeignKey("ProductoCanjeableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ServiPuntos.Core.Entities.Promocion", "Promocion")
+                        .WithMany("Productos")
+                        .HasForeignKey("PromocionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ProductoCanjeable");
+
+                    b.Navigation("Promocion");
                 });
 
             modelBuilder.Entity("ServiPuntos.Core.Entities.ReglaAudiencia", b =>
@@ -701,7 +869,14 @@ namespace ServiPuntos.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ServiPuntos.Core.Entities.Ubicacion", "Ubicacion")
+                        .WithMany()
+                        .HasForeignKey("UbicacionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Tenant");
+
+                    b.Navigation("Ubicacion");
                 });
 
             modelBuilder.Entity("ServiPuntos.Core.Entities.Audiencia", b =>
@@ -711,9 +886,19 @@ namespace ServiPuntos.Infrastructure.Migrations
                     b.Navigation("Reglas");
                 });
 
+            modelBuilder.Entity("ServiPuntos.Core.Entities.Notificacion", b =>
+                {
+                    b.Navigation("Destinatarios");
+                });
+
             modelBuilder.Entity("ServiPuntos.Core.Entities.ProductoCanjeable", b =>
                 {
                     b.Navigation("DisponibilidadesPorUbicacion");
+                });
+
+            modelBuilder.Entity("ServiPuntos.Core.Entities.Promocion", b =>
+                {
+                    b.Navigation("Productos");
                 });
 
             modelBuilder.Entity("ServiPuntos.Core.Entities.Tenant", b =>
