@@ -131,6 +131,8 @@ namespace ServiPuntos.API.Controllers
                     id = transaccion.Id,
                     fecha = transaccion.FechaTransaccion,
                     monto = transaccion.Monto,
+                    montoPagado = transaccion.MontoPayPal,
+                    esTransaccionMixta = transaccion.EsTransaccionMixta,
                     tipo = transaccion.TipoTransaccion.ToString(),
                     ubicacion = transaccion.Ubicacion?.Nombre,
                     puntosOtorgados = transaccion.PuntosOtorgados,
@@ -316,6 +318,7 @@ namespace ServiPuntos.API.Controllers
         {
             try
             {
+                Console.WriteLine($"[UsuarioController] Solicitando historial de transacciones. Cursor: {cursor} Limit: {limit}");
                 var emailClaim = User.FindFirst(ClaimTypes.Email) ?? User.FindFirst("email");
                 if (emailClaim == null)
                 {
@@ -329,6 +332,7 @@ namespace ServiPuntos.API.Controllers
                 }
 
                 var transacciones = await _transaccionService.GetTransaccionesByUsuarioIdPaginatedAsync(usuario.Id, cursor, limit);
+                Console.WriteLine($"[UsuarioController] Transacciones recibidas: {transacciones.Count()}");
 
                 var lastId = transacciones.LastOrDefault()?.Id;
 
@@ -337,6 +341,8 @@ namespace ServiPuntos.API.Controllers
                     id = t.Id,
                     fecha = t.FechaTransaccion,
                     monto = t.Monto,
+                    montoPagado = t.MontoPayPal,
+                    esTransaccionMixta = t.EsTransaccionMixta,
                     tipo = t.TipoTransaccion.ToString(),
                     ubicacion = t.Ubicacion?.Nombre,
                     puntosOtorgados = t.PuntosOtorgados,

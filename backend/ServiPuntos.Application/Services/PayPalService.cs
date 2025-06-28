@@ -80,8 +80,8 @@ namespace ServiPuntos.Application.Services
                 },
                 redirect_urls = new
                 {
-                    return_url = _configuration["PayPal:ReturnUrl"],
-                    cancel_url = _configuration["PayPal:CancelUrl"]
+                    return_url = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/paypal/return",
+                    cancel_url = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/paypal/cancel"
                 }
             };
 
@@ -218,6 +218,19 @@ namespace ServiPuntos.Application.Services
             }
 
             return string.Empty;
+        }
+
+         private string GetCallbackUrl(string configKey, string path)
+        {
+            var url = _configuration[configKey];
+            var baseEnv = Environment.GetEnvironmentVariable("API_BASE_URL") ?? _configuration["API_BASE_URL"];
+
+            if (!string.IsNullOrEmpty(baseEnv))
+            {
+                url = baseEnv.TrimEnd('/') + path;
+            }
+
+            return url;
         }
     }
 }

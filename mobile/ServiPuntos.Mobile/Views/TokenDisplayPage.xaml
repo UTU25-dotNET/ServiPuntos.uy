@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ServiPuntos.Mobile.Views.TokenDisplayPage"
+             Title="Autenticación Exitosa">
+        <ScrollView Padding="20">
+                <StackLayout Spacing="20">
+                        <Frame BackgroundColor="LightGreen"
+                               HasShadow="True"
+                               CornerRadius="10">
+                                <StackLayout>
+                                        <Label Text="✅ Autenticación Exitosa"
+                                               FontSize="20"
+                                               FontAttributes="Bold"
+                                               HorizontalOptions="Center"
+                                               TextColor="DarkGreen"/>
+                                        <Label Text="Se ha obtenido el token JWT correctamente"
+                                               FontSize="14"
+                                               HorizontalOptions="Center"
+                                               TextColor="DarkGreen"/>
+                                </StackLayout>
+                        </Frame>
+                        <Frame BackgroundColor="LightBlue"
+                               HasShadow="True"
+                               CornerRadius="10">
+                                <StackLayout>
+                                        <Label Text="Información del Usuario:"
+                                               FontSize="16"
+                                               FontAttributes="Bold"
+                                               TextColor="DarkBlue"/>
+                                        <Label x:Name="UserNameLabel"
+                                               Text="Nombre: Cargando..."
+                                               FontSize="14"
+                                               TextColor="DarkBlue"/>
+                                        <Label x:Name="UserEmailLabel"
+                                               Text="Email: Cargando..."
+                                               FontSize="14"
+                                               TextColor="DarkBlue"/>
+                                        <Label x:Name="TenantLabel"
+                                               Text="Tenant: Cargando..."
+                                               FontSize="14"
+                                               TextColor="DarkBlue"/>
+                                </StackLayout>
+                        </Frame>
+                        <Label Text="Token JWT Recibido:"
+                               FontSize="16"
+                               FontAttributes="Bold"/>
+                        <Frame BackgroundColor="LightGray"
+                               HasShadow="True"
+                               CornerRadius="5">
+                                <StackLayout>
+                                        <Label x:Name="TokenLabel"
+                                               Text="Token aparecerá aquí..."
+                                               FontSize="12"
+                                               LineBreakMode="WordWrap"/>
+                                        <Button x:Name="CopyTokenButton"
+                                                Text="Copiar Token"
+                                                BackgroundColor="Blue"
+                                                TextColor="White"
+                                                Clicked="OnCopyTokenClicked"
+                                                Margin="0,10,0,0"/>
+                                </StackLayout>
+                        </Frame>
+                        <StackLayout Orientation="Horizontal"
+                                     HorizontalOptions="Center"
+                                     Spacing="10">
+                                <Button x:Name="HomeButton"
+                                        Text="Ir al Dashboard"
+                                        BackgroundColor="Green"
+                                        TextColor="White"
+                                        Clicked="OnHomeClicked"/>
+                                <Button x:Name="ViewPointsButton"
+                                        Text="Ver Saldo"
+                                        BackgroundColor="Blue"
+                                        TextColor="White"
+                                        Clicked="OnViewPointsClicked"/>
+                                <Button x:Name="LogoutButton"
+                                        Text="Cerrar Sesión"
+                                        BackgroundColor="Red"
+                                        TextColor="White"
+                                        Clicked="OnLogoutClicked"/>
+                        </StackLayout>
+                </StackLayout>
+        </ScrollView>
+</ContentPage>

@@ -8,7 +8,7 @@ namespace ServiPuntos.Core.Interfaces
 {
     public interface ITransaccionService
     {
-        Task<Transaccion> GetTransaccionByIdAsync(Guid id);
+        Task<Transaccion?> GetTransaccionByIdAsync(Guid id);
         Task<IEnumerable<Transaccion>> GetTransaccionesByUsuarioIdAsync(Guid usuarioId);
 
         Task<IEnumerable<Transaccion>> GetTransaccionesByUsuarioIdPaginatedAsync(Guid usuarioId, Guid? cursor, int limit);
@@ -17,5 +17,10 @@ namespace ServiPuntos.Core.Interfaces
         Task<IEnumerable<Transaccion>> GetTransaccionesByDateRangeAsync(DateTime fechaInicio, DateTime fechaFin);
         Task<RespuestaPuntosNAFTA> ProcesarTransaccionNAFTAAsync(TransaccionNAFTA transaccion, Guid tenantId, Guid ubicacionId);
         Task<Guid> RegistrarTransaccionAsync(Transaccion transaccion);
+
+        /// <summary>
+        /// Obtiene la suma total de dinero generado por todas las transacciones.
+        /// </summary>
+        Task<decimal> GetMontoTotalAsync();
     }
 }

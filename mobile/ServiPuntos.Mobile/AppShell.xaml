@@ -1,16 +1,51 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <Shell
     x:Class="ServiPuntos.Mobile.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:views="clr-namespace:ServiPuntos.Mobile.Views"
-    Title="ServiPuntos.Mobile">
+    xmlns:local="clr-namespace:ServiPuntos.Mobile.Views"
+    Title="ServiPuntos">
 
+    <!-- Login -->
     <ShellContent
-        Title="Inicio"
-        ContentTemplate="{DataTemplate views:TenantSelectorPage}"
-        Route="TenantSelectorPage"/>
+        Title="Login"
+        Route="MainPage"
+        ContentTemplate="{DataTemplate local:LoginPage}"/>
+
+    <!-- Saldo de puntos -->
+    <ShellContent
+        Title="Saldo"
+        Route="PointsPage"
+        ContentTemplate="{DataTemplate local:PointsPage}"/>
+
+    <!-- Ofertas -->
+    <ShellContent
+        Title="Ofertas"
+        Route="OffersPage"
+        ContentTemplate="{DataTemplate local:OffersPage}"/>
+
+    <!-- Alertas -->
+    <ShellContent
+        Title="Alertas"
+        Route="AlertsPage"
+        ContentTemplate="{DataTemplate local:AlertsPage}"/>
+
+    <!-- Canjear -->
+    <ShellContent
+        Title="Canjear"
+        Route="RedemptionPage"
+        ContentTemplate="{DataTemplate local:RedemptionPage}"/>
+
+    <!-- Código QR -->
+    <ShellContent
+        Title="QR Code"
+        Route="QRCodePage"
+        ContentTemplate="{DataTemplate local:QRCodePage}"/>
+
+    <!-- Historial de transacciones -->
+    <ShellContent
+        Title="Historial"
+        Route="HistoryPage"
+        ContentTemplate="{DataTemplate local:HistoryPage}"/>
 
 </Shell>
-
-

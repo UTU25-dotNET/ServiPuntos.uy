@@ -8,17 +8,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using ServiPuntos.Application.Services;
+using ServiPuntos.Application.Services.Rules;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Data;
 using ServiPuntos.Infrastructure.Middleware;
 using ServiPuntos.Infrastructure.MultiTenancy;
-using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Repositories;
-using ServiPuntos.Infrastructure.Middleware;
 
 using System.Text;
 using System.Security.Claims;
-using System.Text;
 
 // Creaci�n de la aplicaci�n web ASP.NET Core
 var builder = WebApplication.CreateBuilder(args);
@@ -34,7 +32,8 @@ builder.Services.AddControllersWithViews()
     .AddJsonOptions(opts =>
     {
         opts.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
-        opts.JsonSerializerOptions.DictionaryKeyPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    opts.JsonSerializerOptions.DictionaryKeyPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    opts.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     });
 
 // Agregar servicios de Swagger para documentaci�n de API
@@ -59,74 +58,6 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
     options.Cookie.SameSite = SameSiteMode.Lax;
 });
-
-// Configurar servicios de autenticaci�n
-/*builder.Services.AddAuthentication(options =>
-{
-    // Para APIs REST, JWT Bearer debería ser el esquema por defecto
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    // Mantener Cookies para la parte web
-    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-})
-.AddCookie(options =>
-{
-    options.Cookie.HttpOnly = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-    options.Cookie.SameSite = SameSiteMode.None;
-    options.Cookie.Path = "/";
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(120);
-    options.Cookie.IsEssential = true;
-})
-.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings["Issuer"],
-        ValidAudience = jwtSettings["Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(secretKey),
-        ClockSkew = TimeSpan.Zero
-    };
-    
-    // Configuración de eventos para debugging detallado
-    options.Events = new JwtBearerEvents
-    {
-        OnMessageReceived = context =>
-        {
-            var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-            Console.WriteLine($"Token recibido: {(!string.IsNullOrEmpty(token) ? "SÍ" : "NO")}");
-            if (!string.IsNullOrEmpty(token))
-            {
-                Console.WriteLine($"Primeros 20 caracteres: {token.Substring(0, Math.Min(20, token.Length))}...");
-            }
-            return Task.CompletedTask;
-        },
-        OnAuthenticationFailed = context =>
-        {
-            Console.WriteLine($"JWT Authentication failed: {context.Exception.Message}");
-            Console.WriteLine($"Exception type: {context.Exception.GetType().Name}");
-            if (context.Exception.InnerException != null)
-            {
-                Console.WriteLine($"Inner exception: {context.Exception.InnerException.Message}");
-            }
-            return Task.CompletedTask;
-        },
-        OnTokenValidated = context =>
-        {
-            Console.WriteLine($"JWT Token validated for user: {context.Principal?.Identity?.Name}");
-            return Task.CompletedTask;
-        },
-        OnChallenge = context =>
-        {
-            Console.WriteLine($"JWT Challenge initiated. Error: {context.Error}, Description: {context.ErrorDescription}");
-            return Task.CompletedTask;
-        }
-    };
-});*/
 
 builder.Services.AddAuthentication(options =>
 {
@@ -163,7 +94,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
         builder => builder
-            .WithOrigins("http://localhost:3000") // Frontend HTTP
+            .WithOrigins("http://servipuntosuy.up.railway.app", "https://servipuntosuy.up.railway.app") // Frontend HTTP
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials() // Importante para enviar cookies
@@ -198,6 +129,9 @@ builder.Services.AddScoped<ICanjeRepository, CanjeRepository>();
 builder.Services.AddScoped<IProductoCanjeableRepository, ProductoCanjeableRepository>();
 builder.Services.AddScoped<IUbicacionRepository, UbicacionRepository>();
 builder.Services.AddScoped<IProductoUbicacionRepository, ProductoUbicacionRepository>();
+builder.Services.AddScoped<IPromocionRepository, PromocionRepository>();
+builder.Services.AddScoped<INotificacionRepository, NotificacionRepository>();
+builder.Services.AddScoped<IAudienciaRepository, AudienciaRepository>();
 
 // Registra los servicios de NAFTA
 builder.Services.AddScoped<ITransaccionService, TransaccionService>();
@@ -209,6 +143,10 @@ builder.Services.AddScoped<INAFTAService, NAFTAService>();
 builder.Services.AddScoped<IUbicacionService, UbicacionService>();
 builder.Services.AddScoped<IProductoUbicacionService, ProductoUbicacionService>();
 builder.Services.AddScoped<IPayPalService, PayPalService>();
+builder.Services.AddScoped<IPromocionService, PromocionService>();
+builder.Services.AddScoped<INotificacionService, NotificacionService>();
+builder.Services.AddScoped<IAudienciaRuleEngine, AudienciaRuleEngine>();
+builder.Services.AddScoped<IAudienciaService, AudienciaService>();
 
 // Construye la aplicaci�n web
 var app = builder.Build();
@@ -226,8 +164,8 @@ app.UseCors("AllowReactApp");
 app.UseRouting();
 app.UseSession(); 
 app.UseAuthentication();
-app.UseAuthorization();
 //app.UseMiddleware<TenantMiddleware>();
+app.UseAuthorization();
 app.MapControllers();
 
 

@@ -1,8 +1,9 @@
 import axios from "axios";
 import authService from "./authService";
 
-const API_URL = "https://localhost:5019/api/";
+//const API_URL = "https://localhost:5019/api/";
 
+const API_URL = "https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/api/";
 const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
@@ -29,7 +30,11 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     // Si recibimos un 401 (Unauthorized)
-    if (error.response && error.response.status === 401) {
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      !(error.config && error.config.skipAuthError)
+    ) {
       // Redirijo al login
       authService.logout();
       window.location.href = "/login";
@@ -41,7 +46,7 @@ apiClient.interceptors.response.use(
 // Cliente HTTP
 const apiService = {
   // Obtener perfil del usuario actual
-  getUserProfile: async () => {
+  getUserProfile: async (config = {}) => {
     try {
       // Obtener email del usuario desde el token
       const user = authService.getCurrentUser();
@@ -52,7 +57,10 @@ const apiService = {
 
       try {
         // Intentar usar el endpoint específico por email
-        const response = await apiClient.get(`usuario/email/${encodeURIComponent(user.email)}`);
+        const response = await apiClient.get(
+          `usuario/email/${encodeURIComponent(user.email)}`,
+          config
+        );
         
         return {
           // Información básica
@@ -100,7 +108,7 @@ const apiService = {
       } catch (endpointError) {
         
         // Fallback: Obtener todos los usuarios y filtrar por email
-        const allUsersResponse = await apiClient.get('usuario');
+        const allUsersResponse = await apiClient.get('usuario', config);
         const currentUser = allUsersResponse.data.find(
           (u) => u.email.toLowerCase() === user.email.toLowerCase()
         );
@@ -283,6 +291,8 @@ updateUserProfile: async (profileData) => {
   //   "ciudad": "string",
   //   "departamento": "string", 
   //   "telefono": "string|null",
+  //   "latitud": number,
+  //   "longitud": number,
   //   "fechaCreacion": "datetime",
   //   "fechaModificacion": "datetime",
   //   "horaApertura": "time", // formato "HH:mm:ss"
@@ -374,11 +384,11 @@ updateUserProfile: async (profileData) => {
 // Obtener todos los productos canjeables disponibles
 getProductosCanjeables: async () => {
   try {
-    
+
     const response = await apiClient.get('ProductoCanjeable');
-    
+
     return response.data;
-    
+
   } catch (error) {
     
     if (error.response?.status === 404) {
@@ -388,6 +398,17 @@ getProductosCanjeables: async () => {
     } else {
       throw new Error(error.message || "Error al obtener productos canjeables");
     }
+  }
+},
+
+// Obtener un producto canjeable por ID
+getProductoCanjeable: async (id) => {
+  try {
+    if (!id) throw new Error('ID requerido');
+    const response = await apiClient.get(`ProductoCanjeable/${id}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Error al obtener el producto');
   }
 },
 
@@ -661,7 +682,9 @@ getProductosByUbicacion: async (ubicacionId, categoria) => {
     try {
       const params = { limit };
       if (cursor) params.cursor = cursor;
+      console.log('Llamando a /usuario/historial-transacciones', params); // Added log
       const response = await apiClient.get(`usuario/historial-transacciones`, { params });
+      console.log('Respuesta de historial-transacciones', response.data); // Added log
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Error al obtener el historial de transacciones');
@@ -673,6 +696,31 @@ getProductosByUbicacion: async (ubicacionId, categoria) => {
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Error al obtener la transacci\u00f3n');
+    }
+  },
+
+  getPromociones: async () => {
+    try {
+      const response = await apiClient.get('Promocion');
+      console.log('Respuesta de Promocion', response.data); // Added log
+      return response.data;
+    } catch (error) {
+      console.error('Error en getPromociones', error); // Added log
+      throw new Error(error.response?.data?.message || 'Error al obtener las promociones');
+    }
+  },
+
+  getPromocionesByUserTenant: async () => {
+    try {
+      const user = await apiService.getUserProfile();
+      if (!user.tenantId) {
+        throw new Error('Usuario no tiene tenant asociado');
+      }
+      const response = await apiClient.get(`Promocion/tenant/${user.tenantId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en getPromocionesByUserTenant', error);
+      throw new Error(error.response?.data?.message || 'Error al obtener las promociones');
     }
   },
 
@@ -701,6 +749,63 @@ getProductosByUbicacion: async (ubicacionId, categoria) => {
     }
   },
 
+  getMisNotificaciones: async (config = {}) => {
+    try {
+      const response = await apiClient.get('notificacion/mine', config);
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || 'Error al obtener las notificaciones'
+      );
+    }
+  },
+
+  crearNotificacion: async (titulo, mensaje, audienciaId) => {
+    try {
+      const response = await apiClient.post('notificacion', { titulo, mensaje, audienciaId });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error al crear la notificacion');
+    }
+  },
+
+  marcarNotificacionLeida: async (id) => {
+    try {
+      await apiClient.put(`notificacion/leida/${id}`);
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error al marcar la notificacion');
+    }
+  },
+
+  borrarNotificacion: async (id) => {
+    try {
+      await apiClient.delete(`notificacion/${id}`);
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error al borrar la notificacion');
+    }
+  },
+
+  borrarTodasMisNotificaciones: async () => {
+    try {
+      await apiClient.delete('notificacion/mine');
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error al borrar las notificaciones');
+    }
+  },
+
+  // Verificar la edad de un usuario usando el servicio mock del backend
+  verifyAge: async (cedula) => {
+    try {
+      const response = await apiClient.get('verify/age_verify', {
+        params: { cedula },
+        skipAuthError: true
+      });
+      return response.data; // { isAllowed, edad }
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error al verificar la edad');
+    }
+  },
+  
   post: async (endpoint, data) => {
     try {
       const response = await apiClient.post(endpoint, data);
