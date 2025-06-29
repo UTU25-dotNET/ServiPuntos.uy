@@ -513,9 +513,8 @@ if (loading) {
                   onBlur={(e) => e.target.style.borderColor = "#e9ecef"}
                 >
                   <option value="">Seleccionar combustible...</option>
-                  <option value="Gasolina">🚗 Gasolina</option>
+                  <option value="Gasolina">🚗 Super</option>
                   <option value="Diesel">🚛 Diesel</option>
-                  <option value="Gas">🔥 Gas</option>
                   <option value="Premium">⭐ Premium</option>
                 </select>
               </div>
