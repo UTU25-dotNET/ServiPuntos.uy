@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import CatalogoProductos from "../productos/CatalogoProductos";
 import ComprarCombustibleModal from "../estaciones/ComprarCombustibleModal";
 import ComprarServicioModal from "../estaciones/ComprarServicioModal";
@@ -9,6 +10,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacion }) => {
   const [modalCombustible, setModalCombustible] = useState({ abierto: false, tipo: "", precio: 0 });
   const [modalServicio, setModalServicio] = useState({ abierto: false, servicio: "", precio: 0 });
   const [userProfile, setUserProfile] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isOpen) {
@@ -23,7 +25,9 @@ const UbicacionModal = ({ isOpen, onClose, ubicacion }) => {
     return `${price.toFixed(2)}`;
   };
 
-  const openCatalogo = () => setModalProductos(true);
+  const openCatalogo = () => {
+    navigate("/estaciones", { state: { openCatalogo: true, ubicacionId: ubicacion.id } });
+  };
   const closeCatalogo = () => setModalProductos(false);
 
   const openCombustible = (tipo, precio) => setModalCombustible({ abierto: true, tipo, precio });
