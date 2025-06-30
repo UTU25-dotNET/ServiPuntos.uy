@@ -12,9 +12,6 @@ const PayPalResult = () => {
   const status =
     searchParams.get("status") ||
     (window.location.pathname.includes("paypal-cancel") ? "cancel" : "success");
-  const paymentId = searchParams.get("paymentId");
-  const payerId = searchParams.get("payerId") || searchParams.get("PayerID");
-  const token = searchParams.get("token");
   const transaccionId = searchParams.get("transaccionId");
 
   const isSuccess = status !== "cancel";
@@ -84,7 +81,7 @@ const PayPalResult = () => {
             <p className="text-muted">
               {isSuccess ? "El pago se completó con éxito." : "El pago fue cancelado por el usuario."}
             </p>
-            )}
+            
             {isSuccess && transaccion && (
               <div className="text-start mt-3">
                 <p className="mb-1">
