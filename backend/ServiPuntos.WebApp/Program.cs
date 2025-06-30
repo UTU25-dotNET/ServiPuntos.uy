@@ -73,7 +73,7 @@ builder.Services.AddScoped<IPromocionRepository, PromocionRepository>();
 builder.Services.AddScoped<IPromocionService, PromocionService>();
 builder.Services.AddScoped<INotificacionRepository, NotificacionRepository>();
 builder.Services.AddScoped<INotificacionService, NotificacionService>();
-
+builder.Services.AddScoped<IFcmService, FcmService>();
 // ===== CONFIGURACIÓN PLATAFORMA =====
 builder.Services.AddScoped<IConfigPlataformaRepository, ConfigPlataformaRepository>();
 builder.Services.AddScoped<IConfigPlataformaService, ConfigPlataformaService>();
