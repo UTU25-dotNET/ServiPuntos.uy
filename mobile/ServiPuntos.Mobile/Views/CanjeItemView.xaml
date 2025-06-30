@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="ServiPuntos.Mobile.Views.CanjeItemView">
+
+    <Frame
+        Margin="10"
+        Padding="12"
+        CornerRadius="8"
+        HasShadow="True">
+
+        <Grid ColumnDefinitions="*,Auto"
+                RowDefinitions="Auto,Auto,Auto">
+            <Label
+                Grid.Row="0"
+                    Grid.Column="0"
+                Text="{Binding Producto}"
+                FontAttributes="Bold"
+                HorizontalOptions="Center"/>
+
+            <Label
+                Grid.Row="1"
+                    Grid.Column="0"
+                Text="{Binding Ubicacion}"
+                FontSize="Small"/>
+
+            <Label
+                Grid.Row="2"
+                    Grid.Column="0"
+                Text="{Binding FechaGeneracion, StringFormat='{0:dd/MM/yyyy hh:mm tt}'}"
+                FontSize="Small"/>
+
+            <Image
+                x:Name="QrImage"
+                Grid.RowSpan="3"
+                    Grid.Column="1"
+                WidthRequest="80"
+                HeightRequest="80"
+                Aspect="AspectFit"
+                HorizontalOptions="Center"
+                VerticalOptions="Center"/>
+        </Grid>
+    </Frame>
+</ContentView>
