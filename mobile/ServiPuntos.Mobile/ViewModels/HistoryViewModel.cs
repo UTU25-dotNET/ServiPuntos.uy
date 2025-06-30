@@ -46,6 +46,17 @@ namespace ServiPuntos.Mobile.ViewModels
         {
             _historyService = historyService;
             LoadMoreCommand = new Command(async () => await LoadMoreAsync(), () => !IsBusy && HasMore);
+            ResetHistory();
+        }
+
+        public void ResetHistory()
+        {
+            Transactions.Clear();
+            _cursor = null;
+            HasMore = true;
+            OnPropertyChanged(nameof(HasAny));
+            OnPropertyChanged(nameof(HasMore));
+            ((Command)LoadMoreCommand).ChangeCanExecute();
         }
 
         private async Task LoadMoreAsync()

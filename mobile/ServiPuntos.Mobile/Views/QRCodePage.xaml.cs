@@ -3,44 +3,78 @@ using System;
 using System.IO;
 using QRCoder;
 
-namespace ServiPuntos.Mobile.Views;
-
-[QueryProperty(nameof(Code), "code")]
-public partial class QRCodePage : ContentPage
+namespace ServiPuntos.Mobile.Views
 {
-    public QRCodePage()
+    [QueryProperty(nameof(Code), "code")]
+    public partial class QRCodePage : ContentPage
     {
-        InitializeComponent();
-    }
+        bool hasCode;
+        string pageTitle;
 
-    string code;
-    public string Code
-    {
-        get => code;
-        set
+        public bool HasCode
         {
-            code = value;
-            Console.WriteLine($"[QRCodePage] Setter Code='{code}'");
-            if (!string.IsNullOrWhiteSpace(code))
-                GenerateQrGraphic(code);
+            get => hasCode;
+            set
+            {
+                hasCode = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsEmpty));
+            }
         }
-    }
 
-    void GenerateQrGraphic(string text)
-    {
-        try
+        public bool IsEmpty => !HasCode;
+
+        public string PageTitle
         {
-            using var gen = new QRCodeGenerator();
-            var qrData = gen.CreateQrCode(text, QRCodeGenerator.ECCLevel.Q);
-            var png = new PngByteQRCode(qrData);
-            var bytes = png.GetGraphic(20);
-            QrImage.Source = ImageSource.FromStream(() => new MemoryStream(bytes));
-            Console.WriteLine("[QRCodePage] QR generado OK");
+            get => pageTitle;
+            set
+            {
+                pageTitle = value;
+                OnPropertyChanged();
+            }
         }
-        catch (Exception ex)
+
+        public QRCodePage()
         {
-            Console.WriteLine($"[QRCodePage] Error al generar QR: {ex}");
-            _ = DisplayAlert("Error", "No se pudo generar el QR. Revisa el log.", "OK");
+            InitializeComponent();
+            BindingContext = this;
+        }
+
+        string code;
+        public string Code
+        {
+            get => code;
+            set
+            {
+                code = Uri.UnescapeDataString(value ?? string.Empty);
+                if (!string.IsNullOrWhiteSpace(code))
+                {
+                    HasCode = true;
+                    PageTitle = "Tu código QR";
+                    GenerateQrGraphic(code);
+                }
+                else
+                {
+                    HasCode = false;
+                    PageTitle = "QR no disponible";
+                }
+            }
+        }
+
+        void GenerateQrGraphic(string text)
+        {
+            try
+            {
+                using var gen = new QRCodeGenerator();
+                var qrData = gen.CreateQrCode(text, QRCodeGenerator.ECCLevel.Q);
+                var png = new PngByteQRCode(qrData);
+                var bytes = png.GetGraphic(20);
+                QrImage.Source = ImageSource.FromStream(() => new MemoryStream(bytes));
+            }
+            catch
+            {
+                _ = DisplayAlert("Error", "No se pudo generar el QR.", "OK");
+            }
         }
     }
 }
