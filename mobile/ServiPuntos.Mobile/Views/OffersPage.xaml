@@ -4,48 +4,69 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="ServiPuntos.Mobile.Views.OffersPage"
     Title="Ofertas Flash">
-    <StackLayout Padding="20"
-            Spacing="20">
-        <CollectionView ItemsSource="{Binding Offers}">
+
+    <!-- Spacing global desde Styles.xaml -->
+    <StackLayout Spacing="{StaticResource DefaultSpacing}">
+
+        <!-- Lista de ofertas -->
+        <CollectionView
+            ItemsSource="{Binding Offers}"
+            ItemsLayout="VerticalList"
+            Margin="0,0,0,12">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Frame CornerRadius="10"
-                            Padding="10"
-                            Margin="0,0,0,10">
-                        <StackLayout>
-                            <Label Text="{Binding Titulo}"
-                                    FontSize="18"
-                                    FontAttributes="Bold"/>
-                            <Label Text="{Binding Descripcion}"
-                                    FontSize="14"/>
+                    <!-- Card reutilizable -->
+                    <Frame Style="{StaticResource CardFrameStyle}">
+                        <StackLayout Spacing="{StaticResource SmallSpacing}">
+                            <!-- Título -->
+                            <Label
+                                Text="{Binding Titulo}"
+                                Style="{StaticResource HeadlineLabelStyle}"/>
 
-                            <Label Text="{Binding PrecioEnPuntos, StringFormat='{0} pts'}">
+                            <!-- Descripción -->
+                            <Label
+                                Text="{Binding Descripcion}"
+                                Style="{StaticResource Body}"/>
+
+                            <!-- Precio en puntos -->
+                            <Label
+                                Text="{Binding PrecioEnPuntos, StringFormat='{0} pts'}"
+                                Style="{StaticResource Caption}">
                                 <Label.Triggers>
-                                    <DataTrigger TargetType="Label"
-                                            Binding="{Binding PrecioEnPuntos}"
-                                            Value="{x:Null}">
+                                    <DataTrigger
+                                        TargetType="Label"
+                                        Binding="{Binding PrecioEnPuntos}"
+                                        Value="{x:Null}">
                                         <Setter Property="IsVisible"
                                                 Value="False"/>
                                     </DataTrigger>
                                 </Label.Triggers>
                             </Label>
 
-                            <Label Text="{Binding PrecioEnPesos, StringFormat='${0:F2}'}">
+                            <!-- Precio en pesos -->
+                            <Label
+                                Text="{Binding PrecioEnPesos, StringFormat='${0:F2}'}"
+                                Style="{StaticResource Caption}">
                                 <Label.Triggers>
-                                    <DataTrigger TargetType="Label"
-                                            Binding="{Binding PrecioEnPesos}"
-                                            Value="{x:Null}">
+                                    <DataTrigger
+                                        TargetType="Label"
+                                        Binding="{Binding PrecioEnPesos}"
+                                        Value="{x:Null}">
                                         <Setter Property="IsVisible"
                                                 Value="False"/>
                                     </DataTrigger>
                                 </Label.Triggers>
                             </Label>
 
-                            <Label Text="{Binding DescuentoEnPesos, StringFormat='Descuento: ${0:F2}'}">
+                            <!-- Descuento -->
+                            <Label
+                                Text="{Binding DescuentoEnPesos, StringFormat='Descuento: ${0:F2}'}"
+                                Style="{StaticResource Caption}">
                                 <Label.Triggers>
-                                    <DataTrigger TargetType="Label"
-                                            Binding="{Binding DescuentoEnPesos}"
-                                            Value="{x:Null}">
+                                    <DataTrigger
+                                        TargetType="Label"
+                                        Binding="{Binding DescuentoEnPesos}"
+                                        Value="{x:Null}">
                                         <Setter Property="IsVisible"
                                                 Value="False"/>
                                     </DataTrigger>
@@ -56,10 +77,18 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-        <Button Text="Actualizar"
-                Command="{Binding RefreshCommand}"/>
-        <ActivityIndicator IsRunning="{Binding IsBusy}"
-                IsVisible="{Binding IsBusy}"
-                HorizontalOptions="Center"/>
+
+        <!-- Botón de refrescar -->
+        <Button
+            Text="Actualizar"
+            Command="{Binding RefreshCommand}"
+            Style="{StaticResource PrimaryButtonStyle}"/>
+
+        <!-- Indicador de actividad -->
+        <ActivityIndicator
+            IsRunning="{Binding IsBusy}"
+            IsVisible="{Binding IsBusy}"
+            Style="{StaticResource CenteredIndicatorStyle}"/>
+
     </StackLayout>
 </ContentPage>
