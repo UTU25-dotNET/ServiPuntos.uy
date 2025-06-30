@@ -14,7 +14,10 @@ namespace ServiPuntos.Mobile.Views
         protected override void OnAppearing()
         {
             base.OnAppearing();
-            ((HistoryViewModel)BindingContext).LoadMoreCommand.Execute(null);
+
+            var vm = (HistoryViewModel)BindingContext;
+            vm.ResetHistory();
+            vm.LoadMoreCommand.Execute(null);
         }
     }
 }

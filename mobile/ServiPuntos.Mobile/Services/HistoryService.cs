@@ -11,6 +11,7 @@ namespace ServiPuntos.Mobile.Services
     public class HistoryService : IHistoryService
     {
         private readonly HttpClient _httpClient;
+
         public HistoryService(HttpClient httpClient) =>
             _httpClient = httpClient;
 
@@ -18,16 +19,17 @@ namespace ServiPuntos.Mobile.Services
         {
             var token = await SecureStorage.GetAsync("auth_token");
             Console.WriteLine($"[HistoryService] Token presente: {!string.IsNullOrEmpty(token)}");
-            if (!string.IsNullOrEmpty(token))
-                _httpClient.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", token);
 
             var url = $"api/usuario/historial-transacciones?limit={limit}";
             if (cursor.HasValue)
                 url += $"&cursor={cursor.Value}";
 
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            if (!string.IsNullOrEmpty(token))
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             Console.WriteLine($"[HistoryService] GET {url}");
-            var response = await _httpClient.GetAsync(url);
+            var response = await _httpClient.SendAsync(request);
             var body = await response.Content.ReadAsStringAsync();
             Console.WriteLine($"[HistoryService] STATUS: {response.StatusCode} BODY: {body}");
 
