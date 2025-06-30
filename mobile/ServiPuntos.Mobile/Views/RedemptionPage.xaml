@@ -4,33 +4,49 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
         x:Class="ServiPuntos.Mobile.Views.RedemptionPage"
         Title="Canjear Oferta">
-        <StackLayout Padding="20"
-                        Spacing="15">
 
-                <Label Text="Selecciona una ubicación"/>
+        <!-- Padding y espaciado global vienen de Styles.xaml -->
+        <StackLayout
+                Padding="{StaticResource PagePadding}"
+                Spacing="{StaticResource DefaultSpacing}">
+
+                <!-- Etiqueta descriptiva -->
+                <Label
+                        Text="Selecciona una ubicación"
+                        Style="{StaticResource Body}"/>
+
+                <!-- Pickers con estilo reutilizable -->
                 <Picker
                         ItemsSource="{Binding Locations}"
                         ItemDisplayBinding="{Binding Nombre}"
                         SelectedItem="{Binding SelectedLocation}"
-                        Title="Ubicación"/>
+                        Title="Ubicación"
+                        Style="{StaticResource DefaultPickerStyle}"/>
 
-                <Label Text="Selecciona un producto"/>
+                <Label
+                        Text="Selecciona un producto"
+                        Style="{StaticResource Body}"/>
+
                 <Picker
                         ItemsSource="{Binding Products}"
                         ItemDisplayBinding="{Binding Nombre}"
                         SelectedItem="{Binding SelectedProduct}"
                         Title="Producto"
-                        IsEnabled="{Binding Products.Count, Converter={StaticResource GreaterThanZeroConverter}}"/>
+                        IsEnabled="{Binding Products.Count, Converter={StaticResource GreaterThanZeroConverter}}"
+                        Style="{StaticResource DefaultPickerStyle}"/>
 
+                <!-- Botón primario -->
                 <Button
                         Text="Generar QR"
                         Command="{Binding GenerateCommand}"
+                        Style="{StaticResource PrimaryButtonStyle}"
                         IsEnabled="{Binding GenerateCommand.CanExecute, Source={RelativeSource Self}}"/>
 
+                <!-- Indicador de actividad centrado -->
                 <ActivityIndicator
                         IsRunning="{Binding IsBusy}"
                         IsVisible="{Binding IsBusy}"
-                        HorizontalOptions="Center"/>
+                        Style="{StaticResource CenteredIndicatorStyle}"/>
 
         </StackLayout>
 </ContentPage>

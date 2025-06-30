@@ -1,16 +1,18 @@
+using System;
+using System.Threading.Tasks;
 using System.Windows.Input;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.Graphics;
 using ServiPuntos.Mobile.Models;
 using ServiPuntos.Mobile.Services;
+using static ServiPuntos.Mobile.Services.AppLogger;
 
 namespace ServiPuntos.Mobile.ViewModels
 {
     public class LoginViewModel : BindableObject
     {
         private readonly IAuthService _authService;
-        // private string _username = string.Empty;
-        // private string _password = string.Empty;
-        // private string _errorMessage = string.Empty;
-
+        private readonly ITenantService _tenantService;
 
         public TenantConfig Tenant { get; set; }
 
@@ -43,15 +45,14 @@ namespace ServiPuntos.Mobile.ViewModels
         }
 
         public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
-
         public ICommand LoginCommand { get; }
+        public ICommand GoogleLoginCommand { get; }
 
-        // Constructor que recibe AuthService por inyección de dependencias
-        public LoginViewModel(IAuthService authService)
+        public LoginViewModel(IAuthService authService, ITenantService tenantService)
         {
             _authService = authService;
-            
-            // Crear un tenant por defecto
+            _tenantService = tenantService;
+
             Tenant = new TenantConfig
             {
                 Id = "1",
@@ -60,62 +61,51 @@ namespace ServiPuntos.Mobile.ViewModels
                 PrimaryColor = "#0066CC",
                 SecondaryColor = "#FFFFFF"
             };
-            
+
             LoginCommand = new Command(OnLogin);
+            GoogleLoginCommand = new Command(async () => await _authService.LoginWithGoogleAsync());
         }
 
         private async void OnLogin()
         {
-            Console.WriteLine($"[LoginViewModel] === INICIO OnLogin ===");
-            Console.WriteLine($"[LoginViewModel] Username: {Username}");
-            Console.WriteLine($"[LoginViewModel] Password present: {!string.IsNullOrEmpty(Password)}");
-            Console.WriteLine($"[LoginViewModel] AuthService: {_authService != null}");
-
-            ErrorMessage = "";
+            ErrorMessage = string.Empty;
             IsLoading = true;
 
             if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Password))
             {
                 ErrorMessage = "Completa usuario y contraseña.";
                 IsLoading = false;
-                Console.WriteLine("[LoginViewModel] Error: Campos vacíos");
                 return;
             }
 
             try
             {
-                Console.WriteLine("[LoginViewModel] Llamando a SignInAsync...");
-                
                 var response = await _authService.SignInAsync(Username, Password);
-                
-                Console.WriteLine($"[LoginViewModel] Respuesta recibida: {response != null}");
 
                 if (response != null)
                 {
-                    Console.WriteLine($"[LoginViewModel] Token recibido: {!string.IsNullOrEmpty(response.Token)}");
-                    
-                    // Login exitoso
+                    var tenant = await _tenantService.GetByIdAsync(Guid.Parse(response.TenantId));
+                    System.Diagnostics.Debug.WriteLine($"[LoginViewModel] Applying tenant color: {tenant.PrimaryColor}");
+                    Application.Current.Resources["PrimaryColor"] = Color.FromArgb(tenant.PrimaryColor);
+                    LogInfo($"[LoginViewModel] New PrimaryColor resource is {Application.Current.Resources["PrimaryColor"]}");
+
+
                     await Application.Current.MainPage.DisplayAlert("Éxito", "Login exitoso", "OK");
-                    
-                    // Navegar a la página principal
-                    // await Shell.Current.GoToAsync("//main");
+                    await Shell.Current.GoToAsync("//PointsPage");
                 }
             }
-            catch (HttpRequestException ex)
+            catch (HttpRequestException)
             {
-                Console.WriteLine($"[LoginViewModel] HttpRequestException: {ex.Message}");
                 ErrorMessage = "Email o contraseña incorrectos.";
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[LoginViewModel] Exception: {ex.Message}");
-                Console.WriteLine($"[LoginViewModel] Exception StackTrace: {ex.StackTrace}");
+                System.Diagnostics.Debug.WriteLine($"[LoginViewModel] Error loading tenant info: {ex}");
                 ErrorMessage = "Error de conexión. Inténtalo de nuevo.";
             }
             finally
             {
                 IsLoading = false;
-                Console.WriteLine("[LoginViewModel] === FIN OnLogin ===");
             }
         }
     }

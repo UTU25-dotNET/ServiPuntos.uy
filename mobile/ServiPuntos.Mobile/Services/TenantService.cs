@@ -1,28 +1,47 @@
-using ServiPuntos.Mobile.Models;
-using System.Collections.Generic;
+using System;
+using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
+using ServiPuntos.Mobile.Models;
 
 namespace ServiPuntos.Mobile.Services
 {
-    public class TenantService
+    public class TenantService : ITenantService
     {
-        // En producción, esto iría a un API
-        public async Task<List<TenantConfig>> GetTenantsAsync()
+        private readonly HttpClient _httpClient;
+
+        public TenantService(HttpClient httpClient)
         {
-            await Task.Delay(500); // Simula latencia de red
-            return new List<TenantConfig>
+            _httpClient = httpClient;
+        }
+
+        public async Task<TenantConfig> GetByIdAsync(Guid tenantId)
+        {
+            var response = await _httpClient.GetAsync($"api/tenant/{tenantId}");
+            var raw = await response.Content.ReadAsStringAsync();
+            System.Diagnostics.Debug.WriteLine($"[TenantService] GET /api/tenant/{tenantId} → {(int)response.StatusCode} {raw}");
+            response.EnsureSuccessStatusCode();
+            var dto = JsonSerializer.Deserialize<TenantDto>(raw, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+            System.Diagnostics.Debug.WriteLine($"[TenantService] Fetched tenant color: {dto.Color}");
+            return new TenantConfig
             {
-                new TenantConfig {
-                    Id = "ancap", Name = "ANCAP",
-                    LogoUrl = "https://upload.wikimedia.org/wikipedia/commons/8/8b/Logo_Ancap.svg",
-                    PrimaryColor = "#ffdd00", SecondaryColor = "#232d4b"
-                },
-                new TenantConfig {
-                    Id = "axion", Name = "AXION",
-                    LogoUrl = "https://upload.wikimedia.org/wikipedia/commons/f/fc/AXION_logo.png",
-                    PrimaryColor = "#ec008c", SecondaryColor = "#282828"
-                }
+                Id = dto.Id.ToString(),
+                Name = dto.Nombre,
+                LogoUrl = dto.LogoUrl ?? string.Empty,
+                PrimaryColor = dto.Color ?? "#512BD4",
+                SecondaryColor = "#FFFFFF"
             };
+        }
+
+
+
+
+        private class TenantDto
+        {
+            public Guid Id { get; set; }
+            public string Nombre { get; set; } = default!;
+            public string? LogoUrl { get; set; }
+            public string? Color { get; set; }
         }
     }
 }
