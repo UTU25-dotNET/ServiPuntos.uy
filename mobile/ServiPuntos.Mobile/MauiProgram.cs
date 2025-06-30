@@ -61,8 +61,8 @@ namespace ServiPuntos.Mobile
                         HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
                 })
                 .AddHttpMessageHandler<AuthMessageHandler>();
-            builder.Services.AddSingleton<PointsViewModel>();
-            builder.Services.AddSingleton<PointsPage>();
+            builder.Services.AddTransient<PointsViewModel>();
+            builder.Services.AddTransient<PointsPage>();
 
             builder.Services
                 .AddHttpClient<IHistoryService, HistoryService>(c => c.BaseAddress = apiBase)
@@ -72,8 +72,8 @@ namespace ServiPuntos.Mobile
                         HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
                 })
                 .AddHttpMessageHandler<AuthMessageHandler>();
-            builder.Services.AddSingleton<HistoryViewModel>();
-            builder.Services.AddSingleton<HistoryPage>();
+            builder.Services.AddTransient<HistoryViewModel>();
+            builder.Services.AddTransient<HistoryPage>();
 
             builder.Services
                 .AddHttpClient<IOfferService, OfferService>(c => c.BaseAddress = apiBase)
@@ -83,8 +83,8 @@ namespace ServiPuntos.Mobile
                         HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
                 })
                 .AddHttpMessageHandler<AuthMessageHandler>();
-            builder.Services.AddSingleton<FlashOffersViewModel>();
-            builder.Services.AddSingleton<OffersPage>();
+            builder.Services.AddTransient<FlashOffersViewModel>();
+            builder.Services.AddTransient<OffersPage>();
 
             builder.Services
                 .AddHttpClient<INotificationService, NotificationService>(c => c.BaseAddress = apiBase)
@@ -94,8 +94,8 @@ namespace ServiPuntos.Mobile
                         HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
                 })
                 .AddHttpMessageHandler<AuthMessageHandler>();
-            builder.Services.AddSingleton<AlertsViewModel>();
-            builder.Services.AddSingleton<AlertsPage>();
+            builder.Services.AddTransient<AlertsViewModel>();
+            builder.Services.AddTransient<AlertsPage>();
 
             builder.Services
                 .AddHttpClient<ICanjeService, CanjeService>(c => c.BaseAddress = apiBase)
@@ -124,10 +124,16 @@ namespace ServiPuntos.Mobile
                 })
                 .AddHttpMessageHandler<AuthMessageHandler>();
 
-            builder.Services.AddSingleton<RedemptionViewModel>();
-            builder.Services.AddSingleton<RedemptionPage>();
+            builder.Services.AddTransient<RedemptionViewModel>();
+            builder.Services.AddTransient<RedemptionPage>();
+
+            builder.Services.AddTransient<ProfileViewModel>();
+            builder.Services.AddTransient<ProfilePage>();
 
             builder.Services.AddSingleton<QRCodePage>();
+
+            builder.Services.AddTransient<CanjesViewModel>();
+            builder.Services.AddTransient<CanjesPage>();
 
 #if DEBUG
             builder.Logging.AddDebug();
