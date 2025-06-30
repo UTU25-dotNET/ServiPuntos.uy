@@ -17,12 +17,18 @@ namespace ServiPuntos.Mobile.Services
         const string TAG = "CanjeService";
 #endif
         private readonly HttpClient _httpClient;
-        public CanjeService(HttpClient httpClient) => _httpClient = httpClient;
+
+        public CanjeService(HttpClient httpClient)
+        {
+            _httpClient = httpClient;
+        }
 
         public async Task<string> GenerarCanjeAsync(Guid usuarioId, Guid productoId, Guid ubicacionId, Guid tenantId)
         {
             const string url = "/api/nafta/generar-canje";
-
+#if ANDROID
+            Log.Info(TAG, $"[GenerarCanje] POST {url}");
+#endif
             var mensaje = new
             {
                 tipoMensaje = 2,
@@ -34,29 +40,20 @@ namespace ServiPuntos.Mobile.Services
                     usuarioId
                 }
             };
-
             var options = new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             };
             var payload = JsonSerializer.Serialize(mensaje, options);
-
 #if ANDROID
-            Log.Debug(TAG, $"[Request] POST {url}");
-            Log.Debug(TAG, $"[Payload] {payload}");
+            Log.Info(TAG, $"[GenerarCanje] Payload: {payload}");
 #endif
 
             var request = new HttpRequestMessage(HttpMethod.Post, url)
             {
                 Content = new StringContent(payload, Encoding.UTF8, "application/json")
             };
-
-#if ANDROID
-            foreach (var header in request.Headers)
-                Log.Debug(TAG, $"[Request Header] {header.Key}: {string.Join(", ", header.Value)}");
-            Log.Debug(TAG, $"[Request Content] {await request.Content.ReadAsStringAsync()}");
-#endif
 
             HttpResponseMessage response;
             try
@@ -72,10 +69,9 @@ namespace ServiPuntos.Mobile.Services
             }
 
             var body = await response.Content.ReadAsStringAsync();
-
 #if ANDROID
-            Log.Debug(TAG, $"[Response Status] {(int)response.StatusCode} {response.StatusCode}");
-            Log.Debug(TAG, $"[Response Body] {body}");
+            Log.Info(TAG, $"[GenerarCanje] Status: {(int)response.StatusCode}");
+            Log.Info(TAG, $"[GenerarCanje] Body: {body}");
 #endif
 
             if (!response.IsSuccessStatusCode)
@@ -109,15 +105,55 @@ namespace ServiPuntos.Mobile.Services
             {
                 var codigoQR = qrElem.GetString()!;
 #if ANDROID
-                Log.Debug(TAG, $"[QR Code] {codigoQR}");
+                Log.Info(TAG, $"[GenerarCanje] QR: {codigoQR}");
 #endif
                 return codigoQR;
             }
 
 #if ANDROID
-            Log.Warn(TAG, "El servidor no devolvió el código QR en 'datos.codigoQR'");
+            Log.Warn(TAG, "No se encontró 'datos.codigoQR' en la respuesta");
 #endif
             throw new InvalidOperationException("El servidor no devolvió el código QR en 'datos.codigoQR'");
+        }
+
+        public async Task<CanjeListResponseDto> GetCanjesByUsuarioAsync(Guid usuarioId, Guid? cursor = null, int limit = 20)
+        {
+            var url = $"/api/canje/usuario/{usuarioId}?limit={limit}";
+            if (cursor.HasValue)
+                url += $"&cursor={cursor.Value}";
+
+#if ANDROID
+            Log.Info(TAG, $"[GetCanjes] GET {url}");
+#endif
+            HttpResponseMessage response;
+            try
+            {
+                response = await _httpClient.GetAsync(url);
+            }
+            catch (Exception ex)
+            {
+#if ANDROID
+                Log.Error(TAG, ex.ToString());
+#endif
+                throw;
+            }
+
+            var body = await response.Content.ReadAsStringAsync();
+#if ANDROID
+            Log.Info(TAG, $"[GetCanjes] Status: {(int)response.StatusCode}");
+            Log.Info(TAG, $"[GetCanjes] Body: {body}");
+#endif
+            response.EnsureSuccessStatusCode();
+
+            var result = JsonSerializer.Deserialize<CanjeListResponseDto>(body, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            })!;
+
+#if ANDROID
+            Log.Info(TAG, $"[GetCanjes] Items={result.Items.Count}, NextCursor={result.NextCursor}");
+#endif
+            return result;
         }
     }
 }
