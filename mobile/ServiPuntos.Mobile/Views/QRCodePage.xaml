@@ -3,27 +3,41 @@
         xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
         xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
         x:Class="ServiPuntos.Mobile.Views.QRCodePage"
-        Title="Tu Código QR">
+        Title="{Binding PageTitle}">
 
-        <!-- Padding y espaciado global de Page -->
         <VerticalStackLayout
                 Padding="{StaticResource PagePadding}"
                 Spacing="{StaticResource DefaultSpacing}"
                 VerticalOptions="Center">
 
-                <!-- Título destacado -->
+                <Label
+                        Text="Aquí se muestra el código QR de tu canje seleccionado"
+                        Style="{StaticResource Caption}"
+                        HorizontalOptions="Center"/>
+
                 <Label
                         Text="Tu código QR:"
                         Style="{StaticResource HeadlineLabelStyle}"
-                        HorizontalOptions="Center"/>
+                        HorizontalOptions="Center"
+                        IsVisible="{Binding HasCode}"/>
 
-                <!-- Imagen del QR centrada -->
                 <Image
                         x:Name="QrImage"
                         WidthRequest="200"
                         HeightRequest="200"
                         HorizontalOptions="Center"
-                        VerticalOptions="CenterAndExpand"/>
+                        VerticalOptions="CenterAndExpand"
+                        IsVisible="{Binding HasCode}"/>
 
+                <Label
+                        Text="No hay QR disponible"
+                        Style="{StaticResource Body}"
+                        HorizontalOptions="Center"
+                        IsVisible="{Binding IsEmpty}"/>
+
+                <Label
+                        Text="Para ver todo tu historial de canjes realizados, ve a la sección “Mis Canjes”."
+                        Style="{StaticResource Body}"
+                        HorizontalOptions="Center"/>
         </VerticalStackLayout>
 </ContentPage>
