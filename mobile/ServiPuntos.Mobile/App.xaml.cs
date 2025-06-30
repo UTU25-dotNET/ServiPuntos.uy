@@ -1,6 +1,10 @@
-﻿using ServiPuntos.Mobile.Services;
-using ServiPuntos.Mobile.Views;
+﻿using System;
+using System.Linq;
+using ServiPuntos.Mobile.Services;
 using static ServiPuntos.Mobile.Services.AppLogger;
+using Microsoft.Maui.Storage;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.Devices;
 
 namespace ServiPuntos.Mobile
 {
@@ -10,13 +14,25 @@ namespace ServiPuntos.Mobile
         {
             LogInfo("ServiPuntos Mobile iniciando...");
             LogInfo($"Timestamp: {DateTime.Now}");
-            InitializeComponent();
-            LogInfo("InitializeComponent completado");
+
+            try
+            {
+                InitializeComponent();
+                LogInfo("✔ InitializeComponent completado");
+            }
+            catch (Exception ex)
+            {
+
+                var realMsg = ex.InnerException?.Message ?? ex.Message;
+                LogInfo($"❌ Error en InitializeComponent: {realMsg}");
+                LogInfo(ex.ToString());  
+                throw; 
+            }
+
             MainPage = new AppShell();
             LogInfo("AppShell asignado como MainPage");
         }
 
-        // AGREGAR el manejo de deep links
         protected override void OnAppLinkRequestReceived(Uri uri)
         {
             LogInfo($"[App] Deep link recibido: {uri}");
@@ -43,50 +59,29 @@ namespace ServiPuntos.Mobile
             {
                 LogInfo($"[App] Procesando callback: {uri.Query}");
 
-                // Parsear los parámetros manualmente
-                var queryString = uri.Query.TrimStart('?');
-                var parameters = queryString.Split('&')
-                    .Select(param => param.Split('='))
-                    .Where(parts => parts.Length == 2)
-                    .ToDictionary(parts => Uri.UnescapeDataString(parts[0]), 
-                                 parts => Uri.UnescapeDataString(parts[1]));
+                var qs = uri.Query.TrimStart('?');
+                var parameters = qs
+                    .Split('&')
+                    .Select(p => p.Split('='))
+                    .Where(a => a.Length == 2)
+                    .ToDictionary(a => Uri.UnescapeDataString(a[0]),
+                                  a => Uri.UnescapeDataString(a[1]));
 
-                var token = parameters.ContainsKey("token") ? parameters["token"] : null;
-                var error = parameters.ContainsKey("error") ? parameters["error"] : null;
+                var token = parameters.GetValueOrDefault("token");
+                var error = parameters.GetValueOrDefault("error");
 
                 if (!string.IsNullOrEmpty(token))
                 {
-                    LogInfo($"[App] Token recibido en callback: {token.Substring(0, Math.Min(20, token.Length))}...");
-
+                    LogInfo($"[App] Token recibido: {token[..Math.Min(20, token.Length)]}...");
                     await SecureStorage.SetAsync("auth_token", token);
 
                     await MainThread.InvokeOnMainThreadAsync(async () =>
                     {
-                        try
-                        {
-                            var authService = Handler?.MauiContext?.Services.GetService<IAuthService>();
-                            if (authService != null)
-                            {
-                                var tokenDisplayPage = new TokenDisplayPage(authService);
-                                tokenDisplayPage.SetToken(token);
-
-                                LogInfo("[App] Navegando a TokenDisplayPage...");
-                                await MainPage.Navigation.PushAsync(tokenDisplayPage);
-                                LogInfo("[App] Navegacion completada");
-                            }
-                            else
-                            {
-                                LogInfo("[App] No se pudo obtener AuthService");
-                                await MainPage.DisplayAlert("Token Recibido", 
-                                    $"Token: {token.Substring(0, Math.Min(50, token.Length))}...", "OK");
-                            }
-                        }
-                        catch (Exception navEx)
-                        {
-                            LogInfo($"[App] Error en navegacion: {navEx.Message}");
-                            await MainPage.DisplayAlert("Token Recibido", 
-                                $"Token JWT: {token.Substring(0, Math.Min(50, token.Length))}...", "OK");
-                        }
+                        await MainPage.DisplayAlert(
+                            "Autenticación exitosa",
+                            "El token se guardó correctamente.",
+                            "OK"
+                        );
                     });
                 }
                 else if (!string.IsNullOrEmpty(error))
@@ -94,7 +89,11 @@ namespace ServiPuntos.Mobile
                     LogInfo($"[App] Error recibido en callback: {error}");
                     await MainThread.InvokeOnMainThreadAsync(async () =>
                     {
-                        await MainPage.DisplayAlert("Error de autenticacion", error, "OK");
+                        await MainPage.DisplayAlert(
+                            "Error de autenticación",
+                            error,
+                            "OK"
+                        );
                     });
                 }
                 else
