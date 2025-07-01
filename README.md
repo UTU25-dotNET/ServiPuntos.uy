@@ -1,88 +1,125 @@
-# ServiPuntos.Mobile
+# ServiPuntos.uy 🛠️
 
-App móvil .NET MAUI para **ServiPuntos.uy**. El backend está desplegado en la nube, así que sólo necesitas:
+Plataforma tecnológica para programas de fidelización personalizados para cadenas de estaciones de servicio en Uruguay.
 
-## Requisitos
+## 🧱 Estructura del proyecto
 
-- [.NET 9 SDK](https://dotnet.microsoft.com/download)
-- MAUI workload:
-
-  ```bash
-  dotnet workload install maui-android
-  ```
-
-- Android SDK (con `adb` en tu PATH)
-
-## Script de despliegue
-
-Crea un fichero `run.sh` dentro de ./ServiPuntos.Mobile con este contenido:
-
-```bash
-#!/usr/bin/env bash
-set -euo pipefail
-
-# Identificador de la app Android
-APP_ID="com.companyname.servipuntos.mobile"
-# Carpeta donde se publicará el APK
-OUTPUT_DIR="./publish"
-APK_FILE="$OUTPUT_DIR/ServiPuntos.Mobile.apk"
-
-echo "🧹 Limpiando bin/obj…"
-rm -rf bin obj
-
-echo "📦 Publicando APK (Debug, single-apk)…"
-dotnet publish \
-  -c Debug \
-  -f net9.0-android \
-  -o "$OUTPUT_DIR" \
-  /p:AndroidUseSharedRuntime=false \
-  /p:AndroidPackageFormat=apk \
-  /p:PublishAndroidApk=true
-
-echo "🔍 Verificando que $APK_FILE exista…"
-if [ ! -f "$APK_FILE" ]; then
-  echo "❌ APK no encontrado en $APK_FILE"
-  echo "Archivos en $OUTPUT_DIR:"
-  find "$OUTPUT_DIR" -maxdepth 1 -type f -name "*.apk"
-  exit 1
-fi
-
-echo "📱 Desinstalando versión anterior…"
-adb uninstall "$APP_ID" || true
-
-echo "📥 Instalando APK…"
-adb install -r "$APK_FILE"
-
-echo "🚀 Lanzando la app…"
-adb shell monkey -p "$APP_ID" -c android.intent.category.LAUNCHER 1
+```
+ServiPuntos.uy/
+├── backend/               # API y backend en .NET
+├── frontend-web/          # Aplicación web en React (Create React App) + Bootstrap
+├── mobile/                # Aplicación móvil en .NET MAUI
+├── docs/                  # Documentación técnica
+├── README.md              # Este archivo
+└── .gitignore
 ```
 
-## Paso a paso
+## 📚 Estructura de subproyectos
 
-1. **Clona el repositorio**  
+Este repositorio contiene varios subproyectos. Cada subproyecto tiene su propio README detallado con instrucciones específicas:
 
-   ```bash
-   git clone
-   cd ServiPuntos.uy/mobile/ServiPuntos.Mobile
-   ```
+| Carpeta | Proyecto | Leer README local |
+|:--|:--|:--|
+| /backend/ | API en .NET 9 | ✅ |
+| /frontend-web/ | Frontend en React (Create React App) | ✅ |
+| /mobile/ | App Mobile en .NET MAUI | ✅ |
 
-2. **Prepara tu entorno**  
-   Asegúrate de tener `adb` y un emulador (o dispositivo) corriendo:
 
-   ```bash
-   adb devices
-   ```
 
-3. **Haz ejecutable el script**  
+## 🚀 Cómo comenzar
 
-   ```bash
-   chmod +x run.sh
-   ```
+### 1. Requisitos generales
 
-4. **Ejecuta**  
+- [.NET SDK 9.0.202](https://dotnet.microsoft.com/en-us/download)
+- Node.js 18+ y npm
+- Visual Studio 2022+ o VS Code
+- MAUI workload para trabajar en la app mobile
 
-   ```bash
-   ./run.sh
-   ```
+### 2. Configurar la base de datos
 
-Con eso tu app móvil quedará instalada y ejecutada en el emulador, conectándose al backend en la nube.
+El proyecto utiliza **PostgreSQL** y actualmente la base de datos está desplegada en [Railway](https://railway.app/).
+La cadena de conexión por defecto se encuentra en `backend/ServiPuntos.API/appsettings.json`.
+Podés sobreescribirla mediante la variable de entorno `ConnectionStrings__DefaultConnection` si necesitás usar una instancia local.
+Si preferís levantar PostgreSQL localmente podés utilizar Docker o tu gestor favorito.
+
+### 3. Levantar el backend
+
+```bash
+cd backend
+dotnet build ServiPuntosUY.sln
+dotnet run --project ServiPuntos.API
+dotnet run --project ServiPuntos.WebApp
+```
+
+### 4. Levantar el frontend
+
+```bash
+cd frontend-web
+npm install
+npm start
+```
+
+### 5. Levantar la app móvil
+
+```bash
+cd mobile/ServiPuntos.Mobile
+dotnet build
+dotnet run
+```
+
+> ⚠️ Requiere tener instalado `dotnet workload install maui` si vas a trabajar en la app mobile.
+
+## 🔌 Conexión a PostgreSQL
+
+Ejemplo de cadena de conexión utilizada para desarrollo:
+
+```
+Host=shuttle.proxy.rlwy.net;Port=19577;Username=postgres;Password=********;Database=railway;SSL Mode=Require;Trust Server Certificate=true;
+```
+
+Podés ajustar los valores según tu entorno local en `appsettings.json` o mediante la variable de entorno `ConnectionStrings__DefaultConnection`.
+
+## ⚙️ Comandos utilizados para generar la estructura inicial
+
+```bash
+# Backend
+dotnet new sln --name ServiPuntosUY
+dotnet new classlib -n ServiPuntos.Core
+dotnet new classlib -n ServiPuntos.Infrastructure
+dotnet new webapi -n ServiPuntos.API
+dotnet new xunit -n ServiPuntos.Tests
+
+dotnet new classlib -n ServiPuntos.Application
+
+## Agregar proyectos a la Solution
+dotnet sln backend/ServiPuntosUY.sln add backend/ServiPuntos.Core/ServiPuntos.Core.csproj
+dotnet sln backend/ServiPuntosUY.sln add backend/ServiPuntos.Infrastructure/ServiPuntos.Infrastructure.csproj
+dotnet sln backend/ServiPuntosUY.sln add backend/ServiPuntos.API/ServiPuntos.API.csproj
+dotnet sln backend/ServiPuntosUY.sln add backend/ServiPuntos.Tests/ServiPuntos.Tests.csproj
+
+dotnet sln backend/ServiPuntosUY.sln add backend/ServiPuntos.Application/ServiPuntos.Application.csproj
+
+
+## Agregar referencias entre proyectos
+dotnet add backend/ServiPuntos.API/ServiPuntos.API.csproj reference backend/ServiPuntos.Core/ServiPuntos.Core.csproj
+dotnet add backend/ServiPuntos.Infrastructure/ServiPuntos.Infrastructure.csproj reference backend/ServiPuntos.Core/ServiPuntos.Core.csproj
+dotnet add backend/ServiPuntos.Tests/ServiPuntos.Tests.csproj reference backend/ServiPuntos.Core/ServiPuntos.Core.csproj
+
+dotnet add backend/ServiPuntos.API/ServiPuntos.API.csproj reference backend/ServiPuntos.Application/ServiPuntos.Application.csproj
+dotnet add backend/ServiPuntos.Application/ServiPuntos.Application.csproj reference backend/ServiPuntos.Core/ServiPuntos.Core.csproj
+
+# Mobile
+dotnet workload install maui
+dotnet new maui -n ServiPuntos.Mobile
+dotnet sln backend/ServiPuntosUY.sln add mobile/ServiPuntos.Mobile/ServiPuntos.Mobile.csproj
+
+# Frontend
+npx create-react-app frontend-web
+cd frontend-web
+npm install
+npm install bootstrap
+```
+
+---
+
+_Proyecto académico para Taller de Sistemas de Información .NET – Edición 2025_
