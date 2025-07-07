@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
-using Npgsql.EntityFrameworkCore.PostgreSQL; 
+using Npgsql.EntityFrameworkCore.PostgreSQL;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using ServiPuntos.Application.Services;
@@ -14,11 +14,13 @@ using ServiPuntos.Infrastructure.Data;
 using ServiPuntos.Infrastructure.Middleware;
 using ServiPuntos.Infrastructure.MultiTenancy;
 using ServiPuntos.Infrastructure.Repositories;
-
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using System.Text;
 using System.Security.Claims;
+using System.IO;
 
-// Creaci�n de la aplicaci�n web ASP.NET Core
+// Creación de la aplicación web ASP.NET Core
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.ClearProviders();
@@ -27,20 +29,20 @@ builder.Logging.AddDebug();
 builder.Logging.SetMinimumLevel(LogLevel.Trace);
 builder.Logging.AddFilter("Microsoft.AspNetCore.Authentication", LogLevel.Trace);
 
-// Agregar controladores a la aplicaci�n
+// Agregar controladores a la aplicación
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(opts =>
     {
         opts.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
-    opts.JsonSerializerOptions.DictionaryKeyPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
-    opts.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        opts.JsonSerializerOptions.DictionaryKeyPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        opts.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     });
 
-// Agregar servicios de Swagger para documentaci�n de API
+// Agregar servicios de Swagger para documentación de API
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configuraci�n JWT (JSON Web Token)
+// Configuración JWT (JSON Web Token)
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKeyString = jwtSettings["SecretKey"];
 if (string.IsNullOrEmpty(secretKeyString))
@@ -49,7 +51,20 @@ if (string.IsNullOrEmpty(secretKeyString))
 }
 var secretKey = Encoding.UTF8.GetBytes(secretKeyString);
 
-//Soporte de sesion
+// --- INICIALIZACIÓN DE FIREBASE ADMIN SDK ---
+var firebasePath = builder.Configuration["Firebase:CredentialsPath"];
+if (string.IsNullOrWhiteSpace(firebasePath))
+    throw new InvalidOperationException("Firebase CredentialsPath no está configurado.");
+var credentialsFullPath = Path.Combine(builder.Environment.ContentRootPath, firebasePath);
+if (!File.Exists(credentialsFullPath))
+    throw new FileNotFoundException("No se encontró el archivo de credenciales de Firebase en", credentialsFullPath);
+FirebaseApp.Create(new AppOptions
+{
+    Credential = GoogleCredential.FromFile(credentialsFullPath)
+});
+// ---------------------------------------------
+
+// Soporte de sesión
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -64,7 +79,6 @@ builder.Services.AddAuthentication(options =>
     // Cookies como esquema por defecto (para la parte WEB)
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    // No establecer DefaultChallengeScheme - se manejará por controlador específico
 })
 .AddCookie(options =>
 {
@@ -89,24 +103,20 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-//Con esto permitimos solicitudes desde el frontend-web
+// Con esto permitimos solicitudes desde el frontend-web
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
-        builder => builder
-            .WithOrigins("http://servipuntosuy.up.railway.app", "https://servipuntosuy.up.railway.app") // Frontend HTTP
+        policy => policy
+            .WithOrigins("http://servipuntosuy.up.railway.app", "https://servipuntosuy.up.railway.app")
             .AllowAnyMethod()
             .AllowAnyHeader()
-            .AllowCredentials() // Importante para enviar cookies
+            .AllowCredentials()
             .SetIsOriginAllowed(_ => true));
 });
 
-
-
-
 builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 
 builder.Services.AddScoped<JwtTokenService>();
 builder.Services.AddHttpClient();
@@ -149,7 +159,7 @@ builder.Services.AddScoped<INotificacionService, NotificacionService>();
 builder.Services.AddScoped<IAudienciaRuleEngine, AudienciaRuleEngine>();
 builder.Services.AddScoped<IAudienciaService, AudienciaService>();
 
-// Construye la aplicaci�n web
+// Construye la aplicación web
 var app = builder.Build();
 
 // Configurar el pipeline de solicitudes HTTP (middleware)
@@ -163,11 +173,10 @@ app.UseHttpsRedirection(); // Importante para asegurar HTTPS
 app.UseStaticFiles();
 app.UseCors("AllowReactApp");
 app.UseRouting();
-app.UseSession(); 
+app.UseSession();
 app.UseAuthentication();
-//app.UseMiddleware<TenantMiddleware>();
+// app.UseMiddleware<TenantMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
-
 
 app.Run();
