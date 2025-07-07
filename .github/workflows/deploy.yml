@@ -22,6 +22,7 @@ jobs:
           
           cd /opt/servipuntos-api/ServiPuntos.uy
           echo "🔄 Pulling latest changes..."
+          git fetch origin
           git pull origin dev
           
           # Stop services before building
