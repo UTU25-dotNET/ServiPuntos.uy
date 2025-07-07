@@ -124,7 +124,6 @@ builder.Services.AddDbContext<ServiPuntosDbContext>(opts =>
 builder.Services.AddScoped<JwtTokenService>();
 builder.Services.AddHttpClient();
 builder.Services.AddHttpContextAccessor();
-
 // 11) DI: multitenancy & repositorios
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
