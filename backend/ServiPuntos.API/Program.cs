@@ -48,12 +48,19 @@ var secretKey = Encoding.UTF8.GetBytes(secretKeyString);
 var firebasePath = builder.Configuration["Firebase:CredentialsPath"];
 if (string.IsNullOrWhiteSpace(firebasePath))
     throw new InvalidOperationException("Firebase CredentialsPath no está configurado.");
+
 var credentialsFullPath = Path.Combine(builder.Environment.ContentRootPath, firebasePath);
+
+// *** LOG EN CONSOLA PARA VERIFICAR RUTA ***
+Console.WriteLine($"[Firebase] Cargando credenciales desde: {credentialsFullPath}");
+
 if (!File.Exists(credentialsFullPath))
     throw new FileNotFoundException($"No se encontró el archivo de credenciales de Firebase en '{credentialsFullPath}'");
+
 var googleCred = GoogleCredential
     .FromFile(credentialsFullPath)
     .CreateScoped("https://www.googleapis.com/auth/firebase.messaging");
+
 FirebaseApp.Create(new AppOptions
 {
     Credential = googleCred
