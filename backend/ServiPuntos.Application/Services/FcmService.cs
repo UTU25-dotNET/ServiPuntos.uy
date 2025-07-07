@@ -18,9 +18,12 @@ namespace ServiPuntos.Application.Services
 
             if (FirebaseApp.DefaultInstance == null)
             {
+                var credential = GoogleCredential
+                    .FromFile(path)
+                    .CreateScoped("https://www.googleapis.com/auth/firebase.messaging");
                 FirebaseApp.Create(new AppOptions
                 {
-                    Credential = GoogleCredential.FromFile(path)
+                    Credential = credential
                 });
             }
             _messaging = FirebaseMessaging.DefaultInstance;
