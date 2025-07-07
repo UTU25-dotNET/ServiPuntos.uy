@@ -134,7 +134,6 @@ builder.Services.AddScoped<ITenantContext, TenantContext>();
 builder.Services.AddScoped<IConfigPlataformaRepository, ConfigPlataformaRepository>();
 builder.Services.AddScoped<IConfigPlataformaService, ConfigPlataformaService>();
 
-
 // 12) DI: repositorios NAFTA
 builder.Services.AddScoped<ITransaccionRepository, TransaccionRepository>();
 builder.Services.AddScoped<ICanjeRepository, CanjeRepository>();
