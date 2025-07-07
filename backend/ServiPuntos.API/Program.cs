@@ -1,35 +1,30 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication.OAuth;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 using ServiPuntos.Application.Services;
 using ServiPuntos.Application.Services.Rules;
 using ServiPuntos.Core.Interfaces;
 using ServiPuntos.Infrastructure.Data;
-using ServiPuntos.Infrastructure.Middleware;
 using ServiPuntos.Infrastructure.MultiTenancy;
 using ServiPuntos.Infrastructure.Repositories;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using System.Text;
-using System.Security.Claims;
 using System.IO;
 
 // Creación de la aplicación web ASP.NET Core
 var builder = WebApplication.CreateBuilder(args);
 
+// 1) Logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 builder.Logging.SetMinimumLevel(LogLevel.Trace);
 builder.Logging.AddFilter("Microsoft.AspNetCore.Authentication", LogLevel.Trace);
 
-// Agregar controladores a la aplicación
+// 2) MVC + JSON options
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(opts =>
     {
@@ -38,45 +33,45 @@ builder.Services.AddControllersWithViews()
         opts.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     });
 
-// Agregar servicios de Swagger para documentación de API
+// 3) Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configuración JWT (JSON Web Token)
+// 4) JWT Configuration
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKeyString = jwtSettings["SecretKey"];
 if (string.IsNullOrEmpty(secretKeyString))
-{
     throw new InvalidOperationException("JWT SecretKey is not configured.");
-}
 var secretKey = Encoding.UTF8.GetBytes(secretKeyString);
 
-// --- INICIALIZACIÓN DE FIREBASE ADMIN SDK ---
+// 5) Inicialización de Firebase Admin SDK
 var firebasePath = builder.Configuration["Firebase:CredentialsPath"];
 if (string.IsNullOrWhiteSpace(firebasePath))
     throw new InvalidOperationException("Firebase CredentialsPath no está configurado.");
 var credentialsFullPath = Path.Combine(builder.Environment.ContentRootPath, firebasePath);
 if (!File.Exists(credentialsFullPath))
-    throw new FileNotFoundException("No se encontró el archivo de credenciales de Firebase en", credentialsFullPath);
+    throw new FileNotFoundException($"No se encontró el archivo de credenciales de Firebase en '{credentialsFullPath}'");
+var googleCred = GoogleCredential
+    .FromFile(credentialsFullPath)
+    .CreateScoped("https://www.googleapis.com/auth/firebase.messaging");
 FirebaseApp.Create(new AppOptions
 {
-    Credential = GoogleCredential.FromFile(credentialsFullPath)
+    Credential = googleCred
 });
-// ---------------------------------------------
 
-// Soporte de sesión
+// 6) Sesión
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Para HTTPS
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.Cookie.IsEssential = true;
     options.Cookie.SameSite = SameSiteMode.Lax;
 });
 
+// 7) Autenticación
 builder.Services.AddAuthentication(options =>
 {
-    // Cookies como esquema por defecto (para la parte WEB)
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 })
@@ -103,37 +98,34 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Con esto permitimos solicitudes desde el frontend-web
+// 8) CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReactApp",
-        policy => policy
-            .WithOrigins("http://servipuntosuy.up.railway.app", "https://servipuntosuy.up.railway.app")
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials()
-            .SetIsOriginAllowed(_ => true));
+    options.AddPolicy("AllowReactApp", policy =>
+        policy.WithOrigins("http://servipuntosuy.up.railway.app", "https://servipuntosuy.up.railway.app")
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials()
+              .SetIsOriginAllowed(_ => true));
 });
 
-builder.Services.AddDbContext<ServiPuntosDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+// 9) DbContext
+builder.Services.AddDbContext<ServiPuntosDbContext>(opts =>
+    opts.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// 10) DI: servicios de aplicación
 builder.Services.AddScoped<JwtTokenService>();
 builder.Services.AddHttpClient();
-builder.Services.AddScoped<IConfigPlataformaRepository, ConfigPlataformaRepository>();
-builder.Services.AddScoped<IConfigPlataformaService, ConfigPlataformaService>();
 
+// 11) DI: multitenancy & repositorios
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ITenantRepository, TenantRepository>();
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
-
-builder.Services.AddHttpContextAccessor();
-
 builder.Services.AddScoped<ITenantResolver, TenantResolver>();
 builder.Services.AddScoped<ITenantContext, TenantContext>();
 
-// Registra los repositorios de NAFTA
+// 12) DI: repositorios NAFTA
 builder.Services.AddScoped<ITransaccionRepository, TransaccionRepository>();
 builder.Services.AddScoped<ICanjeRepository, CanjeRepository>();
 builder.Services.AddScoped<IProductoCanjeableRepository, ProductoCanjeableRepository>();
@@ -143,7 +135,7 @@ builder.Services.AddScoped<IPromocionRepository, PromocionRepository>();
 builder.Services.AddScoped<INotificacionRepository, NotificacionRepository>();
 builder.Services.AddScoped<IAudienciaRepository, AudienciaRepository>();
 
-// Registra los servicios de NAFTA
+// 13) DI: servicios NAFTA
 builder.Services.AddScoped<ITransaccionService, TransaccionService>();
 builder.Services.AddScoped<IPuntosService, PuntosService>();
 builder.Services.AddScoped<IProductoCanjeableService, ProductoCanjeableService>();
@@ -159,17 +151,16 @@ builder.Services.AddScoped<INotificacionService, NotificacionService>();
 builder.Services.AddScoped<IAudienciaRuleEngine, AudienciaRuleEngine>();
 builder.Services.AddScoped<IAudienciaService, AudienciaService>();
 
-// Construye la aplicación web
+// 14) Build & configure pipeline
 var app = builder.Build();
 
-// Configurar el pipeline de solicitudes HTTP (middleware)
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection(); // Importante para asegurar HTTPS
+app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseCors("AllowReactApp");
 app.UseRouting();
