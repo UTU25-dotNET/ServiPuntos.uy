@@ -10,22 +10,12 @@ namespace ServiPuntos.Application.Services
     {
         private readonly FirebaseMessaging _messaging;
 
-        public FcmService(IConfiguration configuration)
+        public FcmService()
         {
-            var path = configuration["Firebase:CredentialsPath"];
-            if (string.IsNullOrEmpty(path))
-                throw new InvalidOperationException("Firebase credentials not configured");
-
+            // Usar la instancia ya inicializada en Program.cs
             if (FirebaseApp.DefaultInstance == null)
-            {
-                var credential = GoogleCredential
-                    .FromFile(path)
-                    .CreateScoped("https://www.googleapis.com/auth/firebase.messaging");
-                FirebaseApp.Create(new AppOptions
-                {
-                    Credential = credential
-                });
-            }
+                throw new InvalidOperationException("Firebase app not initialized. Make sure Firebase is configured in Program.cs");
+            
             _messaging = FirebaseMessaging.DefaultInstance;
         }
 
