@@ -1,4 +1,4 @@
-using FirebaseAdmin.Messaging;
+using Microsoft.Extensions.Logging;
 using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Enums;
 using ServiPuntos.Core.Interfaces;
@@ -11,12 +11,14 @@ namespace ServiPuntos.Application.Services
         private readonly INotificacionRepository _repository;
         private readonly IUsuarioRepository _usuarioRepository;
         private readonly IFcmService _fcmService;
+        private readonly ILogger<NotificacionService> _logger;
 
-        public NotificacionService(INotificacionRepository repository, IUsuarioRepository usuarioRepository, IFcmService fcmService)
+        public NotificacionService(INotificacionRepository repository, IUsuarioRepository usuarioRepository, IFcmService fcmService, ILogger<NotificacionService> logger)
         {
             _repository = repository;
             _usuarioRepository = usuarioRepository;
             _fcmService = fcmService;
+            _logger = logger;
         }
 
         public Task<IEnumerable<NotificacionUsuario>> ObtenerPorUsuarioAsync(Guid usuarioId)
@@ -53,7 +55,18 @@ namespace ServiPuntos.Application.Services
                     {
                         Priority = Priority.High,
                     };
-                    await _fcmService.SendAsync(u.TokenFcm, notificacion.Titulo, notificacion.Mensaje, androidConfig);
+                    try
+                    {
+                        await _fcmService.SendAsync(u.TokenFcm, notificacion.Titulo, notificacion.Mensaje, androidConfig);
+                    }
+                    catch (FirebaseMessagingException ex)
+                    {
+                        _logger.LogError(ex, "Error enviando notificación a usuario {UsuarioId}. Token FCM inválido", u.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error inesperado enviando notificación a usuario {UsuarioId}", u.Id);
+                    }
                 }
             }
         }
