@@ -1,6 +1,8 @@
 using System.Windows.Input;
 using Microsoft.Maui.Controls;
 using ServiPuntos.Mobile.Services;
+using ServiPuntos.Mobile.Views;
+
 
 namespace ServiPuntos.Mobile.ViewModels
 {
@@ -15,7 +17,7 @@ namespace ServiPuntos.Mobile.ViewModels
             LogoutCommand = new Command(async () =>
             {
                 await _authService.LogoutAsync();
-                await Shell.Current.GoToAsync("//MainPage");
+                await Shell.Current.GoToAsync($"//{nameof(LoginPage)}");
             });
         }
     }

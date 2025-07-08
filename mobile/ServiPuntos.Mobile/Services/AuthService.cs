@@ -6,8 +6,10 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
 using ServiPuntos.Mobile.Models;
+using ServiPuntos.Mobile.Helpers;
 using static ServiPuntos.Mobile.Services.AppLogger;
 
 namespace ServiPuntos.Mobile.Services
@@ -15,6 +17,7 @@ namespace ServiPuntos.Mobile.Services
     public class AuthService : IAuthService, IDisposable
     {
         private readonly HttpClient _httpClient;
+        private bool _isLoggedIn;
         private const string TOKEN_KEY = "auth_token";
         private const string USERID_KEY = "userId";
         private const string TENANT_KEY = "tenant_id";
@@ -23,7 +26,25 @@ namespace ServiPuntos.Mobile.Services
         public AuthService(HttpClient httpClient)
         {
             _httpClient = httpClient;
+
+            // Al iniciar, cargamos token existente (si hay) y configuramos header
+            try
+            {
+                var stored = SecureStorage.GetAsync(TOKEN_KEY).GetAwaiter().GetResult();
+                if (!string.IsNullOrEmpty(stored))
+                {
+                    _isLoggedIn = true;
+                    _httpClient.DefaultRequestHeaders.Authorization =
+                        new AuthenticationHeaderValue("Bearer", stored);
+                }
+            }
+            catch
+            {
+                _isLoggedIn = false;
+            }
         }
+
+        public bool IsLoggedIn => _isLoggedIn;
 
         public async Task<bool> LoginWithGoogleAsync()
         {
@@ -36,7 +57,6 @@ namespace ServiPuntos.Mobile.Services
         public async Task<SignInResponse?> SignInAsync(string email, string password)
         {
             LogInfo($"[AuthService] Signing in user: {email}");
-
             var payload = JsonSerializer.Serialize(new { email, password });
             using var content = new StringContent(payload, Encoding.UTF8, "application/json");
 
@@ -49,11 +69,11 @@ namespace ServiPuntos.Mobile.Services
 
             var root = JsonDocument.Parse(body).RootElement;
 
-            // Si la API devuelve la propiedad "color" en vez de "tenantColor"
-            if (root.TryGetProperty("color", out var colorProp) || root.TryGetProperty("tenantColor", out colorProp))
+            // Guardar color de tenant, si viene
+            if (root.TryGetProperty("color", out var colorProp)
+             || root.TryGetProperty("tenantColor", out colorProp))
             {
                 var tenantColor = colorProp.GetString();
-                LogInfo($"[AuthService] TenantColor from API: {tenantColor}");
                 if (!string.IsNullOrEmpty(tenantColor))
                 {
                     await SecureStorage.SetAsync(TENANT_COLOR_KEY, tenantColor);
@@ -71,18 +91,19 @@ namespace ServiPuntos.Mobile.Services
                 TenantId = root.GetProperty("tenantId").GetString()!
             };
 
+            // Almacenamos token y datos
             await SecureStorage.SetAsync(TOKEN_KEY, result.Token);
-            LogInfo($"[AuthService] Token saved: {result.Token}");
             await SecureStorage.SetAsync(USERID_KEY, result.UserId);
-            LogInfo($"[AuthService] UserId saved: {result.UserId}");
             await SecureStorage.SetAsync(TENANT_KEY, result.TenantId);
-            LogInfo($"[AuthService] TenantId saved: {result.TenantId}");
+            LogInfo($"[AuthService] Token and IDs saved");
 
+            // Configuramos header y estado interno
             _httpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", result.Token);
+            _isLoggedIn = true;
 
-            // var storedColor = await SecureStorage.GetAsync(TENANT_COLOR_KEY);
-            // LogInfo($"[AuthService] TenantColor retrieved from SecureStorage: {storedColor}");
+            // Notificamos a la Shell que el usuario ha iniciado sesión
+            MessagingCenter.Send(this, MessagingConstants.UserLoggedIn);
 
             return result;
         }
@@ -98,20 +119,6 @@ namespace ServiPuntos.Mobile.Services
             var t = await SecureStorage.GetAsync(TOKEN_KEY);
             LogInfo($"[AuthService] GetTokenAsync: {(string.IsNullOrEmpty(t) ? "null" : t)}");
             return t;
-        }
-
-        public async Task<bool> IsAuthenticatedAsync() =>
-            !string.IsNullOrEmpty(await GetTokenAsync());
-
-        public Task LogoutAsync()
-        {
-            SecureStorage.Remove(TOKEN_KEY);
-            SecureStorage.Remove(USERID_KEY);
-            SecureStorage.Remove(TENANT_KEY);
-            SecureStorage.Remove(TENANT_COLOR_KEY);
-            _httpClient.DefaultRequestHeaders.Authorization = null;
-            LogInfo("[AuthService] LogoutAsync completed");
-            return Task.CompletedTask;
         }
 
         public async Task<UserInfo?> GetUserInfoAsync()
@@ -149,6 +156,24 @@ namespace ServiPuntos.Mobile.Services
             var resp = await _httpClient.PostAsync("register", c);
             LogInfo($"[AuthService] RegisterAsync status: {resp.StatusCode}");
             return resp.IsSuccessStatusCode;
+        }
+
+        public async Task LogoutAsync()
+        {
+            // Borramos credenciales
+            SecureStorage.Remove(TOKEN_KEY);
+            SecureStorage.Remove(USERID_KEY);
+            SecureStorage.Remove(TENANT_KEY);
+            SecureStorage.Remove(TENANT_COLOR_KEY);
+
+            _httpClient.DefaultRequestHeaders.Authorization = null;
+            _isLoggedIn = false;
+            LogInfo("[AuthService] LogoutAsync completed");
+
+            // Notificamos a la Shell que el usuario cerró sesión
+            MessagingCenter.Send(this, MessagingConstants.UserLoggedOut);
+
+            await Task.CompletedTask;
         }
 
         public void Dispose() =>
