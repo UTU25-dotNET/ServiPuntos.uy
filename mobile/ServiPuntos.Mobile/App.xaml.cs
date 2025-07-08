@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Linq;
-using ServiPuntos.Mobile.Services;
-using static ServiPuntos.Mobile.Services.AppLogger;
-using Microsoft.Maui.Storage;
+using Microsoft.Maui;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Devices;
+using Microsoft.Maui.Storage;
+using ServiPuntos.Mobile.Services;
+using static ServiPuntos.Mobile.Services.AppLogger;
 
 namespace ServiPuntos.Mobile
 {
     public partial class App : Application
     {
-        public App()
+        public App(AppShell shell)
         {
             LogInfo("ServiPuntos Mobile iniciando...");
             LogInfo($"Timestamp: {DateTime.Now}");
@@ -22,14 +23,13 @@ namespace ServiPuntos.Mobile
             }
             catch (Exception ex)
             {
-
                 var realMsg = ex.InnerException?.Message ?? ex.Message;
                 LogInfo($"❌ Error en InitializeComponent: {realMsg}");
-                LogInfo(ex.ToString());  
-                throw; 
+                LogInfo(ex.ToString());
+                throw;
             }
 
-            MainPage = new AppShell();
+            MainPage = shell;
             LogInfo("AppShell asignado como MainPage");
         }
 

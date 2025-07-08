@@ -13,6 +13,9 @@
 
             <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
             <converters:GreaterThanZeroConverter x:Key="GreaterThanZeroConverter"/>
+            <converters:NullToBoolConverter    x:Key="NullToBoolConverter"/>
+            <converters:StringNotNullOrEmptyConverter x:Key="StringNotNullOrEmptyConverter"/>
+            <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
