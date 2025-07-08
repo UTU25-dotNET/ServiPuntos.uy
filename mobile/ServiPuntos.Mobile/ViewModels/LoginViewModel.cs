@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
+using Microsoft.Maui.Storage;
 using ServiPuntos.Mobile.Models;
 using ServiPuntos.Mobile.Services;
 using static ServiPuntos.Mobile.Services.AppLogger;
@@ -13,6 +14,7 @@ namespace ServiPuntos.Mobile.ViewModels
     {
         private readonly IAuthService _authService;
         private readonly ITenantService _tenantService;
+        private readonly IUserService _userService;
 
         public TenantConfig Tenant { get; set; }
 
@@ -48,10 +50,11 @@ namespace ServiPuntos.Mobile.ViewModels
         public ICommand LoginCommand { get; }
         public ICommand GoogleLoginCommand { get; }
 
-        public LoginViewModel(IAuthService authService, ITenantService tenantService)
+        public LoginViewModel(IAuthService authService, ITenantService tenantService, IUserService userService)
         {
             _authService = authService;
             _tenantService = tenantService;
+            _userService = userService;
 
             Tenant = new TenantConfig
             {
@@ -88,7 +91,7 @@ namespace ServiPuntos.Mobile.ViewModels
                     System.Diagnostics.Debug.WriteLine($"[LoginViewModel] Applying tenant color: {tenant.PrimaryColor}");
                     Application.Current.Resources["PrimaryColor"] = Color.FromArgb(tenant.PrimaryColor);
                     LogInfo($"[LoginViewModel] New PrimaryColor resource is {Application.Current.Resources["PrimaryColor"]}");
-
+                    await SendFcmTokenAsync();
 
                     await Application.Current.MainPage.DisplayAlert("Éxito", "Login exitoso", "OK");
                     await Shell.Current.GoToAsync("//PointsPage");
@@ -106,6 +109,24 @@ namespace ServiPuntos.Mobile.ViewModels
             finally
             {
                 IsLoading = false;
+            }
+        }
+
+        private async Task SendFcmTokenAsync()
+        {
+            try
+            {
+                var token = await SecureStorage.GetAsync("fcm_token");
+                LogInfo($"[LoginViewModel] FCM token present: {!string.IsNullOrEmpty(token)}");
+                if (!string.IsNullOrEmpty(token))
+                {
+                    await _userService.UpdateFcmTokenAsync(token);
+                    LogInfo("[LoginViewModel] FCM token sent to API");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogInfo($"[LoginViewModel] Error sending FCM token: {ex.Message}");
             }
         }
     }

@@ -124,6 +124,15 @@ namespace ServiPuntos.Mobile
                 })
                 .AddHttpMessageHandler<AuthMessageHandler>();
 
+            builder.Services
+                .AddHttpClient<IUserService, UserService>(c => c.BaseAddress = apiBase)
+                .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback =
+                        HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                })
+                .AddHttpMessageHandler<AuthMessageHandler>();
+
             builder.Services.AddTransient<RedemptionViewModel>();
             builder.Services.AddTransient<RedemptionPage>();
 
