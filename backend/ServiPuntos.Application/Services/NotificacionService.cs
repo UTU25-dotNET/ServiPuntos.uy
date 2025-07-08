@@ -47,7 +47,11 @@ namespace ServiPuntos.Application.Services
                 
                 if (!string.IsNullOrEmpty(u.TokenFcm))
                 {
-                    await _fcmService.SendAsync(u.TokenFcm, notificacion.Titulo, notificacion.Mensaje);
+                    AndroidConfig androidConfig = new AndroidConfig
+                    {
+                        Priority = "high",
+                    };
+                    await _fcmService.SendAsync(u.TokenFcm, notificacion.Titulo, notificacion.Mensaje, androidConfig);
                 }
             }
         }
