@@ -46,5 +46,20 @@ namespace ServiPuntos.Application.Services
             };
             return _messaging.SendAsync(message);
         }
+
+        public Task SendAsync(string token, string title, string body, AndroidConfig config)
+        {
+            var message = new Message
+            {
+                Token = token,
+                Notification = new Notification
+                {
+                    Title = title,
+                    Body = body
+                },
+                Android = config
+            };
+            return _messaging.SendAsync(message);
+        }
     }
 }
