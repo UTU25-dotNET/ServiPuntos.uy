@@ -27,6 +27,7 @@ namespace ServiPuntos.Mobile
             var apiBase = new Uri("https://ec2-18-220-251-96.us-east-2.compute.amazonaws.com:5019/");
             var authBase = new Uri(apiBase, "api/auth/");
 
+            // AuthService + HttpClient para auth
             builder.Services
                 .AddHttpClient<IAuthService, AuthService>(client =>
                 {
@@ -41,6 +42,10 @@ namespace ServiPuntos.Mobile
 
             builder.Services.AddTransient<AuthMessageHandler>();
 
+            // Inyección de AppShell
+            builder.Services.AddSingleton<AppShell>();
+
+            // ViewModels y Pages
             builder.Services.AddSingleton<LoginViewModel>();
             builder.Services.AddSingleton<LoginPage>();
 
