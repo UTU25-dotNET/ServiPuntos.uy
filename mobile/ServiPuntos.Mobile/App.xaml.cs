@@ -10,8 +10,11 @@ namespace ServiPuntos.Mobile
 {
     public partial class App : Application
     {
-        public App()
+        private readonly PushNotificationService _pushService;
+
+        public App(PushNotificationService pushService)
         {
+            _pushService = pushService;
             LogInfo("ServiPuntos Mobile iniciando...");
             LogInfo($"Timestamp: {DateTime.Now}");
 
@@ -19,6 +22,7 @@ namespace ServiPuntos.Mobile
             {
                 InitializeComponent();
                 LogInfo("✔ InitializeComponent completado");
+                _pushService.Initialize();
             }
             catch (Exception ex)
             {

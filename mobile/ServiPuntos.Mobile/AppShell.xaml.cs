@@ -10,8 +10,9 @@ public partial class AppShell : Shell
 	{
 		InitializeComponent();
 		Routing.RegisterRoute(nameof(QRCodePage), typeof(QRCodePage));
-		Routing.RegisterRoute(nameof(ProfilePage), typeof(ProfilePage));
-		Routing.RegisterRoute(nameof(CanjesPage), typeof(CanjesPage));
+                Routing.RegisterRoute(nameof(ProfilePage), typeof(ProfilePage));
+                Routing.RegisterRoute(nameof(CanjesPage), typeof(CanjesPage));
+                Routing.RegisterRoute(nameof(RegisterPage), typeof(RegisterPage));
 		if (Application.Current.Resources.TryGetValue("PrimaryColor", out var obj)
 			&& obj is Color c)
 			LogInfo($"[AppShell] PrimaryColor resource is {c}");

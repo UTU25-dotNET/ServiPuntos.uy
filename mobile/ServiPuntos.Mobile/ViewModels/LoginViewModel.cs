@@ -15,6 +15,7 @@ namespace ServiPuntos.Mobile.ViewModels
         private readonly IAuthService _authService;
         private readonly ITenantService _tenantService;
         private readonly IUserService _userService;
+        private readonly PushNotificationService _pushService;
 
         public TenantConfig Tenant { get; set; }
 
@@ -50,11 +51,12 @@ namespace ServiPuntos.Mobile.ViewModels
         public ICommand LoginCommand { get; }
         public ICommand GoogleLoginCommand { get; }
 
-        public LoginViewModel(IAuthService authService, ITenantService tenantService, IUserService userService)
+        public LoginViewModel(IAuthService authService, ITenantService tenantService, IUserService userService, PushNotificationService pushService)
         {
             _authService = authService;
             _tenantService = tenantService;
             _userService = userService;
+            _pushService = pushService;
 
             Tenant = new TenantConfig
             {
@@ -91,6 +93,8 @@ namespace ServiPuntos.Mobile.ViewModels
                     System.Diagnostics.Debug.WriteLine($"[LoginViewModel] Applying tenant color: {tenant.PrimaryColor}");
                     Application.Current.Resources["PrimaryColor"] = Color.FromArgb(tenant.PrimaryColor);
                     LogInfo($"[LoginViewModel] New PrimaryColor resource is {Application.Current.Resources["PrimaryColor"]}");
+                    var fcmToken = await _pushService.RegisterAndRetrieveTokenAsync();
+                    LogInfo($"[LoginViewModel] FCM token acquired: {!string.IsNullOrEmpty(fcmToken)}");
                     await SendFcmTokenAsync();
 
                     await Application.Current.MainPage.DisplayAlert("Éxito", "Login exitoso", "OK");
@@ -116,7 +120,7 @@ namespace ServiPuntos.Mobile.ViewModels
         {
             try
             {
-                var token = await SecureStorage.GetAsync("fcm_token");
+                var token = await _pushService.GetStoredTokenAsync();
                 LogInfo($"[LoginViewModel] FCM token present: {!string.IsNullOrEmpty(token)}");
                 if (!string.IsNullOrEmpty(token))
                 {

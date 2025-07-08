@@ -5,10 +5,10 @@ namespace ServiPuntos.Mobile.Views
 {
     public partial class RegisterPage : ContentPage
     {
-        public RegisterPage(IAuthService authService)
+        public RegisterPage(IAuthService authService, PushNotificationService pushService)
         {
             InitializeComponent();
-            BindingContext = new RegisterViewModel(authService);
+            BindingContext = new RegisterViewModel(authService, pushService);
         }
 
         private async void OnBackToLoginTapped(object sender, EventArgs e)

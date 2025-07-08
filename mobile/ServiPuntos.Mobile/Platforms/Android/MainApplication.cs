@@ -1,5 +1,6 @@
 ﻿using Android.App;
 using Android.Runtime;
+using Plugin.FirebasePushNotification;
 
 namespace ServiPuntos.Mobile;
 
@@ -11,5 +12,14 @@ public class MainApplication : MauiApplication
 	{
 	}
 
-	protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
+	protected override MauiApp CreateMauiApp()
+        {
+            var app = MauiProgram.CreateMauiApp();
+#if DEBUG
+            FirebasePushNotificationManager.Initialize(this, true);
+#else
+            FirebasePushNotificationManager.Initialize(this, false);
+#endif
+            return app;
+        }
 }

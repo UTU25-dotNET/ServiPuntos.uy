@@ -3,6 +3,7 @@ using Android.Content.PM;
 using Android.OS;
 using Android.Content;
 using static ServiPuntos.Mobile.Services.AppLogger;
+using Plugin.FirebasePushNotification;
 
 namespace ServiPuntos.Mobile;
 
@@ -21,6 +22,7 @@ public class MainActivity : MauiAppCompatActivity
     {
         LogInfo("[MainActivity] OnCreate iniciado");
         base.OnCreate(savedInstanceState);
+        FirebasePushNotificationManager.ProcessIntent(this, Intent);
         
         // Manejar el intent inicial
         HandleIntent(Intent);
@@ -30,6 +32,7 @@ public class MainActivity : MauiAppCompatActivity
     {
         LogInfo("[MainActivity] OnNewIntent recibido");
         base.OnNewIntent(intent);
+        FirebasePushNotificationManager.ProcessIntent(this, intent);
         
         // Manejar nuevos intents (cuando la app ya está corriendo)
         HandleIntent(intent);
