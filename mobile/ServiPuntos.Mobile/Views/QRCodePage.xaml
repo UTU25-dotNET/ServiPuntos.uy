@@ -11,7 +11,7 @@
                 VerticalOptions="Center">
 
                 <Label
-                        Text="Aquí se muestra el código QR de tu canje seleccionado"
+                        Text="Aquí se muestra el código QR de tu último canje realizado en esta sesión"
                         Style="{StaticResource Caption}"
                         HorizontalOptions="Center"/>
 
