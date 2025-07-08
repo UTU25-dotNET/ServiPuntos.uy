@@ -10,12 +10,26 @@ namespace ServiPuntos.Application.Services
     {
         private readonly FirebaseMessaging _messaging;
 
-        public FcmService()
+        public FcmService(IConfiguration configuration)
         {
-            // Usar la instancia ya inicializada en Program.cs
+            var path = configuration["Firebase:CredentialsPath"];
+            if (string.IsNullOrEmpty(path))
+                throw new InvalidOperationException("Firebase credentials not configured");
+
             if (FirebaseApp.DefaultInstance == null)
-                throw new InvalidOperationException("Firebase app not initialized. Make sure Firebase is configured in Program.cs");
-            
+            {
+                var credential = GoogleCredential
+                    .FromFile(path)
+                    .CreateScoped(new[]
+				  {
+				    "https://www.googleapis.com/auth/firebase.messaging",
+				    "https://www.googleapis.com/auth/cloud-platform"
+				  });
+                FirebaseApp.Create(new AppOptions
+                {
+                    Credential = credential
+                });
+            }
             _messaging = FirebaseMessaging.DefaultInstance;
         }
 
@@ -32,5 +46,21 @@ namespace ServiPuntos.Application.Services
             };
             return _messaging.SendAsync(message);
         }
+
+        public Task SendAsync(string token, string title, string body, AndroidConfig androidConfig)
+        {
+            var message = new Message
+            {
+                Token = token,
+                Notification = new Notification
+                {
+                    Title = title,
+                    Body = body
+                },
+                Android = androidConfig
+            };
+            return _messaging.SendAsync(message);
+        }
     }
 }
+

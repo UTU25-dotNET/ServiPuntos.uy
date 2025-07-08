@@ -1,3 +1,4 @@
+using FirebaseAdmin.Messaging;
 using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Enums;
 using ServiPuntos.Core.Interfaces;
@@ -47,7 +48,11 @@ namespace ServiPuntos.Application.Services
                 
                 if (!string.IsNullOrEmpty(u.TokenFcm))
                 {
-                    await _fcmService.SendAsync(u.TokenFcm, notificacion.Titulo, notificacion.Mensaje);
+                    AndroidConfig androidConfig = new AndroidConfig
+                    {
+                        Priority = Priority.High,
+                    };
+                    await _fcmService.SendAsync(u.TokenFcm, notificacion.Titulo, notificacion.Mensaje, androidConfig);
                 }
             }
         }
