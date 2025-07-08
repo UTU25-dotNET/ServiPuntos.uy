@@ -57,6 +57,7 @@ Console.WriteLine($"[Firebase] Cargando credenciales desde: {credentialsFullPath
 if (!File.Exists(credentialsFullPath))
     throw new FileNotFoundException($"No se encontró el archivo de credenciales de Firebase en '{credentialsFullPath}'");
 
+<<<<<<< HEAD
 var googleCred = GoogleCredential
     .FromFile(credentialsFullPath)
     .CreateScoped("https://www.googleapis.com/auth/firebase.messaging");
@@ -65,6 +66,38 @@ FirebaseApp.Create(new AppOptions
 {
     Credential = googleCred
 });
+=======
+try
+{
+    // Verificar si ya existe una instancia de Firebase
+    if (FirebaseApp.DefaultInstance == null)
+    {
+        var googleCred = GoogleCredential
+            .FromFile(credentialsFullPath)
+            .CreateScoped(new[]
+            {
+                "https://www.googleapis.com/auth/firebase.messaging",
+                "https://www.googleapis.com/auth/cloud-platform"
+            });
+
+        FirebaseApp.Create(new AppOptions
+        {
+            Credential = googleCred
+        });
+        
+        Console.WriteLine("[Firebase] Firebase Admin SDK inicializado correctamente");
+    }
+    else
+    {
+        Console.WriteLine("[Firebase] Firebase ya estaba inicializado");
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"[Firebase] Error al inicializar Firebase: {ex.Message}");
+    throw;
+}
+>>>>>>> 8c09fb2cacf57ff969d2b0645ff650e1aa586e5c
 
 // 6) Sesión
 builder.Services.AddSession(options =>

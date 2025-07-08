@@ -430,4 +430,13 @@ FodyWeavers.xsd
 /frontend-web/node_modules/
 /frontend-web/dist/
 /frontend-web/.env
+<<<<<<< HEAD
 backend/ServiPuntos.API/keys/*.json
+=======
+
+# Archivos sensibles con credenciales
+backend/ServiPuntos.API/keys/*.json
+backend/ServiPuntos.API/appsettings.json
+backend/ServiPuntos.API/appsettings.Development.json
+backend/ServiPuntos.API/appsettings.Production.json
+>>>>>>> 8c09fb2cacf57ff969d2b0645ff650e1aa586e5c

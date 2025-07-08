@@ -47,7 +47,7 @@ namespace ServiPuntos.Application.Services
             return _messaging.SendAsync(message);
         }
 
-        public Task SendAsync(string token, string title, string body, AndroidConfig config)
+        public Task SendAsync(string token, string title, string body, AndroidConfig androidConfig)
         {
             var message = new Message
             {
@@ -57,7 +57,7 @@ namespace ServiPuntos.Application.Services
                     Title = title,
                     Body = body
                 },
-                Android = config
+                Android = androidConfig
             };
             return _messaging.SendAsync(message);
         }
