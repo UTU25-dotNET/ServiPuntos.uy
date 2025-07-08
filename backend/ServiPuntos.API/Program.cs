@@ -124,7 +124,6 @@ builder.Services.AddDbContext<ServiPuntosDbContext>(opts =>
 builder.Services.AddScoped<JwtTokenService>();
 builder.Services.AddHttpClient();
 builder.Services.AddHttpContextAccessor();
-
 // 11) DI: multitenancy & repositorios
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
@@ -134,7 +133,6 @@ builder.Services.AddScoped<ITenantResolver, TenantResolver>();
 builder.Services.AddScoped<ITenantContext, TenantContext>();
 builder.Services.AddScoped<IConfigPlataformaRepository, ConfigPlataformaRepository>();
 builder.Services.AddScoped<IConfigPlataformaService, ConfigPlataformaService>();
-
 
 // 12) DI: repositorios NAFTA
 builder.Services.AddScoped<ITransaccionRepository, TransaccionRepository>();
