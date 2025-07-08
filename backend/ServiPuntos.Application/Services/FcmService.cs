@@ -20,7 +20,11 @@ namespace ServiPuntos.Application.Services
             {
                 var credential = GoogleCredential
                     .FromFile(path)
-                    .CreateScoped("https://www.googleapis.com/auth/firebase.messaging");
+                    .CreateScoped(new[]
+				  {
+				    "https://www.googleapis.com/auth/firebase.messaging",
+				    "https://www.googleapis.com/auth/cloud-platform"
+				  });
                 FirebaseApp.Create(new AppOptions
                 {
                     Credential = credential
