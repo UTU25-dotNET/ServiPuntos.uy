@@ -51,7 +51,7 @@ namespace ServiPuntos.Application.Services
                 {
                     AndroidConfig androidConfig = new AndroidConfig
                     {
-                        Priority = "high",
+                        Priority = Priority.High,
                     };
                     await _fcmService.SendAsync(u.TokenFcm, notificacion.Titulo, notificacion.Mensaje, androidConfig);
                 }
