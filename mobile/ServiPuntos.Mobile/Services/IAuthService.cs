@@ -1,17 +1,22 @@
 using ServiPuntos.Mobile.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ServiPuntos.Mobile.Services
 {
     public interface IAuthService
     {
+        /// <summary>
+        /// Indica si hay un token válido en almacenamiento.
+        /// </summary>
+        bool IsLoggedIn { get; }
+
         Task<bool> LoginWithGoogleAsync();
         Task<SignInResponse?> SignInAsync(string email, string password);
-        Task<bool> IsAuthenticatedAsync();
-        Task<string?> GetTokenAsync();
         Task LogoutAsync();
-        Task<UserInfo?> GetUserInfoAsync();
+        Task<string?> GetTokenAsync();
         Task SaveTokenAsync(string token);
-
+        Task<UserInfo?> GetUserInfoAsync();
         Task<List<TenantResponse>> GetTenantsAsync();
         Task<bool> RegisterAsync(RegisterRequest request);
     }

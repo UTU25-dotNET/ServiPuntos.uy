@@ -1,11 +1,13 @@
 using System;
-using System.Threading.Tasks;
 using System.Windows.Input;
+using Microsoft.Maui;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
 using ServiPuntos.Mobile.Models;
 using ServiPuntos.Mobile.Services;
 using static ServiPuntos.Mobile.Services.AppLogger;
+using ServiPuntos.Mobile.Views;
+
 
 namespace ServiPuntos.Mobile.ViewModels
 {
@@ -16,21 +18,21 @@ namespace ServiPuntos.Mobile.ViewModels
 
         public TenantConfig Tenant { get; set; }
 
-        private string _username;
+        private string _username = "";
         public string Username
         {
             get => _username;
             set { _username = value; OnPropertyChanged(); }
         }
 
-        private string _password;
+        private string _password = "";
         public string Password
         {
             get => _password;
             set { _password = value; OnPropertyChanged(); }
         }
 
-        private string _errorMessage;
+        private string _errorMessage = "";
         public string ErrorMessage
         {
             get => _errorMessage;
@@ -68,7 +70,7 @@ namespace ServiPuntos.Mobile.ViewModels
 
         private async void OnLogin()
         {
-            ErrorMessage = string.Empty;
+            ErrorMessage = "";
             IsLoading = true;
 
             if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Password))
@@ -81,26 +83,25 @@ namespace ServiPuntos.Mobile.ViewModels
             try
             {
                 var response = await _authService.SignInAsync(Username, Password);
-
                 if (response != null)
                 {
+                    // Aplicar colores del tenant
                     var tenant = await _tenantService.GetByIdAsync(Guid.Parse(response.TenantId));
-                    System.Diagnostics.Debug.WriteLine($"[LoginViewModel] Applying tenant color: {tenant.PrimaryColor}");
-                    Application.Current.Resources["PrimaryColor"] = Color.FromArgb(tenant.PrimaryColor);
-                    LogInfo($"[LoginViewModel] New PrimaryColor resource is {Application.Current.Resources["PrimaryColor"]}");
-
+                    Application.Current.Resources["PrimaryColor"] =
+                        Color.FromArgb(tenant.PrimaryColor);
+                    LogInfo($"[LoginViewModel] PrimaryColor actualizado.");
 
                     await Application.Current.MainPage.DisplayAlert("Éxito", "Login exitoso", "OK");
-                    await Shell.Current.GoToAsync("//PointsPage");
+                    // Navegamos al Tab “Saldo”
+                    await Shell.Current.GoToAsync($"//{nameof(PointsPage)}");
                 }
             }
             catch (HttpRequestException)
             {
                 ErrorMessage = "Email o contraseña incorrectos.";
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"[LoginViewModel] Error loading tenant info: {ex}");
                 ErrorMessage = "Error de conexión. Inténtalo de nuevo.";
             }
             finally
