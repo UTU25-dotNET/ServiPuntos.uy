@@ -47,6 +47,8 @@ namespace ServiPuntos.Mobile
             // Login
             builder.Services.AddSingleton<LoginViewModel>();
             builder.Services.AddSingleton<LoginPage>();
+            builder.Services.AddSingleton<PushNotificationService>();
+            builder.Services.AddTransient<RegisterPage>();
 
             // Tenant
             builder.Services
@@ -134,7 +136,17 @@ namespace ServiPuntos.Mobile
                 })
                 .AddHttpMessageHandler<AuthMessageHandler>();
 
-            // Redemption & Profile & QR & Canjes
+            // Usuarios (dev branch)
+            builder.Services
+                .AddHttpClient<IUserService, UserService>(c => c.BaseAddress = apiBase)
+                .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback =
+                        HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                })
+                .AddHttpMessageHandler<AuthMessageHandler>();
+
+            // Redemption, Profile, QR & Canjes (refacUI branch)
             builder.Services.AddTransient<RedemptionViewModel>();
             builder.Services.AddTransient<RedemptionPage>();
             builder.Services.AddTransient<ProfileViewModel>();

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Microsoft.Maui;
 using Microsoft.Maui.Controls;
@@ -11,8 +11,11 @@ namespace ServiPuntos.Mobile
 {
     public partial class App : Application
     {
-        public App(AppShell shell)
+        private readonly PushNotificationService _pushService;
+
+        public App(AppShell shell, PushNotificationService pushService)
         {
+            _pushService = pushService;
             LogInfo("ServiPuntos Mobile iniciando...");
             LogInfo($"Timestamp: {DateTime.Now}");
 
@@ -20,17 +23,22 @@ namespace ServiPuntos.Mobile
             {
                 InitializeComponent();
                 LogInfo("✔ InitializeComponent completado");
+
+                // Inicialización del servicio de notificaciones
+                _pushService.Initialize();
+                LogInfo("✔ PushNotificationService inicializado");
             }
             catch (Exception ex)
             {
                 var realMsg = ex.InnerException?.Message ?? ex.Message;
-                LogInfo($"❌ Error en InitializeComponent: {realMsg}");
+                LogInfo($"❌ Error en InitializeComponent o en PushNotificationService: {realMsg}");
                 LogInfo(ex.ToString());
                 throw;
             }
 
+            // Asignamos la Shell como página principal
             MainPage = shell;
-            LogInfo("AppShell asignado como MainPage");
+            LogInfo("✔ AppShell asignado como MainPage");
         }
 
         protected override void OnAppLinkRequestReceived(Uri uri)

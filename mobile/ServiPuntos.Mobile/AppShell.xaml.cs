@@ -1,123 +1,139 @@
-﻿using System;
+using System;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Graphics;
 using ServiPuntos.Mobile.Helpers;
 using ServiPuntos.Mobile.Services;
 using ServiPuntos.Mobile.Views;
+using static ServiPuntos.Mobile.Services.AppLogger;
 
 namespace ServiPuntos.Mobile
 {
-	public partial class AppShell : Shell
-	{
-		readonly IAuthService _authService;
+    public partial class AppShell : Shell
+    {
+        readonly IAuthService _authService;
 
-		public AppShell(IAuthService authService)
-		{
-			InitializeComponent();
-			_authService = authService ?? throw new ArgumentNullException(nameof(authService));
+        public AppShell(IAuthService authService)
+        {
+            _authService = authService ?? throw new ArgumentNullException(nameof(authService));
 
-			// Rutas
-			Routing.RegisterRoute(nameof(QRCodePage), typeof(QRCodePage));
-			Routing.RegisterRoute(nameof(ProfilePage), typeof(ProfilePage));
-			Routing.RegisterRoute(nameof(CanjesPage), typeof(CanjesPage));
-			Routing.RegisterRoute(nameof(CatalogPage), typeof(CatalogPage));    // <-- nueva
+            InitializeComponent();
 
-			// Eventos de login/logout
-			MessagingCenter.Subscribe<AuthService>(this, MessagingConstants.UserLoggedIn, sender => ShowMainTabs());
-			MessagingCenter.Subscribe<AuthService>(this, MessagingConstants.UserLoggedOut, sender => ShowLoginTab());
+            // --- Registro de rutas ---
+            Routing.RegisterRoute(nameof(QRCodePage), typeof(QRCodePage));
+            Routing.RegisterRoute(nameof(ProfilePage), typeof(ProfilePage));
+            Routing.RegisterRoute(nameof(CanjesPage), typeof(CanjesPage));
+            Routing.RegisterRoute(nameof(CatalogPage), typeof(CatalogPage));
+            Routing.RegisterRoute(nameof(RegisterPage), typeof(RegisterPage));
+            // Puedes agregar aquí otras rutas si las hay
 
-			// Estado inicial
-			if (_authService.IsLoggedIn)
-				ShowMainTabs();
-			else
-				ShowLoginTab();
-		}
+            // --- Logueo del recurso PrimaryColor (feature dev) ---
+            if (Application.Current.Resources.TryGetValue("PrimaryColor", out var obj)
+                && obj is Color c)
+            {
+                LogInfo($"[AppShell] PrimaryColor resource is {c}");
+            }
+            else
+            {
+                LogInfo("[AppShell] PrimaryColor resource not found or invalid");
+            }
 
-		void ShowLoginTab()
-		{
-			RootTabBar.Items.Clear();
-			RootTabBar.Items.Add(new ShellContent
-			{
-				Title = "Iniciar sesión",
-				Route = nameof(LoginPage),
-				ContentTemplate = new DataTemplate(typeof(LoginPage))
-			});
-		}
+            // --- Suscripción a eventos de login/logout (feature refacUI) ---
+            MessagingCenter.Subscribe<AuthService>(this, MessagingConstants.UserLoggedIn, sender => ShowMainTabs());
+            MessagingCenter.Subscribe<AuthService>(this, MessagingConstants.UserLoggedOut, sender => ShowLoginTab());
 
-		void ShowMainTabs()
-		{
-			RootTabBar.Items.Clear();
+            // --- Estado inicial de la interfaz según autenticación ---
+            if (_authService.IsLoggedIn)
+                ShowMainTabs();
+            else
+                ShowLoginTab();
+        }
 
-			// Cerrar sesión
-			RootTabBar.Items.Add(new ShellContent
-			{
-				Title = "Cerrar sesión",
-				Route = nameof(ProfilePage),
-				ContentTemplate = new DataTemplate(typeof(ProfilePage))
-			});
+        void ShowLoginTab()
+        {
+            RootTabBar.Items.Clear();
+            RootTabBar.Items.Add(new ShellContent
+            {
+                Title = "Iniciar sesión",
+                Route = nameof(LoginPage),
+                ContentTemplate = new DataTemplate(typeof(LoginPage))
+            });
+        }
 
-			// Saldo
-			RootTabBar.Items.Add(new ShellContent
-			{
-				Title = "Saldo",
-				Route = nameof(PointsPage),
-				ContentTemplate = new DataTemplate(typeof(PointsPage))
-			});
+        void ShowMainTabs()
+        {
+            RootTabBar.Items.Clear();
 
-			// Ofertas
-			RootTabBar.Items.Add(new ShellContent
-			{
-				Title = "Ofertas",
-				Route = nameof(OffersPage),
-				ContentTemplate = new DataTemplate(typeof(OffersPage))
-			});
+            // Cerrar sesión
+            RootTabBar.Items.Add(new ShellContent
+            {
+                Title = "Cerrar sesión",
+                Route = nameof(ProfilePage),
+                ContentTemplate = new DataTemplate(typeof(ProfilePage))
+            });
 
-			// Alertas
-			RootTabBar.Items.Add(new ShellContent
-			{
-				Title = "Alertas",
-				Route = nameof(AlertsPage),
-				ContentTemplate = new DataTemplate(typeof(AlertsPage))
-			});
+            // Saldo
+            RootTabBar.Items.Add(new ShellContent
+            {
+                Title = "Saldo",
+                Route = nameof(PointsPage),
+                ContentTemplate = new DataTemplate(typeof(PointsPage))
+            });
 
-			// Catálogo
-			RootTabBar.Items.Add(new ShellContent
-			{
-				Title = "Catálogo",
-				Route = nameof(CatalogPage),
-				ContentTemplate = new DataTemplate(typeof(CatalogPage))
-			});
+            // Ofertas
+            RootTabBar.Items.Add(new ShellContent
+            {
+                Title = "Ofertas",
+                Route = nameof(OffersPage),
+                ContentTemplate = new DataTemplate(typeof(OffersPage))
+            });
 
-			// Canjear / Catálogo Legacy
-			RootTabBar.Items.Add(new ShellContent
-			{
-				Title = "Canjear",
-				Route = nameof(RedemptionPage),
-				ContentTemplate = new DataTemplate(typeof(RedemptionPage))
-			});
+            // Alertas
+            RootTabBar.Items.Add(new ShellContent
+            {
+                Title = "Alertas",
+                Route = nameof(AlertsPage),
+                ContentTemplate = new DataTemplate(typeof(AlertsPage))
+            });
 
-			// QR
-			RootTabBar.Items.Add(new ShellContent
-			{
-				Title = "QR",
-				Route = nameof(QRCodePage),
-				ContentTemplate = new DataTemplate(typeof(QRCodePage))
-			});
+            // Catálogo
+            RootTabBar.Items.Add(new ShellContent
+            {
+                Title = "Catálogo",
+                Route = nameof(CatalogPage),
+                ContentTemplate = new DataTemplate(typeof(CatalogPage))
+            });
 
-			// Mis Canjes
-			RootTabBar.Items.Add(new ShellContent
-			{
-				Title = "Mis Canjes",
-				Route = nameof(CanjesPage),
-				ContentTemplate = new DataTemplate(typeof(CanjesPage))
-			});
+            // Canjear / Catálogo Legacy
+            RootTabBar.Items.Add(new ShellContent
+            {
+                Title = "Canjear",
+                Route = nameof(RedemptionPage),
+                ContentTemplate = new DataTemplate(typeof(RedemptionPage))
+            });
 
-			// Historial
-			RootTabBar.Items.Add(new ShellContent
-			{
-				Title = "Historial",
-				Route = nameof(HistoryPage),
-				ContentTemplate = new DataTemplate(typeof(HistoryPage))
-			});
-		}
-	}
+            // QR
+            RootTabBar.Items.Add(new ShellContent
+            {
+                Title = "QR",
+                Route = nameof(QRCodePage),
+                ContentTemplate = new DataTemplate(typeof(QRCodePage))
+            });
+
+            // Mis Canjes
+            RootTabBar.Items.Add(new ShellContent
+            {
+                Title = "Mis Canjes",
+                Route = nameof(CanjesPage),
+                ContentTemplate = new DataTemplate(typeof(CanjesPage))
+            });
+
+            // Historial
+            RootTabBar.Items.Add(new ShellContent
+            {
+                Title = "Historial",
+                Route = nameof(HistoryPage),
+                ContentTemplate = new DataTemplate(typeof(HistoryPage))
+            });
+        }
+    }
 }

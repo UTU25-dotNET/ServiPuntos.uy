@@ -1,7 +1,9 @@
-using FirebaseAdmin.Messaging;
+using Microsoft.Extensions.Logging;
 using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Enums;
 using ServiPuntos.Core.Interfaces;
+using FirebaseAdmin.Messaging;
+using System.Collections.Generic;
 
 namespace ServiPuntos.Application.Services
 {
@@ -10,12 +12,14 @@ namespace ServiPuntos.Application.Services
         private readonly INotificacionRepository _repository;
         private readonly IUsuarioRepository _usuarioRepository;
         private readonly IFcmService _fcmService;
+        private readonly ILogger<NotificacionService> _logger;
 
-        public NotificacionService(INotificacionRepository repository, IUsuarioRepository usuarioRepository, IFcmService fcmService)
+        public NotificacionService(INotificacionRepository repository, IUsuarioRepository usuarioRepository, IFcmService fcmService, ILogger<NotificacionService> logger)
         {
             _repository = repository;
             _usuarioRepository = usuarioRepository;
             _fcmService = fcmService;
+            _logger = logger;
         }
 
         public Task<IEnumerable<NotificacionUsuario>> ObtenerPorUsuarioAsync(Guid usuarioId)
@@ -35,6 +39,7 @@ namespace ServiPuntos.Application.Services
                 destinatarios = usuarios.Where(u => u.Rol == RolUsuario.UsuarioFinal);
             }
 
+            var sentTokens = new HashSet<string>();
             foreach (var u in destinatarios)
             {
                 var nu = new NotificacionUsuario
@@ -45,14 +50,25 @@ namespace ServiPuntos.Application.Services
                     Leida = false
                 };
                 await _repository.AddUsuarioAsync(nu);
-                
-                if (!string.IsNullOrEmpty(u.TokenFcm))
+
+                if (!string.IsNullOrEmpty(u.TokenFcm) && sentTokens.Add(u.TokenFcm))
                 {
                     AndroidConfig androidConfig = new AndroidConfig
                     {
                         Priority = Priority.High,
                     };
-                    await _fcmService.SendAsync(u.TokenFcm, notificacion.Titulo, notificacion.Mensaje, androidConfig);
+                    try
+                    {
+                        await _fcmService.SendAsync(u.TokenFcm, notificacion.Titulo, notificacion.Mensaje, androidConfig);
+                    }
+                    catch (FirebaseMessagingException ex)
+                    {
+                        _logger.LogError(ex, "Error enviando notificación a usuario {UsuarioId}. Token FCM inválido", u.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error inesperado enviando notificación a usuario {UsuarioId}", u.Id);
+                    }
                 }
             }
         }

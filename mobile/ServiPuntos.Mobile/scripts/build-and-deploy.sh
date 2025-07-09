@@ -14,21 +14,24 @@ if ! adb devices | grep -q "device$"; then
 fi
 
 echo "⚙️  Construyendo para Android..."
+cd ..
+dotnet clean
+sleep 5
 dotnet build -f net9.0-android
 
 if [ $? -eq 0 ]; then
     echo "✅ Construcción exitosa!"
     echo "🚀 Publicando aplicación..."
-    dotnet publish -f net9.0-android -c Debug
+    dotnet publish -f net9.0-android -c Release
     
     if [ $? -eq 0 ]; then
         echo "✅ Publicación exitosa!"
         
         # Buscar el APK generado
-        APK_PATH=$(find ./bin/Debug/net9.0-android -name "*-Signed.apk" | head -1)
+        APK_PATH=$(find ./bin/Release/net9.0-android -name "*-Signed.apk" | head -1)
         
         if [ -z "$APK_PATH" ]; then
-            APK_PATH=$(find ./bin/Debug/net9.0-android -name "*.apk" | head -1)
+            APK_PATH=$(find ./bin/Release/net9.0-android -name "*.apk" | head -1)
         fi
         
         if [ -n "$APK_PATH" ]; then
@@ -41,7 +44,7 @@ if [ $? -eq 0 ]; then
                 
                 # Intentar abrir la aplicación usando diferentes métodos
                 adb shell am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER com.companyname.servipuntos.mobile || \
-                adb shell monkey -p com.companyname.servipuntos.mobile -c android.intent.category.LAUNCHER 1 || \
+                adb shell am start -n com.companyname.servipuntos.mobile/com.companyname.servipuntos.mobile.MainActivity || \
                 echo "⚠️  La aplicación está instalada pero no se pudo abrir automáticamente. Ábrela manualmente desde el menú del emulador."
                 
                 echo "📱 ¡Listo! La aplicación debería estar ejecutándose en el emulador."

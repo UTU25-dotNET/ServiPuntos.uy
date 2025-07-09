@@ -10,6 +10,7 @@ namespace ServiPuntos.Mobile.ViewModels
     public class RegisterViewModel : INotifyPropertyChanged
     {
         private readonly IAuthService _authService;
+        private readonly PushNotificationService _pushService;
         private bool _isLoading;
         private bool _isRegisterEnabled = true;
         private TenantResponse? _selectedTenant;
@@ -20,9 +21,10 @@ namespace ServiPuntos.Mobile.ViewModels
         private string _confirmPassword = string.Empty;
         private string _errorMessage = string.Empty;
 
-        public RegisterViewModel(IAuthService authService)
+        public RegisterViewModel(IAuthService authService, PushNotificationService pushService)
         {
             _authService = authService;
+            _pushService = pushService;
             Tenants = new ObservableCollection<TenantResponse>();
             RegisterCommand = new Command(async () => await OnRegister(), () => IsRegisterEnabled);
             LoadTenantsCommand = new Command(async () => await LoadTenants());
@@ -194,11 +196,12 @@ namespace ServiPuntos.Mobile.ViewModels
 
                 if (success)
                 {
+                    await _pushService.RegisterAndRetrieveTokenAsync();
                     await MainThread.InvokeOnMainThreadAsync(async () =>
                     {
                         await Application.Current.MainPage.DisplayAlert(
-                            "Registro Exitoso", 
-                            "Tu cuenta ha sido creada exitosamente. Ahora puedes iniciar sesión.", 
+                            "Registro Exitoso",
+                            "Tu cuenta ha sido creada exitosamente. Ahora puedes iniciar sesión.",
                             "OK");
                         
                         // Navegar de vuelta al login
