@@ -42,7 +42,7 @@ namespace ServiPuntos.Mobile
             builder.Services.AddTransient<AuthMessageHandler>();
 
             builder.Services.AddSingleton<LoginViewModel>();
-            bbuilder.Services.AddSingleton<LoginPage>();
+            builder.Services.AddSingleton<LoginPage>();
             builder.Services.AddSingleton<PushNotificationService>();
             builder.Services.AddTransient<RegisterPage>();
 
