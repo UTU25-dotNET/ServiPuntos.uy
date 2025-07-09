@@ -3,6 +3,7 @@ using ServiPuntos.Core.Entities;
 using ServiPuntos.Core.Enums;
 using ServiPuntos.Core.Interfaces;
 using FirebaseAdmin.Messaging;
+using System.Collections.Generic;
 
 namespace ServiPuntos.Application.Services
 {
@@ -38,6 +39,7 @@ namespace ServiPuntos.Application.Services
                 destinatarios = usuarios.Where(u => u.Rol == RolUsuario.UsuarioFinal);
             }
 
+            var sentTokens = new HashSet<string>();
             foreach (var u in destinatarios)
             {
                 var nu = new NotificacionUsuario
@@ -48,8 +50,8 @@ namespace ServiPuntos.Application.Services
                     Leida = false
                 };
                 await _repository.AddUsuarioAsync(nu);
-                
-                if (!string.IsNullOrEmpty(u.TokenFcm))
+
+                if (!string.IsNullOrEmpty(u.TokenFcm) && sentTokens.Add(u.TokenFcm))
                 {
                     AndroidConfig androidConfig = new AndroidConfig
                     {
