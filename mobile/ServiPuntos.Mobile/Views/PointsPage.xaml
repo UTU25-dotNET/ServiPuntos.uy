@@ -1,44 +1,74 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
-        x:Class="ServiPuntos.Mobile.Views.PointsPage"
-        xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-        Title="Saldo de Puntos"
-        BackgroundColor="{DynamicResource Background}">
+    x:Class="ServiPuntos.Mobile.Views.PointsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Saldo de Puntos"
+    BackgroundColor="{DynamicResource Background}">
 
-        <ContentPage.Resources>
-                <Style x:Key="TenantPointsStyle"
-                       TargetType="Label"
-                       BasedOn="{StaticResource DisplayPointsStyle}">
-                        <Setter Property="TextColor"
-                                        Value="{DynamicResource PrimaryColor}"/>
-                </Style>
-        </ContentPage.Resources>
+    <ContentPage.Resources>
+        <Style x:Key="TenantPointsStyle"
+               TargetType="Label"
+               BasedOn="{StaticResource DisplayPointsStyle}">
+            <Setter Property="TextColor" Value="{DynamicResource PrimaryColor}"/>
+        </Style>
+    </ContentPage.Resources>
 
+    <ScrollView>
         <StackLayout
-                Padding="{StaticResource PagePadding}"
-                Spacing="{StaticResource DefaultSpacing}"
-                VerticalOptions="Center">
+            Padding="{StaticResource PagePadding}"
+            Spacing="{StaticResource DefaultSpacing}"
+            VerticalOptions="Center"
+            HorizontalOptions="Center">
 
-                <Label
-                        Text="Tu saldo actual:"
-                        Style="{StaticResource Body}"
+            <!-- —— Banner promocional —— -->
+            <Frame
+                BackgroundColor="{DynamicResource PrimaryColor}"
+                CornerRadius="12"
+                Padding="16"
+                HasShadow="True"
+                Margin="0,0,0,16">
+                <StackLayout>
+                    <Label
+                        Text="¡APROVECHA TUS PUNTOS YA!"
+                        FontAttributes="Bold"
+                        FontSize="18"
+                        TextColor="White"
                         HorizontalOptions="Center"/>
-
-                <Label
-                        Text="{Binding DisplayPoints}"
-                        Style="{StaticResource TenantPointsStyle}"
+                    <Label
+                        Text="La mejor app para tus recompensas ⭐ y hacer tus canjes!"
+                        FontAttributes="Italic"
+                        FontSize="14"
+                        TextColor="White"
                         HorizontalOptions="Center"/>
+                </StackLayout>
+            </Frame>
 
-                <Button
-                        Text="Actualizar"
-                        Command="{Binding RefreshCommand}"
-                        Style="{StaticResource PrimaryButtonStyle}"/>
+            <!-- —— Saldo actual —— -->
+            <Label
+                Text="Tu saldo actual:"
+                Style="{StaticResource Body}"
+                HorizontalOptions="Center"/>
 
-                <ActivityIndicator
-                        IsRunning="{Binding IsBusy}"
-                        IsVisible="{Binding IsBusy}"
-                        Style="{StaticResource CenteredIndicatorStyle}"/>
+            <Label
+                Text="{Binding DisplayPoints}"
+                Style="{StaticResource TenantPointsStyle}"
+                FontSize="32"
+                HorizontalOptions="Center"/>
 
+            <!-- —— Botón actualizar —— -->
+            <Button
+                Text="Actualizar"
+                Command="{Binding RefreshCommand}"
+                Style="{StaticResource PrimaryButtonStyle}"
+                HorizontalOptions="Center"/>
+
+            <!-- —— Spinner —— -->
+            <ActivityIndicator
+                IsRunning="{Binding IsBusy}"
+                IsVisible="{Binding IsBusy}"
+                Style="{StaticResource CenteredIndicatorStyle}"
+                HorizontalOptions="Center"/>
         </StackLayout>
+    </ScrollView>
 </ContentPage>
