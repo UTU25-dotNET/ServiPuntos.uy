@@ -17,13 +17,23 @@ namespace ServiPuntos.Mobile;
     DataScheme = "servipuntos",
     DataHost = "auth-callback")]
 public class MainActivity : MauiAppCompatActivity
+
 {
+
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         LogInfo("[MainActivity] OnCreate iniciado");
         base.OnCreate(savedInstanceState);
         FirebasePushNotificationManager.ProcessIntent(this, Intent);
-        
+
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
+        {
+            if (CheckSelfPermission(Android.Manifest.Permission.PostNotifications) != Permission.Granted)
+            {
+                RequestPermissions(new[] { Android.Manifest.Permission.PostNotifications }, 1001);
+            }
+        }
+
         // Manejar el intent inicial
         HandleIntent(Intent);
     }
