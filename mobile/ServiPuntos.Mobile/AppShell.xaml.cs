@@ -13,19 +13,19 @@ namespace ServiPuntos.Mobile
 		public AppShell(IAuthService authService)
 		{
 			InitializeComponent();
-
 			_authService = authService ?? throw new ArgumentNullException(nameof(authService));
 
 			// Rutas
 			Routing.RegisterRoute(nameof(QRCodePage), typeof(QRCodePage));
 			Routing.RegisterRoute(nameof(ProfilePage), typeof(ProfilePage));
 			Routing.RegisterRoute(nameof(CanjesPage), typeof(CanjesPage));
+			Routing.RegisterRoute(nameof(CatalogPage), typeof(CatalogPage));    // <-- nueva
 
-			// Suscripción a eventos de login/logout
+			// Eventos de login/logout
 			MessagingCenter.Subscribe<AuthService>(this, MessagingConstants.UserLoggedIn, sender => ShowMainTabs());
 			MessagingCenter.Subscribe<AuthService>(this, MessagingConstants.UserLoggedOut, sender => ShowLoginTab());
 
-			// Inicializar pestañas según estado de autenticación
+			// Estado inicial
 			if (_authService.IsLoggedIn)
 				ShowMainTabs();
 			else
@@ -38,7 +38,6 @@ namespace ServiPuntos.Mobile
 			RootTabBar.Items.Add(new ShellContent
 			{
 				Title = "Iniciar sesión",
-				Icon = "icon_login.png",
 				Route = nameof(LoginPage),
 				ContentTemplate = new DataTemplate(typeof(LoginPage))
 			});
@@ -48,62 +47,74 @@ namespace ServiPuntos.Mobile
 		{
 			RootTabBar.Items.Clear();
 
-			// Perfil / Cerrar sesión
+			// Cerrar sesión
 			RootTabBar.Items.Add(new ShellContent
 			{
 				Title = "Cerrar sesión",
-				Icon = "icon_logout.png",
 				Route = nameof(ProfilePage),
 				ContentTemplate = new DataTemplate(typeof(ProfilePage))
 			});
 
-			// Resto de secciones
+			// Saldo
 			RootTabBar.Items.Add(new ShellContent
 			{
 				Title = "Saldo",
-				Icon = "icon_points.png",
 				Route = nameof(PointsPage),
 				ContentTemplate = new DataTemplate(typeof(PointsPage))
 			});
+
+			// Ofertas
 			RootTabBar.Items.Add(new ShellContent
 			{
 				Title = "Ofertas",
-				Icon = "icon_offers.png",
 				Route = nameof(OffersPage),
 				ContentTemplate = new DataTemplate(typeof(OffersPage))
 			});
+
+			// Alertas
 			RootTabBar.Items.Add(new ShellContent
 			{
 				Title = "Alertas",
-				Icon = "icon_alerts.png",
 				Route = nameof(AlertsPage),
 				ContentTemplate = new DataTemplate(typeof(AlertsPage))
 			});
+
+			// Catálogo
 			RootTabBar.Items.Add(new ShellContent
 			{
-				Title = "Catálogo/Canjear",
-				Icon = "icon_redeem.png",
+				Title = "Catálogo",
+				Route = nameof(CatalogPage),
+				ContentTemplate = new DataTemplate(typeof(CatalogPage))
+			});
+
+			// Canjear / Catálogo Legacy
+			RootTabBar.Items.Add(new ShellContent
+			{
+				Title = "Canjear",
 				Route = nameof(RedemptionPage),
 				ContentTemplate = new DataTemplate(typeof(RedemptionPage))
 			});
+
+			// QR
 			RootTabBar.Items.Add(new ShellContent
 			{
 				Title = "QR",
-				Icon = "icon_qr.png",
 				Route = nameof(QRCodePage),
 				ContentTemplate = new DataTemplate(typeof(QRCodePage))
 			});
+
+			// Mis Canjes
 			RootTabBar.Items.Add(new ShellContent
 			{
 				Title = "Mis Canjes",
-				Icon = "icon_history.png",
 				Route = nameof(CanjesPage),
 				ContentTemplate = new DataTemplate(typeof(CanjesPage))
 			});
+
+			// Historial
 			RootTabBar.Items.Add(new ShellContent
 			{
 				Title = "Historial",
-				Icon = "icon_history_alt.png",
 				Route = nameof(HistoryPage),
 				ContentTemplate = new DataTemplate(typeof(HistoryPage))
 			});

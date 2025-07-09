@@ -39,16 +39,16 @@ namespace ServiPuntos.Mobile
                     ServerCertificateCustomValidationCallback =
                         HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
                 });
-
             builder.Services.AddTransient<AuthMessageHandler>();
 
             // Inyección de AppShell
             builder.Services.AddSingleton<AppShell>();
 
-            // ViewModels y Pages
+            // Login
             builder.Services.AddSingleton<LoginViewModel>();
             builder.Services.AddSingleton<LoginPage>();
 
+            // Tenant
             builder.Services
                 .AddHttpClient<ITenantService, TenantService>(c => c.BaseAddress = apiBase)
                 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
@@ -58,6 +58,7 @@ namespace ServiPuntos.Mobile
                 })
                 .AddHttpMessageHandler<AuthMessageHandler>();
 
+            // Points
             builder.Services
                 .AddHttpClient<IPointsService, PointsService>(c => c.BaseAddress = apiBase)
                 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
@@ -69,6 +70,7 @@ namespace ServiPuntos.Mobile
             builder.Services.AddTransient<PointsViewModel>();
             builder.Services.AddTransient<PointsPage>();
 
+            // History
             builder.Services
                 .AddHttpClient<IHistoryService, HistoryService>(c => c.BaseAddress = apiBase)
                 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
@@ -80,6 +82,7 @@ namespace ServiPuntos.Mobile
             builder.Services.AddTransient<HistoryViewModel>();
             builder.Services.AddTransient<HistoryPage>();
 
+            // Flash Offers
             builder.Services
                 .AddHttpClient<IOfferService, OfferService>(c => c.BaseAddress = apiBase)
                 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
@@ -91,6 +94,7 @@ namespace ServiPuntos.Mobile
             builder.Services.AddTransient<FlashOffersViewModel>();
             builder.Services.AddTransient<OffersPage>();
 
+            // Alerts
             builder.Services
                 .AddHttpClient<INotificationService, NotificationService>(c => c.BaseAddress = apiBase)
                 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
@@ -102,6 +106,7 @@ namespace ServiPuntos.Mobile
             builder.Services.AddTransient<AlertsViewModel>();
             builder.Services.AddTransient<AlertsPage>();
 
+            // Canje
             builder.Services
                 .AddHttpClient<ICanjeService, CanjeService>(c => c.BaseAddress = apiBase)
                 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
@@ -111,6 +116,7 @@ namespace ServiPuntos.Mobile
                 })
                 .AddHttpMessageHandler<AuthMessageHandler>();
 
+            // Product & Location (para catálogo necesitaremos LocationService)
             builder.Services
                 .AddHttpClient<IProductService, ProductService>(c => c.BaseAddress = apiBase)
                 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
@@ -119,7 +125,6 @@ namespace ServiPuntos.Mobile
                         HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
                 })
                 .AddHttpMessageHandler<AuthMessageHandler>();
-
             builder.Services
                 .AddHttpClient<ILocationService, LocationService>(c => c.BaseAddress = apiBase)
                 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
@@ -129,16 +134,26 @@ namespace ServiPuntos.Mobile
                 })
                 .AddHttpMessageHandler<AuthMessageHandler>();
 
+            // Redemption & Profile & QR & Canjes
             builder.Services.AddTransient<RedemptionViewModel>();
             builder.Services.AddTransient<RedemptionPage>();
-
             builder.Services.AddTransient<ProfileViewModel>();
             builder.Services.AddTransient<ProfilePage>();
-
             builder.Services.AddSingleton<QRCodePage>();
-
             builder.Services.AddTransient<CanjesViewModel>();
             builder.Services.AddTransient<CanjesPage>();
+
+            // Catálogo
+            builder.Services
+                .AddHttpClient<ICatalogService, CatalogService>(c => c.BaseAddress = apiBase)
+                .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback =
+                        HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                })
+                .AddHttpMessageHandler<AuthMessageHandler>();
+            builder.Services.AddTransient<CatalogViewModel>();
+            builder.Services.AddTransient<CatalogPage>();
 
 #if DEBUG
             builder.Logging.AddDebug();

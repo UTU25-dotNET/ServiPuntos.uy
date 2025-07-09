@@ -11,7 +11,6 @@
         Shell.TabBarUnselectedColor="LightGray">
 
         <TabBar x:Name="RootTabBar">
-                <!-- intencionadamente vacío; se poblará en AppShell.xaml.cs -->
+                <!-- Se poblará dinámicamente en AppShell.xaml.cs -->
         </TabBar>
-
 </Shell>
