@@ -7,6 +7,7 @@ using ServiPuntos.Mobile.Handlers;
 using ServiPuntos.Mobile.Services;
 using ServiPuntos.Mobile.ViewModels;
 using ServiPuntos.Mobile.Views;
+using Plugin.FirebasePushNotifications;
 
 namespace ServiPuntos.Mobile
 {
@@ -18,6 +19,7 @@ namespace ServiPuntos.Mobile
 
             builder
                 .UseMauiApp<App>()
+                .UseFirebasePushNotifications()   // inicializa FCM bajo el capó
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -42,7 +44,7 @@ namespace ServiPuntos.Mobile
             builder.Services.AddTransient<AuthMessageHandler>();
 
             builder.Services.AddSingleton<LoginViewModel>();
-            bbuilder.Services.AddSingleton<LoginPage>();
+            builder.Services.AddSingleton<LoginPage>();
             builder.Services.AddSingleton<PushNotificationService>();
             builder.Services.AddTransient<RegisterPage>();
 

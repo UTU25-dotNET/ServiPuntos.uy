@@ -1,66 +1,71 @@
-﻿using Android.App;
+﻿using System;
+using Android.App;
+using Android.Content;
 using Android.Content.PM;
 using Android.OS;
-using Android.Content;
 using static ServiPuntos.Mobile.Services.AppLogger;
-using Plugin.FirebasePushNotification;
 
-namespace ServiPuntos.Mobile;
+// ← Este using es el que faltaba:
+using Microsoft.Maui.Controls;
 
-[Activity(
-    Theme = "@style/Maui.SplashTheme",
-    MainLauncher = true,
-    LaunchMode = LaunchMode.SingleTop,
-    ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
-[IntentFilter(new[] { Android.Content.Intent.ActionView },
-    Categories = new[] { Android.Content.Intent.CategoryDefault, Android.Content.Intent.CategoryBrowsable },
-    DataScheme = "servipuntos",
-    DataHost = "auth-callback")]
-public class MainActivity : MauiAppCompatActivity
+namespace ServiPuntos.Mobile
 {
-    protected override void OnCreate(Bundle? savedInstanceState)
+    [Activity(
+        Theme = "@style/Maui.SplashTheme",
+        MainLauncher = true,
+        LaunchMode = LaunchMode.SingleTop,
+        ConfigurationChanges = ConfigChanges.ScreenSize
+                             | ConfigChanges.Orientation
+                             | ConfigChanges.UiMode
+                             | ConfigChanges.ScreenLayout
+                             | ConfigChanges.SmallestScreenSize
+                             | ConfigChanges.Density)]
+    [IntentFilter(new[] { Intent.ActionView },
+        Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable },
+        DataScheme = "servipuntos",
+        DataHost = "auth-callback")]
+    public class MainActivity : MauiAppCompatActivity
     {
-        LogInfo("[MainActivity] OnCreate iniciado");
-        base.OnCreate(savedInstanceState);
-        FirebasePushNotificationManager.ProcessIntent(this, Intent);
-        
-        // Manejar el intent inicial
-        HandleIntent(Intent);
-    }
-
-    protected override void OnNewIntent(Intent? intent)
-    {
-        LogInfo("[MainActivity] OnNewIntent recibido");
-        base.OnNewIntent(intent);
-        FirebasePushNotificationManager.ProcessIntent(this, intent);
-        
-        // Manejar nuevos intents (cuando la app ya está corriendo)
-        HandleIntent(intent);
-    }
-
-    private void HandleIntent(Intent? intent)
-    {
-        if (intent?.Data != null)
+        protected override void OnCreate(Bundle? savedInstanceState)
         {
-            var uri = intent.Data.ToString();
-            LogInfo($"[MainActivity] Intent con datos recibido: {uri}");
-            
-            // Convertir a Uri y notificar a la app
-            try
+            LogInfo("[MainActivity] OnCreate iniciado");
+            base.OnCreate(savedInstanceState);
+            HandleIntent(Intent);
+        }
+
+        protected override void OnNewIntent(Intent? intent)
+        {
+            LogInfo("[MainActivity] OnNewIntent recibido");
+            base.OnNewIntent(intent);
+            HandleIntent(intent);
+        }
+
+        void HandleIntent(Intent? intent)
+        {
+            if (intent?.Data != null)
             {
-                var dotnetUri = new System.Uri(uri);
-                LogInfo($"[MainActivity] Notificando a MAUI sobre deep link: {dotnetUri}");
-                // In .NET MAUI, we handle app links through the App class or messaging center
-                Microsoft.Maui.Controls.Application.Current?.SendOnAppLinkRequestReceived(dotnetUri);
+                var uri = intent.Data.ToString();
+                LogInfo($"[MainActivity] Intent con datos recibido: {uri}");
+
+                try
+                {
+                    var dotnetUri = new Uri(uri);
+                    LogInfo($"[MainActivity] Notificando a MAUI sobre deep link: {dotnetUri}");
+
+                    // Aquí usamos el tipo completo para evitar la colisión
+                    Microsoft.Maui.Controls.Application.Current?
+                        .SendOnAppLinkRequestReceived(dotnetUri);
+                }
+                catch (Exception ex)
+                {
+                    LogInfo($"[MainActivity] Error procesando intent: {ex.Message}");
+                }
             }
-            catch (Exception ex)
+            else
             {
-                LogInfo($"[MainActivity] Error procesando intent: {ex.Message}");
+                LogInfo("[MainActivity] Intent sin datos recibido");
             }
         }
-        else
-        {
-            LogInfo("[MainActivity] Intent sin datos recibido");
-        }
+
     }
 }

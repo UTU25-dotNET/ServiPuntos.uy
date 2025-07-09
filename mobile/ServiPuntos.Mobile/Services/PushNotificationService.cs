@@ -1,34 +1,41 @@
-using Microsoft.Maui.Storage;
-using Plugin.FirebasePushNotification;
 using System;
 using System.Threading.Tasks;
+using Microsoft.Maui.Storage;
+using Plugin.FirebasePushNotifications;
 
 namespace ServiPuntos.Mobile.Services
 {
     public class PushNotificationService
     {
-        private const string TokenKey = "fcm_token";
-        private TaskCompletionSource<string?>? _tcs;
-        private bool _initialized;
+        const string TokenKey = "fcm_token";
+        TaskCompletionSource<string?>? _tcs;
+        bool _initialized;
+        readonly IFirebasePushNotification _fcm;
 
+        public PushNotificationService(IFirebasePushNotification fcm)
+        {
+            _fcm = fcm;
+            Initialize();  // opcional: dentro del ctor, o llámalo explícito desde App.xaml.cs
+        }
+
+        // ← Cambiado de private void a public void
         public void Initialize()
         {
-            if (_initialized)
-                return;
+            if (_initialized) return;
 
-            CrossFirebasePushNotification.Current.OnTokenRefresh += async (s, p) =>
+            _fcm.TokenRefreshed += async (s, p) =>
             {
-                try
+                if (!string.IsNullOrEmpty(p.Token))
                 {
-                    if (!string.IsNullOrEmpty(p.Token))
+                    try
                     {
                         await SecureStorage.SetAsync(TokenKey, p.Token);
                         _tcs?.TrySetResult(p.Token);
                     }
-                }
-                catch (Exception ex)
-                {
-                    AppLogger.LogInfo($"[PushNotificationService] Error storing token: {ex.Message}");
+                    catch (Exception ex)
+                    {
+                        AppLogger.LogInfo($"[PushNotificationService] Error storing token: {ex.Message}");
+                    }
                 }
             };
 
@@ -37,9 +44,7 @@ namespace ServiPuntos.Mobile.Services
 
         public async Task<string?> RegisterAndRetrieveTokenAsync()
         {
-            Initialize();
-
-            var token = CrossFirebasePushNotification.Current.Token;
+            var token = _fcm.Token;
             if (!string.IsNullOrEmpty(token))
             {
                 await SecureStorage.SetAsync(TokenKey, token);
@@ -47,13 +52,11 @@ namespace ServiPuntos.Mobile.Services
             }
 
             _tcs = new TaskCompletionSource<string?>();
-            CrossFirebasePushNotification.Current.RegisterForPushNotifications();
+            await _fcm.RegisterForPushNotificationsAsync();
             return await _tcs.Task;
         }
 
-        public Task<string?> GetStoredTokenAsync()
-        {
-            return SecureStorage.GetAsync(TokenKey);
-        }
+        public Task<string?> GetStoredTokenAsync() =>
+            SecureStorage.GetAsync(TokenKey);
     }
 }
