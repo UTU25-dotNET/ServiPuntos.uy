@@ -10,6 +10,7 @@ namespace ServiPuntos.Mobile;
 [Activity(
     Theme = "@style/Maui.SplashTheme",
     MainLauncher = true,
+    Exported = true,
     LaunchMode = LaunchMode.SingleTop,
     ConfigurationChanges = ConfigChanges.ScreenSize
                          | ConfigChanges.Orientation
@@ -22,6 +23,7 @@ namespace ServiPuntos.Mobile;
     DataScheme = "servipuntos",
     DataHost = "auth-callback")]
 public class MainActivity : MauiAppCompatActivity
+
 {
     const int RequestNotificationPermissionId = 1001;
 
@@ -55,6 +57,7 @@ public class MainActivity : MauiAppCompatActivity
         FirebasePushNotificationManager.ProcessIntent(this, intent);
         HandleIntent(intent);
     }
+    
 
     public override void OnRequestPermissionsResult(
         int requestCode, string[] permissions, Permission[] grantResults)

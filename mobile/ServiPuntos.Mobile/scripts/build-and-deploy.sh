@@ -44,7 +44,7 @@ if [ $? -eq 0 ]; then
                 
                 # Intentar abrir la aplicación usando diferentes métodos
                 adb shell am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER com.companyname.servipuntos.mobile || \
-                adb shell monkey -p com.companyname.servipuntos.mobile -c android.intent.category.LAUNCHER 1 || \
+                adb shell am start -n com.companyname.servipuntos.mobile/com.companyname.servipuntos.mobile.MainActivity || \
                 echo "⚠️  La aplicación está instalada pero no se pudo abrir automáticamente. Ábrela manualmente desde el menú del emulador."
                 
                 echo "📱 ¡Listo! La aplicación debería estar ejecutándose en el emulador."
