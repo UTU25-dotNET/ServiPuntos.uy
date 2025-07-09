@@ -15,6 +15,8 @@ fi
 
 echo "⚙️  Construyendo para Android..."
 cd ..
+dotnet clean
+sleep 5
 dotnet build -f net9.0-android
 
 if [ $? -eq 0 ]; then
