@@ -60,9 +60,13 @@
     <PackageReference Include="QRCoder" Version="1.4.3" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.2.1" />
     <PackageReference Include="Plugin.FirebasePushNotification" Version="3.4.35" />
-    <PackageReference Include="Xamarin.Firebase.Common" Version="120.0.0.5" />
+    <PackageReference Include="Xamarin.Firebase.Common" Version="121.0.0.6" />
     <PackageReference Include="Xamarin.Firebase.Messaging" Version="122.0.0.5" />
     <PackageReference Include="Xamarin.GooglePlayServices.Base" Version="118.0.1" />
+    <PackageReference Include="Xamarin.Firebase.Datatransport" Version="119.0.0.6" />
+    <PackageReference Include="Xamarin.Google.Android.DataTransport.TransportRuntime" Version="4.0.0.4" />
+    <PackageReference Include="Xamarin.Google.Android.DataTransport.TransportApi" Version="4.0.0.4" />
+    <PackageReference Include="Xamarin.Google.Android.DataTransport.TransportBackendCct" Version="4.0.0.4" />
   </ItemGroup>
 
   <ItemGroup>
