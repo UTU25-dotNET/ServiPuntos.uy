@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ServiPuntos.Mobile.Views.CatalogPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:ServiPuntos.Mobile.Views"
+    Title="Catálogo">
+
+    <Grid
+        Padding="{StaticResource PagePadding}"
+        RowDefinitions="*,Auto,Auto"
+        RowSpacing="{StaticResource DefaultSpacing}">
+
+        <!-- 1) catálogo scrollable -->
+        <CollectionView
+            Grid.Row="0"
+            ItemsSource="{Binding Products}"
+            IsVisible="{Binding Products.Count, Converter={StaticResource GreaterThanZeroConverter}}"
+            EmptyView="No hay productos disponibles."
+            RemainingItemsThreshold="5"
+            RemainingItemsThresholdReachedCommand="{Binding RefreshCommand}"
+            ItemsLayout="VerticalList"
+            VerticalOptions="FillAndExpand"
+            HorizontalOptions="FillAndExpand">
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <views:CatalogItemView/>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- 2) botón de actualizar -->
+        <Button
+            Grid.Row="1"
+            Text="Actualizar"
+            Command="{Binding RefreshCommand}"
+            IsVisible="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
+            Style="{StaticResource PrimaryButtonStyle}"/>
+
+        <!-- 3) indicador de carga -->
+        <ActivityIndicator
+            Grid.Row="2"
+            IsRunning="{Binding IsBusy}"
+            IsVisible="{Binding IsBusy}"
+            Style="{StaticResource CenteredIndicatorStyle}"/>
+
+    </Grid>
+</ContentPage>

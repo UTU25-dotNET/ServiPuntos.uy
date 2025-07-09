@@ -1,11 +1,14 @@
 using System;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Microsoft.Maui;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Storage;
 using ServiPuntos.Mobile.Models;
 using ServiPuntos.Mobile.Services;
+using ServiPuntos.Mobile.Views;
 using static ServiPuntos.Mobile.Services.AppLogger;
 
 namespace ServiPuntos.Mobile.ViewModels
@@ -19,21 +22,21 @@ namespace ServiPuntos.Mobile.ViewModels
 
         public TenantConfig Tenant { get; set; }
 
-        private string _username;
+        private string _username = "";
         public string Username
         {
             get => _username;
             set { _username = value; OnPropertyChanged(); }
         }
 
-        private string _password;
+        private string _password = "";
         public string Password
         {
             get => _password;
             set { _password = value; OnPropertyChanged(); }
         }
 
-        private string _errorMessage;
+        private string _errorMessage = "";
         public string ErrorMessage
         {
             get => _errorMessage;
@@ -51,7 +54,11 @@ namespace ServiPuntos.Mobile.ViewModels
         public ICommand LoginCommand { get; }
         public ICommand GoogleLoginCommand { get; }
 
-        public LoginViewModel(IAuthService authService, ITenantService tenantService, IUserService userService, PushNotificationService pushService)
+        public LoginViewModel(
+            IAuthService authService,
+            ITenantService tenantService,
+            IUserService userService,
+            PushNotificationService pushService)
         {
             _authService = authService;
             _tenantService = tenantService;
@@ -73,7 +80,7 @@ namespace ServiPuntos.Mobile.ViewModels
 
         private async void OnLogin()
         {
-            ErrorMessage = string.Empty;
+            ErrorMessage = "";
             IsLoading = true;
 
             if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Password))
@@ -86,28 +93,30 @@ namespace ServiPuntos.Mobile.ViewModels
             try
             {
                 var response = await _authService.SignInAsync(Username, Password);
-
                 if (response != null)
                 {
+                    // Aplicar colores del tenant
                     var tenant = await _tenantService.GetByIdAsync(Guid.Parse(response.TenantId));
-                    System.Diagnostics.Debug.WriteLine($"[LoginViewModel] Applying tenant color: {tenant.PrimaryColor}");
-                    Application.Current.Resources["PrimaryColor"] = Color.FromArgb(tenant.PrimaryColor);
-                    LogInfo($"[LoginViewModel] New PrimaryColor resource is {Application.Current.Resources["PrimaryColor"]}");
+                    Application.Current.Resources["PrimaryColor"] =
+                        Color.FromArgb(tenant.PrimaryColor);
+                    LogInfo($"[LoginViewModel] PrimaryColor actualizado a {tenant.PrimaryColor}");
+
+                    // Registrar token FCM y enviarlo al backend
                     var fcmToken = await _pushService.RegisterAndRetrieveTokenAsync();
-                    LogInfo($"[LoginViewModel] FCM token acquired: {!string.IsNullOrEmpty(fcmToken)}");
+                    LogInfo($"[LoginViewModel] FCM token adquirido: {!string.IsNullOrEmpty(fcmToken)}");
                     await SendFcmTokenAsync();
 
                     await Application.Current.MainPage.DisplayAlert("Éxito", "Login exitoso", "OK");
-                    await Shell.Current.GoToAsync("//PointsPage");
+                    // Navegamos al Tab “Saldo”
+                    await Shell.Current.GoToAsync($"//{nameof(PointsPage)}");
                 }
             }
             catch (HttpRequestException)
             {
                 ErrorMessage = "Email o contraseña incorrectos.";
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"[LoginViewModel] Error loading tenant info: {ex}");
                 ErrorMessage = "Error de conexión. Inténtalo de nuevo.";
             }
             finally
@@ -121,16 +130,16 @@ namespace ServiPuntos.Mobile.ViewModels
             try
             {
                 var token = await _pushService.GetStoredTokenAsync();
-                LogInfo($"[LoginViewModel] FCM token present: {!string.IsNullOrEmpty(token)}");
+                LogInfo($"[LoginViewModel] FCM token presente: {!string.IsNullOrEmpty(token)}");
                 if (!string.IsNullOrEmpty(token))
                 {
                     await _userService.UpdateFcmTokenAsync(token);
-                    LogInfo("[LoginViewModel] FCM token sent to API");
+                    LogInfo("[LoginViewModel] FCM token enviado al API");
                 }
             }
             catch (Exception ex)
             {
-                LogInfo($"[LoginViewModel] Error sending FCM token: {ex.Message}");
+                LogInfo($"[LoginViewModel] Error enviando FCM token: {ex.Message}");
             }
         }
     }

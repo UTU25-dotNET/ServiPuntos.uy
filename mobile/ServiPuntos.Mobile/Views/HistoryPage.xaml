@@ -2,67 +2,47 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:ServiPuntos.Mobile.Views"
     x:Class="ServiPuntos.Mobile.Views.HistoryPage"
     Title="Historial de Transacciones">
 
-    <!-- El padding y el background se gestionan con el estilo global de Page -->
-    <StackLayout Spacing="{StaticResource DefaultSpacing}">
+    <Grid RowDefinitions="*,Auto,Auto"
+            ColumnDefinitions="*">
 
-        <!-- Mensaje cuando no hay transacciones -->
-        <Label
-            Text="No tienes transacciones aún."
-            IsVisible="{Binding HasAny, Converter={StaticResource InverseBooleanConverter}}"
-            Style="{StaticResource Caption}"/>
-
-        <!-- Lista de transacciones -->
         <CollectionView
+            Grid.Row="0"
             ItemsSource="{Binding Transactions}"
-            IsVisible="{Binding HasAny}"
-            Margin="0,12,0,0">
-            <!-- aquí usamos 12 en lugar de {StaticResource DefaultSpacing} -->
+            RemainingItemsThreshold="5"
+            RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}"
+            VerticalScrollBarVisibility="Always">
+
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout
+                    Orientation="Vertical"
+                    ItemSpacing="{StaticResource DefaultSpacing}"/>
+            </CollectionView.ItemsLayout>
 
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <!-- Tarjeta genérica -->
-                    <Frame Style="{StaticResource CardFrameStyle}">
-                        <StackLayout Spacing="{StaticResource SmallSpacing}">
-                            <!-- Fecha -->
-                            <Label
-                                Text="{Binding Fecha, StringFormat='{0:dd/MM/yyyy HH:mm}'}"
-                                Style="{StaticResource Body}"/>
-
-                            <!-- Tipo -->
-                            <Label
-                                Text="{Binding Tipo}"
-                                Style="{StaticResource Body}"/>
-
-                            <!-- Monto -->
-                            <Label
-                                Text="{Binding Monto, StringFormat='Monto: {0:C}'}"
-                                Style="{StaticResource Body}"/>
-
-                            <!-- Puntos otorgados -->
-                            <Label
-                                Text="{Binding PuntosOtorgados, StringFormat='Puntos: {0}'}"
-                                Style="{StaticResource Body}"/>
-                        </StackLayout>
-                    </Frame>
+                    <views:TransactionItemView/>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <!-- Botón “Cargar más” -->
         <Button
+            Grid.Row="1"
             Text="Cargar más"
             Command="{Binding LoadMoreCommand}"
             IsVisible="{Binding HasMore}"
-            Style="{StaticResource PrimaryButtonStyle}"/>
+            Style="{StaticResource PrimaryButtonStyle}"
+            Margin="0,12,0,0"/>
 
-        <!-- Spinner centrado -->
         <ActivityIndicator
+            Grid.Row="2"
             IsRunning="{Binding IsBusy}"
             IsVisible="{Binding IsBusy}"
-            Style="{StaticResource CenteredIndicatorStyle}"/>
+            Style="{StaticResource CenteredIndicatorStyle}"
+            Margin="0,12,0,0"/>
 
-    </StackLayout>
+    </Grid>
 </ContentPage>

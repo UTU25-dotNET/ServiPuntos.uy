@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="ServiPuntos.Mobile.Views.CatalogItemView"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Frame
+        Margin="0,0,0,12"
+        Padding="12"
+        CornerRadius="8"
+        HasShadow="True"
+        Style="{StaticResource CardFrameStyle}"
+        HorizontalOptions="FillAndExpand">
+
+        <StackLayout Spacing="{StaticResource SmallSpacing}">
+            <!-- Foto del producto -->
+            <Image
+                Source="{Binding ProductoCanjeable.FotoUrl}"
+                Aspect="AspectFill"
+                HeightRequest="120"
+                HorizontalOptions="FillAndExpand"/>
+
+            <!-- Nombre -->
+            <Label
+                Text="{Binding ProductoCanjeable.Nombre}"
+                Style="{StaticResource HeadlineLabelStyle}"/>
+
+            <!-- Descripción -->
+            <Label
+                Text="{Binding ProductoCanjeable.Descripcion}"
+                Style="{StaticResource Body}"/>
+
+            <Grid ColumnDefinitions="Auto,Auto,Auto">
+                <!-- Costo en puntos -->
+                <Label
+                    Text="{Binding ProductoCanjeable.CostoEnPuntos, StringFormat='{0} pts'}"
+                    Style="{StaticResource Caption}"
+                    Grid.Column="0"/>
+
+                <!-- Stock -->
+                <Label
+                    Text="{Binding StockDisponible, StringFormat='Stock: {0}'}"
+                    Style="{StaticResource Caption}"
+                    Grid.Column="1"
+                    Margin="12,0,0,0"/>
+
+                <!-- Categoría -->
+                <Label
+                    Text="{Binding Categoria}"
+                    Style="{StaticResource Caption}"
+                    Grid.Column="2"
+                    Margin="12,0,0,0"/>
+            </Grid>
+        </StackLayout>
+    </Frame>
+</ContentView>

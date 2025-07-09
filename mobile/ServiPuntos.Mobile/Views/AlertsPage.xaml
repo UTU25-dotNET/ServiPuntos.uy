@@ -2,67 +2,51 @@
 <ContentPage
         xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
         xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+        xmlns:views="clr-namespace:ServiPuntos.Mobile.Views"
         x:Class="ServiPuntos.Mobile.Views.AlertsPage"
         Title="Alertas">
 
-        <!-- El padding y el background lo gestiona el estilo global de Page -->
-        <StackLayout Spacing="{StaticResource DefaultSpacing}">
+        <Grid
+                RowDefinitions="*,Auto,Auto"
+                Padding="{StaticResource DefaultSpacing}">
 
-                <!-- Listado de alertas -->
                 <CollectionView
+                        Grid.Row="0"
                         ItemsSource="{Binding Notifications}"
-                        EmptyView="No hay alertas"
+                        RemainingItemsThreshold="5"
+                        RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}"
                         ItemsLayout="VerticalList"
-                        Margin="0,0,0,12">
-                        <!-- antes usabas {StaticResource DefaultSpacing} -->
+                        EmptyView="{x:Null}"
+                        VerticalOptions="FillAndExpand">
+
+                        <CollectionView.EmptyView>
+                                <Label
+                                        Text="No hay alertas"
+                                        Style="{StaticResource Caption}"
+                                        HorizontalOptions="Center"
+                                        VerticalOptions="CenterAndExpand"/>
+                        </CollectionView.EmptyView>
+
                         <CollectionView.ItemTemplate>
                                 <DataTemplate>
-                                        <!-- Card genérico -->
-                                        <Frame Style="{StaticResource CardFrameStyle}">
-                                                <StackLayout Spacing="{StaticResource SmallSpacing}">
-                                                        <!-- Título grande -->
-                                                        <Label
-                                                                Text="{Binding Titulo}"
-                                                                Style="{StaticResource HeadlineLabelStyle}"/>
-
-                                                        <!-- Mensaje normal -->
-                                                        <Label
-                                                                Text="{Binding Mensaje}"
-                                                                Style="{StaticResource Body}"/>
-
-                                                        <Grid ColumnDefinitions="Auto,*,Auto">
-                                                                <!-- Fecha en gris -->
-                                                                <Label
-                                                                        Text="{Binding Fecha, StringFormat='{0:g}'}"
-                                                                        Style="{StaticResource Caption}"
-                                                                        Grid.Column="0"/>
-
-                                                                <!-- Relleno -->
-                                                                <BoxView Grid.Column="1"/>
-
-                                                                <!-- Estado “Leída: True/False” -->
-                                                                <Label
-                                                                        Text="{Binding Leida, StringFormat='Leída: {0}'}"
-                                                                        Style="{StaticResource Caption}"
-                                                                        Grid.Column="2"/>
-                                                        </Grid>
-                                                </StackLayout>
-                                        </Frame>
+                                        <views:AlertItemView/>
                                 </DataTemplate>
                         </CollectionView.ItemTemplate>
                 </CollectionView>
 
-                <!-- Botón primario -->
                 <Button
+                        Grid.Row="1"
                         Text="Actualizar"
                         Command="{Binding RefreshCommand}"
-                        Style="{StaticResource PrimaryButtonStyle}"/>
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Margin="0,12,0,0"/>
 
-                <!-- Spinner centrado -->
                 <ActivityIndicator
+                        Grid.Row="2"
                         IsRunning="{Binding IsBusy}"
                         IsVisible="{Binding IsBusy}"
-                        Style="{StaticResource CenteredIndicatorStyle}"/>
+                        Style="{StaticResource CenteredIndicatorStyle}"
+                        Margin="0,12,0,0"/>
 
-        </StackLayout>
+        </Grid>
 </ContentPage>

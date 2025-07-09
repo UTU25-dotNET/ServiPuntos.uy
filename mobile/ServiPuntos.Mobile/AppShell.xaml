@@ -8,52 +8,9 @@
         Shell.TabBarBackgroundColor="{DynamicResource PrimaryColor}"
         Shell.TabBarForegroundColor="White"
         Shell.TabBarTitleColor="White"
-        Shell.TabBarUnselectedColor="{StaticResource Gray200}">
+        Shell.TabBarUnselectedColor="LightGray">
 
-        <TabBar>
-                <ShellContent Title="Login"
-                              Icon="icon_login.png"
-                              Route="MainPage"
-                              ContentTemplate="{DataTemplate views:LoginPage}"/>
-
-                <ShellContent Title="Saldo"
-                              Icon="icon_points.png"
-                              Route="PointsPage"
-                              ContentTemplate="{DataTemplate views:PointsPage}"/>
-
-                <ShellContent Title="Ofertas"
-                              Icon="icon_offers.png"
-                              Route="OffersPage"
-                              ContentTemplate="{DataTemplate views:OffersPage}"/>
-
-                <ShellContent Title="Alertas"
-                              Icon="icon_alerts.png"
-                              Route="AlertsPage"
-                              ContentTemplate="{DataTemplate views:AlertsPage}"/>
-
-                <ShellContent Title="Canjear"
-                              Icon="icon_redeem.png"
-                              Route="RedemptionPage"
-                              ContentTemplate="{DataTemplate views:RedemptionPage}"/>
-
-                <ShellContent Title="QR"
-                              Icon="icon_qr.png"
-                              Route="QRCodePage"
-                              ContentTemplate="{DataTemplate views:QRCodePage}"/>
-
-                <ShellContent Title="Mis Canjes"
-                              Icon="icon_history.png"
-                              Route="CanjesPage"
-                              ContentTemplate="{DataTemplate views:CanjesPage}"/>
-
-                <ShellContent Title="Historial"
-                              Icon="icon_history_alt.png"
-                              Route="HistoryPage"
-                              ContentTemplate="{DataTemplate views:HistoryPage}"/>
-
-                <ShellContent Title="Perfil"
-                              Icon="icon_profile.png"
-                              Route="ProfilePage"
-                              ContentTemplate="{DataTemplate views:ProfilePage}"/>
+        <TabBar x:Name="RootTabBar">
+                <!-- Se poblará dinámicamente en AppShell.xaml.cs -->
         </TabBar>
 </Shell>

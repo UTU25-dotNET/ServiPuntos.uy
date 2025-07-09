@@ -2,93 +2,43 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:ServiPuntos.Mobile.Views"
     x:Class="ServiPuntos.Mobile.Views.OffersPage"
     Title="Ofertas Flash">
 
-    <!-- Spacing global desde Styles.xaml -->
-    <StackLayout Spacing="{StaticResource DefaultSpacing}">
+    <!-- Usamos un Grid con tres filas: CollectionView crece, luego botón y spinner -->
+    <Grid Padding="{StaticResource PagePadding}"
+          RowDefinitions="*,Auto,Auto"
+          RowSpacing="{StaticResource DefaultSpacing}">
 
-        <!-- Lista de ofertas -->
+        <!-- 1) Lista de ofertas, llena & scrollable -->
         <CollectionView
+            Grid.Row="0"
             ItemsSource="{Binding Offers}"
-            ItemsLayout="VerticalList"
-            Margin="0,0,0,12">
+            RemainingItemsThreshold="5"
+            RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}"
+            VerticalOptions="FillAndExpand">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <!-- Card reutilizable -->
-                    <Frame Style="{StaticResource CardFrameStyle}">
-                        <StackLayout Spacing="{StaticResource SmallSpacing}">
-                            <!-- Título -->
-                            <Label
-                                Text="{Binding Titulo}"
-                                Style="{StaticResource HeadlineLabelStyle}"/>
-
-                            <!-- Descripción -->
-                            <Label
-                                Text="{Binding Descripcion}"
-                                Style="{StaticResource Body}"/>
-
-                            <!-- Precio en puntos -->
-                            <Label
-                                Text="{Binding PrecioEnPuntos, StringFormat='{0} pts'}"
-                                Style="{StaticResource Caption}">
-                                <Label.Triggers>
-                                    <DataTrigger
-                                        TargetType="Label"
-                                        Binding="{Binding PrecioEnPuntos}"
-                                        Value="{x:Null}">
-                                        <Setter Property="IsVisible"
-                                                Value="False"/>
-                                    </DataTrigger>
-                                </Label.Triggers>
-                            </Label>
-
-                            <!-- Precio en pesos -->
-                            <Label
-                                Text="{Binding PrecioEnPesos, StringFormat='${0:F2}'}"
-                                Style="{StaticResource Caption}">
-                                <Label.Triggers>
-                                    <DataTrigger
-                                        TargetType="Label"
-                                        Binding="{Binding PrecioEnPesos}"
-                                        Value="{x:Null}">
-                                        <Setter Property="IsVisible"
-                                                Value="False"/>
-                                    </DataTrigger>
-                                </Label.Triggers>
-                            </Label>
-
-                            <!-- Descuento -->
-                            <Label
-                                Text="{Binding DescuentoEnPesos, StringFormat='Descuento: ${0:F2}'}"
-                                Style="{StaticResource Caption}">
-                                <Label.Triggers>
-                                    <DataTrigger
-                                        TargetType="Label"
-                                        Binding="{Binding DescuentoEnPesos}"
-                                        Value="{x:Null}">
-                                        <Setter Property="IsVisible"
-                                                Value="False"/>
-                                    </DataTrigger>
-                                </Label.Triggers>
-                            </Label>
-                        </StackLayout>
-                    </Frame>
+                    <views:OfferItemView/>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <!-- Botón de refrescar -->
+        <!-- 2) Botón “Actualizar” -->
         <Button
+            Grid.Row="1"
             Text="Actualizar"
             Command="{Binding RefreshCommand}"
-            Style="{StaticResource PrimaryButtonStyle}"/>
+            Style="{StaticResource PrimaryButtonStyle}"
+            Margin="0,0,0,4"/>
 
-        <!-- Indicador de actividad -->
+        <!-- 3) Spinner centrado -->
         <ActivityIndicator
+            Grid.Row="2"
             IsRunning="{Binding IsBusy}"
             IsVisible="{Binding IsBusy}"
             Style="{StaticResource CenteredIndicatorStyle}"/>
 
-    </StackLayout>
+    </Grid>
 </ContentPage>
