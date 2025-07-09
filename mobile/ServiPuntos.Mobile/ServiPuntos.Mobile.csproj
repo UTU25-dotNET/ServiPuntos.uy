@@ -18,6 +18,8 @@
     <ApplicationVersion>1</ApplicationVersion>
 
     <WindowsPackageType>None</WindowsPackageType>
+    <AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
 
     <!-- Versiones mínimas para .NET 9 -->
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>

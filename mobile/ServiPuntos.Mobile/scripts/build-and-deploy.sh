@@ -22,16 +22,16 @@ dotnet build -f net9.0-android
 if [ $? -eq 0 ]; then
     echo "✅ Construcción exitosa!"
     echo "🚀 Publicando aplicación..."
-    dotnet publish -f net9.0-android -c Debug
+    dotnet publish -f net9.0-android -c Release
     
     if [ $? -eq 0 ]; then
         echo "✅ Publicación exitosa!"
         
         # Buscar el APK generado
-        APK_PATH=$(find ./bin/Debug/net9.0-android -name "*-Signed.apk" | head -1)
+        APK_PATH=$(find ./bin/Release/net9.0-android -name "*-Signed.apk" | head -1)
         
         if [ -z "$APK_PATH" ]; then
-            APK_PATH=$(find ./bin/Debug/net9.0-android -name "*.apk" | head -1)
+            APK_PATH=$(find ./bin/Release/net9.0-android -name "*.apk" | head -1)
         fi
         
         if [ -n "$APK_PATH" ]; then
